@@ -1,0 +1,4 @@
+# GIT should ignore:
+axitest_verilog
+
+.Xil

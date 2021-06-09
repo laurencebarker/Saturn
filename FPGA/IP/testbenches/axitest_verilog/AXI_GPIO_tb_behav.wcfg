@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="AXI_GPIO_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="AXI_GPIO_Sim_axi_vip_0_0_pkg" />
+            <top_module name="AXI_GPIO_tb" />
+            <top_module name="\$unit_AXI_GPIO_tb_sv " />
+            <top_module name="axi_vip_pkg" />
+            <top_module name="glbl" />
+            <top_module name="std" />
+            <top_module name="xil_common_vip_pkg" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0fs"></ZoomStartTime>
+      <ZoomEndTime time="18843026fs"></ZoomEndTime>
+      <Cursor1Time time="200000000fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="172"></NameColumnWidth>
+      <ValueColumnWidth column_width="72"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="92" />
+   <wave_markers>
+      <marker time="15211621" label="" />
+   </wave_markers>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/aclk" type="logic">
+      <obj_property name="ElementShortName">aclk</obj_property>
+      <obj_property name="ObjectShortName">aclk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/aresetn" type="logic">
+      <obj_property name="ElementShortName">aresetn</obj_property>
+      <obj_property name="ObjectShortName">aresetn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/MISO" type="logic">
+      <obj_property name="ElementShortName">MISO</obj_property>
+      <obj_property name="ObjectShortName">MISO</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/MOSI" type="logic">
+      <obj_property name="ElementShortName">MOSI</obj_property>
+      <obj_property name="ObjectShortName">MOSI</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/SCLK" type="logic">
+      <obj_property name="ElementShortName">SCLK</obj_property>
+      <obj_property name="ObjectShortName">SCLK</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/nCS" type="logic">
+      <obj_property name="ElementShortName">nCS</obj_property>
+      <obj_property name="ObjectShortName">nCS</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/out_data" type="array">
+      <obj_property name="ElementShortName">out_data[31:0]</obj_property>
+      <obj_property name="ObjectShortName">out_data[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/out_valid" type="logic">
+      <obj_property name="ElementShortName">out_valid</obj_property>
+      <obj_property name="ObjectShortName">out_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/out_ready" type="logic">
+      <obj_property name="ElementShortName">out_ready</obj_property>
+      <obj_property name="ObjectShortName">out_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/in_data" type="array">
+      <obj_property name="ElementShortName">in_data[31:0]</obj_property>
+      <obj_property name="ObjectShortName">in_data[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/in_ready" type="logic">
+      <obj_property name="ElementShortName">in_ready</obj_property>
+      <obj_property name="ObjectShortName">in_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/in_valid" type="logic">
+      <obj_property name="ElementShortName">in_valid</obj_property>
+      <obj_property name="ObjectShortName">in_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/aclk" type="logic">
+      <obj_property name="ElementShortName">aclk</obj_property>
+      <obj_property name="ObjectShortName">aclk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/aresetn" type="logic">
+      <obj_property name="ElementShortName">aresetn</obj_property>
+      <obj_property name="ObjectShortName">aresetn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_awaddr" type="array">
+      <obj_property name="ElementShortName">m_axi_awaddr[31:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axi_awaddr[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_awprot" type="array">
+      <obj_property name="ElementShortName">m_axi_awprot[2:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axi_awprot[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_awvalid" type="logic">
+      <obj_property name="ElementShortName">m_axi_awvalid</obj_property>
+      <obj_property name="ObjectShortName">m_axi_awvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_awready" type="logic">
+      <obj_property name="ElementShortName">m_axi_awready</obj_property>
+      <obj_property name="ObjectShortName">m_axi_awready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_wdata" type="array">
+      <obj_property name="ElementShortName">m_axi_wdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axi_wdata[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_wstrb" type="array">
+      <obj_property name="ElementShortName">m_axi_wstrb[3:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axi_wstrb[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_wvalid" type="logic">
+      <obj_property name="ElementShortName">m_axi_wvalid</obj_property>
+      <obj_property name="ObjectShortName">m_axi_wvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_wready" type="logic">
+      <obj_property name="ElementShortName">m_axi_wready</obj_property>
+      <obj_property name="ObjectShortName">m_axi_wready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_bresp" type="array">
+      <obj_property name="ElementShortName">m_axi_bresp[1:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axi_bresp[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_bvalid" type="logic">
+      <obj_property name="ElementShortName">m_axi_bvalid</obj_property>
+      <obj_property name="ObjectShortName">m_axi_bvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_bready" type="logic">
+      <obj_property name="ElementShortName">m_axi_bready</obj_property>
+      <obj_property name="ObjectShortName">m_axi_bready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_araddr" type="array">
+      <obj_property name="ElementShortName">m_axi_araddr[31:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axi_araddr[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_arprot" type="array">
+      <obj_property name="ElementShortName">m_axi_arprot[2:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axi_arprot[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_arvalid" type="logic">
+      <obj_property name="ElementShortName">m_axi_arvalid</obj_property>
+      <obj_property name="ObjectShortName">m_axi_arvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_arready" type="logic">
+      <obj_property name="ElementShortName">m_axi_arready</obj_property>
+      <obj_property name="ObjectShortName">m_axi_arready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_rdata" type="array">
+      <obj_property name="ElementShortName">m_axi_rdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axi_rdata[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_rresp" type="array">
+      <obj_property name="ElementShortName">m_axi_rresp[1:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axi_rresp[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_rvalid" type="logic">
+      <obj_property name="ElementShortName">m_axi_rvalid</obj_property>
+      <obj_property name="ObjectShortName">m_axi_rvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_rready" type="logic">
+      <obj_property name="ElementShortName">m_axi_rready</obj_property>
+      <obj_property name="ObjectShortName">m_axi_rready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/M_AXI" type="protoinst">
+      <obj_property name="children_use_element_short_name">true</obj_property>
+      <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+      <obj_property name="EnumTransactionColorTable">0=blank 1=#D399FF 2=pink</obj_property>
+      <obj_property name="EnumTransactionValueTable">0=blank;1=Read;2=Write;3=Read/Write</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+      <obj_property name="CustomSignalColor">turquoise</obj_property>
+      <obj_property name="Render_Data">/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/M_AXI.readWriteSummary</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <obj_property name="CellHeight">36</obj_property>
+      <obj_property name="ElementShortName">M_AXI</obj_property>
+      <obj_property name="ObjectShortName">M_AXI</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/aclk" type="logic">
+      <obj_property name="ElementShortName">aclk</obj_property>
+      <obj_property name="ObjectShortName">aclk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/aresetn" type="logic">
+      <obj_property name="ElementShortName">aresetn</obj_property>
+      <obj_property name="ObjectShortName">aresetn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_awaddr" type="array">
+      <obj_property name="ElementShortName">s_axi_awaddr[15:0]</obj_property>
+      <obj_property name="ObjectShortName">s_axi_awaddr[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_awvalid" type="logic">
+      <obj_property name="ElementShortName">s_axi_awvalid</obj_property>
+      <obj_property name="ObjectShortName">s_axi_awvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_awready" type="logic">
+      <obj_property name="ElementShortName">s_axi_awready</obj_property>
+      <obj_property name="ObjectShortName">s_axi_awready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_wdata" type="array">
+      <obj_property name="ElementShortName">s_axi_wdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">s_axi_wdata[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_wvalid" type="logic">
+      <obj_property name="ElementShortName">s_axi_wvalid</obj_property>
+      <obj_property name="ObjectShortName">s_axi_wvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_wready" type="logic">
+      <obj_property name="ElementShortName">s_axi_wready</obj_property>
+      <obj_property name="ObjectShortName">s_axi_wready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_bresp" type="array">
+      <obj_property name="ElementShortName">s_axi_bresp[1:0]</obj_property>
+      <obj_property name="ObjectShortName">s_axi_bresp[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_bvalid" type="logic">
+      <obj_property name="ElementShortName">s_axi_bvalid</obj_property>
+      <obj_property name="ObjectShortName">s_axi_bvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_bready" type="logic">
+      <obj_property name="ElementShortName">s_axi_bready</obj_property>
+      <obj_property name="ObjectShortName">s_axi_bready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_araddr" type="array">
+      <obj_property name="ElementShortName">s_axi_araddr[15:0]</obj_property>
+      <obj_property name="ObjectShortName">s_axi_araddr[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_arvalid" type="logic">
+      <obj_property name="ElementShortName">s_axi_arvalid</obj_property>
+      <obj_property name="ObjectShortName">s_axi_arvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_arready" type="logic">
+      <obj_property name="ElementShortName">s_axi_arready</obj_property>
+      <obj_property name="ObjectShortName">s_axi_arready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_rdata" type="array">
+      <obj_property name="ElementShortName">s_axi_rdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">s_axi_rdata[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_rresp" type="array">
+      <obj_property name="ElementShortName">s_axi_rresp[1:0]</obj_property>
+      <obj_property name="ObjectShortName">s_axi_rresp[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_rvalid" type="logic">
+      <obj_property name="ElementShortName">s_axi_rvalid</obj_property>
+      <obj_property name="ObjectShortName">s_axi_rvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi_rready" type="logic">
+      <obj_property name="ElementShortName">s_axi_rready</obj_property>
+      <obj_property name="ObjectShortName">s_axi_rready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axis_tready" type="logic">
+      <obj_property name="ElementShortName">s_axis_tready</obj_property>
+      <obj_property name="ObjectShortName">s_axis_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axis_tdata" type="array">
+      <obj_property name="ElementShortName">s_axis_tdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">s_axis_tdata[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axis_tvalid" type="logic">
+      <obj_property name="ElementShortName">s_axis_tvalid</obj_property>
+      <obj_property name="ObjectShortName">s_axis_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_0/s_axi" type="protoinst">
+      <obj_property name="ElementShortName">s_axi</obj_property>
+      <obj_property name="ObjectShortName">s_axi</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/fifo1_count" type="array">
+      <obj_property name="ElementShortName">fifo1_count[15:0]</obj_property>
+      <obj_property name="ObjectShortName">fifo1_count[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/fifo1_overflow" type="logic">
+      <obj_property name="ElementShortName">fifo1_overflow</obj_property>
+      <obj_property name="ObjectShortName">fifo1_overflow</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/fifo2_count" type="array">
+      <obj_property name="ElementShortName">fifo2_count[15:0]</obj_property>
+      <obj_property name="ObjectShortName">fifo2_count[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/fifo2_overflow" type="logic">
+      <obj_property name="ElementShortName">fifo2_overflow</obj_property>
+      <obj_property name="ObjectShortName">fifo2_overflow</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/fifo3_count" type="array">
+      <obj_property name="ElementShortName">fifo3_count[15:0]</obj_property>
+      <obj_property name="ObjectShortName">fifo3_count[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/fifo3_overflow" type="logic">
+      <obj_property name="ElementShortName">fifo3_overflow</obj_property>
+      <obj_property name="ObjectShortName">fifo3_overflow</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/fifo4_count" type="array">
+      <obj_property name="ElementShortName">fifo4_count[15:0]</obj_property>
+      <obj_property name="ObjectShortName">fifo4_count[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/fifo4_overflow" type="logic">
+      <obj_property name="ElementShortName">fifo4_overflow</obj_property>
+      <obj_property name="ObjectShortName">fifo4_overflow</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/int1_out" type="logic">
+      <obj_property name="ElementShortName">int1_out</obj_property>
+      <obj_property name="ObjectShortName">int1_out</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/int2_out" type="logic">
+      <obj_property name="ElementShortName">int2_out</obj_property>
+      <obj_property name="ObjectShortName">int2_out</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/int3_out" type="logic">
+      <obj_property name="ElementShortName">int3_out</obj_property>
+      <obj_property name="ObjectShortName">int3_out</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/int4_out" type="logic">
+      <obj_property name="ElementShortName">int4_out</obj_property>
+      <obj_property name="ObjectShortName">int4_out</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/overrange1" type="logic">
+      <obj_property name="ElementShortName">overrange1</obj_property>
+      <obj_property name="ObjectShortName">overrange1</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/overrange2" type="logic">
+      <obj_property name="ElementShortName">overrange2</obj_property>
+      <obj_property name="ObjectShortName">overrange2</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/ADC_overrange_reader_0/inst/rdatareg" type="array">
+      <obj_property name="ElementShortName">rdatareg[31:0]</obj_property>
+      <obj_property name="ObjectShortName">rdatareg[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_SPI_ADC_0/inst/AIN1" type="array">
+      <obj_property name="ElementShortName">AIN1[11:0]</obj_property>
+      <obj_property name="ObjectShortName">AIN1[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_SPI_ADC_0/inst/AIN2" type="array">
+      <obj_property name="ElementShortName">AIN2[11:0]</obj_property>
+      <obj_property name="ObjectShortName">AIN2[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_SPI_ADC_0/inst/AIN3" type="array">
+      <obj_property name="ElementShortName">AIN3[11:0]</obj_property>
+      <obj_property name="ObjectShortName">AIN3[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_SPI_ADC_0/inst/AIN4" type="array">
+      <obj_property name="ElementShortName">AIN4[11:0]</obj_property>
+      <obj_property name="ObjectShortName">AIN4[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_SPI_ADC_0/inst/AIN5" type="array">
+      <obj_property name="ElementShortName">AIN5[11:0]</obj_property>
+      <obj_property name="ObjectShortName">AIN5[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_SPI_ADC_0/inst/AIN6" type="array">
+      <obj_property name="ElementShortName">AIN6[11:0]</obj_property>
+      <obj_property name="ObjectShortName">AIN6[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_SPI_ADC_0/inst/ADC_address" type="array">
+      <obj_property name="ElementShortName">ADC_address[15:0]</obj_property>
+      <obj_property name="ObjectShortName">ADC_address[15:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_SPI_ADC_0/inst/ADC_data" type="array">
+      <obj_property name="ElementShortName">ADC_data[15:0]</obj_property>
+      <obj_property name="ObjectShortName">ADC_data[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_SPI_ADC_0/inst/ADC_state" type="array">
+      <obj_property name="ElementShortName">ADC_state[2:0]</obj_property>
+      <obj_property name="ObjectShortName">ADC_state[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_SPI_ADC_0/inst/clear_AIN1" type="logic">
+      <obj_property name="ElementShortName">clear_AIN1</obj_property>
+      <obj_property name="ObjectShortName">clear_AIN1</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_SPI_ADC_0/inst/clear_AIN2" type="logic">
+      <obj_property name="ElementShortName">clear_AIN2</obj_property>
+      <obj_property name="ObjectShortName">clear_AIN2</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_SPI_ADC_0/inst/release_clear_AIN1" type="logic">
+      <obj_property name="ElementShortName">release_clear_AIN1</obj_property>
+      <obj_property name="ObjectShortName">release_clear_AIN1</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_SPI_ADC_0/inst/release_clear_AIN2" type="logic">
+      <obj_property name="ElementShortName">release_clear_AIN2</obj_property>
+      <obj_property name="ObjectShortName">release_clear_AIN2</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/TX_Strobe" type="logic">
+      <obj_property name="ElementShortName">TX_Strobe</obj_property>
+      <obj_property name="ObjectShortName">TX_Strobe</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/SPI_ck" type="logic">
+      <obj_property name="ElementShortName">SPI_ck</obj_property>
+      <obj_property name="ObjectShortName">SPI_ck</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/SPI_data" type="logic">
+      <obj_property name="ElementShortName">SPI_data</obj_property>
+      <obj_property name="ObjectShortName">SPI_data</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/Rx_load_strobe" type="logic">
+      <obj_property name="ElementShortName">Rx_load_strobe</obj_property>
+      <obj_property name="ObjectShortName">Rx_load_strobe</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/Tx_load_strobe" type="logic">
+      <obj_property name="ElementShortName">Tx_load_strobe</obj_property>
+      <obj_property name="ObjectShortName">Tx_load_strobe</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXILite_Alex_SPI_0/inst/axiTXdatareg" type="array">
+      <obj_property name="ElementShortName">axiTXdatareg[31:0]</obj_property>
+      <obj_property name="ObjectShortName">axiTXdatareg[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXILite_Alex_SPI_0/inst/TXdatareg" type="array">
+      <obj_property name="ElementShortName">TXdatareg[31:0]</obj_property>
+      <obj_property name="ObjectShortName">TXdatareg[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXILite_Alex_SPI_0/inst/axiRXdatareg" type="array">
+      <obj_property name="ElementShortName">axiRXdatareg[31:0]</obj_property>
+      <obj_property name="ObjectShortName">axiRXdatareg[31:0]</obj_property>
+   </wvobject>
+</wave_config>
