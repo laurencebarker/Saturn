@@ -1,3 +1,4 @@
+#modified LVB 27/6/2021 to make depmod a separate line item for install
 SHELL = /bin/bash
 ifneq ($(xvc_bar_num),)
 	XVC_FLAGS += -D__XVC_BAR_NUM__=$(xvc_bar_num)
@@ -32,5 +33,6 @@ clean:
 
 install: all
 	$(MAKE) -C $(BUILDSYSTEM_DIR) M=$(PWD) modules_install
+	depmod -A
 
 endif

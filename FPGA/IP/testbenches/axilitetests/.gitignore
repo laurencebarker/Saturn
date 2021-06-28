@@ -1,0 +1,4 @@
+# GIT should ignore:
+axilite_testbench
+
+.Xil
