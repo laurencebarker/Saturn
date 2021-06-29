@@ -1,1 +1,0 @@
-This folder holds files reused from Xilinx SDK at https://github.com/Xilinx/embeddedsw. Some files were modified some weren't.

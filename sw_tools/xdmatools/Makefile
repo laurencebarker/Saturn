@@ -1,6 +1,6 @@
 CC ?= gcc
 
-all: reg_rw userio_rw dma_to_device dma_from_device performance readconsts readdma
+all: reg_rw userio_rw dma_to_device dma_from_device performance
 
 dma_to_device: dma_to_device.o
 	$(CC) -lrt -o $@ $< -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -D_LARGE_FILE_SOURCE
@@ -17,15 +17,9 @@ reg_rw: reg_rw.o
 userio_rw: userio_rw.o
 	$(CC) -o $@ $<
 
-readconsts: readconsts.o
-	$(CC) -o $@ $<
-
-readdma: readdma.o
-	$(CC) -o $@ $<
-
 %.o: %.c
 	$(CC) -c -std=c99 -o $@ $< -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -D_LARGE_FILE_SOURCE
 
 clean:
-	rm -rf reg_rw *.o *.bin dma_to_device dma_from_device performance readconsts userio_rw readdma
+	rm -rf reg_rw *.o *.bin dma_to_device dma_from_device performance userio_rw
 
