@@ -1,0 +1,9 @@
+# GIT should ignore:
+cwkeyer_test.cache
+cwkeyer_test.gen
+cwkeyer_test.hw
+cwkeyer_test.ip_user_files
+cwkeyer_test.sim
+cwkeyer_test.srcs
+
+.Xil

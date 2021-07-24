@@ -21,8 +21,8 @@
   
 module axi_stream_interleaver_tb();
   
-//////////////////////////////////////////////////////////////////////////////////
-// Test Bench Signals
+////////////////////////////////////////////////////////////////////////////////// 
+// axi stream interleaver Test Bench Signals
 // use wire to connect a module output
 // use reg to connect a module input
 //////////////////////////////////////////////////////////////////////////////////  
@@ -107,80 +107,314 @@ always #(CLK_PERIOD/2) aclk = ~aclk;
     @(posedge aclk)
     @(posedge aclk)
     @(posedge aclk)
+    
+    
     #2                                    // 2ns delay  
     s00_axis_tdata = 24'h500000;          // new data, assert valid
     s01_axis_tdata = 24'h500100;
     s00_axis_tvalid = 1;
     s01_axis_tvalid = 1;
-
     @(posedge aclk)
     #2
     s00_axis_tvalid = 0;                        // deassert valid
     s01_axis_tvalid = 0;
-
     @(posedge aclk)
     @(posedge aclk)
     @(posedge aclk)
     @(posedge aclk)
     @(posedge aclk)
+    
+    
+    
     #2
     s00_axis_tdata = 24'h500001;          // new data, assert valid
     s01_axis_tdata = 24'h500101;
     s00_axis_tvalid = 1;
     s01_axis_tvalid = 1;
-
     @(posedge aclk)
     #2
     s00_axis_tvalid = 0;                        // deassert valid
     s01_axis_tvalid = 0;
-
     @(posedge aclk)
     @(posedge aclk)
     @(posedge aclk)
     @(posedge aclk)
     @(posedge aclk)
+    
+    
+    
     #2
     s00_axis_tdata = 24'h500002;          // new data, assert valid
     s01_axis_tdata = 24'h500102;
     s00_axis_tvalid = 1;
     s01_axis_tvalid = 1;
-
     @(posedge aclk)
     #2
     s00_axis_tvalid = 0;                        // deassert valid
     s01_axis_tvalid = 0;
-
     @(posedge aclk)
     @(posedge aclk)
     @(posedge aclk)
     @(posedge aclk)
     @(posedge aclk)
+    
+    
+    
     #2
     s00_axis_tdata = 24'h500003;          // new data, assert valid
     s01_axis_tdata = 24'h500103;
     s00_axis_tvalid = 1;
     s01_axis_tvalid = 1;
-
     @(posedge aclk)
     #2
     s00_axis_tvalid = 0;                        // deassert valid
     s01_axis_tvalid = 0;
-
     @(posedge aclk)
     @(posedge aclk)
     @(posedge aclk)
     @(posedge aclk)
     @(posedge aclk)
+    
+    
+    
     #2
     s00_axis_tdata = 24'h500004;          // new data, assert valid
     s01_axis_tdata = 24'h500104;
     s00_axis_tvalid = 1;
     s01_axis_tvalid = 1;
-
     @(posedge aclk)
     #2
     s00_axis_tvalid = 0;                        // deassert valid
     s01_axis_tvalid = 0;
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    
+    
+    
+    #2
+    s00_axis_tdata = 24'h500005;          // new data, assert valid
+    s01_axis_tdata = 24'h500105;
+    s00_axis_tvalid = 1;
+    s01_axis_tvalid = 1;
+    @(posedge aclk)
+    #2
+    s00_axis_tvalid = 0;                        // deassert valid
+    s01_axis_tvalid = 0;
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    
+    
+    
+    #2
+    enabled = 0;
+    s00_axis_tdata = 24'h500006;          // new data, assert valid
+    s01_axis_tdata = 24'h500106;
+    s00_axis_tvalid = 1;
+    s01_axis_tvalid = 1;
+    @(posedge aclk)
+    #2
+    s00_axis_tvalid = 0;                        // deassert valid
+    s01_axis_tvalid = 0;
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    
+    
+    
+    #2
+    interleave = 1;
+    s00_axis_tdata = 24'h500007;          // new data, assert valid
+    s01_axis_tdata = 24'h500107;
+    s00_axis_tvalid = 1;
+    s01_axis_tvalid = 1;
+    @(posedge aclk)
+    #2
+    s00_axis_tvalid = 0;                        // deassert valid
+    s01_axis_tvalid = 0;
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    
+    
+    
+    #2
+    s00_axis_tdata = 24'h500008;          // new data, assert valid
+    s01_axis_tdata = 24'h500108;
+    s00_axis_tvalid = 1;
+    s01_axis_tvalid = 1;
+    @(posedge aclk)
+    #2
+    s00_axis_tvalid = 0;                        // deassert valid
+    s01_axis_tvalid = 0;
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    
+    
+    
+    #2
+    enabled=1;
+    s00_axis_tdata = 24'h500009;          // new data, assert valid
+    s01_axis_tdata = 24'h500109;
+    s00_axis_tvalid = 1;
+    s01_axis_tvalid = 1;
+    @(posedge aclk)
+    #2
+    s00_axis_tvalid = 0;                        // deassert valid
+    s01_axis_tvalid = 0;
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    
+    
+    
+    #2
+    s00_axis_tdata = 24'h50000a;          // new data, assert valid
+    s01_axis_tdata = 24'h50010a;
+    s00_axis_tvalid = 1;
+    s01_axis_tvalid = 1;
+    @(posedge aclk)
+    #2
+    s00_axis_tvalid = 0;                        // deassert valid
+    s01_axis_tvalid = 0;
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+
+
+
+    #2
+    s00_axis_tdata = 24'h50000b;          // new data, assert valid
+    s01_axis_tdata = 24'h50010b;
+    s00_axis_tvalid = 1;
+    s01_axis_tvalid = 1;
+    @(posedge aclk)
+    #2
+    s00_axis_tvalid = 0;                        // deassert valid
+    s01_axis_tvalid = 0;
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+
+
+
+    #2
+    s00_axis_tdata = 24'h50000c;          // new data, assert valid
+    s01_axis_tdata = 24'h50010c;
+    s00_axis_tvalid = 1;
+    s01_axis_tvalid = 1;
+    @(posedge aclk)
+    #2
+    s00_axis_tvalid = 0;                        // deassert valid
+    s01_axis_tvalid = 0;
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+
+
+
+    #2
+    s00_axis_tdata = 24'h50000d;          // new data, assert valid
+    s01_axis_tdata = 24'h50010d;
+    s00_axis_tvalid = 1;
+    s01_axis_tvalid = 1;
+    @(posedge aclk)
+    #2
+    s00_axis_tvalid = 0;                        // deassert valid
+    s01_axis_tvalid = 0;
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+
+
+
+    #2
+    s00_axis_tdata = 24'h50000e;          // new data, assert valid
+    s01_axis_tdata = 24'h50010e;
+    s00_axis_tvalid = 1;
+    s01_axis_tvalid = 1;
+    @(posedge aclk)
+    #2
+    s00_axis_tvalid = 0;                        // deassert valid
+    s01_axis_tvalid = 0;
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+
+
+
+    #2
+    s00_axis_tdata = 24'h50000f;          // new data, assert valid
+    s01_axis_tdata = 24'h50010f;
+    s00_axis_tvalid = 1;
+    s01_axis_tvalid = 1;
+    @(posedge aclk)
+    #2
+    s00_axis_tvalid = 0;                        // deassert valid
+    s01_axis_tvalid = 0;
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+
+
+
+    #2
+    s00_axis_tdata = 24'h500010;          // new data, assert valid
+    s01_axis_tdata = 24'h500110;
+    s00_axis_tvalid = 1;
+    s01_axis_tvalid = 1;
+    @(posedge aclk)
+    #2
+    s00_axis_tvalid = 0;                        // deassert valid
+    s01_axis_tvalid = 0;
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+    @(posedge aclk)
+
+
+
+    #2
+    s00_axis_tdata = 24'h500011;          // new data, assert valid
+    s01_axis_tdata = 24'h500111;
+    s00_axis_tvalid = 1;
+    s01_axis_tvalid = 1;
+    @(posedge aclk)
+    #2
+    s00_axis_tvalid = 0;                        // deassert valid
+    s01_axis_tvalid = 0;
+//    @(posedge aclk)                           // end can't follow these constructs!
+//    @(posedge aclk)                           // don't know why!
+//    @(posedge aclk)
+//    @(posedge aclk)
+//    @(posedge aclk)
     
   end
 endmodule
