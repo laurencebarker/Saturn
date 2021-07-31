@@ -3,67 +3,72 @@
    <wave_state>
    </wave_state>
    <db_ref_list>
-      <db_ref path="keyer_tb_behav.wdb" id="1">
+      <db_ref path="axis_multiplier_tb_behav.wdb" id="1">
          <top_modules>
+            <top_module name="axis_multiplier_tb" />
             <top_module name="glbl" />
-            <top_module name="keyer_tb" />
          </top_modules>
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="27.547427964 ms"></ZoomStartTime>
-      <ZoomEndTime time="39.437427965 ms"></ZoomEndTime>
-      <Cursor1Time time="37.967427964 ms"></Cursor1Time>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,318.001 ns"></ZoomEndTime>
+      <Cursor1Time time="10,000.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="278"></NameColumnWidth>
-      <ValueColumnWidth column_width="131"></ValueColumnWidth>
+      <ValueColumnWidth column_width="91"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="10" />
+   <WVObjectSize size="11" />
    <wave_markers>
-      <marker time="1840000000" label="" />
+      <marker time="28100000000" label="" />
+      <marker time="8411814150" label="" />
    </wave_markers>
-   <wvobject fp_name="/keyer_tb/aclk" type="logic">
+   <wvobject fp_name="/axis_multiplier_tb/aclk" type="logic">
       <obj_property name="ElementShortName">aclk</obj_property>
       <obj_property name="ObjectShortName">aclk</obj_property>
    </wvobject>
-   <wvobject fp_name="/keyer_tb/aresetn" type="logic">
+   <wvobject fp_name="/axis_multiplier_tb/aresetn" type="logic">
       <obj_property name="ElementShortName">aresetn</obj_property>
       <obj_property name="ObjectShortName">aresetn</obj_property>
    </wvobject>
-   <wvobject fp_name="/keyer_tb/delay_time" type="array">
-      <obj_property name="ElementShortName">delay_time[7:0]</obj_property>
-      <obj_property name="ObjectShortName">delay_time[7:0]</obj_property>
+   <wvobject fp_name="/axis_multiplier_tb/s00_axis_tdata" type="array">
+      <obj_property name="ElementShortName">s00_axis_tdata[15:0]</obj_property>
+      <obj_property name="ObjectShortName">s00_axis_tdata[15:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/keyer_tb/hang_time" type="array">
-      <obj_property name="ElementShortName">hang_time[9:0]</obj_property>
-      <obj_property name="ObjectShortName">hang_time[9:0]</obj_property>
+   <wvobject fp_name="/axis_multiplier_tb/s00_axis_tvalid" type="logic">
+      <obj_property name="ElementShortName">s00_axis_tvalid</obj_property>
+      <obj_property name="ObjectShortName">s00_axis_tvalid</obj_property>
    </wvobject>
-   <wvobject fp_name="/keyer_tb/key_down" type="logic">
-      <obj_property name="ElementShortName">key_down</obj_property>
-      <obj_property name="ObjectShortName">key_down</obj_property>
+   <wvobject fp_name="/axis_multiplier_tb/s00_axis_tready" type="logic">
+      <obj_property name="ElementShortName">s00_axis_tready</obj_property>
+      <obj_property name="ObjectShortName">s00_axis_tready</obj_property>
    </wvobject>
-   <wvobject fp_name="/keyer_tb/keyer_enable" type="logic">
-      <obj_property name="ElementShortName">keyer_enable</obj_property>
-      <obj_property name="ObjectShortName">keyer_enable</obj_property>
+   <wvobject fp_name="/axis_multiplier_tb/s01_axis_tdata" type="array">
+      <obj_property name="ElementShortName">s01_axis_tdata[15:0]</obj_property>
+      <obj_property name="ObjectShortName">s01_axis_tdata[15:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/keyer_tb/protocol_2" type="logic">
-      <obj_property name="ElementShortName">protocol_2</obj_property>
-      <obj_property name="ObjectShortName">protocol_2</obj_property>
+   <wvobject fp_name="/axis_multiplier_tb/s01_axis_tvalid" type="logic">
+      <obj_property name="ElementShortName">s01_axis_tvalid</obj_property>
+      <obj_property name="ObjectShortName">s01_axis_tvalid</obj_property>
    </wvobject>
-   <wvobject fp_name="/keyer_tb/CW_PTT" type="logic">
-      <obj_property name="ElementShortName">CW_PTT</obj_property>
-      <obj_property name="ObjectShortName">CW_PTT</obj_property>
+   <wvobject fp_name="/axis_multiplier_tb/s01_axis_tready" type="logic">
+      <obj_property name="ElementShortName">s01_axis_tready</obj_property>
+      <obj_property name="ObjectShortName">s01_axis_tready</obj_property>
    </wvobject>
-   <wvobject fp_name="/keyer_tb/m_axis_tdata" type="array">
-      <obj_property name="ElementShortName">m_axis_tdata[31:0]</obj_property>
-      <obj_property name="ObjectShortName">m_axis_tdata[31:0]</obj_property>
-      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
-      <obj_property name="CellHeight">100</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   <wvobject fp_name="/axis_multiplier_tb/m_axis_tdata" type="array">
+      <obj_property name="ElementShortName">m_axis_tdata[15:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axis_tdata[15:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/keyer_tb/m_axis_tvalid" type="logic">
+   <wvobject fp_name="/axis_multiplier_tb/m_axis_tvalid" type="logic">
       <obj_property name="ElementShortName">m_axis_tvalid</obj_property>
       <obj_property name="ObjectShortName">m_axis_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/axis_multiplier_tb/m_axis_tready" type="logic">
+      <obj_property name="ElementShortName">m_axis_tready</obj_property>
+      <obj_property name="ObjectShortName">m_axis_tready</obj_property>
    </wvobject>
 </wave_config>
