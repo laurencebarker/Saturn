@@ -52,7 +52,8 @@ bit[31:0]  offset_addr, base_addr = 32'h44A0_0000;
 xil_axi_uint                mtestID;
 xil_axi_ulong               mtestADDR;
 xil_axi_len_t               mtestBurstLength= 'd4;
-xil_axi_size_t              mtestDataSize=xil_axi_size_t'(xil_clog2((32)/8));
+//xil_axi_size_t              mtestDataSize=xil_axi_size_t'(xil_clog2((32)/8));
+xil_axi_size_t              mtestDataSize=xil_axi_size_t'(xil_clog2((64)/8));
 xil_axi_burst_t             mtestBurstType =  XIL_AXI_BURST_TYPE_INCR;
 xil_axi_lock_t              mtestLOCK = XIL_AXI_ALOCK_NOLOCK;
 xil_axi_cache_t             mtestCacheType = 3;
@@ -61,20 +62,20 @@ xil_axi_region_t            mtestRegion=0;
 xil_axi_qos_t               mtestQOS=0;
 xil_axi_data_beat           dbeat;
 xil_axi_user_beat           usrbeat;
-xil_axi_data_beat [31:0]    mtestWUSER;
+xil_axi_data_beat [63:0]    mtestWUSER;
 xil_axi_data_beat           mtestAWUSER = 'h0;
 xil_axi_data_beat           mtestARUSER = 0;
-xil_axi_data_beat [31:0]    mtestRUSER;
+xil_axi_data_beat [63:0]    mtestRUSER;
 xil_axi_uint                mtestBUSER = 0;
 xil_axi_resp_t              mtestBresp;
 xil_axi_resp_t[31:0]        mtestRresp;
 
-bit [31:0]                  mtestWData = 32'h12345678, mtestWData1 = 32'h87654321, mtestWData2 = 32'h00005678,   mtestWData3 = 32'h1234000;
+bit [63:0]                  mtestWData = 64'h1111111112345678, mtestWData1 = 64'h1111111187654321, mtestWData2 = 64'h1111111100005678,   mtestWData3 = 64'h111111111234000;
 bit [32767:0]                           mtestWDataBlock;
 bit [32767:0]                           mtestRDataBlock;
 
 
-bit [31:0]                  mtestRData;
+bit [63:0]                  mtestRData;
 
 
 module AXI_GPIO_tb( );
@@ -138,11 +139,11 @@ master_agent.start_master();
 mtestID = 0;
 mtestADDR = 32'h44A0_0000;
 mtestBurstLength = 'd2;                     // 3 beats
-mtestWDataBlock[31:0] = 32'hdeadbeef;
-mtestWDataBlock[63:32] = 32'hbeef0001;
-mtestWDataBlock[95:64] = 32'hdead0002;
+mtestWDataBlock[63:0] = 64'h11111111deadbeef;
+mtestWDataBlock[127:64] = 64'h11111111beef0001;
+mtestWDataBlock[191:128] = 64'h11111111dead0002;
 
-$display("1st write (3 beats) to stream reader/writer: data = 0x%x", mtestWData);    
+$display("1st write (3 beats each 64 bits) to stream reader/writer:");    
 master_agent.AXI4_WRITE_BURST(
         mtestID,
         mtestADDR,
@@ -160,9 +161,16 @@ master_agent.AXI4_WRITE_BURST(
         mtestBresp
       );  
 
-$display("2nd write (1 beat) to stream reader/writer: data = 0x%x", mtestWData);    
-mtestBurstLength = 'd0;                     // 1 beat
-mtestWData = 32'hace80003;
+
+#200ns
+mtestID = 0;
+mtestADDR = 32'h44A0_0000;
+mtestBurstLength = 'd2;                     // 3 beats
+mtestWDataBlock[63:0] = 64'h22222222deadbeef;
+mtestWDataBlock[127:64] = 64'h22222222beef0001;
+mtestWDataBlock[191:128] = 64'h22222222dead0002;
+
+$display("2nd write (3 beats each 64 bits) to stream reader/writer:");    
 master_agent.AXI4_WRITE_BURST(
         mtestID,
         mtestADDR,
@@ -175,10 +183,95 @@ master_agent.AXI4_WRITE_BURST(
         mtestRegion,
         mtestQOS,
         mtestAWUSER,
-        mtestWData,
+        mtestWDataBlock,
         mtestWUSER,
         mtestBresp
       );  
+
+
+#200ns
+mtestID = 0;
+mtestADDR = 32'h44A0_0000;
+mtestBurstLength = 'd2;                     // 3 beats
+mtestWDataBlock[63:0] = 64'h33333333deadbeef;
+mtestWDataBlock[127:64] = 64'h33333333beef0001;
+mtestWDataBlock[191:128] = 64'h33333333dead0002;
+
+$display("3rd write (3 beats each 64 bits) to stream reader/writer:");    
+master_agent.AXI4_WRITE_BURST(
+        mtestID,
+        mtestADDR,
+        mtestBurstLength,
+        mtestDataSize,
+        mtestBurstType,
+        mtestLOCK,
+        mtestCacheType,
+        mtestProtectionType,
+        mtestRegion,
+        mtestQOS,
+        mtestAWUSER,
+        mtestWDataBlock,
+        mtestWUSER,
+        mtestBresp
+      );  
+
+#100ns
+mtestBurstLength = 'd0;                     // 1 beat
+master_agent.AXI4_READ_BURST(
+mtestID,
+mtestADDR,
+mtestBurstLength,
+mtestDataSize,
+mtestBurstType,
+mtestLOCK,
+mtestCacheType,
+mtestProtectionType,
+mtestRegion,
+mtestQOS,
+mtestARUSER,
+mtestRData,
+mtestRresp,
+mtestRUSER
+);
+$display("1st 64bit read stream reader/writer: data = 0x%x", mtestRData);    
+
+
+master_agent.AXI4_READ_BURST(
+mtestID,
+mtestADDR,
+mtestBurstLength,
+mtestDataSize,
+mtestBurstType,
+mtestLOCK,
+mtestCacheType,
+mtestProtectionType,
+mtestRegion,
+mtestQOS,
+mtestARUSER,
+mtestRData,
+mtestRresp,
+mtestRUSER
+);
+$display("2nd 64bit read stream reader/writer: data = 0x%x", mtestRData);    
+
+
+master_agent.AXI4_READ_BURST(
+mtestID,
+mtestADDR,
+mtestBurstLength,
+mtestDataSize,
+mtestBurstType,
+mtestLOCK,
+mtestCacheType,
+mtestProtectionType,
+mtestRegion,
+mtestQOS,
+mtestARUSER,
+mtestRData,
+mtestRresp,
+mtestRUSER
+);
+$display("3nd 64bit read stream reader/writer: data = 0x%x", mtestRData);    
 
 
 #100ns
@@ -199,7 +292,7 @@ mtestRData,
 mtestRresp,
 mtestRUSER
 );
-$display("1st 32bit read stream reader/writer: data = 0x%x", mtestRData);    
+$display("4th 64bit read stream reader/writer: data = 0x%x", mtestRData);    
 
 
 master_agent.AXI4_READ_BURST(
@@ -218,10 +311,9 @@ mtestRData,
 mtestRresp,
 mtestRUSER
 );
-$display("2nd 32bit read stream reader/writer: data = 0x%x", mtestRData);    
+$display("5th 64bit read stream reader/writer: data = 0x%x", mtestRData);    
 
 
-mtestBurstLength = 'd1;                     // 2 beats
 master_agent.AXI4_READ_BURST(
 mtestID,
 mtestADDR,
@@ -234,11 +326,71 @@ mtestProtectionType,
 mtestRegion,
 mtestQOS,
 mtestARUSER,
-mtestRDataBlock,
+mtestRData,
 mtestRresp,
 mtestRUSER
 );
-$display("3rd 64bit read stream reader/writer: data = 0x%x", mtestRDataBlock[63:0]);    
+$display("6th 64bit read stream reader/writer: data = 0x%x", mtestRData);    
+
+
+
+#100ns
+mtestBurstLength = 'd0;                     // 1 beat
+master_agent.AXI4_READ_BURST(
+mtestID,
+mtestADDR,
+mtestBurstLength,
+mtestDataSize,
+mtestBurstType,
+mtestLOCK,
+mtestCacheType,
+mtestProtectionType,
+mtestRegion,
+mtestQOS,
+mtestARUSER,
+mtestRData,
+mtestRresp,
+mtestRUSER
+);
+$display("7th 64bit read stream reader/writer: data = 0x%x", mtestRData);    
+
+
+master_agent.AXI4_READ_BURST(
+mtestID,
+mtestADDR,
+mtestBurstLength,
+mtestDataSize,
+mtestBurstType,
+mtestLOCK,
+mtestCacheType,
+mtestProtectionType,
+mtestRegion,
+mtestQOS,
+mtestARUSER,
+mtestRData,
+mtestRresp,
+mtestRUSER
+);
+$display("8th 64bit read stream reader/writer: data = 0x%x", mtestRData);    
+
+
+master_agent.AXI4_READ_BURST(
+mtestID,
+mtestADDR,
+mtestBurstLength,
+mtestDataSize,
+mtestBurstType,
+mtestLOCK,
+mtestCacheType,
+mtestProtectionType,
+mtestRegion,
+mtestQOS,
+mtestARUSER,
+mtestRData,
+mtestRresp,
+mtestRUSER
+);
+$display("9th 64bit read stream reader/writer: data = 0x%x", mtestRData);    
 
 
 
