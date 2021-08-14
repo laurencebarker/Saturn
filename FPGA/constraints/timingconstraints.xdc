@@ -174,7 +174,8 @@ set_multicycle_path -hold -from [get_clocks -of_objects [get_pins -hierarchical 
 
 ## timing exceptions
 # asynchronous reset out from PCIe core into synchronising double D flip flop
-set_false_path -from [get_pins saturn_top_i/PCIe/xdma_0/inst/saturn_top_xdma_0_0_pcie2_to_pcie3_wrapper_i/pcie2_ip_i/inst/inst/user_reset_out_reg/C] -to [get_pins {saturn_top_i/PCIe/Double_D_register_0/inst/Intermediate_reg[0]/D}]
+set_false_path -from [get_pins saturn_top_i/PCIe/xdma_0/inst/saturn_top_xdma_0_1_pcie2_to_pcie3_wrapper_i/pcie2_ip_i/inst/inst/user_reset_out_reg/C] -to [get_pins {saturn_top_i/PCIe/Double_D_register_syncareset/inst/Intermediate_reg[0]/D}]
+set_false_path -from [get_pins saturn_top_i/PCIe/xdma_0/inst/saturn_top_xdma_0_1_pcie2_to_pcie3_wrapper_i/pcie2_ip_i/inst/inst/user_reset_out_reg/C] -to [get_pins {saturn_top_i/PCIe/Double_D_register_syncareset1/inst/Intermediate_reg[0]/D}]
 # asynchronous reset in to pcie express core (copied from xilinx example design)
 set_false_path -from [get_ports pcie_reset_n]
 # asynchronous TX enable input
