@@ -270,29 +270,29 @@ module FIFO_Monitor #
         rvalidreg <= 1'b1;                                  // signal ready to complete data
         case (raddrreg[4:2])
         0:  rdatareg <= {fifo1_overflowed, 
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 1){1'b0}}, 
-                    fifo1_count_reg};                        // concat data
+                    15'b0, 
+                    fifo1_count_reg[15:0]};                        // concat data
         1:  rdatareg <= {fifo2_overflowed, 
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 1){1'b0}}, 
-                    fifo2_count_reg};                        // concat data
+                    15'b0, 
+                    fifo2_count_reg[15:0]};                        // concat data
         2:  rdatareg <= {fifo3_overflowed, 
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 1){1'b0}}, 
-                    fifo3_count_reg};                        // concat data
+                    15'b0, 
+                    fifo3_count_reg[15:0]};                        // concat data
         3:  rdatareg <= {fifo4_overflowed, 
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 1){1'b0}}, 
-                    fifo4_count_reg};                        // concat data
+                    15'b0, 
+                    fifo4_count_reg[15:0]};                        // concat data
         4: rdatareg <= {int1_enable, fifo1_writeable, 
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 2){1'b0}}, 
-                    fifo1_threshold};                        //concat 
+                    14'b0, 
+                    fifo1_threshold[15:0]};                        //concat 
         5: rdatareg <= {int2_enable, fifo2_writeable, 
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 2){1'b0}}, 
-                    fifo2_threshold};                        //concat 
+                    14'b0, 
+                    fifo2_threshold[15:0]};                        //concat 
         6: rdatareg <= {int3_enable, fifo3_writeable, 
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 2){1'b0}}, 
-                    fifo3_threshold};                        //concat 
+                    14'b0, 
+                    fifo3_threshold[15:0]};                        //concat 
         7: rdatareg <= {int4_enable, fifo4_writeable, 
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 2){1'b0}}, 
-                    fifo4_threshold};                        //concat 
+                    14'b0, 
+                    fifo4_threshold[15:0]};                        //concat 
         endcase
       end
 // read step 4. When rvalid and rready, terminate the transaction & clear data.

@@ -37,7 +37,12 @@ module AXI_Stream_Reader_Writer #
 )
 (
   // System signals
+(* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 ACLK CLK" *)
+(* X_INTERFACE_PARAMETER = "ASSOCIATED_RESET aresetn" *)
   input  wire                      aclk,
+
+(* X_INTERFACE_INFO = "xilinx.com:signal:reset:1.0 aresetn RST" *)
+(* X_INTERFACE_PARAMETER = "POLARITY ACTIVE_LOW" *)
   input  wire                      aresetn,
 
   // Slave side

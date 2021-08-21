@@ -202,8 +202,8 @@ set_property PACKAGE_PIN P14 [get_ports PROM_SPI_io2_io]
 set_property PACKAGE_PIN N14 [get_ports PROM_SPI_io3_io]
 set_property PACKAGE_PIN P18 [get_ports {PROM_SPI_ss_io[0]}]
 set_property PACKAGE_PIN P16 [get_ports EMC_CLK]
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets EMC_CLK_IBUF]
-
+#set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets EMC_CLK_IBUF]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets EMC_CLK]
 
 #PCIe transceiver package pins
 set_property PACKAGE_PIN F11 [get_ports {pcie_diff_clock_rtl_clk_p[0]}]

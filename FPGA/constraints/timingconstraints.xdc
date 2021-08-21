@@ -1,6 +1,7 @@
 ## timing assertions
 create_clock -period 10.000 -name {pcie_diff_clock_rtl_clk_p[0]} -waveform {0.000 5.000} [get_ports {pcie_diff_clock_rtl_clk_p[0]}]
 create_clock -period 8.000 -name VIRTUAL_clk_125mhz -waveform {0.000 4.000}
+create_clock -period 8.138 -name {EMC_CLK} -waveform {0.000 4.069} [get_ports {EMC_CLK}]
 
 
 
@@ -41,14 +42,18 @@ set_output_delay -clock [get_clocks clock_122_in_p] -max -add_delay -1.000 [get_
 ## RF SPI control outputs (Alex interface)
 # timing should be guaranteed by design with edges separated by 12MHz clock cycles
 create_clock -period 81.380 -name VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0 -waveform {0.000 40.690}
-set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -min -add_delay 0.000 [get_ports RF_SPI_CK]
-set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -max -add_delay 0.000 [get_ports RF_SPI_CK]
-set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -min -add_delay 0.000 [get_ports RF_SPI_DATA]
-set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -max -add_delay 0.000 [get_ports RF_SPI_DATA]
-set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -min -add_delay 0.000 [get_ports RF_SPI_RX_LOAD]
-set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -max -add_delay 0.000 [get_ports RF_SPI_RX_LOAD]
-set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -min -add_delay 0.000 [get_ports RF_SPI_TX_LOAD]
-set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -max -add_delay 0.000 [get_ports RF_SPI_TX_LOAD]
+set_false_path -to [get_ports RF_SPI_CK]
+set_false_path -to [get_ports RF_SPI_DATA]
+set_false_path -to [get_ports RF_SPI_RX_LOAD]
+set_false_path -to [get_ports RF_SPI_TX_LOAD]
+#set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -min -add_delay 0.000 [get_ports RF_SPI_CK]
+#set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -max -add_delay 0.000 [get_ports RF_SPI_CK]
+#set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -min -add_delay 0.000 [get_ports RF_SPI_DATA]
+#set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -max -add_delay 0.000 [get_ports RF_SPI_DATA]
+#set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -min -add_delay 0.000 [get_ports RF_SPI_RX_LOAD]
+#set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -max -add_delay 0.000 [get_ports RF_SPI_RX_LOAD]
+#set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -min -add_delay 0.000 [get_ports RF_SPI_TX_LOAD]
+#set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -max -add_delay 0.000 [get_ports RF_SPI_TX_LOAD]
 
 ## CODEC input & output constraints
 # timing should be guaranteed by design with clock edges for data separated from BCLK
@@ -81,6 +86,11 @@ set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -ma
 set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -min -add_delay 0.000 [get_ports TX_DAC_PWM]
 set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -max -add_delay 0.000 [get_ports TX_DAC_PWM]
 
+#RF analogue inputs (fwd, rev power etc)
+set_false_path -to [get_ports {nADC_CS[0]}]
+set_false_path -to [get_ports {ADC_MOSI[0]}]
+set_false_path -to [get_ports {ADC_CLK[0]}]
+set_false_path -from [get_ports ADC_MISO]
 
 
 ## asynchronous input constraints
@@ -98,8 +108,11 @@ set_output_delay -clock [get_clocks VIRTUAL_clk_out2_saturn_top_clk_wiz_0_0] -ma
 
 ## LED and GPIO output constraints
 # these are not registered and require no timing
-set_output_delay -clock [get_clocks clock_122_in_p] -min -add_delay 0.000 [get_ports {LEDOutputs[*]}]
-set_output_delay -clock [get_clocks clock_122_in_p] -max -add_delay 0.000 [get_ports {LEDOutputs[*]}]
+set_false_path -to [get_ports {BLINK_LED[0]}]
+set_false_path -to [get_ports {PCI_LINK_LED[0]}]
+set_false_path -to [get_ports {LEDOutputs[*]}]
+#set_output_delay -clock [get_clocks clock_122_in_p] -min -add_delay 0.000 [get_ports {LEDOutputs[*]}]
+#set_output_delay -clock [get_clocks clock_122_in_p] -max -add_delay 0.000 [get_ports {LEDOutputs[*]}]
 set_output_delay -clock [get_clocks clock_122_in_p] -min -add_delay 0.000 [get_ports {GPIO_OUT[*]}]
 set_output_delay -clock [get_clocks clock_122_in_p] -max -add_delay 0.000 [get_ports {GPIO_OUT[*]}]
 
@@ -174,8 +187,8 @@ set_multicycle_path -hold -from [get_clocks -of_objects [get_pins -hierarchical 
 
 ## timing exceptions
 # asynchronous reset out from PCIe core into synchronising double D flip flop
-set_false_path -from [get_pins saturn_top_i/PCIe/xdma_0/inst/saturn_top_xdma_0_1_pcie2_to_pcie3_wrapper_i/pcie2_ip_i/inst/inst/user_reset_out_reg/C] -to [get_pins {saturn_top_i/PCIe/Double_D_register_syncareset/inst/Intermediate_reg[0]/D}]
-set_false_path -from [get_pins saturn_top_i/PCIe/xdma_0/inst/saturn_top_xdma_0_1_pcie2_to_pcie3_wrapper_i/pcie2_ip_i/inst/inst/user_reset_out_reg/C] -to [get_pins {saturn_top_i/PCIe/Double_D_register_syncareset1/inst/Intermediate_reg[0]/D}]
+set_false_path -from [get_pins saturn_top_i/PCIe/xdma_0/inst/saturn_top_xdma_0_0_pcie2_to_pcie3_wrapper_i/pcie2_ip_i/inst/inst/user_reset_out_reg/C] -to [get_pins {saturn_top_i/PCIe/Double_D_register_syncareset/inst/Intermediate_reg[0]/D}]
+set_false_path -from [get_pins saturn_top_i/PCIe/xdma_0/inst/saturn_top_xdma_0_0_pcie2_to_pcie3_wrapper_i/pcie2_ip_i/inst/inst/user_reset_out_reg/C] -to [get_pins {saturn_top_i/PCIe/Double_D_register_syncareset1/inst/Intermediate_reg[0]/D}]
 # asynchronous reset in to pcie express core (copied from xilinx example design)
 set_false_path -from [get_ports pcie_reset_n]
 # asynchronous TX enable input
