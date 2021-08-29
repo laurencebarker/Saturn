@@ -146,10 +146,10 @@ set_output_delay -clock [get_clocks clock_122_in_p] -max -add_delay 0.000 [get_p
 # CCLK delay is 0.5, 8 ns min/max for Artix7-2; refer Data sheet
 # Consider the max delay for worst case analysis
 # Following are the SPI device parameters
-# Max Tco
-# Min Tco
-# Setup time requirement
-# Hold time requirement
+# Max Tco 0
+# Min Tco 6.5ns
+# Setup time requirement 1.5ns
+# Hold time requirement 2ns
 # Following are the board/trace delay numbers
 # Assumption is 2" to 4"
 ### End of user provided delay numbers
@@ -158,9 +158,9 @@ set_output_delay -clock [get_clocks clock_122_in_p] -max -add_delay 0.000 [get_p
 # having more delay on this net reduces the Fmax
 set_max_delay -datapath_only -from [get_pins -hier *SCK_O_reg_reg/C] -to [get_pins -hier *USRCCLKO] 2.000
 set_min_delay -from [get_pins -hier *SCK_O_reg_reg/C] -to [get_pins -hier *USRCCLKO] 0.100
-# Following command creates a divide by 8 clock
+# Following command creates a divide by 2 clock
 # It also takes into account the delay added by STARTUP block to route the CCLK
-create_generated_clock -name clk_sck -source [get_pins -hierarchical *axi_quad_spi_0/ext_spi_clk] -edges {1 9 17} -edge_shift {8.000 8.000 8.000} [get_pins -hierarchical *USRCCLKO]
+create_generated_clock -name clk_sck -source [get_pins -hierarchical *axi_quad_spi_0/ext_spi_clk] -edges {3 5 7} -edge_shift {8.000 8.000 8.000} [get_pins -hierarchical *USRCCLKO]
 # Data is captured into FPGA on the second rising edge of ext_spi_clk after the SCK falling edge
 # Data is driven by the FPGA on every alternate rising_edge of ext_spi_clk
 #set_input_delay -clock clk_sck -clock_fall -max 8.800 [get_ports PROM_SPI_MISO]
