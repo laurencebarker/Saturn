@@ -2,7 +2,7 @@
 Saturn SDR project FPGA amd other files
 This repository holds the source for the Xilinx Artix-7 FPGA created using Vivado
 
-Current version create using Vivado 2020.2; you **must** use the same version of vivado.
+Current version create using Vivado 2021.1; you **must** use the same version of vivado.
 
 The file structure is:
 
@@ -27,7 +27,7 @@ FPGA\create_saturn_project.tcl	script to recreate the project
 This script is not relocatable. We recommend you use the same directory structure we use. The TCL script will need to be edited if not.
 
 To use this repository:
-1. Install vivado 2020.2
+1. Install vivado 2021.1
 2. Copy this repository to c:\xilinxdesigns\saturn
 3. Open vivado and find the TCL command line
 4. type: cd c:/xilinxdesigns/saturn/FPGA

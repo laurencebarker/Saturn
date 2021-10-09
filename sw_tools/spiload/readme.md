@@ -3,8 +3,6 @@ This folder holds files reused from Xilinx SDK at https://github.com/Xilinx/embe
 
 build instructions:
 
-
-
 make
 
 
