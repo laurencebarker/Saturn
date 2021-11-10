@@ -1,11 +1,24 @@
-CFLAGS = -O3 -march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard -D_GNU_SOURCE
+# Makefile for p1app
+# *****************************************************
+# Variables to control Makefile operation
+ 
+CC = gcc
+LD = gcc
+CFLAGS = -Wall -Wextra -Wno-unused-function -g -D_GNU_SOURCE
+LDFLAGS = -lm -lpthread
+TARGET = p1app
+ 
+# ****************************************************
+# Targets needed to bring the executable up to date
 
-all: p1app
+OBJS=    $(TARGET).o
 
-p1app: p1app.c
-	gcc $(CFLAGS) -o $@ $^ -lm -lpthread
-
+all: $(OBJS)
+	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS)
+ 
+ 
+%.o: %.c
+	$(CC) -c -o $(@F) $(CFLAGS) $<
 
 clean:
-	rm -f p1app
-
+	rm -rf $(TARGET) *.o *.bin
