@@ -27,6 +27,11 @@
 #define AXIBaseAddress 0x10000									// address of StreamRead/Writer IP
 
 //
+// mem read/write variables:
+//
+	int register_fd;                             // device identifier
+
+//
 // create test data into memory buffer
 // size is the number of bytes to create - should be a multiple of 4
 // 
@@ -164,7 +169,15 @@ int DMAReadFromFPGA(int fd, char*DestData, uint32_t Length, uint32_t AXIAddr)
 	return 0;
 }
 
+uint32_t RegisterRead(uint32_t Address)
+{
+	uint32_t result = 0;
 
+    ssize_t nread = pread(register_fd, &result, sizeof(result), (off_t) Address);
+    if (nread != sizeof(result))
+        printf("ERROR: register read: addr=0x%08X   error=%s\n",Address, strerror(errno));
+	return result;
+}
 
 /* Subtract timespec t2 from t1
  *
@@ -221,14 +234,14 @@ int main(int argc, char *argv[])
 {
 	int DMAReadfile_fd = -1;											// DMA read file device
 	int DMAWritefile_fd = -1;											// DMA write file device
-  char* WriteBuffer = NULL;											// data for DMA write
-  char* ReadBuffer = NULL;											// data for DMA write
+  	char* WriteBuffer = NULL;											// data for DMA write
+  	char* ReadBuffer = NULL;											// data for DMA write
 	uint32_t BufferSize = 32768;
 	struct timespec ts_start, ts_read, ts_write;
 	ssize_t rc;																		// return code from time functions
 	double WriteTime, ReadTime;
 	double WriteRate, ReadRate;
-
+	uint32_t RegisterValue;
 //
 // initialise. Create memory buffers and open DMA file devices
 //
@@ -245,11 +258,30 @@ int main(int argc, char *argv[])
 		goto out;
 	}
 
+//
+// try to open memory device
+//
+	if ((register_fd = open("/dev/xdma0_user", O_RDWR)) == -1)
+    {
+		printf("register R/W address space not available\n");
+		goto out;
+    }
+    else
+    {
+		printf("register access connected to /dev/xdma0_user\n");
+    }
 
-	printf("Initiating XDMA write\n");
+//
+// now read the user access register (it should have a date code)
+//
+	RegisterValue = RegisterRead(0xB000);				// read the user access register
+	printf("User register = %08x\n", RegisterValue);
+
+
+	printf("Initialising XDMA write\n");
 	DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDWR);
 
-	printf("Initiating XDMA read\n");
+	printf("Initialising XDMA read\n");
 	DMAWritefile_fd = open("/dev/xdma0_h2c_0", O_RDWR);
 	if(DMAReadfile_fd < 0)
 	{
@@ -271,15 +303,24 @@ int main(int argc, char *argv[])
 //
 // do DMA write; get time taken into ts_write
 //
+	printf("DMA write %d bytes to destination\n", VTRANSFERSIZE);
 	rc = clock_gettime(CLOCK_MONOTONIC, &ts_start);
 	DMAWriteToFPGA(DMAWritefile_fd, WriteBuffer, VTRANSFERSIZE, AXIBaseAddress);
 	rc = clock_gettime(CLOCK_MONOTONIC, &ts_write);
 	timespec_sub(&ts_write, &ts_start);
 
+//
+// now read the FIFO write and read depth FIFOs
+//
+	RegisterValue = RegisterRead(0xD000);				// read the write depth count
+	printf("FIFO write depth = %d\n", RegisterValue);
+	RegisterValue = RegisterRead(0xD004);				// read the read depth count
+	printf("FIFO read depth = %d\n", RegisterValue);
 
 //
 // do DMA read; get time taken into ts_read
 //
+	printf("DMA read %d bytes from destination\n", VTRANSFERSIZE);
 	rc = clock_gettime(CLOCK_MONOTONIC, &ts_start);
 	DMAReadFromFPGA(DMAReadfile_fd, ReadBuffer, VTRANSFERSIZE, AXIBaseAddress);
 	rc = clock_gettime(CLOCK_MONOTONIC, &ts_read);
@@ -304,6 +345,8 @@ int main(int argc, char *argv[])
 out:
 	close(DMAWritefile_fd);
 	close(DMAReadfile_fd);
+	close(register_fd);
+
 	free(WriteBuffer);
 	free(ReadBuffer);
 }
