@@ -28,6 +28,8 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 
+#include "hwaccess.h"
+
 #define I2C_SLAVE       0x0703 /* Use this slave address */
 #define I2C_SLAVE_FORCE 0x0706 /* Use this slave address, even if it
                                   is already in use by a driver! */
@@ -430,6 +432,8 @@ int main(int argc, char *argv[])
   char *end;
   uint8_t chan = 0;
   long number;
+
+  OpenXDMADriver();
 
   for(i = 0; i < 5; ++i)
   {

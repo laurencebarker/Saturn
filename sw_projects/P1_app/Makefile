@@ -11,7 +11,7 @@ TARGET = p1app
 # ****************************************************
 # Targets needed to bring the executable up to date
 
-OBJS=    $(TARGET).o
+OBJS=    $(TARGET).o hwaccess.o saturnregisters.o
 
 all: $(OBJS)
 	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS)
