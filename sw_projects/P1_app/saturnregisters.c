@@ -191,12 +191,22 @@ void AlexManualTXFilters(unsigned int Bits)
 
 
 //
-// SetDuplex(bool Enabled)
-// if Enabled, the RX signal is transferred back during TX; else TX drive signal
+// SetApolloBits(bool EnableFilter, bool EnableATU, bool StartAutoTune)
+// sets the control bits for Apollo. No support for these in Saturn at present.
 //
-void SetDuplex(bool Enabled)
+void SetApolloBits(bool EnableFilter, bool EnableATU, bool StartAutoTune)
 {
 
+}
+
+
+//
+// SelectFilterBoard(bool IsApollo)
+// Selects between Apollo and Alex controls. Currently ignored & hw supports only Alex.
+//
+void SelectFilterBoard(bool IsApollo)
+{
+    
 }
 
 
@@ -764,6 +774,16 @@ void SetTXModulationSource(ETXModulationSource Source)
 //////////////////////////////////////////////////////////////////////////////////
 // control the data transfer app
 //
+
+
+//
+// SetDuplex(bool Enabled)
+// if Enabled, the RX signal is transferred back during TX; else TX drive signal
+//
+void SetDuplex(bool Enabled)
+{
+
+}
 
 
 //
