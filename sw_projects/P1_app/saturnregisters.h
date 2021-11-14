@@ -189,13 +189,6 @@ void SetDuplex(bool Enabled);
 
 
 //
-// SetNumP1DDC(unsigned int Count)
-// sets the number of DDCs for which data is transferred back to the PC in protocol 1
-//
-void SetNumP1DDC(unsigned int Count);
-
-
-//
 // EnablePPSStamp(bool Enabled)
 // enables a "pulse per second" timestamp
 //
@@ -583,9 +576,16 @@ void SetTXModulationSource(ETXModulationSource Source);
 
 
 
-//
+//////////////////////////////////////////////////////////////////////////////////
 // control the data transfer app
 //
+
+
+//
+// SetNumP1DDC(unsigned int Count)
+// sets the number of DDCs for which data is transferred back to the PC in protocol 1
+//
+void SetNumP1DDC(unsigned int Count);
 
 
 //

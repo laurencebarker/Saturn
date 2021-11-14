@@ -15,6 +15,8 @@
 #ifndef __hwaccess_h
 #define __hwaccess_h
 
+#include <stdint.h>
+
 
 //
 // open connection to the XDMA device driver for register and DMA access
