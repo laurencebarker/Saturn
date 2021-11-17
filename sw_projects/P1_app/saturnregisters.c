@@ -19,22 +19,147 @@
 
 
 //
+// local copies of values written to registers
+//
+#define VNUMDDC 10                                  // downconverters available
+#define VSAMPLERATE 122880000                       // sample rate in Hz
+uint32_t DDCDeltaPhase[VNUMDDC];
+uint32_t DUCDeltaPhase;
+uint32_t GPIORegValue;                              // value stored into GPIO
+bool GPTTEnabled;                                   // true if PTT is enabled
+bool GPureSignalEnabled;                            // true if PureSignal is enabled
+
+
+//
+// FPGA register map
+//
+#define VADDRDDC0REG 0x0
+#define VADDRDDC1REG 0x4
+#define VADDRDDC2REG 0xC
+#define VADDRDDC3REG 0x10
+#define VADDRDDC4REG 0x18
+#define VADDRDDC5REG 0x1C
+#define VADDRDDC6REG 0x24
+#define VADDRDDC7REG 0x28
+#define VADDRDDC8REG 0x30
+#define VADDRDDC9REG 0x34
+#define VADDRDDC0_1CONFIG 0x08
+#define VADDRDDC2_3CONFIG 0x14
+#define VADDRDDC4_5CONFIG 0x20
+#define VADDRDDC6_7CONFIG 0x2C
+#define VADDRDDC8_9CONFIG 0x38
+#define VADDRRXTESTDDSREG 0X3C
+#define VADDRKEYERCONFIGREG 0x40
+#define VADDRCODECCONFIGREG 0x44
+#define VADDRTXCONFIGREG 0x48
+#define VADDRTXDUCREG 0x4C
+#define VADDRTXMODTESTREG 0x50
+#define VADDRRFGPIOREG 0x54
+#define VADDRADCCTRLREG 0x58
+#define VADDRDACCTRLREG 0x5C
+#define VADDRDEBUGLEDREG 0x100
+#define VADDRSTATUSREG 0x1000
+#define VADDRUSERVERSIONREG 0x1004              // user defined version register
+#define VADDRADCOVERFLOWBASE 0x2000
+#define VADDRFIFOMON0BASE 0x3000
+#define VADDRFIFOMON1BASE 0x3000
+#define VADDRFIFOMON2BASE 0x3000
+#define VADDRFIFOMON3BASE 0x3000
+#define VADDRALEXADCBASE 0x4000
+#define VADDRCWKEYERRAM 0x5000
+#define VADDRALEXSPIREG 0x1C000
+#define VADDRCONFIGSPIREG 0x10000
+#define VADDRCODECI2CREG 0x14000
+#define VADDRXADCREG 0x18000                    // on-chip ADC
+
+uint32_t DDCRegisters[VNUMDDC] =
+{
+  VADDRDDC0REG,
+  VADDRDDC1REG,
+  VADDRDDC2REG,
+  VADDRDDC3REG,
+  VADDRDDC4REG,
+  VADDRDDC5REG,
+  VADDRDDC6REG,
+  VADDRDDC7REG,
+  VADDRDDC8REG,
+  VADDRDDC9REG,
+};
+
+
+//
+// bit addresses in status anf GPIO registers
+//
+#define VMICBIASENABLEBIT 0
+#define VMICPTTSELECTBIT 1
+#define VMICSIGNALSELECTBIT 2
+#define VMICBIASSELECTBIT 3
+#define VSPKRMUTEBIT 4
+#define VBALANCEDMICSELECT 5
+#define VADC1RANDBIT 8
+#define VADC1PGABIT 9
+#define VADC1DITHERBIT 10
+#define VADC2RANDBIT 11
+#define VADC2PGABIT 12
+#define VADC2DITHERBIT 13
+#define VOPENCOLLECTORBITS 16           // bits 16-22
+#define VMOXBIT 24
+#define VTXENABLEBIT 25
+#define VTXRELAYDISABLEBIT 27
+#define VPURESIGNALENABLE 28            // not used by this hardware
+#define VATUTUNEBIT 29
+#define VXVTRENABLEBIT 30
+
+#define VPTTIN1BIT 0
+#define VPTTIN2BIT 1
+#define VKEYINA 2
+#define VKEYINB 3
+#define VUSERIO4 4
+#define VUSERIO5 5
+#define VUSERIO6 8
+#define VUSERIO8 7
+#define V13_8VDETECTBIT 8
+#define VATUTUNECOMPLETEBIT 9
+#define VEXTTXENABLEBIT 31
+
+
+
+
+//
 // SetMOX(bool Mox)
 // sets or clears TX state
+// set or clear the relevant bit in GPIO
 //
 void SetMOX(bool Mox)
 {
+    uint32_t Register;
 
+    Register = GPIORegValue;                    // get current settings
+    if(Mox)
+        Register |= (1<<VATUTUNEBIT);
+    else
+        Register &= ~(1<<VATUTUNEBIT);
+    GPIORegValue = Register;                    // store it back
+//    RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
 }
 
 
 //
 // SetATUTune(bool TuneEnabled)
 // drives the ATU tune output to selected state.
+// set or clear the relevant bit in GPIO
 //
 void SetATUTune(bool TuneEnabled)
 {
+    uint32_t Register;
 
+    Register = GPIORegValue;                    // get current settings
+    if(TuneEnabled)
+        Register |= (1<<VMOXBIT);
+    else
+        Register &= ~(1<<VMOXBIT);
+    GPIORegValue = Register;                    // store it back
+//    RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
 }
 
 //
@@ -62,6 +187,7 @@ void SetP2SampleRate(unsigned int DDC, ESampleRate Rate)
 //
 // SetClassEPA(bool IsClassE)
 // enables non linear PA mode
+// This is not usded in the current Saturn design
 //
 void SetClassEPA(bool IsClassE)
 {
@@ -75,7 +201,15 @@ void SetClassEPA(bool IsClassE)
 //
 void SetOpenCollectorOutputs(unsigned int bits)
 {
+    uint32_t Register;                              // FPGA register content
+    uint32_t BitMask;                               // bitmask for 7 OC bits
 
+    Register = GPIORegValue;                        // get current settings
+    BitMask = (0b1111111) << VOPENCOLLECTORBITS;
+    Register = Register & ~BitMask;                 // strip old bits, add new
+    Register |= (bits << VOPENCOLLECTORBITS);
+    GPIORegValue = Register;                    // store it back
+//    RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
 }
 
 
@@ -83,9 +217,32 @@ void SetOpenCollectorOutputs(unsigned int bits)
 // SetADCOptions(EADCSelect ADC, bool Dither, bool Random);
 // sets the ADC contol bits for one ADC
 //
-void SetADCOptions(EADCSelect ADC, bool Dither, bool Random)
+void SetADCOptions(EADCSelect ADC, bool PGA, bool Dither, bool Random)
 {
+    uint32_t Register;                              // FPGA register content
+    uint32_t RandBit = VADC1RANDBIT;                // bit number for Rand
+    uint32_t PGABit = VADC1PGABIT;                  // bit number for Dither
+    uint32_t DitherBit = VADC1DITHERBIT;            // bit number for Dither
 
+    if(ADC != eADC1)                                // for ADC2, these are all 3 bits higher
+    {
+        RandBit += 3;
+        PGABit += 3;
+        DitherBit += 3;
+    }
+    Register = GPIORegValue;                        // get current settings
+    Register &= ~(1 << RandBit);                    // strip old bits
+    Register &= ~(1 << PGABit);
+    Register &= ~(1 << DitherBit);
+
+    if(PGA)                                         // add new bits where set
+        Register |= (1 << PGABit);
+    if(Dither)
+        Register |= (1 << DitherBit);
+    if(Random)
+        Register |= (1 << RandBit);
+    GPIORegValue = Register;                        // store it back
+//    RegisterWrite(VADDRRFGPIOREG, Register);      // and write to it
 }
 
 
@@ -96,10 +253,28 @@ void SetADCOptions(EADCSelect ADC, bool Dither, bool Random)
 // DDC: DDC number (0-9) of 0xFF to set RX test source frequency
 // Value: 32 bit phase word or frequency word (1Hz resolution)
 // IsDeltaPhase: true if a delta phase value, false if a frequency value (P1)
+// calculate delta phase if required. Delta=2^32 * (F/Fs)
+// store delta phase; write to FPGA register.
 //
 void SetDDCFrequency(unsigned int DDC, unsigned int Value, bool IsDeltaPhase)
 {
+    uint32_t DeltaPhase;                    // calculated deltaphase value
+    uint32_t RegAddress;
+    double fDeltaPhase;
 
+    if(DDC >= VNUMDDC)                      // limit the DDC count to actual regs!
+        DDC = VNUMDDC-1;
+    if(!IsDeltaPhase)                       // ieif protocol 1
+    {
+        fDeltaPhase = (double)(2^32) * (double)Value / (double) VSAMPLERATE;
+        DeltaPhase = (uint32_t)fDeltaPhase;
+    }
+    else
+        DeltaPhase = (uint32_t)Value;
+
+    DDCDeltaPhase[DDC] = DeltaPhase;        // store this delta phase
+    RegAddress =DDCRegisters[DDC];          // get DDC reg address, 
+//    RegisterWrite(VADDRTXDUCREG, DeltaPhase);  // and write to it
 }
 
 
@@ -111,8 +286,21 @@ void SetDDCFrequency(unsigned int DDC, unsigned int Value, bool IsDeltaPhase)
 //
 void SetDUCFrequency(unsigned int DUC, unsigned int Value, bool IsDeltaPhase)		// only accepts DUC=0 
 {
+    uint32_t DeltaPhase;                    // calculated deltaphase value
+    double fDeltaPhase;
 
+    if(!IsDeltaPhase)                       // ieif protocol 1
+    {
+        fDeltaPhase = (double)(2^32) * (double)Value / (double) VSAMPLERATE;
+        DeltaPhase = (uint32_t)fDeltaPhase;
+    }
+    else
+        DeltaPhase = (uint32_t)Value;
+
+    DUCDeltaPhase = DeltaPhase;             // store this delta phase
+//    RegisterWrite(DUCDeltaPhase, DeltaPhase);  // and write to it
 }
+
 
 //
 // SetAlexRXAnt(unsigned int Bits)
@@ -252,23 +440,60 @@ void SetMicLineInput(bool IsLineIn)
 }
 
 
+#define VMICBIASENABLEBIT 0
+#define VMICPTTSELECTBIT 1
+#define VMICSIGNALSELECTBIT 2
+#define VMICBIASSELECTBIT 3
+
 //
 // SetOrionMicOptions(bool MicTip, bool EnableBias, bool EnablePTT)
 // sets the microphone control inputs
+// write the bits to GPIO. Note the register bits aren't directly the protocol input bits!
 //
 void SetOrionMicOptions(bool MicTip, bool EnableBias, bool EnablePTT)
 {
+    uint32_t Register;                              // FPGA register content
+    Register = GPIORegValue;                        // get current settings
+    Register &= ~(1 << VMICBIASENABLEBIT);          // strip old bits
+    Register &= ~(1 << VMICPTTSELECTBIT);           // strip old bits
+    Register &= ~(1 << VMICSIGNALSELECTBIT);
+    Register &= ~(1 << VMICBIASSELECTBIT);
 
+    if(MicTip)                                      // add new bits where set
+    {
+        Register |= (1 << VMICSIGNALSELECTBIT);     // mic on tip
+        Register |= (1 << VMICBIASSELECTBIT);       // and hence mic bias on tip
+        Register &= ~(1 << VMICPTTSELECTBIT);       // PTT on ring
+    }
+    else
+    {
+        Register &= ~(1 << VMICSIGNALSELECTBIT);    // mic on ring
+        Register &= ~(1 << VMICSIGNALSELECTBIT);    // bias on ring
+        Register |= (1 << VMICPTTSELECTBIT);        // PTT on tip
+    }
+    if(EnableBias)
+        Register |= (1 << VMICBIASENABLEBIT);
+    GPTTEnabled = EnablePTT;                        // used when PTT read back - just store state
+
+    GPIORegValue = Register;                        // store it back
+//    RegisterWrite(VADDRRFGPIOREG, Register);      // and write to it
 }
 
 
 //
 // SetBalancedMicInput(bool Balanced)
 // selects the balanced microphone input, not supported by current protocol code. 
+// just set the bit into GPIO
 //
 void SetBalancedMicInput(bool Balanced)
 {
-
+    uint32_t Register;                              // FPGA register content
+    Register = GPIORegValue;                        // get current settings
+    Register &= ~(1 << VBALANCEDMICSELECT);         // strip old bit
+    if(Balanced)
+        Register |= (1 << VBALANCEDMICSELECT);          // set new bit
+    GPIORegValue = Register;                        // store it back
+//    RegisterWrite(VADDRRFGPIOREG, Register);      // and write to it
 }
 
 
@@ -288,7 +513,7 @@ void SetCodecLineInGain(unsigned int Gain)
 //
 void EnablePureSignal(bool Enabled)
 {
-
+    GPureSignalEnabled = Enabled;
 }
 
 

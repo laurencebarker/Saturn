@@ -29,6 +29,7 @@
 #include <net/if.h>
 
 #include "hwaccess.h"
+#include "saturnregisters.h"
 
 #define I2C_SLAVE       0x0703 /* Use this slave address */
 #define I2C_SLAVE_FORCE 0x0706 /* Use this slave address, even if it
@@ -434,6 +435,7 @@ int main(int argc, char *argv[])
   long number;
 
   OpenXDMADriver();
+  CodecInitialise();
 
   for(i = 0; i < 5; ++i)
   {

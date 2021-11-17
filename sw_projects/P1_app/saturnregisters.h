@@ -104,7 +104,7 @@ void SetOpenCollectorOutputs(unsigned int bits);
 // SetADCOptions(EADCSelect ADC, bool Dither, bool Random);
 // sets the ADC contol bits for one ADC
 //
-void SetADCOptions(EADCSelect ADC, bool Dither, bool Random);
+void SetADCOptions(EADCSelect ADC, bool PGA, bool Dither, bool Random);
 
 
 
