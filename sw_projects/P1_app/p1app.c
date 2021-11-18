@@ -436,6 +436,9 @@ int main(int argc, char *argv[])
 
   OpenXDMADriver();
   CodecInitialise();
+  InitialiseDACAttenROMs();
+
+  
 
   for(i = 0; i < 5; ++i)
   {

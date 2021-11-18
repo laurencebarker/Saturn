@@ -16,18 +16,68 @@
 
 #include "saturnregisters.h"
 #include "hwaccess.h"                   // low level access
+#include <stdlib.h>                     // for function min()
+#include <math.h>
+
+
+//
+// ROMs for DAC Current Setting and 0.5dB step digital attenuator
+//
+unsigned int DACCurrentROM[256];                    // used for residual attenuation
+unsigned int DACStepAttenROM[256];                  // provides most atten setting
 
 
 //
 // local copies of values written to registers
 //
 #define VNUMDDC 10                                  // downconverters available
+#define VNUMP1DDCS 5                                // DDCs used for P1
 #define VSAMPLERATE 122880000                       // sample rate in Hz
-uint32_t DDCDeltaPhase[VNUMDDC];
-uint32_t DUCDeltaPhase;
+
+uint32_t DDCDeltaPhase[VNUMDDC];                    // DDC frequency settings
+uint32_t DUCDeltaPhase;                             // DUC frequency setting
 uint32_t GPIORegValue;                              // value stored into GPIO
 bool GPTTEnabled;                                   // true if PTT is enabled
 bool GPureSignalEnabled;                            // true if PureSignal is enabled
+ESampleRate P1SampleRate;                           // rate for all DDC
+ESampleRate P2DDCSampleRate[VNUMDDC];               // array for all DDCs
+uint32_t DDCConfigReg[VNUMDDC/2];                   // config registers
+bool GClassESetting;                                // NOT CURRENTLY USED - true if class E operation
+bool GIsApollo;                                     // NOT CURRENTLY USED - true if Apollo filter selected
+bool GPPSEnabled;                                   // NOT CURRENTLY USED - trie if PPS generation enabled
+uint32_t GTXDACCtrl;                                // TX DAC current setting & atten
+
+
+//
+// local copies of Codec registers
+//
+unsigned int GCodecLineGain;                            // value written in Codec left line in gain register
+unsigned int GCodecAnaloguePath;                        // value written in Codec analogue path register
+
+
+//
+// mic, bias & PTT bits in GPIO register:
+//
+#define VMICBIASENABLEBIT 0                         // GPIO bit definition
+#define VMICPTTSELECTBIT 1                          // GPIO bit definition
+#define VMICSIGNALSELECTBIT 2                       // GPIO bit definition
+#define VMICBIASSELECTBIT 3                         // GPIO bit definition
+
+
+//
+// define Codec registers
+//
+#define VCODECLLINEVOLREG 0                             // left line input volume
+#define VCODECRLINEVOLREG 1                             // right line input volume
+#define VCODECLHEADPHONEVOLREG 2                        // left headphone volume
+#define VCODECRHEADPHONEVOLREG 3                        // right headphone volume
+#define VCODECANALOGUEPATHREG 4                         // analogue path control
+#define VCODECDIGITALPATHREG 5                          // digital path control
+#define VCODECPOWERDOWNREG 6                            // power down control
+#define VCODECDIGITALFORMATREG 7                        // digital audio interface format register
+#define VCODECSAMPLERATEREG 8                           // sample rate control
+#define VCODECACTIVATIONREG 9                           // digital interface activation register
+#define VCODECRESETREG 15                               // reset register
 
 
 //
@@ -86,6 +136,21 @@ uint32_t DDCRegisters[VNUMDDC] =
   VADDRDDC9REG,
 };
 
+uint32_t DDCCONFIGREGS[VNUMDDC] = 
+{
+  VADDRDDC0_1CONFIG,                            // 0 & 1
+  VADDRDDC0_1CONFIG, 
+  VADDRDDC2_3CONFIG,                            // 2 & 3
+  VADDRDDC2_3CONFIG,
+  VADDRDDC4_5CONFIG,                            // 4 & 5
+  VADDRDDC4_5CONFIG,
+  VADDRDDC6_7CONFIG,                            // 6 & 7
+  VADDRDDC6_7CONFIG,
+  VADDRDDC8_9CONFIG,                            // 8 & 9
+  VADDRDDC8_9CONFIG
+};
+
+
 
 //
 // bit addresses in status anf GPIO registers
@@ -124,6 +189,39 @@ uint32_t DDCRegisters[VNUMDDC] =
 
 
 
+//
+// initialise the DAC Atten ROMs
+// these set the step attenuator and DAC drive level
+// for "attenuation intent" values from 0 to 255
+//
+void InitialiseDACAttenROMs(void)
+{
+    unsigned int Level;                         // input demand value
+    double DesiredAtten;                        // desired attenuation in dB
+    double StepAtten;                           // step attenuation in 0.5dB steps
+    unsigned int StepValue;                     // integer step atten drive value
+    double ResidualAtten;                       // atten to go in the current setting DAC
+    unsigned int DACDrive;                      // int value to go to DAC ROM
+
+//
+// do the max atten values separately; then calculate point by point
+//
+    DACCurrentROM[0] = 0;                       // min level
+    DACStepAttenROM[0] = 63;                    // max atten
+
+    for (Level = 1; Level < 255; Level++)
+    {
+        DesiredAtten = 20.0*log10(255/Level);   // this is the atten value we want after the high speed DAC
+        StepAtten = (unsigned int)(fmin((int)(DesiredAtten/0.5), 63)*0.5);     // what step atten should be set to
+        StepValue = (unsigned int)(StepAtten * 2.0);        // 6 bit drive setting to achieve that atten
+        ResidualAtten = DesiredAtten - StepAtten;           // this needs to be achieved through the current setting drive
+        DACDrive = (unsigned int)(255.0/pow(10.0,(ResidualAtten/20.0)));
+        DACCurrentROM[Level] = DACDrive;
+        DACStepAttenROM[Level] = StepAtten;
+    }
+}
+
+
 
 //
 // SetMOX(bool Mox)
@@ -139,8 +237,11 @@ void SetMOX(bool Mox)
         Register |= (1<<VATUTUNEBIT);
     else
         Register &= ~(1<<VATUTUNEBIT);
-    GPIORegValue = Register;                    // store it back
-//    RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
+    if(Register != GPIORegValue)                    // write back if different
+    {
+        GPIORegValue = Register;                    // store it back
+//        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
+    }
 }
 
 
@@ -158,18 +259,47 @@ void SetATUTune(bool TuneEnabled)
         Register |= (1<<VMOXBIT);
     else
         Register &= ~(1<<VMOXBIT);
-    GPIORegValue = Register;                    // store it back
-//    RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
+    if(Register != GPIORegValue)                    // write back if different
+    {
+        GPIORegValue = Register;                    // store it back
+//        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
+    }
 }
+
 
 //
 // SetP1SampleRate(ESampleRate Rate)
 // sets the sample rate for all DDC used in protocol 1. 
 // allowed rates are 48KHz to 384KHz.
+// save the new bits to stored values, and write to FPGA, for all DDC used in P1
 //
 void SetP1SampleRate(ESampleRate Rate)
 {
+    int Cntr;
+    uint32_t ConfigReg;
+    uint32_t RegisterValue;
 
+    P1SampleRate = Rate;                                // rate for all DDC
+    for(Cntr=0; Cntr < VNUMP1DDCS; Cntr++)
+    {
+        RegisterValue = DDCConfigReg[Cntr / 2];         // get current register setting
+        if((Cntr & 1) == 0)                             // if even register
+        {
+            RegisterValue &= 0xFFFFFF1C;                // set sample rate to zero
+            RegisterValue |= ((uint32_t)Rate) << 2;     // add in the new sample rate
+        }
+        else                                            // must be an odd register
+        {
+            RegisterValue &= 0xFFFF1CFF;                // set sample rate to zero
+            RegisterValue |= ((uint32_t)Rate) << 10;    // add in the new sample rate
+        }
+        if(RegisterValue != DDCConfigReg[Cntr / 2])     //write back if changed
+        {
+            DDCConfigReg[Cntr / 2] = RegisterValue;         // write back
+            ConfigReg = DDCCONFIGREGS[Cntr];                // get FPGA address
+//            RegisterWrite(ConfigReg, RegisterValue);        // and write to it
+        }
+    }
 }
 
 
@@ -177,10 +307,29 @@ void SetP1SampleRate(ESampleRate Rate)
 // SetP2SampleRate(unsigned int DDC, ESampleRate Rate)
 // sets the sample rate for a single DDC (used in protocol 2)
 // allowed rates are 48KHz to 1536KHz.
+// simpler: just set one DDC config reg
 //
 void SetP2SampleRate(unsigned int DDC, ESampleRate Rate)
 {
-
+    uint32_t ConfigReg;
+    uint32_t RegisterValue;
+    RegisterValue = DDCConfigReg[DDC / 2];         // get current register setting
+    if((DDC & 1) == 0)                              // if even register
+    {
+        RegisterValue &= 0xFFFFFF1C;                // set sample rate to zero
+        RegisterValue |= ((uint32_t)Rate) << 2;     // add in the new sample rate
+    }
+    else                                            // must be an odd register
+    {
+        RegisterValue &= 0xFFFF1CFF;                // set sample rate to zero
+        RegisterValue |= ((uint32_t)Rate) << 10;    // add in the new sample rate
+    }
+    if(RegisterValue != DDCConfigReg[DDC / 2])     //write back if changed
+    {
+        DDCConfigReg[DDC / 2] = RegisterValue;          // write back
+        ConfigReg = DDCCONFIGREGS[DDC];                 // get FPGA address
+//        RegisterWrite(ConfigReg, RegisterValue);        // and write to it
+    }
 }
 
 
@@ -191,7 +340,7 @@ void SetP2SampleRate(unsigned int DDC, ESampleRate Rate)
 //
 void SetClassEPA(bool IsClassE)
 {
-
+    GClassESetting = IsClassE;
 }
 
 
@@ -208,8 +357,11 @@ void SetOpenCollectorOutputs(unsigned int bits)
     BitMask = (0b1111111) << VOPENCOLLECTORBITS;
     Register = Register & ~BitMask;                 // strip old bits, add new
     Register |= (bits << VOPENCOLLECTORBITS);
-    GPIORegValue = Register;                    // store it back
-//    RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
+    if(Register != GPIORegValue)                    // write back if changed
+    {
+        GPIORegValue = Register;                    // store it back
+//        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
+    }
 }
 
 
@@ -241,8 +393,12 @@ void SetADCOptions(EADCSelect ADC, bool PGA, bool Dither, bool Random)
         Register |= (1 << DitherBit);
     if(Random)
         Register |= (1 << RandBit);
-    GPIORegValue = Register;                        // store it back
-//    RegisterWrite(VADDRRFGPIOREG, Register);      // and write to it
+
+    if(Register != GPIORegValue)                    // write back if changed
+    {
+        GPIORegValue = Register;                        // store it back
+//        RegisterWrite(VADDRRFGPIOREG, Register);      // and write to it
+    }
 }
 
 
@@ -272,9 +428,12 @@ void SetDDCFrequency(unsigned int DDC, unsigned int Value, bool IsDeltaPhase)
     else
         DeltaPhase = (uint32_t)Value;
 
-    DDCDeltaPhase[DDC] = DeltaPhase;        // store this delta phase
-    RegAddress =DDCRegisters[DDC];          // get DDC reg address, 
-//    RegisterWrite(VADDRTXDUCREG, DeltaPhase);  // and write to it
+    if(DDCDeltaPhase[DDC] != DeltaPhase)    // write back if changed
+    {
+        DDCDeltaPhase[DDC] = DeltaPhase;        // store this delta phase
+        RegAddress =DDCRegisters[DDC];          // get DDC reg address, 
+//        RegisterWrite(VADDRTXDUCREG, DeltaPhase);  // and write to it
+    }
 }
 
 
@@ -297,9 +456,72 @@ void SetDUCFrequency(unsigned int DUC, unsigned int Value, bool IsDeltaPhase)		/
     else
         DeltaPhase = (uint32_t)Value;
 
-    DUCDeltaPhase = DeltaPhase;             // store this delta phase
-//    RegisterWrite(DUCDeltaPhase, DeltaPhase);  // and write to it
+    if(DUCDeltaPhase != DeltaPhase)         // write back if changed
+    {
+        DUCDeltaPhase = DeltaPhase;             // store this delta phase
+//        RegisterWrite(DUCDeltaPhase, DeltaPhase);  // and write to it
+    }
 }
+
+uint32_t GAlexTXRegister;                       // 16 bit used of 32 
+uint32_t GAlexRXRegister;                       // 32 bit RX register
+//////////////////////////////////////////////////////////////////////////////////
+
+//	data to send to Alex Tx filters is in the following format:
+//	Bit  0 - NC				U3 - D0
+//	Bit  1 - NC				U3 - D1
+//	Bit  2 - txrx_status    U3 - D2
+//	Bit  3 - Yellow Led		U3 - D3
+//	Bit  4 - 30/20m	LPF		U3 - D4
+//	Bit  5 - 60/40m	LPF		U3 - D5
+//	Bit  6 - 80m LPF		U3 - D6
+//	Bit  7 - 160m LPF    	U3 - D7
+//	Bit  8 - Ant #1			U5 - D0
+//	Bit  9 - Ant #2			U5 - D1
+//	Bit 10 - Ant #3			U5 - D2
+//	Bit 11 - T/R relay		U5 - D3
+//	Bit 12 - Red Led		U5 - D4
+//	Bit 13 - 6m	LPF			U5 - D5
+//	Bit 14 - 12/10m LPF		U5 - D6
+//	Bit 15 - 17/15m	LPF		U5 - D7
+// bit 4 (or bit 11 as sent by AXI) replaced by TX strobe
+
+//	data to send to Alex Rx filters is in the folowing format:
+//  bits 15:0 - RX1; bits 31:16 - RX1
+// (IC designators and functions for 7000DLE RF board)
+//	Bit  0 - Yellow LED 	  U6 - QA
+//	Bit  1 - 10-22 MHz BPF 	  U6 - QB
+//	Bit  2 - 22-35 MHz BPF 	  U6 - QC
+//	Bit  3 - 6M Preamp    	  U6 - QD
+//	Bit  4 - 6-10MHz BPF	  U6 - QE
+//	Bit  5 - 2.5-6 MHz BPF 	  U6 - QF
+//	Bit  6 - 1-2.5 MHz BPF 	  U6 - QG
+//	Bit  7 - N/A      		  U6 - QH
+//	Bit  8 - Transverter 	  U10 - QA
+//	Bit  9 - Ext1 In      	  U10 - QB
+//	Bit 10 - N/A         	  U10 - QC
+//	Bit 11 - PS sample select U10 - QD
+//	Bit 12 - RX1 Filt bypass  U10 - QE
+//	Bit 13 - N/A 		      U10 - QF
+//	Bit 14 - RX1 master in	  U10 - QG
+//	Bit 15 - RED LED 	      U10 - QH
+//	Bit 16 - Yellow LED 	  U7 - QA
+//	Bit 17 - 10-22 MHz BPF 	  U7 - QB
+//	Bit 18 - 22-35 MHz BPF 	  U7 - QC
+//	Bit 19 - 6M Preamp    	  U7 - QD
+//	Bit 20 - 6-10MHz BPF	  U7 - QE
+//	Bit 21 - 2.5-6 MHz BPF 	  U7 - QF
+//	Bit 22 - 1-2.5 MHz BPF 	  U7 - QG
+//	Bit 23 - N/A      		  U7 - QH
+//	Bit 24 - Transverter 	  U13 - QA
+//	Bit 25 - Ext1 In      	  U13 - QB
+//	Bit 26 - N/A         	  U13 - QC
+//	Bit 27 - PS sample select U13 - QD
+//	Bit 28 - RX1 Filt bypass  U13 - QE
+//	Bit 29 - N/A 		      U13 - QF
+//	Bit 30 - RX1 master in	  U13 - QG
+//	Bit 31 - RED LED 	      U13 - QH
+
 
 
 //
@@ -394,9 +616,8 @@ void SetApolloBits(bool EnableFilter, bool EnableATU, bool StartAutoTune)
 //
 void SelectFilterBoard(bool IsApollo)
 {
-    
+    GIsApollo = IsApollo;
 }
-
 
 //
 // EnablePPSStamp(bool Enabled)
@@ -404,51 +625,94 @@ void SelectFilterBoard(bool IsApollo)
 //
 void EnablePPSStamp(bool Enabled)
 {
-
+    GPPSEnabled = Enabled;
 }
 
+
+unsigned int DACCurrentROM[256];                    // used for residual attenuation
+unsigned int DACStepAttenROM[256];                  // provides most atten setting
 
 //
 // SetTXDriveLevel(unsigned int Dac, unsigned int Level)
 // sets the TX DAC current via a PWM DAC output
 // DAC: the DAC number (must be zero)
 // level: 0 to 255 drive level value (255 = max current)
+// sets both step attenuator drive and PWM DAC drive for high speed DAC current,
+// using ROMs calculated at initialise.
 //
 void SetTXDriveLevel(unsigned int Dac, unsigned int Level)
 {
+    uint32_t RegisterValue = 0;
+    uint32_t DACDrive, AttenDrive;
 
+    if(Dac == 0)
+    {
+        Level &= 0xFF;                                  // make sure 8 bits only
+        DACDrive = DACCurrentROM[Level];                // get PWM
+        AttenDrive = DACStepAttenROM[Level];            // get step atten
+        RegisterValue = DACDrive;                       // set drive level when RX
+        RegisterValue |= (DACDrive << 8);               // set drive level when TX
+        RegisterValue |= (AttenDrive << 16);            // set step atten when RX
+        RegisterValue |= (AttenDrive << 24);            // set step atten when TX
+        if(GTXDACCtrl != RegisterValue)                 // write back if changed
+        {
+            GTXDACCtrl = RegisterValue;
+//            RegisterWrite(VADDRDACCTRLREG, RegisterValue);  // and write to it
+        }
+    }
 }
 
 
 //
 // SetMicBoost(bool EnableBoost)
-//  enables 20dB mic boost amplifier in the CODEC
+// enables 20dB mic boost amplifier in the CODEC
+// change bits in the codec register, and only write back if changed (I2C write is slow!)
 //
 void SetMicBoost(bool EnableBoost)
 {
+    unsigned int Register;
 
+    Register = GCodecAnaloguePath;                      // get current setting
+
+    Register &= 0xFFFE;                                 // remove old mic boost bit
+    if(EnableBoost)
+        Register |= 1;                                  // set new mic boost bit
+    if(Register != GCodecAnaloguePath)                  // only write back if changed
+    {
+        GCodecAnaloguePath = Register;
+//        CodecRegisterWrite(VCODECANALOGUEPATHREG, Register);
+    }
 }
 
 
 //
 // SetMicLineInput(bool IsLineIn)
 // chooses between microphone and Line input to Codec
+// change bits in the codec register, and only write back if changed (I2C write is slow!)
 //
 void SetMicLineInput(bool IsLineIn)
 {
+    unsigned int Register;
 
+    Register = GCodecAnaloguePath;                      // get current setting
+
+    Register &= 0xFFFB;                                 // remove old mic / line select bit
+    if(!IsLineIn)
+        Register |= 4;                                  // set new select bit
+    if(Register != GCodecAnaloguePath)                  // only write back if changed
+    {
+        GCodecAnaloguePath = Register;
+//        CodecRegisterWrite(VCODECANALOGUEPATHREG, Register);
+    }
 }
 
 
-#define VMICBIASENABLEBIT 0
-#define VMICPTTSELECTBIT 1
-#define VMICSIGNALSELECTBIT 2
-#define VMICBIASSELECTBIT 3
 
 //
 // SetOrionMicOptions(bool MicTip, bool EnableBias, bool EnablePTT)
 // sets the microphone control inputs
-// write the bits to GPIO. Note the register bits aren't directly the protocol input bits!
+// write the bits to GPIO. Note the register bits aren't directly the protocol input bits.
+// note also that EnablePTT is actually a DISABLE signal (enabled = 0)
 //
 void SetOrionMicOptions(bool MicTip, bool EnableBias, bool EnablePTT)
 {
@@ -473,10 +737,13 @@ void SetOrionMicOptions(bool MicTip, bool EnableBias, bool EnablePTT)
     }
     if(EnableBias)
         Register |= (1 << VMICBIASENABLEBIT);
-    GPTTEnabled = EnablePTT;                        // used when PTT read back - just store state
+    GPTTEnabled = !EnablePTT;                       // used when PTT read back - just store opposite state
 
-    GPIORegValue = Register;                        // store it back
-//    RegisterWrite(VADDRRFGPIOREG, Register);      // and write to it
+    if(GPIORegValue != Register)                    // write bsack if changed
+    {
+        GPIORegValue = Register;                        // store it back
+//        RegisterWrite(VADDRRFGPIOREG, Register);      // and write to it
+    }
 }
 
 
@@ -491,19 +758,34 @@ void SetBalancedMicInput(bool Balanced)
     Register = GPIORegValue;                        // get current settings
     Register &= ~(1 << VBALANCEDMICSELECT);         // strip old bit
     if(Balanced)
-        Register |= (1 << VBALANCEDMICSELECT);          // set new bit
-    GPIORegValue = Register;                        // store it back
-//    RegisterWrite(VADDRRFGPIOREG, Register);      // and write to it
+        Register |= (1 << VBALANCEDMICSELECT);      // set new bit
+    
+    if(GPIORegValue = Register)                     // write back if changed
+    {
+        GPIORegValue = Register;                        // store it back
+//        RegisterWrite(VADDRRFGPIOREG, Register);      // and write to it
+    }
 }
 
 
 //
 // SetCodecLineInGain(unsigned int Gain)
 // sets the line input level register in the Codec (4 bits)
+// change bits in the codec register, and only write back if changed (I2C write is slow!)
 //
 void SetCodecLineInGain(unsigned int Gain)
 {
+    unsigned int Register;
 
+    Register = GCodecLineGain;                          // get current setting
+
+    Register &= 0xFFE0;                                 // remove old gain
+    Register |= Gain;                                   // set new gain
+    if(Register != GCodecLineGain)                      // only write back if changed
+    {
+        GCodecLineGain = Register;
+//        CodecRegisterWrite(VCODECLLINEVOLREG, Register);
+    }
 }
 
 

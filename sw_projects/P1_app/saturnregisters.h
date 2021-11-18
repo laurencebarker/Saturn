@@ -57,6 +57,17 @@ eTXDDS,
 eCWKeyer
 } ETXModulationSource;
 
+
+
+//
+// initialise the DAC Atten ROMs
+// these set the step attenuator and DAC drive level
+// for "attenuation intent" values from 0 to 255
+//
+void InitialiseDACAttenROMs(void);
+
+
+
 //
 // SetMOX(bool Mox)
 // sets or clears TX state
