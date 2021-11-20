@@ -161,6 +161,29 @@ void SetAlexRXOut(bool Enable);
 void SetAlexTXAnt(unsigned int Bits);
 
 //
+// SetAlexCoarseAttenuator(unsigned int Bits)
+// P1: set the 0/10/20/30dB attenuator bits. NOT used for for 7000RF board.
+// bits: 00=0dB, 01=10dB, 10=20dB, 11=30dB
+//
+void SetAlexCoarseAttenuator(unsigned int Bits);
+
+//
+// SetAlexRXFilters(bool IsRX1, unsigned int Bits)
+// P1: set the Alex bits for RX BPF filter selection
+// IsRX1 true for RX1, false for RX2
+// Bits follows the P1 protocol format
+//
+void SetAlexRXFilters(bool IsRX1, unsigned int Bits);
+
+//
+// SetAlexTXFilters(unsigned int Bits)
+// P1: set the Alex bits for TX LPF filter selection
+// Bits follows the P1 protocol format
+//
+void SetAlexTXFilters(unsigned int Bits);
+
+
+//
 // EnableAlexManualFilterSelect(bool IsManual)
 // used to select between automatic selection of filters, and remotely commanded settings.
 // if Auto, the RX and TX filters are calculated when a frequency change occurs

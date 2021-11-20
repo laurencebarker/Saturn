@@ -44,6 +44,9 @@ ESampleRate P2DDCSampleRate[VNUMDDC];               // array for all DDCs
 uint32_t DDCConfigReg[VNUMDDC/2];                   // config registers
 bool GClassESetting;                                // NOT CURRENTLY USED - true if class E operation
 bool GIsApollo;                                     // NOT CURRENTLY USED - true if Apollo filter selected
+bool GEnableApolloFilter;                           // Apollo filter bit - NOT USED
+bool GEnableApolloATU;                              // Apollo ATU bit - NOT USED
+bool GStartApolloAutoTune;                          // Start Apollo tune bit - NOT USED
 bool GPPSEnabled;                                   // NOT CURRENTLY USED - trie if PPS generation enabled
 uint32_t GTXDACCtrl;                                // TX DAC current setting & atten
 
@@ -150,10 +153,15 @@ uint32_t DDCCONFIGREGS[VNUMDDC] =
   VADDRDDC8_9CONFIG
 };
 
+//
+// ALEX SPI registers
+//
+#define VOFFSETALEXTXREG 0                              // offset addr in IP core
+#define VOFFSETALEXRXREG 4                              // offset addr in IP core
 
 
 //
-// bit addresses in status anf GPIO registers
+// bit addresses in status and GPIO registers
 //
 #define VMICBIASENABLEBIT 0
 #define VMICPTTSELECTBIT 1
@@ -463,64 +471,69 @@ void SetDUCFrequency(unsigned int DUC, unsigned int Value, bool IsDeltaPhase)		/
     }
 }
 
-uint32_t GAlexTXRegister;                       // 16 bit used of 32 
-uint32_t GAlexRXRegister;                       // 32 bit RX register
-//////////////////////////////////////////////////////////////////////////////////
 
+
+bool GAlexRXOut;                                // P1 RX output bit (NOT USED)
+uint32_t GAlexTXRegister;                       // 16 bit used of 32 
+uint32_t GAlexRXRegister;                       // 32 bit RX register 
+uint32_t GAlexCoarseAttenuatorBits;             // Alex coarse atten NOT USED  
+bool GAlexManualFilterSelect;                   // true if manual (remote CPU) filter setting
+//
+//////////////////////////////////////////////////////////////////////////////////
 //	data to send to Alex Tx filters is in the following format:
-//	Bit  0 - NC				U3 - D0
-//	Bit  1 - NC				U3 - D1
-//	Bit  2 - txrx_status    U3 - D2
-//	Bit  3 - Yellow Led		U3 - D3
-//	Bit  4 - 30/20m	LPF		U3 - D4
-//	Bit  5 - 60/40m	LPF		U3 - D5
-//	Bit  6 - 80m LPF		U3 - D6
-//	Bit  7 - 160m LPF    	U3 - D7
-//	Bit  8 - Ant #1			U5 - D0
-//	Bit  9 - Ant #2			U5 - D1
-//	Bit 10 - Ant #3			U5 - D2
-//	Bit 11 - T/R relay		U5 - D3
-//	Bit 12 - Red Led		U5 - D4
-//	Bit 13 - 6m	LPF			U5 - D5
-//	Bit 14 - 12/10m LPF		U5 - D6
-//	Bit 15 - 17/15m	LPF		U5 - D7
+//	Bit  0 - NC				U3 - D0     0
+//	Bit  1 - NC				U3 - D1     0
+//	Bit  2 - txrx_status    U3 - D2     TXRX_Relay strobe
+//	Bit  3 - Yellow Led		U3 - D3     RX2_GROUND: from C0=0x24: C1[7]
+//	Bit  4 - 30/20m	LPF		U3 - D4     LPF[0] : from C0=0x12: C4[0]
+//	Bit  5 - 60/40m	LPF		U3 - D5     LPF[1] : from C0=0x12: C4[1]
+//	Bit  6 - 80m LPF		U3 - D6     LPF[2] : from C0=0x12: C4[2]
+//	Bit  7 - 160m LPF    	U3 - D7     LPF[3] : from C0=0x12: C4[3]
+//	Bit  8 - Ant #1			U5 - D0     Gate from C0=0:C4[1:0]=00
+//	Bit  9 - Ant #2			U5 - D1     Gate from C0=0:C4[1:0]=01
+//	Bit 10 - Ant #3			U5 - D2     Gate from C0=0:C4[1:0]=10
+//	Bit 11 - T/R relay		U5 - D3     T/R relay. 1=TX	TXRX_Relay strobe
+//	Bit 12 - Red Led		U5 - D4     TXRX_Relay strobe
+//	Bit 13 - 6m	LPF			U5 - D5     LPF[4] : from C0=0x12: C4[4]
+//	Bit 14 - 12/10m LPF		U5 - D6     LPF[5] : from C0=0x12: C4[5]
+//	Bit 15 - 17/15m	LPF		U5 - D7     LPF[6] : from C0=0x12: C4[6]
 // bit 4 (or bit 11 as sent by AXI) replaced by TX strobe
 
 //	data to send to Alex Rx filters is in the folowing format:
 //  bits 15:0 - RX1; bits 31:16 - RX1
 // (IC designators and functions for 7000DLE RF board)
-//	Bit  0 - Yellow LED 	  U6 - QA
-//	Bit  1 - 10-22 MHz BPF 	  U6 - QB
-//	Bit  2 - 22-35 MHz BPF 	  U6 - QC
-//	Bit  3 - 6M Preamp    	  U6 - QD
-//	Bit  4 - 6-10MHz BPF	  U6 - QE
-//	Bit  5 - 2.5-6 MHz BPF 	  U6 - QF
-//	Bit  6 - 1-2.5 MHz BPF 	  U6 - QG
-//	Bit  7 - N/A      		  U6 - QH
-//	Bit  8 - Transverter 	  U10 - QA
-//	Bit  9 - Ext1 In      	  U10 - QB
-//	Bit 10 - N/A         	  U10 - QC
-//	Bit 11 - PS sample select U10 - QD
-//	Bit 12 - RX1 Filt bypass  U10 - QE
-//	Bit 13 - N/A 		      U10 - QF
-//	Bit 14 - RX1 master in	  U10 - QG
-//	Bit 15 - RED LED 	      U10 - QH
-//	Bit 16 - Yellow LED 	  U7 - QA
-//	Bit 17 - 10-22 MHz BPF 	  U7 - QB
-//	Bit 18 - 22-35 MHz BPF 	  U7 - QC
-//	Bit 19 - 6M Preamp    	  U7 - QD
-//	Bit 20 - 6-10MHz BPF	  U7 - QE
-//	Bit 21 - 2.5-6 MHz BPF 	  U7 - QF
-//	Bit 22 - 1-2.5 MHz BPF 	  U7 - QG
-//	Bit 23 - N/A      		  U7 - QH
-//	Bit 24 - Transverter 	  U13 - QA
-//	Bit 25 - Ext1 In      	  U13 - QB
-//	Bit 26 - N/A         	  U13 - QC
-//	Bit 27 - PS sample select U13 - QD
-//	Bit 28 - RX1 Filt bypass  U13 - QE
-//	Bit 29 - N/A 		      U13 - QF
-//	Bit 30 - RX1 master in	  U13 - QG
-//	Bit 31 - RED LED 	      U13 - QH
+//	Bit  0 - Yellow LED 	  U6 - QA       0
+//	Bit  1 - 10-22 MHz BPF 	  U6 - QB       BPF[0]: from C0=0x12: C3[0]
+//	Bit  2 - 22-35 MHz BPF 	  U6 - QC       BPF[1]: from C0=0x12: C3[1]
+//	Bit  3 - 6M Preamp    	  U6 - QD       10/6M LNA: from C0=0x12: C3[6]
+//	Bit  4 - 6-10MHz BPF	  U6 - QE       BPF[2]: from C0=0x12: C3[2]
+//	Bit  5 - 2.5-6 MHz BPF 	  U6 - QF       BPF[3]: from C0=0x12: C3[3]
+//	Bit  6 - 1-2.5 MHz BPF 	  U6 - QG       BPF[4]: from C0=0x12: C3[4]
+//	Bit  7 - N/A      		  U6 - QH       0
+//	Bit  8 - Transverter 	  U10 - QA      Gated C122_Transverter. True if C0=0: C3[6:5]=11
+//	Bit  9 - Ext1 In      	  U10 - QB      Gated C122_Rx_2_in. True if C0=0: C3[6:5]=10
+//	Bit 10 - N/A         	  U10 - QC      0
+//	Bit 11 - PS sample select U10 - QD      Selects main or RX_BYPASS_OUT	Gated C122_Rx_1_in True if C0=0: C3[6:5]=01
+//	Bit 12 - RX1 Filt bypass  U10 - QE      BPF[5]: from C0=0x12: C3[5]
+//	Bit 13 - N/A 		      U10 - QF      0
+//	Bit 14 - RX1 master in	  U10 - QG      (selects main, or transverter/ext1)	Gated. True if C0=0: C3[6:5]=11 or C0=0: C3[6:5]=10 
+//	Bit 15 - RED LED 	      U10 - QH      0
+//	Bit 16 - Yellow LED 	  U7 - QA       0
+//	Bit 17 - 10-22 MHz BPF 	  U7 - QB       BPF2[0]: from C0=0x24: C1[0]
+//	Bit 18 - 22-35 MHz BPF 	  U7 - QC       BPF2[1]: from C0=0x24: C1[1]
+//	Bit 19 - 6M Preamp    	  U7 - QD       10/6M LNA2: from C0=0x24: C1[6]
+//	Bit 20 - 6-10MHz BPF	  U7 - QE       BPF2[2]: from C0=0x24: C1[2]
+//	Bit 21 - 2.5-6 MHz BPF 	  U7 - QF       BPF2[3]: from C0=0x24: C1[3]
+//	Bit 22 - 1-2.5 MHz BPF 	  U7 - QG       BPF2[4]: from C0=0x24: C1[4]
+//	Bit 23 - N/A      		  U7 - QH       0
+//	Bit 24 - RX2_GROUND 	  U13 - QA      RX2_GROUND: from C0=0x24: C1[7]
+//	Bit 25 - N/A         	  U13 - QB      0
+//	Bit 26 - N/A         	  U13 - QC      0
+//	Bit 27 - N/A              U13 - QD      0
+//	Bit 28 - HPF_BYPASS 2	  U13 - QE      BPF2[5]: from C0=0x24: C1[5]
+//	Bit 29 - N/A 		      U13 - QF      0
+//	Bit 30 - N/A	          U13 - QG      0
+//	Bit 31 - RED LED 2	      U13 - QH      0
 
 
 
@@ -528,20 +541,46 @@ uint32_t GAlexRXRegister;                       // 32 bit RX register
 // SetAlexRXAnt(unsigned int Bits)
 // P1: set the Alex RX antenna bits.
 // bits=00: none; 01: RX1; 02: RX2; 03: transverter
+// affects bits 8,9,11,14 of the Alex RX register
 //
 void SetAlexRXAnt(unsigned int Bits)
 {
+    uint32_t Register;                                  // modified register
 
+    Register = GAlexRXRegister;                         // copy original register
+    Register &= 0xFFFFB4FF;                             // turn off all affected bits
+
+    switch(Bits)
+    {
+        case 0:
+        default:
+            break;
+        case 1:
+            Register |= 0x00000800;                       // turn on PS select bit
+            break;
+
+        case 2:
+            Register |= 00004200;                       // turn on master in & EXT1 bits
+            break;
+        case 3:
+            Register |= 00004100;                       // turn on master in & transverter bits
+            break;
+    }
+    if(Register != GAlexRXRegister)                     // write back if changed
+    {
+        GAlexRXRegister = Register;
+//        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXRXREG, Register);  // and write to it
+    }
 }
-
 
 //
 // SetAlexRXOut(bool Enable)
 // P1: sets the Alex RX output relay
+// NOT USED by 7000 RF board
 //
 void SetAlexRXOut(bool Enable)
 {
-
+    GAlexRXOut = Enable;
 }
 
 
@@ -549,10 +588,113 @@ void SetAlexRXOut(bool Enable)
 // SetAlexTXAnt(unsigned int Bits)
 // P1: set the Alex TX antenna bits.
 // bits=00: ant1; 01: ant2; 10: ant3; other: chooses ant1
+// set bits 10-8 in Alex TX reg
 //
 void SetAlexTXAnt(unsigned int Bits)
 {
+    uint32_t Register;                                  // modified register
 
+    Register = GAlexTXRegister;                         // copy original register
+    Register &= 0xFCFF;                                 // turn off all affected bits
+
+    switch(Bits)
+    {
+        case 0:
+        case 3:
+        default:
+            Register |=0x0100;                          // turn on ANT1
+            break;
+
+        case 1:
+            Register |=0x0200;                          // turn on ANT2
+            break;
+
+        case 2:
+            Register |=0x0400;                          // turn on ANT3
+            break;
+    }
+    if(Register != GAlexTXRegister)                     // write back if changed
+    {
+        GAlexTXRegister = Register;
+//        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXREG, Register);  // and write to it
+    }
+}
+
+
+//
+// SetAlexCoarseAttenuator(unsigned int Bits)
+// P1: set the 0/10/20/30dB attenuator bits. NOT used for for 7000RF board.
+// bits: 00=0dB, 01=10dB, 10=20dB, 11=30dB
+// Simply store the data - NOT USED for this RF board
+//
+void SetAlexCoarseAttenuator(unsigned int Bits)
+{
+    GAlexCoarseAttenuatorBits = Bits;
+}
+
+bool GEnableAlexTXRXRelay;                                  // true if TX allowed
+//
+// SetAlexRXFilters(bool IsRX1, unsigned int Bits)
+// P1: set the Alex bits for RX BPF filter selection
+// IsRX1 true for RX1, false for RX2
+// Bits follows the P1 protocol format
+// RX1: C0=0x12, byte C4 has RX1;
+// RX2: C0-0x12, byte X1 has RX2
+//
+void SetAlexRXFilters(bool IsRX1, unsigned int Bits)
+{
+    uint32_t Register;                                          // modified register
+    if(GAlexManualFilterSelect)
+    {
+        Register = GAlexRXRegister;                             // copy original register
+        if(IsRX1)
+        {
+            GEnableAlexTXRXRelay = (bool)(Bits & 0b1000000);    // enable TXRX
+            Register &= 0xFFFFEF81;                             // turn off all affected bits
+            Register |= (Bits & 0x03)<<1;                       // bits 1-0, moved up
+            Register |= (Bits & 0x1C)<<2;                       // bits 4-2, moved up
+            Register |= (Bits & 0x40)>>3;                       // bit 6 moved down
+            Register |= (Bits & 0x20)<<7;                       // bit 5 moved up
+        }
+        else
+        {
+            Register &= 0xEF81FFFF;                             // turn off all affected bits
+            Register |= (Bits & 0x03)<<17;                      // bits 1-0, moved up
+            Register |= (Bits & 0x1C)<<18;                      // bits 4-2, moved up
+            Register |= (Bits & 0x40)<<13;                      // bit 6 moved up
+            Register |= (Bits & 0x20)<<23;                      // bit 5 moved up
+            Register |= (Bits & 0x80)<<21;                      // bit 7 moved up
+        }
+
+        if(Register != GAlexRXRegister)                     // write back if changed
+        {
+            GAlexRXRegister = Register;
+    //        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXRXREG, Register);  // and write to it
+        }
+    }
+}
+
+//
+// SetAlexTXFilters(unsigned int Bits)
+// P1: set the Alex bits for TX LPF filter selection
+// Bits follows the P1 protocol format. C0=0x12, byte C4 has TX
+//
+void SetAlexTXFilters(unsigned int Bits)
+{
+    uint32_t Register;                                          // modified register
+    if(GAlexManualFilterSelect)
+    {
+        Register = GAlexTXRegister;                         // copy original register
+        Register &= 0x1F0F;                                 // turn off all affected bits
+        Register |= (Bits & 0x0F)<<4;                       // bits 3-0, moved up
+        Register |= (Bits & 0x1C)<<9;                      // bits 6-4, moved up
+
+        if(Register != GAlexTXRegister)                     // write back if changed
+        {
+            GAlexTXRegister = Register;
+    //        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXREG, Register);  // and write to it
+        }
+    }
 }
 
 
@@ -563,7 +705,7 @@ void SetAlexTXAnt(unsigned int Bits)
 //
 void EnableAlexManualFilterSelect(bool IsManual)
 {
-
+    GAlexManualFilterSelect = IsManual;                 // just store the bit
 }
 
 
@@ -575,7 +717,27 @@ void EnableAlexManualFilterSelect(bool IsManual)
 //
 void AlexManualRXFilters(unsigned int Bits, int RX)
 {
+    uint32_t Register;                                          // modified register
+    if(GAlexManualFilterSelect)
+    {
+        Register = GAlexRXRegister;                             // copy original register
+        if(IsRX1)
+        {
+            Register &= 0xFFFF0000;                             // turn off all affected bits
+            Register |= Bits;                                   // add back all new bits
+        }
+        else
+        {
+            Register &= 0x0000FFFF;                             // turn off all affected bits
+            Register |= (Bits<<16);                             // add back all new bits
+        }
 
+        if(Register != GAlexRXRegister)                     // write back if changed
+        {
+            GAlexRXRegister = Register;
+    //        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXRXREG, Register);  // and write to it
+        }
+    }
 }
 
 
@@ -585,7 +747,7 @@ void AlexManualRXFilters(unsigned int Bits, int RX)
 //
 void DisableAlexTRRelay(bool IsDisabled)
 {
-
+    GEnableAlexTXRXRelay = !IsDisabled;                     // enable TXRX - opposite sense to stored bit
 }
 
 
@@ -596,7 +758,16 @@ void DisableAlexTRRelay(bool IsDisabled)
 //
 void AlexManualTXFilters(unsigned int Bits)
 {
-
+    uint32_t Register;                                  // modified register
+    if(GAlexManualFilterSelect)
+    {
+        Register = Bits;                         // new setting
+        if(Register != GAlexTXRegister)                     // write back if changed
+        {
+            GAlexTXRegister = Register;
+    //        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXREG, Register);  // and write to it
+        }
+    }
 }
 
 
@@ -606,7 +777,9 @@ void AlexManualTXFilters(unsigned int Bits)
 //
 void SetApolloBits(bool EnableFilter, bool EnableATU, bool StartAutoTune)
 {
-
+    GEnableApolloFilter = EnableFilter;
+    GEnableApolloATU = EnableATU;
+    GStartApolloAutoTune = StartAutoTune;
 }
 
 
