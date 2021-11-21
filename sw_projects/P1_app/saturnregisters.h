@@ -60,6 +60,15 @@ eCWKeyer
 
 
 //
+// InitialiseCWKeyerRamp(void)
+// calculates an "S" shape ramp curve and loads into RAM
+// needs to be called before keyer enabled!
+//
+void InitialiseCWKeyerRamp(void);
+
+
+
+//
 // initialise the DAC Atten ROMs
 // these set the step attenuator and DAC drive level
 // for "attenuation intent" values from 0 to 255
@@ -363,7 +372,7 @@ void SetCWSidetoneVol(unsigned int Volume);
 
 //
 // SetCWPTTDelay(unsigned int Delay)
-//  sets the delay (ms) before TX commences
+//  sets the delay (ms) before TX commences (8 bit delay value)
 //
 void SetCWPTTDelay(unsigned int Delay);
 
@@ -371,6 +380,7 @@ void SetCWPTTDelay(unsigned int Delay);
 //
 // SetCWHangTime(unsigned int HangTime)
 // sets the delay (ms) after CW key released before TX removed
+// (10 bit hang time value)
 //
 void SetCWHangTime(unsigned int HangTime);
 
@@ -378,6 +388,7 @@ void SetCWHangTime(unsigned int HangTime);
 //
 // SetCWSidetoneFrequency(unsigned int Frequency)
 // sets the CW audio sidetone frequency, in Hz
+// (12 bit value)
 //
 void SetCWSidetoneFrequency(unsigned int Frequency);
 

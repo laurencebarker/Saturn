@@ -437,7 +437,8 @@ int main(int argc, char *argv[])
   OpenXDMADriver();
   CodecInitialise();
   InitialiseDACAttenROMs();
-
+  InitialiseCWKeyerRamp();
+  SetCWSidetoneEnabled(true);
   
 
   for(i = 0; i < 5; ++i)

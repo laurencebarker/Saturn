@@ -49,6 +49,26 @@ bool GEnableApolloATU;                              // Apollo ATU bit - NOT USED
 bool GStartApolloAutoTune;                          // Start Apollo tune bit - NOT USED
 bool GPPSEnabled;                                   // NOT CURRENTLY USED - trie if PPS generation enabled
 uint32_t GTXDACCtrl;                                // TX DAC current setting & atten
+uint32_t GRXADCCtrl;                                // RX1 & 2 attenuations
+bool GAlexRXOut;                                    // P1 RX output bit (NOT USED)
+uint32_t GAlexTXRegister;                           // 16 bit used of 32 
+uint32_t GAlexRXRegister;                           // 32 bit RX register 
+uint32_t GAlexCoarseAttenuatorBits;                 // Alex coarse atten NOT USED  
+bool GAlexManualFilterSelect;                       // true if manual (remote CPU) filter setting
+bool GEnableAlexTXRXRelay;                          // true if TX allowed
+bool GCWKeysReversed;                               // true if keys reversed. Not yet used but will be
+unsigned int GCWKeyerSpeed;                         // Keyer speed in WPM. Not yet used
+unsigned int GCWKeyerMode;                          // Keyer Mode. Not yet used
+unsigned int GCWKeyerWeight;                        // Keyer Weight. Not yet used
+bool GCWKeyerEnabled;                               // true if iambic keyer is enabled
+uint32_t GCWKeyerSetup;                             // keyer control register
+uint32_t GKeyerSidetoneVol;                         // sidetone volume for CW TX
+bool GCWBreakInEnabled;                             // true if full break-in enabled
+uint32_t GClassEPWMMin;                             // min class E PWM. NOT USED at present.
+uint32_t GClassEPWMMax;                             // max class E PWM. NOT USED at present.
+uint32_t GCodecConfigReg;                           // codec configuration
+bool GSidetoneEnabled;                              // true if sidetone is enabled
+unsigned int GSidetoneVolume;                       // assigned sidetone volume (8 bit signed)
 
 
 //
@@ -125,6 +145,8 @@ unsigned int GCodecAnaloguePath;                        // value written in Code
 #define VADDRCODECI2CREG 0x14000
 #define VADDRXADCREG 0x18000                    // on-chip ADC
 
+
+
 uint32_t DDCRegisters[VNUMDDC] =
 {
   VADDRDDC0REG,
@@ -139,7 +161,7 @@ uint32_t DDCRegisters[VNUMDDC] =
   VADDRDDC9REG,
 };
 
-uint32_t DDCCONFIGREGS[VNUMDDC] = 
+uint32_t DDCConfigRegs[VNUMDDC] = 
 {
   VADDRDDC0_1CONFIG,                            // 0 & 1
   VADDRDDC0_1CONFIG, 
@@ -196,6 +218,13 @@ uint32_t DDCCONFIGREGS[VNUMDDC] =
 #define VEXTTXENABLEBIT 31
 
 
+//
+// Keyer setup register defines
+//
+#define VCWKEYERENABLE 31                               // enble bit
+#define VCWKEYERHANG 8                                  // hang time is 17:8
+#define VCWKEYERRAMP 18                                 // ramp time
+
 
 //
 // initialise the DAC Atten ROMs
@@ -227,6 +256,17 @@ void InitialiseDACAttenROMs(void)
         DACCurrentROM[Level] = DACDrive;
         DACStepAttenROM[Level] = StepAtten;
     }
+}
+
+
+//
+// InitialiseCWKeyerRamp(void)
+// calculates an "S" shape ramp curve and loads into RAM
+// needs to be called before keyer enabled!
+//
+void InitialiseCWKeyerRamp(void)
+{
+
 }
 
 
@@ -293,18 +333,18 @@ void SetP1SampleRate(ESampleRate Rate)
         RegisterValue = DDCConfigReg[Cntr / 2];         // get current register setting
         if((Cntr & 1) == 0)                             // if even register
         {
-            RegisterValue &= 0xFFFFFF1C;                // set sample rate to zero
+            RegisterValue &= 0xFFFFFFE3;                // set sample rate to zero
             RegisterValue |= ((uint32_t)Rate) << 2;     // add in the new sample rate
         }
         else                                            // must be an odd register
         {
-            RegisterValue &= 0xFFFF1CFF;                // set sample rate to zero
+            RegisterValue &= 0xFFFFE3FF;                // set sample rate to zero
             RegisterValue |= ((uint32_t)Rate) << 10;    // add in the new sample rate
         }
-        if(RegisterValue != DDCConfigReg[Cntr / 2])     //write back if changed
+        if(RegisterValue != DDCConfigReg[Cntr / 2])     // write back if changed
         {
             DDCConfigReg[Cntr / 2] = RegisterValue;         // write back
-            ConfigReg = DDCCONFIGREGS[Cntr];                // get FPGA address
+            ConfigReg = DDCConfigRegs[Cntr];                // get FPGA address
 //            RegisterWrite(ConfigReg, RegisterValue);        // and write to it
         }
     }
@@ -335,7 +375,7 @@ void SetP2SampleRate(unsigned int DDC, ESampleRate Rate)
     if(RegisterValue != DDCConfigReg[DDC / 2])     //write back if changed
     {
         DDCConfigReg[DDC / 2] = RegisterValue;          // write back
-        ConfigReg = DDCCONFIGREGS[DDC];                 // get FPGA address
+        ConfigReg = DDCConfigRegs[DDC];                 // get FPGA address
 //        RegisterWrite(ConfigReg, RegisterValue);        // and write to it
     }
 }
@@ -473,11 +513,7 @@ void SetDUCFrequency(unsigned int DUC, unsigned int Value, bool IsDeltaPhase)		/
 
 
 
-bool GAlexRXOut;                                // P1 RX output bit (NOT USED)
-uint32_t GAlexTXRegister;                       // 16 bit used of 32 
-uint32_t GAlexRXRegister;                       // 32 bit RX register 
-uint32_t GAlexCoarseAttenuatorBits;             // Alex coarse atten NOT USED  
-bool GAlexManualFilterSelect;                   // true if manual (remote CPU) filter setting
+
 //
 //////////////////////////////////////////////////////////////////////////////////
 //	data to send to Alex Tx filters is in the following format:
@@ -632,7 +668,7 @@ void SetAlexCoarseAttenuator(unsigned int Bits)
     GAlexCoarseAttenuatorBits = Bits;
 }
 
-bool GEnableAlexTXRXRelay;                                  // true if TX allowed
+
 //
 // SetAlexRXFilters(bool IsRX1, unsigned int Bits)
 // P1: set the Alex bits for RX BPF filter selection
@@ -649,7 +685,6 @@ void SetAlexRXFilters(bool IsRX1, unsigned int Bits)
         Register = GAlexRXRegister;                             // copy original register
         if(IsRX1)
         {
-            GEnableAlexTXRXRelay = (bool)(Bits & 0b1000000);    // enable TXRX
             Register &= 0xFFFFEF81;                             // turn off all affected bits
             Register |= (Bits & 0x03)<<1;                       // bits 1-0, moved up
             Register |= (Bits & 0x1C)<<2;                       // bits 4-2, moved up
@@ -721,7 +756,7 @@ void AlexManualRXFilters(unsigned int Bits, int RX)
     if(GAlexManualFilterSelect)
     {
         Register = GAlexRXRegister;                             // copy original register
-        if(IsRX1)
+        if(RX != 2)
         {
             Register &= 0xFFFF0000;                             // turn off all affected bits
             Register |= Bits;                                   // add back all new bits
@@ -980,7 +1015,25 @@ void EnablePureSignal(bool Enabled)
 //
 void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool Enabled)
 {
-
+    uint32_t Register;                              // local copy
+    Register = GRXADCCtrl;                          // get existing settings
+    if(!Enabled)
+        Atten=0;                                    // no atrenuation if not enabled
+    if(ADC == eADC1)
+    {
+        Register &= 0xFFFFFFE0;                     // remove existing bits;
+        Register |= (Atten & 0X1F);                 // add in new bits for ADC1
+    }
+    else
+    {
+        Register &= 0xFFFF83FF;                     // remove existing bits;
+        Register |= (Atten & 0X1F) << 10;           // add in new bits for ADC2
+    }
+    if (Register != GRXADCCtrl)                     // only write back if changed
+    {
+        GRXADCCtrl = Register; 
+//        RegisterWrite(VADDRADCCTRLREG, Register);      // and write to it
+    }
 }
 
 
@@ -990,57 +1043,70 @@ void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool Enabled)
 //
 void SetADCAttenDuringTX(unsigned int Atten)
 {
-
+    uint32_t Register;                              // local copy
+    Register = GRXADCCtrl;                          // get existing settings
+    Register &= 0xFFF07C1F;                         // remove existing bits for ADC1&2;
+    Register |= (Atten & 0X1F) << 5;                // add in new bits for ADC1
+    Register |= (Atten & 0X1F) << 15;               // add in new bits for ADC2
+    if (Register != GRXADCCtrl)                     // only write back if changed
+    {
+        GRXADCCtrl = Register; 
+//        RegisterWrite(VADDRADCCTRLREG, Register);      // and write to it
+    }
 }
-
 
 //
 // SetCWKeyerReversed(bool Reversed)
 // if set, swaps the paddle inputs
+// not yet used, but will be
 //
 void SetCWKeyerReversed(bool Reversed)
 {
-
+    GCWKeysReversed = Reversed;                     // just save it for now
 }
 
 
 //
 // SetCWKeyerSpeed(unsigned int Speed)
 // sets the CW keyer speed, in WPM
+// not yet used, but will be
 //
 void SetCWKeyerSpeed(unsigned int Speed)
 {
-
+    GCWKeyerSpeed = Speed;                          // just save it for now
 }
 
 
 //
 // SetCWKeyerMode(unsigned int Mode)
 // sets the CW keyer mode
+// not yet used, but will be
 //
 void SetCWKeyerMode(unsigned int Mode)
 {
-
+    GCWKeyerMode = Mode;                            // just save it for now
 }
 
 
 //
 // SetCWKeyerWeight(unsigned int Weight)
 // sets the CW keyer weight value (7 bits)
+// not yet used, but will be
 //
 void SetCWKeyerWeight(unsigned int Weight)
 {
-
+    GCWKeyerWeight = Weight;                        // just save it for now
 }
 
 
 //
 // SetCWKeyerEnabled(bool Enabled)
 // enables or disables the CW keyer
+// not yet used, but will be
 //
 void SetCWKeyerEnabled(bool Enabled)
 {
-
+    GCWKeyerEnabled = Enabled;
 }
 
 
@@ -1051,8 +1117,37 @@ void SetCWKeyerEnabled(bool Enabled)
 //
 void SetDDCADC(int DDC, EADCSelect ADC)
 {
+    uint32_t ConfigReg;
+    uint32_t RegisterValue;
+    uint32_t ADCSetting;
 
+    ADCSetting = (uint32_t)ADC & 0x3;               // 2 bits with ADC setting
+    RegisterValue = DDCConfigReg[DDC / 2];          // get current register setting
+    if((DDC & 1) == 0)                              // if even register
+    {
+        RegisterValue &= 0xFFFFFFFC;                // set sample rate to zero
+        RegisterValue |= ADCSetting;                // add in the new sample rate
+    }
+    else                                            // must be an odd register
+    {
+        RegisterValue &= 0xFFFFFCFF;                // set sample rate to zero
+        RegisterValue |= ADCSetting << 8;           // add in the new sample rate
+    }
+    if(RegisterValue != DDCConfigReg[DDC / 2])      // write back if changed
+    {
+        DDCConfigReg[DDC / 2] = RegisterValue;          // write back
+        ConfigReg = DDCConfigRegs[DDC];                 // get FPGA address
+//        RegisterWrite(ConfigReg, RegisterValue);        // and write to it
+    }
 }
+
+
+uint32_t GKeyerSidetoneVol;                             // sidetone volume for CW TX
+uint32_t GCWKeyerSetup;                                 // keyer control register
+#define VADDRKEYERCONFIGREG 0x40
+#define VCWKEYERENABLE 31                               // enble bit
+#define VCWKEYERHANG 8                                  // hang time is 17:8
+#define VCWKEYERRAMP 18                                 // ramp time
 
 
 //
@@ -1062,7 +1157,38 @@ void SetDDCADC(int DDC, EADCSelect ADC)
 //
 void EnableCW (bool Enabled)
 {
+    uint32_t Register;
 
+    Register = GCWKeyerSetup;                    // get current settings
+    if(Enabled)
+        Register |= (1<<VCWKEYERENABLE);
+    else
+        Register &= ~(1<<VCWKEYERENABLE);
+    if(Register != GCWKeyerSetup)                    // write back if different
+    {
+        GCWKeyerSetup = Register;                    // store it back
+//        RegisterWrite(VADDRKEYERCONFIGREG, Register);  // and write to it
+    }
+}
+
+
+//
+// SetCWSidetoneEnabled(bool Enabled)
+// enables or disables sidetone. If disabled, the volume is set to zero in codec config reg
+// only do something if the bit changes; note the volume setting function is relevant too
+//
+void SetCWSidetoneEnabled(bool Enabled)
+{
+    uint32_t Register;
+    if(GSidetoneEnabled != Enabled)                     // only act if bit changed
+    {
+        Register = GCodecConfigReg;                     // get current settings
+        Register &= 0x0000FFFF;                         // remove old volume bits
+        if(Enabled)
+            Register |= (GSidetoneVolume & 0xFF) << 8;  // add back new bits; resize to 16 bits
+        GCodecConfigReg = Register;                     // store it back
+//        RegisterWrite(VADDRCODECCONFIGREG, Register); // and write to it
+    }
 }
 
 
@@ -1072,57 +1198,94 @@ void EnableCW (bool Enabled)
 //
 void SetCWSidetoneVol(unsigned int Volume)
 {
+    uint32_t Register;
 
+    if(GSidetoneVolume != Volume)                       // only act if value changed
+    {
+        GSidetoneVolume = Volume;                       // set new value
+        Register = GCodecConfigReg;                     // get current settings
+        Register &= 0x0000FFFF;                         // remove old volume bits
+        if(GSidetoneEnabled)
+            Register |= (GSidetoneVolume & 0xFF) << 8;  // add back new bits; resize to 16 bits
+        GCodecConfigReg = Register;                     // store it back
+//        RegisterWrite(VADDRCODECCONFIGREG, Register);  // and write to it
+    }
 }
 
 
 //
 // SetCWPTTDelay(unsigned int Delay)
-//  sets the delay (ms) before TX commences
+//  sets the delay (ms) before TX commences (8 bit delay value)
 //
 void SetCWPTTDelay(unsigned int Delay)
 {
+    uint32_t Register;
 
+    Register = GCWKeyerSetup;                           // get current settings
+    Register &= 0xFFFFFF00;                             // remove old bits
+    Register |= (Delay &0xFF);                          // add back new bits
+    if(Register != GCWKeyerSetup)                       // write back if different
+    {
+        GCWKeyerSetup = Register;                       // store it back
+//        RegisterWrite(VADDRKEYERCONFIGREG, Register);  // and write to it
+    }
 }
 
 
 //
 // SetCWHangTime(unsigned int HangTime)
 // sets the delay (ms) after CW key released before TX removed
+// (10 bit hang time value)
 //
 void SetCWHangTime(unsigned int HangTime)
 {
+    uint32_t Register;
 
+    Register = GCWKeyerSetup;                        // get current settings
+    Register &= 0xFFFC00FF;                          // remove old bits
+    Register |= (HangTime &0x3FF) << VCWKEYERHANG;   // add back new bits
+    if(Register != GCWKeyerSetup)                    // write back if different
+    {
+        GCWKeyerSetup = Register;                    // store it back
+//        RegisterWrite(VADDRKEYERCONFIGREG, Register);  // and write to it
+    }
 }
 
-
+#define VCODECSAMPLERATE 48000                      // I2S rate
 //
 // SetCWSidetoneFrequency(unsigned int Frequency)
 // sets the CW audio sidetone frequency, in Hz
+// (12 bit value)
+// DDS needs a 16 bit phase word; sample rate = 48KHz so convert accordingly
 //
 void SetCWSidetoneFrequency(unsigned int Frequency)
 {
+    uint32_t Register;
+    uint32_t DeltaPhase;                            // DDS delta phase value
+    double fDeltaPhase;                             // delta phase as a float
 
-}
+    fDeltaPhase = (double)(2^16) * (double)Frequency / (double) VCODECSAMPLERATE;
+    DeltaPhase = ((uint32_t)fDeltaPhase) & 0xFFFF;
 
-
-//
-// SetCWSidetoneEnabled(bool Enabled)
-// enables or disables sidetone. If disabled, the volume is set to zero
-//
-void SetCWSidetoneEnabled(bool Enabled)
-{
-
+    Register = GCodecConfigReg;                     // get current settings
+    Register &= 0x0000FFFF;                         // remove old bits
+    Register |= DeltaPhase << 16;                   // add back new bits
+    if(Register != GCodecConfigReg)                 // write back if different
+    {
+        GCodecConfigReg = Register;                 // store it back
+//        RegisterWrite(VADDRCODECCONFIGREG, Register);  // and write to it
+    }
 }
 
 
 //
 // SetCWBreakInEnabled(bool Enabled)
 // enables or disables full CW break-in
+// I don't think this has any effect
 //
 void SetCWBreakInEnabled(bool Enabled)
 {
-
+    GCWBreakInEnabled = Enabled;
 }
 
 
@@ -1132,7 +1295,7 @@ void SetCWBreakInEnabled(bool Enabled)
 //
 void SetMinPWMWidth(unsigned int Width)
 {
-
+    GClassEPWMMin = Width;                                      // just store for now
 }
 
 
@@ -1142,7 +1305,7 @@ void SetMinPWMWidth(unsigned int Width)
 //
 void SetMaxPWMWidth(unsigned int Width)
 {
-
+    GClassEPWMMax = Width;                                      // just store for now
 }
 
 
@@ -1152,7 +1315,18 @@ void SetMaxPWMWidth(unsigned int Width)
 //
 void SetXvtrEnable(bool Enabled)
 {
+    uint32_t Register;
 
+    Register = GPIORegValue;                        // get current settings
+    if(Enabled)
+        Register |= (1<<VXVTRENABLEBIT);
+    else
+        Register &= ~(1<<VXVTRENABLEBIT);
+    if(Register != GPIORegValue)                    // write back if different
+    {
+        GPIORegValue = Register;                    // store it back
+//        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
+    }
 }
 
 
