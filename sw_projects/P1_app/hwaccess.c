@@ -129,6 +129,9 @@ int DMAReadFromFPGA(int fd, char*DestData, uint32_t Length, uint32_t AXIAddr)
 	return 0;
 }
 
+//
+// 32 bit register read over the AXILite bus
+//
 uint32_t RegisterRead(uint32_t Address)
 {
 	uint32_t result = 0;
@@ -140,10 +143,33 @@ uint32_t RegisterRead(uint32_t Address)
     return result;
 }
 
-
+//
+// 32 bit register write over the AXILite bus
+//
 void RegisterWrite(uint32_t Address, uint32_t Data)
 {
     ssize_t nsent = pwrite(register_fd, &Data, sizeof(Data), (off_t) Address); 
     if (nsent != sizeof(Data))
         printf("ERROR: Write: addr=0x%08X   error=%s\n",Address, strerror(errno));
+}
+
+
+
+//
+// 8 bit Codec register read over the AXILite bus via I2C
+//
+unsigned int CodecRegisterRead(unsigned int Address)
+{
+	unsigned int Result = 0;
+
+	return Result;
+}
+
+
+//
+// 8 bit Codec register write over the AXILite bus via I2C
+//
+void CodecRegisterWrite(unsigned int Address, unsigned int Data)
+{
+	
 }
