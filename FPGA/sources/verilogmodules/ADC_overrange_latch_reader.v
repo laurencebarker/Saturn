@@ -17,7 +17,7 @@
 // Registers:
 //  addr 0         Status register (read only, with side effect)
 //                 bit 0: reads out latched overrange 1
-//                 bit 2: reads out latched overrange 2
+//                 bit 1: reads out latched overrange 2
 //		   An axi4 read transaction clears the latch.
 
 //
