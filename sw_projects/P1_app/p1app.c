@@ -1,13 +1,17 @@
-/*
-19.04.2016 DC2PD: add code for bandpass and antenna switching via I2C.
-22.08.2016 DL4AOI: add code for TX level switching via I2C.
-22.08.2016 DL4AOI: output first four open collector outputs to the pins DIO4_P - DIO7_P of the extension connector E1.
-02.09.2016 ON3VNA: add code for TX level switching via DS1803-10 (I2C).
-21.09.2016 DC2PD: add code for controlling AD8331 VGA with MCP4725 DAC (I2C).
-02.10.2016 DL9LJ: add code for controlling ICOM IC-735 (UART).
-03.12.2016 KA6S: add CW keyer code.
-16.08.2017 G8NJJ: add code for controlling G8NJJ Arduino sketch (I2C).
-*/
+/////////////////////////////////////////////////////////////
+//
+// Saturn project: Artix7 FPGA + Raspberry Pi4 Compute Module
+// PCI Express interface from linux on Raspberry pi
+// this application uses C code to emulate HPSDR protocol 1 
+//
+// copyright Laurence Barker November 2021
+// licenced under GNU GPL3
+// derived from Pavel Demin code 
+//
+// p1app.c:
+//
+//////////////////////////////////////////////////////////////
+
 
 #include <stdio.h>
 #include <errno.h>
@@ -28,9 +32,10 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 
-#include "hwaccess.h"
-#include "saturnregisters.h"
+#include "hwaccess.h"                     // access to PCIe read & write
+#include "saturnregisters.h"              // register I/O for Saturn
 
+// these will eventually all not be needed:
 #define I2C_SLAVE       0x0703 /* Use this slave address */
 #define I2C_SLAVE_FORCE 0x0706 /* Use this slave address, even if it
                                   is already in use by a driver! */
@@ -61,14 +66,15 @@ const uint32_t freq_max = 61440000;
 int receivers = 1;
 int rate = 0;
 
+
 int sock_ep2;
 struct sockaddr_in addr_ep6;
 
 int enable_thread = 0;
 int active_thread = 0;
 
-void process_ep2(uint8_t *frame);
-void *handler_ep6(void *arg);
+void process_incoming_CandC(uint8_t *frame);
+void *SendOutgoingPacketData(void *arg);
 void *handler_keyer(void *arg);
 
 /* variables to handle I2C devices */
@@ -808,8 +814,8 @@ int main(int argc, char *argv[])
             for(j = 0; j < 504; j += 8) *dac_data = *(uint32_t *)(buffer[i] + 16 + j);
             for(j = 0; j < 504; j += 8) *dac_data = *(uint32_t *)(buffer[i] + 528 + j);
           }
-          process_ep2(buffer[i] + 11);
-          process_ep2(buffer[i] + 523);
+          process_incoming_CandC(buffer[i] + 11);
+          process_incoming_CandC(buffer[i] + 523);
           break;
         case 0x0002feef:
           reply[2] = 2 + active_thread;
@@ -836,7 +842,7 @@ int main(int argc, char *argv[])
           /* reset rx los */
           *lo_rst &= ~3;
           *lo_rst |= 3;
-          if(pthread_create(&thread, NULL, handler_ep6, NULL) < 0)
+          if(pthread_create(&thread, NULL, SendOutgoingPacketData, NULL) < 0)
           {
             perror("pthread_create");
             return EXIT_FAILURE;
@@ -883,7 +889,12 @@ int main(int argc, char *argv[])
   return EXIT_SUCCESS;
 }
 
-void process_ep2(uint8_t *frame)
+
+
+//
+// process incoming 4 byte C&C data from PC app
+//
+void process_incoming_CandC(uint8_t *frame)
 {
   uint32_t freq;
   uint16_t data;
@@ -893,6 +904,7 @@ void process_ep2(uint8_t *frame)
 
   switch(frame[0])
   {
+    //C0=0b0000000x:
     case 0:
     case 1:
       receivers = ((frame[4] >> 3) & 7) + 1;
@@ -1021,6 +1033,7 @@ void process_ep2(uint8_t *frame)
         }
       }
       break;
+    //C0=0b0000001x:
     case 2:
     case 3:
       /* set tx phase increment */
@@ -1046,6 +1059,7 @@ void process_ep2(uint8_t *frame)
         }
       }
       break;
+    //C0=0b0000010x:
     case 4:
     case 5:
       /* set rx phase increment */
@@ -1078,6 +1092,7 @@ void process_ep2(uint8_t *frame)
       }
       break;
 #ifndef THETIS
+    //C0=0b0000011x:
     case 6:
     case 7:
       /* set rx phase increment */
@@ -1103,6 +1118,7 @@ void process_ep2(uint8_t *frame)
         }
       }
       break;
+    //C0=0b0000100x:
     case 8:
     case 9:
       /* set rx phase increment */
@@ -1111,6 +1127,7 @@ void process_ep2(uint8_t *frame)
       *rx_freq[2] = (uint32_t)floor(freq / 122.88e6 * (1 << 30) + 0.5);
       break;
 #else
+    //C0=0b0000011x:
     case 6:
     case 7:
       /* set rx phase increment */
@@ -1119,6 +1136,7 @@ void process_ep2(uint8_t *frame)
       if(freq < freq_min || freq > freq_max) break;
       *rx_freq[1] = (uint32_t)floor(freq / 122.88e6 * (1 << 30) + 0.5);
       break;
+    //C0=0b0000100x:
     case 8:
     case 9:
       /* set rx phase increment */
@@ -1144,6 +1162,7 @@ void process_ep2(uint8_t *frame)
       }
       break;
 #endif
+    //C0=0b0001001x:
     case 18:
     case 19:
       data = (frame[2] & 0x40) << 9 | frame[4] << 8 | frame[3];
@@ -1239,6 +1258,7 @@ void process_ep2(uint8_t *frame)
         }
       }
       break;
+    //C0=0b0001010x:
     case 20:
     case 21:
       rx_att_data = frame[4] & 0x1f;
@@ -1277,6 +1297,7 @@ void process_ep2(uint8_t *frame)
         }
       }
       break;
+    //C0=0b0001011x:
     case 22:
     case 23:
       if(i2c_misc)
@@ -1320,6 +1341,7 @@ void process_ep2(uint8_t *frame)
         }
       }
       break;
+    //C0=0b0001110x:
     case 28:
     case 29:
       if(i2c_arduino)
@@ -1340,6 +1362,7 @@ void process_ep2(uint8_t *frame)
         }
       }
       break;
+    //C0=0b0001111x:
     case 30:
     case 31:
       cw_int_data = frame[1] & 1;
@@ -1351,6 +1374,7 @@ void process_ep2(uint8_t *frame)
         *dac_level = data * 64;
       }
       break;
+    //C0=0b0010000x:
     case 32:
     case 33:
       cw_hang = (frame[1] << 2) | (frame[2] & 3);
@@ -1363,7 +1387,8 @@ void process_ep2(uint8_t *frame)
   }
 }
 
-void *handler_ep6(void *arg)
+
+void *SendOutgoingPacketData(void *arg)
 {
   int i, j, k, m, n, size, rate_counter;
   int data_offset, header_offset;
