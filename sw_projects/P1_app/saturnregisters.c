@@ -36,7 +36,11 @@ unsigned int DACStepAttenROM[256];                  // provides most atten setti
 
 uint32_t DDCDeltaPhase[VNUMDDC];                    // DDC frequency settings
 uint32_t DUCDeltaPhase;                             // DUC frequency setting
+uint32_t GStatusRegister;                           // most recent status register setting
 uint32_t GPIORegValue;                              // value stored into GPIO
+uint32_t TXConfigRegValue;                          // value written into TX config register
+
+
 bool GPTTEnabled;                                   // true if PTT is enabled
 bool GPureSignalEnabled;                            // true if PureSignal is enabled
 ESampleRate P1SampleRate;                           // rate for all DDC
@@ -69,13 +73,39 @@ uint32_t GClassEPWMMax;                             // max class E PWM. NOT USED
 uint32_t GCodecConfigReg;                           // codec configuration
 bool GSidetoneEnabled;                              // true if sidetone is enabled
 unsigned int GSidetoneVolume;                       // assigned sidetone volume (8 bit signed)
+EADCSelect GWidebandADC;                            // P2 - not used yet.
+unsigned int GWidebandSampleCount;                  // P2 - not used yet
+unsigned int GWidebandSamplesPerPacket;             // P2 - not used yet
+unsigned int GWidebandUpdateRate;                   // update rate in ms. P2 - not used yet. 
+unsigned int GWidebandPacketsPerFrame;              // P2 - not used yet
+unsigned int GAlexEnabledBits;                      // P2. True if Alex1-8 enabled. NOT USED YET.
+bool GPAEnabled;                                    // P2. True if PA enabled. NOT USED YET.
+unsigned int GTXDACCount;                           // P2. #TX DACs. NOT USED YET.
+ESampleRate GDUCSampleRate;                         // P2. TX sample rate. NOT USED YET.
+unsigned int GDUCSampleSize;                        // P2. DUC # sample bits. NOT USED YET
+unsigned int GDUCPhaseShift;                        // P2. DUC phase shift. NOT USED YET.
+bool GSpeakerMuted;                                 // P2. True if speaker muted.
+bool GCWXMode;                                      // P2. Not yet used. 
+bool GDashPressed;                                  // P2. True if dash input pressed.
+bool GDotPressed;                                   // P2. true if dot input pressed.
+unsigned int GUserOutputBits;                       // P2. Not yet implermented.
+unsigned int GTXAmplScaleFactor;                    // values multipled into TX output after DUC
+ETXModulationSource GTXModulationSource;            // values added to register
+bool GTXProtocolP2;                                 // true if P2
+uint32_t TXModulationTestReg;                       // modulation test DDS
+bool GEnableTimeStamping;                           // true if timestamps to be added to data. NOT IMPLEMENTED YET
+bool GEnableVITA49;                                 // true if tyo enable VITA49 formatting. NOT SUPPORTED YET
+
+unsigned int DACCurrentROM[256];                    // used for residual attenuation
+unsigned int DACStepAttenROM[256];                  // provides most atten setting
+
 
 
 //
 // local copies of Codec registers
 //
-unsigned int GCodecLineGain;                            // value written in Codec left line in gain register
-unsigned int GCodecAnaloguePath;                        // value written in Codec analogue path register
+unsigned int GCodecLineGain;                        // value written in Codec left line in gain register
+unsigned int GCodecAnaloguePath;                    // value written in Codec analogue path register
 
 
 //
@@ -90,17 +120,17 @@ unsigned int GCodecAnaloguePath;                        // value written in Code
 //
 // define Codec registers
 //
-#define VCODECLLINEVOLREG 0                             // left line input volume
-#define VCODECRLINEVOLREG 1                             // right line input volume
-#define VCODECLHEADPHONEVOLREG 2                        // left headphone volume
-#define VCODECRHEADPHONEVOLREG 3                        // right headphone volume
-#define VCODECANALOGUEPATHREG 4                         // analogue path control
-#define VCODECDIGITALPATHREG 5                          // digital path control
-#define VCODECPOWERDOWNREG 6                            // power down control
-#define VCODECDIGITALFORMATREG 7                        // digital audio interface format register
-#define VCODECSAMPLERATEREG 8                           // sample rate control
-#define VCODECACTIVATIONREG 9                           // digital interface activation register
-#define VCODECRESETREG 15                               // reset register
+#define VCODECLLINEVOLREG 0                         // left line input volume
+#define VCODECRLINEVOLREG 1                         // right line input volume
+#define VCODECLHEADPHONEVOLREG 2                    // left headphone volume
+#define VCODECRHEADPHONEVOLREG 3                    // right headphone volume
+#define VCODECANALOGUEPATHREG 4                     // analogue path control
+#define VCODECDIGITALPATHREG 5                      // digital path control
+#define VCODECPOWERDOWNREG 6                        // power down control
+#define VCODECDIGITALFORMATREG 7                    // digital audio interface format register
+#define VCODECSAMPLERATEREG 8                       // sample rate control
+#define VCODECACTIVATIONREG 9                       // digital interface activation register
+#define VCODECRESETREG 15                           // reset register
 
 
 //
@@ -206,9 +236,9 @@ uint32_t DDCConfigRegs[VNUMDDC] =
 #define VXVTRENABLEBIT 30
 
 #define VPTTIN1BIT 0
-#define VPTTIN2BIT 1
-#define VKEYINA 2
-#define VKEYINB 3
+#define VPTTIN2BIT 1                    // not currently used
+#define VKEYINA 2                       // dot key
+#define VKEYINB 3                       // dash key
 #define VUSERIO4 4
 #define VUSERIO5 5
 #define VUSERIO6 8
@@ -224,6 +254,20 @@ uint32_t DDCConfigRegs[VNUMDDC] =
 #define VCWKEYERENABLE 31                               // enble bit
 #define VCWKEYERHANG 8                                  // hang time is 17:8
 #define VCWKEYERRAMP 18                                 // ramp time
+
+
+//
+// TX config register defines
+//
+
+#define VTXCONFIGDATASOURCEBIT 0
+#define VTXCONFIGSAMPLEGATINGBIT 2
+#define VTXCONFIGPROTOCOLBIT 3
+#define VTXCONFIGSCALEBIT 4
+#define VTXCONFIGMUXRESETBIT 29
+#define VTXCONFIGIQDEINTERLEAVEBIT 30
+#define VTXCONFIGIQSTREAMENABLED 31
+
 
 
 //
@@ -282,9 +326,9 @@ void SetMOX(bool Mox)
 
     Register = GPIORegValue;                    // get current settings
     if(Mox)
-        Register |= (1<<VATUTUNEBIT);
+        Register |= (1<<VMOXBIT);
     else
-        Register &= ~(1<<VATUTUNEBIT);
+        Register &= ~(1<<VMOXBIT);
     if(Register != GPIORegValue)                    // write back if different
     {
         GPIORegValue = Register;                    // store it back
@@ -304,9 +348,9 @@ void SetATUTune(bool TuneEnabled)
 
     Register = GPIORegValue;                    // get current settings
     if(TuneEnabled)
-        Register |= (1<<VMOXBIT);
+        Register |= (1<<VATUTUNEBIT);
     else
-        Register &= ~(1<<VMOXBIT);
+        Register &= ~(1<<VATUTUNEBIT);
     if(Register != GPIORegValue)                    // write back if different
     {
         GPIORegValue = Register;                    // store it back
@@ -609,6 +653,7 @@ void SetAlexRXAnt(unsigned int Bits)
     }
 }
 
+
 //
 // SetAlexRXOut(bool Enable)
 // P1: sets the Alex RX output relay
@@ -708,6 +753,7 @@ void SetAlexRXFilters(bool IsRX1, unsigned int Bits)
         }
     }
 }
+
 
 //
 // SetAlexTXFilters(unsigned int Bits)
@@ -827,6 +873,7 @@ void SelectFilterBoard(bool IsApollo)
     GIsApollo = IsApollo;
 }
 
+
 //
 // EnablePPSStamp(bool Enabled)
 // enables a "pulse per second" timestamp
@@ -836,9 +883,6 @@ void EnablePPSStamp(bool Enabled)
     GPPSEnabled = Enabled;
 }
 
-
-unsigned int DACCurrentROM[256];                    // used for residual attenuation
-unsigned int DACStepAttenROM[256];                  // provides most atten setting
 
 //
 // SetTXDriveLevel(unsigned int Dac, unsigned int Level)
@@ -1333,50 +1377,55 @@ void SetXvtrEnable(bool Enabled)
 //
 // SetWidebandEnable(EADCSelect ADC)
 // enables wideband sample collection from an ADC.
+// P2 - not yet implemented
 //
 void SetWidebandEnable(EADCSelect ADC)
 {
-
+    GWidebandADC = ADC;                                         // just save for now
 }
 
 
 //
 // SetWidebandSampleCount(unsigned int Samples)
 // sets the wideband data collected count
+// P2 - not yet implemented
 //
 void SetWidebandSampleCount(unsigned int Samples)
 {
-
+    GWidebandSampleCount = Samples;
 }
 
 
 //
 // SetWidebandSampleSize(unsigned int Bits)
 // sets the sample size per packet used for wideband data transfers
+// P2 - not yet implemented
 //
 void SetWidebandSampleSize(unsigned int Bits)
 {
-
+    GWidebandSamplesPerPacket = Bits;
 }
 
 
 //
 // SetWidebandUpdateRate(unsigned int Period_ms)
 // sets the period (ms) between collections of wideband data
+// P2 - not yet implemented
 //
 void SetWidebandUpdateRate(unsigned int Period_ms)
 {
-
+    GWidebandUpdateRate = Period_ms;
 }
 
 
 //
 // SetWidebandPacketsPerFrame(unsigned int Count)
 // sets the number of packets to be transferred per wideband data frame
+// P2 - not yet implemented
 //
 void SetWidebandPacketsPerFrame(unsigned int Count)
 {
-
+    GWidebandPacketsPerFrame = Count;
 }
 
 
@@ -1386,7 +1435,7 @@ void SetWidebandPacketsPerFrame(unsigned int Count)
 //
 void EnableTimeStamp(bool Enabled)
 {
-
+    GEnableTimeStamping = Enabled;                          // P2. true if enabled. NOT SUPPORTED YET
 }
 
 
@@ -1396,7 +1445,7 @@ void EnableTimeStamp(bool Enabled)
 //
 void EnableVITA49(bool Enabled)
 {
-
+    GEnableVITA49 = Enabled;                                // P2. true if enabled. NOT SUPPORTED YET
 }
 
 
@@ -1406,7 +1455,7 @@ void EnableVITA49(bool Enabled)
 //
 void SetAlexEnabled(unsigned int Alex)
 {
-
+    GAlexEnabledBits = Alex;                                // just save for now.
 }
 
 
@@ -1416,7 +1465,19 @@ void SetAlexEnabled(unsigned int Alex)
 //
 void SetPAEnabled(bool Enabled)
 {
+    uint32_t Register;
 
+    GPAEnabled = Enabled;                                   // just save for now
+    Register = GPIORegValue;                    // get current settings
+    if(!Enabled)
+        Register |= (1<<VTXRELAYDISABLEBIT);
+    else
+        Register &= ~(1<<VTXRELAYDISABLEBIT);
+    if(Register != GPIORegValue)                    // write back if different
+    {
+        GPIORegValue = Register;                    // store it back
+//        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
+    }
 }
 
 
@@ -1426,7 +1487,7 @@ void SetPAEnabled(bool Enabled)
 //
 void SetTXDACCount(unsigned int Count)
 {
-
+    GTXDACCount = Count;                                    // just save for now.
 }
 
 
@@ -1437,7 +1498,7 @@ void SetTXDACCount(unsigned int Count)
 //
 void SetDUCSampleRate(ESampleRate Rate)
 {
-
+    GDUCSampleRate = Rate;                                  // just save for now.
 }
 
 
@@ -1448,7 +1509,7 @@ void SetDUCSampleRate(ESampleRate Rate)
 //
 void SetDUCSampleSize(unsigned int Bits)
 {
-
+    GDUCSampleSize = Bits;                                  // just save for now
 }
 
 
@@ -1458,7 +1519,7 @@ void SetDUCSampleSize(unsigned int Bits)
 //
 void SetDUCPhaseShift(unsigned int Value)
 {
-
+    GDUCPhaseShift = Value;                                 // just save for now. 
 }
 
 
@@ -1468,7 +1529,9 @@ void SetDUCPhaseShift(unsigned int Value)
 //
 void SetCWKeys(bool CWXMode, bool Dash, bool Dot)
 {
-
+    GCWXMode = CWXMode;                                     // just save these 3 for now
+    GDashPressed =Dash;
+    GDotPressed = Dot;
 }
 
 
@@ -1478,7 +1541,19 @@ void SetCWKeys(bool CWXMode, bool Dash, bool Dot)
 //
 void SetSpkrMute(bool IsMuted)
 {
+    uint32_t Register;
 
+    GSpeakerMuted = IsMuted;                                // just save for now.
+    Register = GPIORegValue;                    // get current settings
+    if(IsMuted)
+        Register |= (1<<VSPKRMUTEBIT);
+    else
+        Register &= ~(1<<VSPKRMUTEBIT);
+    if(Register != GPIORegValue)                    // write back if different
+    {
+        GPIORegValue = Register;                    // store it back
+//        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
+    }
 }
 
 
@@ -1488,7 +1563,7 @@ void SetSpkrMute(bool IsMuted)
 //
 void SetUserOutputBits(unsigned int Bits)
 {
-
+    GUserOutputBits = Bits;                         // just save for now
 }
 
 
@@ -1496,15 +1571,29 @@ void SetUserOutputBits(unsigned int Bits)
 // read settings from FPGA
 //
 
+//
+// ReadStatusRegister(void)
+// this is a precursor to getting any of the data itself; simply reads the register to a local variable
+// probably call every time an outgoig packet is put together initially
+// but possibly do this one a timed basis.
+//
+void ReadStatusRegister(void)
+{
+    uint32_t StatusRegisterValue = 0;
+
+//    StatusRegisterValue = RegisterRead(VADDRSTATUSREG);
+    GStatusRegister = StatusRegisterValue;                        // save to global
+}
 
 //
 // GetPTTInput(void)
 // return true if PTT input is pressed.
+// depends on the status register having been read before this is called!
 //
 bool GetPTTInput(void)
 {
     bool Result = false;
-
+    Result = (bool)(GStatusRegister & 1);                       // get PTT bit
     return Result;
 }
 
@@ -1512,10 +1601,12 @@ bool GetPTTInput(void)
 //
 // GetKeyerDashInput(void)
 // return true if keyer dash input is pressed.
+// depends on the status register having been read before this is called!
 //
 bool GetKeyerDashInput(void)
 {
     bool Result = false;
+    Result = (bool)((GStatusRegister >> VKEYINB) & 1);                       // get PTT bit
 
     return Result;
 }
@@ -1525,10 +1616,12 @@ bool GetKeyerDashInput(void)
 //
 // GetKeyerDotInput(void)
 // return true if keyer dot input is pressed.
+// depends on the status register having been read before this is called!
 //
 bool GetKeyerDotInput(void)
 {
     bool Result = false;
+    Result = (bool)((GStatusRegister >> VKEYINA) & 1);                       // get PTT bit
 
     return Result;
 }
@@ -1536,15 +1629,17 @@ bool GetKeyerDotInput(void)
 
 
 //
-// GetADCOverflow(unsigned int ADC)
-// return true if ADC overflow has occurred since last read.
+// GetADCOverflow(void)
+// return true if ADC amplitude overflow has occurred since last read.
 // the overflow stored state is reset when this is read.
+// returns bit0: 1 if ADC1 overflow; bit1: 1 if ARC2 overflow
 //
-bool GetADCOverflow(unsigned int ADC)
+unsigned int GetADCOverflow(void)
 {
-    bool Result = false;
+    unsigned int Result = 0;
 
-    return Result;
+//  Result = RegisterRead(VADDRADCOVERFLOWBASE);
+    return (Result & 0x3);
 }
 
 
@@ -1552,10 +1647,12 @@ bool GetADCOverflow(unsigned int ADC)
 //
 // GetUserIOBits(void)
 // return the user input bits
+// returns IO4 in LSB, IO8 in bot 3
 //
 unsigned int GetUserIOBits(void)
 {
     unsigned int Result = 0;
+    Result = ((GStatusRegister >> VUSERIO4) & 0b1111);                       // get usder input 4/5/6/8
 
     return Result;
 }
@@ -1566,11 +1663,12 @@ unsigned int GetUserIOBits(void)
 // unsigned int GetAnalogueIn(unsigned int AnalogueSelect)
 // return one of 6 ADC values from the RF board analogue values
 // the paramter selects which input is read. 
-//
+// AnalogueSelect=0: AIN1 .... AnalogueSepect=5: AIN6
 unsigned int GetAnalogueIn(unsigned int AnalogueSelect)
 {
     unsigned int Result = 0;
-
+    AnalogueSelect &= 7;                                        // limit to 3 bits
+//  Result = RegisterRead(VADDRALEXADCBASE + AnalogueSelect);
     return Result;
 }
 
@@ -1584,9 +1682,20 @@ unsigned int GetAnalogueIn(unsigned int AnalogueSelect)
 //
 // CodecInitialise(void)
 // initialise the CODEC, with the register values that don't normally change
+// these are the values used by existing HPSDR FPGA firmware
 //
 void CodecInitialise(void)
 {
+    GCodecLineGain = 0;                                     // Codec left line in gain register
+    GCodecAnaloguePath = 0x14;                              // Codec analogue path register (mic input, no boost)
+//    CodecRegisterWrite(VCODECRESETREG, 0x0);          // reset register: reset deveice
+//    CodecRegisterWrite(VCODECACTIVATIONREG, 0x1);     // digital activation set to ACTIVE
+//    CodecRegisterWrite(VCODECANALOGUEPATHREG, GCodecAnaloguePath);        // mic input, no boost
+//    CodecRegisterWrite(VCODECPOWERDOWNREG, 0x0);      // all elements powered on
+//    CodecRegisterWrite(VCODECDIGITALFORMATREG, 0x2);  // slave; no swap; right when LRC high; 16 bit, I2S
+//    CodecRegisterWrite(VCODECSAMPLERATEREG, 0x0);     // no clock divide; rate ctrl=0; normal mode, oversample 256Fs
+//    CodecRegisterWrite(VCODECDIGITALPATHREG, 0x0);    // no soft mute; no deemphasis; ADC high pss filter enabled
+//    CodecRegisterWrite(VCODECLLINEVOLREG, GCodecLineGain);        // line in gain=0
 
 }
 
@@ -1594,20 +1703,57 @@ void CodecInitialise(void)
 //
 // SetTXAmplitudeScaling (unsigned int Amplitude)
 // sets the overall TX amplitude. This is normally set to a constant determined during development.
-//
+// 
 void SetTXAmplitudeScaling (unsigned int Amplitude)
 {
+    uint32_t Register;
 
+    GTXAmplScaleFactor = Amplitude;                             // save value
+    Register = TXConfigRegValue;                                // get current settings
+    Register &= 0xFFC0000F;                                     // remove old bits
+    Register |= ((Amplitude & 0x3FFFF << VTXCONFIGSCALEBIT));   // add new bits
+    if(Register != TXConfigRegValue)                            // write back if different
+    {
+        TXConfigRegValue = Register;                            // store it back
+//        RegisterWrite(VADDRTXCONFIGREG, Register);              // and write to it
+    }
+}
+
+
+//
+// SetTXProtocol (bool Protocol)
+// sets whether TX configured for P1 (48KHz) or P2 (192KHz)
+//
+void SetTXProtocol (bool Protocol)
+{
+    uint32_t Register;
+
+    GTXProtocolP2 = Protocol;                           // save value
+    Register = TXConfigRegValue;                        // get current settings
+    Register &= 0xFFFFFF7;                              // remove old bit
+    Register |= ((((unsigned int)Protocol)&1) << VTXCONFIGPROTOCOLBIT);            // add new bit
+    if(Register != TXConfigRegValue)                    // write back if different
+    {
+        TXConfigRegValue = Register;                    // store it back
+//        RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
+    }
 }
 
 
 //
 // SetTXModulationTestSourceFrequency (unsigned int Freq)
 // sets the TX modulation DDS source frequency. Only used for development.
-//
+// 
 void SetTXModulationTestSourceFrequency (unsigned int Freq)
 {
+    uint32_t Register;
 
+    Register = Freq;                        // get current settings
+    if(Register != TXModulationTestReg)                    // write back if different
+    {
+        TXModulationTestReg = Register;                    // store it back
+//        RegisterWrite(VADDRTXMODTESTREG, Register);  // and write to it
+    }
 }
 
 
@@ -1618,7 +1764,17 @@ void SetTXModulationTestSourceFrequency (unsigned int Freq)
 //
 void SetTXModulationSource(ETXModulationSource Source)
 {
+    uint32_t Register;
 
+    GTXModulationSource = Source;                       // save value
+    Register = TXConfigRegValue;                        // get current settings
+    Register &= 0xFFFFFFFC;                             // remove old bits
+    Register |= ((unsigned int)Source);                 // add new bits
+    if(Register != TXConfigRegValue)                    // write back if different
+    {
+        TXConfigRegValue = Register;                    // store it back
+//        RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
+    }
 }
 
 

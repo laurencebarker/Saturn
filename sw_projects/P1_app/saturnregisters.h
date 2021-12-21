@@ -548,6 +548,15 @@ void SetUserOutputBits(unsigned int Bits);
 
 
 //
+// ReadStatusRegister(void)
+// this is a precursor to getting any of the data itself; simply reads the register to a local variable
+// probably call every time an outgoig packet is put together initially
+// but possibly do this one a timed basis.
+//
+void ReadStatusRegister(void);
+
+
+//
 // GetPTTInput(void)
 // return true if PTT input is pressed.
 //
@@ -569,11 +578,12 @@ bool GetKeyerDotInput(void);
 
 
 //
-// GetADCOverflow(unsigned int ADC)
+// GetADCOverflow(void)
 // return true if ADC overflow has occurred since last read.
 // the overflow stored state is reset when this is read.
+// returns bit0: 1 if ADC1 overflow; bit1: 1 if ARC2 overflow
 //
-bool GetADCOverflow(unsigned int ADC);
+unsigned int GetADCOverflow(void);
 
 
 //
@@ -626,6 +636,11 @@ void SetTXModulationTestSourceFrequency (unsigned int Freq);
 void SetTXModulationSource(ETXModulationSource Source);
 
 
+//
+// SetTXProtocol (bool Protocol)
+// sets whether TX configured for P1 (48KHz) or P2 (192KHz)
+//
+void SetTXProtocol (bool Protocol);
 
 
 //////////////////////////////////////////////////////////////////////////////////
