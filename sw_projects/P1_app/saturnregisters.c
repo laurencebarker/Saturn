@@ -57,6 +57,7 @@ uint32_t GRXADCCtrl;                                // RX1 & 2 attenuations
 bool GAlexRXOut;                                    // P1 RX output bit (NOT USED)
 uint32_t GAlexTXRegister;                           // 16 bit used of 32 
 uint32_t GAlexRXRegister;                           // 32 bit RX register 
+bool GRX2GroundDuringTX;                            // true if RX2 grounded while in TX
 uint32_t GAlexCoarseAttenuatorBits;                 // Alex coarse atten NOT USED  
 bool GAlexManualFilterSelect;                       // true if manual (remote CPU) filter setting
 bool GEnableAlexTXRXRelay;                          // true if TX allowed
@@ -64,6 +65,7 @@ bool GCWKeysReversed;                               // true if keys reversed. No
 unsigned int GCWKeyerSpeed;                         // Keyer speed in WPM. Not yet used
 unsigned int GCWKeyerMode;                          // Keyer Mode. Not yet used
 unsigned int GCWKeyerWeight;                        // Keyer Weight. Not yet used
+bool GCWKeyerSpacing;                               // Keyer spacing
 bool GCWKeyerEnabled;                               // true if iambic keyer is enabled
 uint32_t GCWKeyerSetup;                             // keyer control register
 uint32_t GKeyerSidetoneVol;                         // sidetone volume for CW TX
@@ -719,7 +721,7 @@ void SetAlexCoarseAttenuator(unsigned int Bits)
 // P1: set the Alex bits for RX BPF filter selection
 // IsRX1 true for RX1, false for RX2
 // Bits follows the P1 protocol format
-// RX1: C0=0x12, byte C4 has RX1;
+// RX1: C0=0x12, byte C3 has RX1;
 // RX2: C0-0x12, byte X1 has RX2
 //
 void SetAlexRXFilters(bool IsRX1, unsigned int Bits)
@@ -754,6 +756,14 @@ void SetAlexRXFilters(bool IsRX1, unsigned int Bits)
     }
 }
 
+
+//
+// SetRX2GroundDuringTX(bool IsGrounded)
+//
+void SetRX2GroundDuringTX(bool IsGrounded)
+{
+    GRX2GroundDuringTX = IsGrounded;
+}
 
 //
 // SetAlexTXFilters(unsigned int Bits)
@@ -961,12 +971,12 @@ void SetMicLineInput(bool IsLineIn)
 
 
 //
-// SetOrionMicOptions(bool MicTip, bool EnableBias, bool EnablePTT)
+// SetOrionMicOptions(bool MicRing, bool EnableBias, bool EnablePTT)
 // sets the microphone control inputs
 // write the bits to GPIO. Note the register bits aren't directly the protocol input bits.
 // note also that EnablePTT is actually a DISABLE signal (enabled = 0)
 //
-void SetOrionMicOptions(bool MicTip, bool EnableBias, bool EnablePTT)
+void SetOrionMicOptions(bool MicRing, bool EnableBias, bool EnablePTT)
 {
     uint32_t Register;                              // FPGA register content
     Register = GPIORegValue;                        // get current settings
@@ -975,7 +985,7 @@ void SetOrionMicOptions(bool MicTip, bool EnableBias, bool EnablePTT)
     Register &= ~(1 << VMICSIGNALSELECTBIT);
     Register &= ~(1 << VMICBIASSELECTBIT);
 
-    if(MicTip)                                      // add new bits where set
+    if(!MicRing)                                      // add new bits where set
     {
         Register |= (1 << VMICSIGNALSELECTBIT);     // mic on tip
         Register |= (1 << VMICBIASSELECTBIT);       // and hence mic bias on tip
@@ -1140,6 +1150,16 @@ void SetCWKeyerMode(unsigned int Mode)
 void SetCWKeyerWeight(unsigned int Weight)
 {
     GCWKeyerWeight = Weight;                        // just save it for now
+}
+
+
+//
+// SetCWKeyerEnabled(bool Enabled)
+// sets CW keyer spacing bit
+//
+void SetCWKeyerSpacing(bool Spacing)
+{
+    GCWKeyerSpacing = Spacing;
 }
 
 

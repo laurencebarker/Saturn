@@ -16,10 +16,7 @@
 #ifndef __saturnregisters_h
 #define __saturnregisters_h
 
-
-typedef int bool;
-#define true 1
-#define false 0
+#include "saturntypes.h"
 
 //
 // enum type for sample rate. The last 2 options not allowed for protocol 1
@@ -210,6 +207,12 @@ void AlexManualRXFilters(unsigned int Bits, int RX);
 
 
 //
+// SetRX2GroundDuringTX(bool IsGrounded)
+//
+void SetRX2GroundDuringTX(bool IsGrounded);
+
+
+//
 // DisableAlexTRRelay(bool IsDisabled)
 // if parameter true, the TX RX relay is disabled and left in RX 
 //
@@ -269,10 +272,10 @@ void SetMicLineInput(bool IsLineIn);
 
 
 //
-// SetOrionMicOptions(bool MicTip, bool EnableBias, bool EnablePTT)
+// SetOrionMicOptions(bool MicRing, bool EnableBias, bool EnablePTT)
 // sets the microphone control inputs
 //
-void SetOrionMicOptions(bool MicTip, bool EnableBias, bool EnablePTT);
+void SetOrionMicOptions(bool MicRing, bool EnableBias, bool EnablePTT);
 
 
 //
@@ -338,6 +341,13 @@ void SetCWKeyerMode(unsigned int Mode);
 // sets the CW keyer weight value (7 bits)
 //
 void SetCWKeyerWeight(unsigned int Weight);
+
+
+//
+// SetCWKeyerEnabled(bool Enabled)
+// sets CW keyer spacing bit
+//
+void SetCWKeyerSpacing(bool Spacing);
 
 
 //
