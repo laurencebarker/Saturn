@@ -35,7 +35,7 @@
 
 #define VTRANSFERSIZE 4096											// size in bytes to transfer
 #define VMEMBUFFERSIZE 32768										// memory buffer to reserve
-#define AXIBaseAddress 0x10000									// address of StreamRead/Writer IP
+#define AXIBaseAddress 0x18000									// address of StreamRead/Writer IP
 
 //
 // mem read/write variables:
@@ -101,6 +101,7 @@ int DMAReadFromFPGA(int fd, char*DestData, uint32_t Length, uint32_t AXIAddr)
 }
 
 
+
 uint32_t RegisterRead(uint32_t Address)
 {
 	uint32_t result = 0;
@@ -111,53 +112,27 @@ uint32_t RegisterRead(uint32_t Address)
 	return result;
 }
 
-/* Subtract timespec t2 from t1
- *
- * Both t1 and t2 must already be normalized
- * i.e. 0 <= nsec < 1000000000
- */
-static int timespec_check(struct timespec *t)
-{
-	if ((t->tv_nsec < 0) || (t->tv_nsec >= 1000000000))
-		return -1;
-	return 0;
 
-}
-
-void timespec_sub(struct timespec *t1, struct timespec *t2)
+//
+// 32 bit register write over the AXILite bus
+//
+void RegisterWrite(uint32_t Address, uint32_t Data)
 {
-	if (timespec_check(t1) < 0) {
-		fprintf(stderr, "invalid time #1: %lld.%.9ld.\n",
-			(long long)t1->tv_sec, t1->tv_nsec);
-		return;
-	}
-	if (timespec_check(t2) < 0) {
-		fprintf(stderr, "invalid time #2: %lld.%.9ld.\n",
-			(long long)t2->tv_sec, t2->tv_nsec);
-		return;
-	}
-	t1->tv_sec -= t2->tv_sec;
-	t1->tv_nsec -= t2->tv_nsec;
-	if (t1->tv_nsec >= 1000000000) {
-		t1->tv_sec++;
-		t1->tv_nsec -= 1000000000;
-	} else if (t1->tv_nsec < 0) {
-		t1->tv_sec--;
-		t1->tv_nsec += 1000000000;
-	}
+    ssize_t nsent = pwrite(register_fd, &Data, sizeof(Data), (off_t) Address); 
+    if (nsent != sizeof(Data))
+        printf("ERROR: Write: addr=0x%08X   error=%s\n",Address, strerror(errno));
 }
 
 
-double timespec2double(struct timespec *t1)
-{
-	double Result;
 
-	Result = t1->tv_sec+((double)(t1->tv_nsec)/1.0E9);
-	return Result;
-}
+
+
+
 
 
 #define VALIGNMENT 4096
+
+
 
 //
 // main program
@@ -172,6 +147,11 @@ int main(int argc, char *argv[])
 	double WriteTime, ReadTime;
 	double WriteRate, ReadRate;
 	uint32_t RegisterValue;
+	uint32_t Depth;
+	uint32_t Cntr;
+	uint32_t ISample, QSample;
+	uint32_t* Ptr;									// pointer for reading out an I or Q sample
+
 //
 // initialise. Create memory buffers and open DMA file devices
 //
@@ -183,7 +163,7 @@ int main(int argc, char *argv[])
 	}
 
 //
-// try to open memory device
+// try to open memory device, then DMA device
 //
 	if ((register_fd = open("/dev/xdma0_user", O_RDWR)) == -1)
     {
@@ -195,12 +175,6 @@ int main(int argc, char *argv[])
 		printf("register access connected to /dev/xdma0_user\n");
     }
 
-//
-// now read the user access register (it should have a date code)
-//
-	RegisterValue = RegisterRead(0xB000);				// read the user access register
-	printf("User register = %08x\n", RegisterValue);
-
 
 	printf("Initialising XDMA read\n");
 	DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDWR);
@@ -211,13 +185,64 @@ int main(int argc, char *argv[])
 		goto out;
 	}
 
-
+//
+// now read the user access register (it should have a date code)
+//
+	RegisterValue = RegisterRead(0xB000);				// read the user access register
+	printf("User register = %08x\n", RegisterValue);
 
 //
-// do DMA read; get time taken into ts_read
+// read the FIFO depth register (it should be 0)
+//
+	RegisterValue = RegisterRead(0x9000);				// read the FIFO Depth register
+	printf("FIFO Depth register = %08x (should be 0)\n", RegisterValue);
+
+//
+// write 1 to GPIO to enable FIFO writes
+//
+	RegisterWrite(0xA000, 1);				// write to the GPIO register
+	printf("GPIO Register written with value=1\n");
+
+//
+// now read depth register until we get at least 4K bytes of samples
+// (should take 13 milliseconds)
+//
+	Depth=0;
+	Cntr=0;
+	while(Depth < 0x200)
+	{
+		usleep(1000);								// 1ms wait
+		Depth = RegisterRead(0x9000);				// read the user access register
+		printf("iter %d: depth = %d\n", ++Cntr, Depth);
+	}
+
+//
+// we now have at least 4K of data in the FIFO. Disable write, Do a DMA read, then re-read depth register
+//
+	RegisterWrite(0xA000, 0);				// write to the GPIO register
+	printf("GPIO Register written with value=0\n");//
+
+//
+// do DMA read
 //
 	printf("DMA read %d bytes from destination\n", VTRANSFERSIZE);
 	DMAReadFromFPGA(DMAReadfile_fd, ReadBuffer, VTRANSFERSIZE, AXIBaseAddress);
+//
+// read the FIFO depth register
+//
+	RegisterValue = RegisterRead(0x9000);				// read the FIFO Depth register
+	printf("FIFO Depth register after DMA = %08x\n", RegisterValue);
+
+
+//
+// read one sample
+//
+	Ptr = (uint32_t *)ReadBuffer;
+	ISample = (*Ptr) << 8;
+	Ptr = (uint32_t *)(ReadBuffer+3);
+	QSample = (*Ptr) << 8;
+	printf("I sample= %08x; Q sample = %08x\n\n", ISample, QSample);
+
 	DumpMemoryBuffer(ReadBuffer, VTRANSFERSIZE);
 
 

@@ -19,17 +19,6 @@
 #include <math.h>
 
 
-//
-// enum to describe an RX FIFO channel
-//
-typedef enum
-{
-	eDDC0_1,
-	eDDC3_2,
-	eDDC5_4,
-	eDDC7_6,
-	eDDC9_8
-} EDDCSelect;
 
 
 //

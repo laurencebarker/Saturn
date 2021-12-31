@@ -65,10 +65,9 @@ void *SendOutgoingPacketData(void *arg);
 // has a loop that reads & processes incoming "EP2" packets
 // each packet is 2 USB frames as described in "Metis - How it works" V1.33
 //
-int main(int argc, char *argv[])
+int main(void)
 {
-  int fd, i, j, size;
-  struct sched_param param;
+  int i, j, size;
   pthread_t thread;
 
 //
@@ -77,7 +76,6 @@ int main(int argc, char *argv[])
   uint8_t reply[11] = {0xef, 0xfe, 2, 0, 0, 0, 0, 0, 0, SDRSWVERSION, SDRBOARDID};
   uint8_t id[4] = {0xef, 0xfe, 1, 6};                                                   // don't think this is needed here
   uint32_t code;                                                        // command word from PC app
-  uint16_t data;
   struct ifreq hwaddr;                                                  // holds this device MAC address
   struct sockaddr_in addr_ep2, addr_from[10];                           // holds MAC address of source of incoming messages
   uint8_t buffer[8][VMETISFRAMESIZE];                                   // 8 outgoing buffers
@@ -86,9 +84,7 @@ int main(int argc, char *argv[])
   struct timeval tv;
   struct timespec ts;
   int yes = 1;
-  char *end;
-  uint8_t chan = 0;
-  long number;
+
 
 //
 // setup Orion hardware
@@ -299,8 +295,6 @@ void process_incoming_CandC(uint8_t *frame)
 {
     uint16_t data16;
     uint32_t data32;
-    uint8_t ptt, preamp, att, boost;
-    uint8_t data8;
     uint8_t C0, C1, C2, C3, C4;
 
     C0 = frame[0];                                    // 1st C&C sets type
@@ -313,7 +307,7 @@ void process_incoming_CandC(uint8_t *frame)
 //
 // check MOX
 //
-    SetMOX((bool)(C0&1))                              // set MOX bit
+    SetMOX((bool)(C0&1));                              // set MOX bit
 
 //
 // now set the C0 dependent settings
@@ -326,10 +320,10 @@ void process_incoming_CandC(uint8_t *frame)
     // DDC count; time stamp on / off
         case 0:
         case 1:
-            SetP1SampleRate(ESampleRate)(C1 & 3));
+            SetP1SampleRate((ESampleRate)(C1 & 3));
             // skip Atlas bus controls (10MHz source, clock source, config, mic)
             SetClassEPA((bool)(C2 & 1));
-            SetOpenCollectorBits(C2 >> 1);
+            SetOpenCollectorOutputs(C2 >> 1);
             SetAlexCoarseAttenuator(C3 & 3);
             SetADCOptions(eADC1, (bool)((C3>>2)&1), (bool)((C3 >> 3) & 1), (bool)((C3 >> 4) & 1));
             SetAlexRXAnt(C3 >> 6);
@@ -504,7 +498,7 @@ void process_incoming_CandC(uint8_t *frame)
     case 37:
         SetAlexRXFilters(false, C1 & 0b01111111);
         SetRX2GroundDuringTX((bool)((C1 >> 7) & 1));
-        SetXVTREnable((bool)(C2 & 1));
+        SetXvtrEnable((bool)(C2 & 1));
         // there's a puresignal bit here too somewhere check paper docs
         break;
   }
