@@ -149,8 +149,9 @@ int main(int argc, char *argv[])
 	uint32_t RegisterValue;
 	uint32_t Depth;
 	uint32_t Cntr;
-	uint32_t ISample, QSample;
+	int32_t ISample, QSample;
 	uint32_t* Ptr;									// pointer for reading out an I or Q sample
+	FILE *fp;
 
 //
 // initialise. Create memory buffers and open DMA file devices
@@ -235,13 +236,19 @@ int main(int argc, char *argv[])
 
 
 //
-// read one sample
+// read samples & create CSV file
 //
-	Ptr = (uint32_t *)ReadBuffer;
-	ISample = (*Ptr) << 8;
-	Ptr = (uint32_t *)(ReadBuffer+3);
-	QSample = (*Ptr) << 8;
-	printf("I sample= %08x; Q sample = %08x\n\n", ISample, QSample);
+	fp = fopen("sine.csv", "w");
+	for(Cntr=0; Cntr < VTRANSFERSIZE; Cntr +=6)
+	{
+		Ptr = (uint32_t *)(ReadBuffer + Cntr);
+		ISample = (*Ptr) << 8;
+		Ptr = (uint32_t *)(ReadBuffer + Cntr + 3);
+		QSample = (*Ptr) << 8;
+		fprintf(fp, "%d, %d, %d\n", Cntr/6, ISample, QSample);
+	}
+	fclose(fp);
+
 
 	DumpMemoryBuffer(ReadBuffer, VTRANSFERSIZE);
 
