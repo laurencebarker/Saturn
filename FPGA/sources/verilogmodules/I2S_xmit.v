@@ -33,6 +33,9 @@
 // the second rising edge of BCLK following the rising edge of lrclk.
 
 // NOTE: the data to send is latched on the positive edge of lrclk
+// LRCLK is high for right channel data (unless swapped by an I2C register)
+// right data = sxmit_axis_tdata[31:16]
+// left data  = sxmit_axis_tdata[15:0]
 //
 // modified Laurence Barker G8NJJ to configure for axi 4 stream interface 
 //
