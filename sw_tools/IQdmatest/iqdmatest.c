@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 	uint32_t Depth;
 	uint32_t Cntr;
 	int32_t ISample, QSample;
-	uint32_t* Ptr;									// pointer for reading out an I or Q sample
+	unsigned char* Ptr;									// pointer for reading out an I or Q sample
 	FILE *fp;
 
 //
@@ -193,16 +193,22 @@ int main(int argc, char *argv[])
 	printf("User register = %08x\n", RegisterValue);
 
 //
+// write 0 to GPIO to clear FIFO
+//
+	RegisterWrite(0xA000, 0);				// write to the GPIO register
+	RegisterWrite(0xA000, 2);				// write to the GPIO register
+	printf("GPIO Register written with value=0 then 2 to reset FIFO\n");
+//
 // read the FIFO depth register (it should be 0)
 //
 	RegisterValue = RegisterRead(0x9000);				// read the FIFO Depth register
 	printf("FIFO Depth register = %08x (should be 0)\n", RegisterValue);
 
 //
-// write 1 to GPIO to enable FIFO writes
+// write 3 to GPIO to enable FIFO writes
 //
-	RegisterWrite(0xA000, 1);				// write to the GPIO register
-	printf("GPIO Register written with value=1\n");
+	RegisterWrite(0xA000, 3);				// write to the GPIO register
+	printf("GPIO Register written with value=3\n");
 
 //
 // now read depth register until we get at least 4K bytes of samples
@@ -220,8 +226,8 @@ int main(int argc, char *argv[])
 //
 // we now have at least 4K of data in the FIFO. Disable write, Do a DMA read, then re-read depth register
 //
-	RegisterWrite(0xA000, 0);				// write to the GPIO register
-	printf("GPIO Register written with value=0\n");//
+	RegisterWrite(0xA000, 2);				// write to the GPIO register
+	printf("GPIO Register written with value=2\n");//
 
 //
 // do DMA read
@@ -239,12 +245,13 @@ int main(int argc, char *argv[])
 // read samples & create CSV file
 //
 	fp = fopen("sine.csv", "w");
+	Ptr = (unsigned char*)ReadBuffer;
 	for(Cntr=0; Cntr < VTRANSFERSIZE; Cntr +=6)
 	{
-		Ptr = (uint32_t *)(ReadBuffer + Cntr);
-		ISample = (*Ptr) << 8;
-		Ptr = (uint32_t *)(ReadBuffer + Cntr + 3);
-		QSample = (*Ptr) << 8;
+		ISample = (*Ptr) <<24 | (*(Ptr+1)<<16) | (*(Ptr+2)<<8);
+		Ptr += 3;
+		QSample = (*Ptr) <<24 | (*(Ptr+1)<<16) | (*(Ptr+2)<<8);
+		Ptr += 3;
 		fprintf(fp, "%d, %d, %d\n", Cntr/6, ISample, QSample);
 	}
 	fclose(fp);
