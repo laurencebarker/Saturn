@@ -33,7 +33,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define VTRANSFERSIZE 4096											// size in bytes to transfer
+#define VTRANSFERSIZE 6144											// size in bytes to transfer
 #define VMEMBUFFERSIZE 32768										// memory buffer to reserve
 #define AXIBaseAddress 0x18000									// address of StreamRead/Writer IP
 
@@ -152,6 +152,8 @@ int main(int argc, char *argv[])
 	int32_t ISample, QSample;
 	unsigned char* Ptr;									// pointer for reading out an I or Q sample
 	FILE *fp;
+	uint32_t LoopCntr;
+	uint32_t SampleCounter = 0;
 
 //
 // initialise. Create memory buffers and open DMA file devices
@@ -185,6 +187,10 @@ int main(int argc, char *argv[])
 		printf("XDMA read device open failed\n");
 		goto out;
 	}
+//
+// open CSV file
+//
+	fp = fopen("sine.csv", "w");
 
 //
 // now read the user access register (it should have a date code)
@@ -203,61 +209,71 @@ int main(int argc, char *argv[])
 //
 	RegisterValue = RegisterRead(0x9000);				// read the FIFO Depth register
 	printf("FIFO Depth register = %08x (should be 0)\n", RegisterValue);
+	Depth=0;
 
 //
 // write 3 to GPIO to enable FIFO writes
 //
 	RegisterWrite(0xA000, 3);				// write to the GPIO register
-	printf("GPIO Register written with value=3\n");
+	printf("GPIO Register written with value=3, enabling writes\n");
 
 //
-// now read depth register until we get at least 4K bytes of samples
-// (should take 13 milliseconds)
+// now read 5 loads of 6K bytes of samples
 //
-	Depth=0;
-	Cntr=0;
-	while(Depth < 0x200)
+	for(LoopCntr = 0; LoopCntr < 5; LoopCntr++)
 	{
-		usleep(1000);								// 1ms wait
-		Depth = RegisterRead(0x9000);				// read the user access register
-		printf("iter %d: depth = %d\n", ++Cntr, Depth);
+	//
+	// read depth register until we get at least 6K bytes of samples
+	// (should take ~20 milliseconds)
+	//
+		printf("\nbeginning loop %d\n", LoopCntr);
+		Cntr=0;
+		while(Depth < 800)			// actual amt is 768x 64bit words, so this is a little bigger
+		{
+			usleep(1000);								// 1ms wait
+			Depth = RegisterRead(0x9000);				// read the user access register
+			printf("iter %d: depth = %d\n", ++Cntr, Depth);
+		}
+
+	//
+	// we now have at least 6K of data in the FIFO. 
+	//
+	// do DMA read
+	//
+		printf("DMA read %d bytes from destination\n", VTRANSFERSIZE);
+		DMAReadFromFPGA(DMAReadfile_fd, ReadBuffer, VTRANSFERSIZE, AXIBaseAddress);
+		Depth = RegisterRead(0x9000);				// read the user access register after DMA
+
+
+	//
+	// read samples & add to CSV file
+	//
+		Ptr = (unsigned char*)ReadBuffer;
+		for(Cntr=0; Cntr < VTRANSFERSIZE; Cntr +=6)
+		{
+			ISample = (*Ptr) <<24 | (*(Ptr+1)<<16) | (*(Ptr+2)<<8);
+			Ptr += 3;
+			QSample = (*Ptr) <<24 | (*(Ptr+1)<<16) | (*(Ptr+2)<<8);
+			Ptr += 3;
+			fprintf(fp, "%d, %d, %d\n", SampleCounter++, ISample, QSample);
+		}
+
 	}
+	//
+	// Disable write, Do a DMA read, then re-read depth register
+	//
+		RegisterWrite(0xA000, 2);				// write to the GPIO register
+		printf("GPIO Register written with value=2\n");//
+	//
+	// read the FIFO depth register
+	//
+		RegisterValue = RegisterRead(0x9000);				// read the FIFO Depth register
+		printf("FIFO Depth register after 5 DMA transfers = %d\n", RegisterValue);
 
-//
-// we now have at least 4K of data in the FIFO. Disable write, Do a DMA read, then re-read depth register
-//
-	RegisterWrite(0xA000, 2);				// write to the GPIO register
-	printf("GPIO Register written with value=2\n");//
-
-//
-// do DMA read
-//
-	printf("DMA read %d bytes from destination\n", VTRANSFERSIZE);
-	DMAReadFromFPGA(DMAReadfile_fd, ReadBuffer, VTRANSFERSIZE, AXIBaseAddress);
-//
-// read the FIFO depth register
-//
-	RegisterValue = RegisterRead(0x9000);				// read the FIFO Depth register
-	printf("FIFO Depth register after DMA = %08x\n", RegisterValue);
-
-
-//
-// read samples & create CSV file
-//
-	fp = fopen("sine.csv", "w");
-	Ptr = (unsigned char*)ReadBuffer;
-	for(Cntr=0; Cntr < VTRANSFERSIZE; Cntr +=6)
-	{
-		ISample = (*Ptr) <<24 | (*(Ptr+1)<<16) | (*(Ptr+2)<<8);
-		Ptr += 3;
-		QSample = (*Ptr) <<24 | (*(Ptr+1)<<16) | (*(Ptr+2)<<8);
-		Ptr += 3;
-		fprintf(fp, "%d, %d, %d\n", Cntr/6, ISample, QSample);
-	}
 	fclose(fp);
 
 
-	DumpMemoryBuffer(ReadBuffer, VTRANSFERSIZE);
+//	DumpMemoryBuffer(ReadBuffer, VTRANSFERSIZE);
 
 
 //
