@@ -89,7 +89,7 @@ AXI_GPIO_Sim_wrapper UUT
     .aclk               (aclk),
     .aresetn            (aresetn),
     .config_reg0        (config_reg0),
-    .config_reg1        (config_reg0),
+    .config_reg1        (config_reg1),
     .config_reg256_0        (config_reg256_0),
     .config_reg256_1        (config_reg256_1),
     .config_reg256_2        (config_reg256_2),
@@ -142,6 +142,18 @@ master_agent.start_master();
 //
 // now test the AXILite read and config write registers
 // reasd both 32 bit input registers and check they are zero
+$display("testing 64 bit read and config registers");
+#100ns
+addr = 32'h00001000;
+data = 32'h00000000;
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("read axi-lite config reg 0 after reset: data = 0x%x", data);
+
+addr = 32'h00001004;
+data = 32'h00000000;
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("read axi-lite config reg 1 after reset: data = 0x%x", data);
+
 #100ns
 addr = 32'h00000000;
 data = 32'h00000000;
@@ -186,6 +198,9 @@ addr = 32'h00000004;
 data = 32'h00000000;
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read axi-lite read reg 1 after data write: data = 0x%x", data);
+
+
+
 
 // now test the config 256 write registers - check zero after reset
 #100ns
@@ -270,15 +285,15 @@ master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
 addr = 32'h0000201C;
 data = 32'h7777beef;
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
-
-$display("data from axi-lite config256 reg 0 after reset: data = 0x%x", config_reg256_0);
-$display("data from axi-lite config256 reg 1 after reset: data = 0x%x", config_reg256_1);
-$display("data from axi-lite config256 reg 2 after reset: data = 0x%x", config_reg256_2);
-$display("data from axi-lite config256 reg 3 after reset: data = 0x%x", config_reg256_3);
-$display("data from axi-lite config256 reg 4 after reset: data = 0x%x", config_reg256_4);
-$display("data from axi-lite config256 reg 5 after reset: data = 0x%x", config_reg256_5);
-$display("data from axi-lite config256 reg 6 after reset: data = 0x%x", config_reg256_6);
-$display("data from axi-lite config256 reg 7 after reset: data = 0x%x", config_reg256_7);
+#100ns
+$display("data from axi-lite config256 reg 0 after write: data = 0x%x", config_reg256_0);
+$display("data from axi-lite config256 reg 1 after write: data = 0x%x", config_reg256_1);
+$display("data from axi-lite config256 reg 2 after write: data = 0x%x", config_reg256_2);
+$display("data from axi-lite config256 reg 3 after write: data = 0x%x", config_reg256_3);
+$display("data from axi-lite config256 reg 4 after write: data = 0x%x", config_reg256_4);
+$display("data from axi-lite config256 reg 5 after write: data = 0x%x", config_reg256_5);
+$display("data from axi-lite config256 reg 6 after write: data = 0x%x", config_reg256_6);
+$display("data from axi-lite config256 reg 7 after write: data = 0x%x", config_reg256_7);
 
 // finally read the registers themselves
 $display("reading from axi-lite config256 registers:");

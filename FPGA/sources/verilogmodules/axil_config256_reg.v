@@ -36,7 +36,15 @@
 module AXIL_ConfigReg_256 #
 (
   parameter integer AXI_DATA_WIDTH = 32,
-  parameter integer AXI_ADDR_WIDTH = 16
+  parameter integer AXI_ADDR_WIDTH = 16,
+  parameter integer INITIAL_VALUE_word_0 = 0,
+  parameter integer INITIAL_VALUE_word_1 = 0,
+  parameter integer INITIAL_VALUE_word_2 = 0,
+  parameter integer INITIAL_VALUE_word_3 = 0,
+  parameter integer INITIAL_VALUE_word_4 = 0,
+  parameter integer INITIAL_VALUE_word_5 = 0,
+  parameter integer INITIAL_VALUE_word_6 = 0,
+  parameter integer INITIAL_VALUE_word_7 = 0  
 )
 (
   // System signals
@@ -121,14 +129,14 @@ module AXIL_ConfigReg_256 #
     if(~aresetn)
     begin
 // reset to start states
-      config_reg0 <= {(AXI_DATA_WIDTH){1'b0}};
-      config_reg1 <= {(AXI_DATA_WIDTH){1'b0}};
-      config_reg2 <= {(AXI_DATA_WIDTH){1'b0}};
-      config_reg3 <= {(AXI_DATA_WIDTH){1'b0}};
-      config_reg4 <= {(AXI_DATA_WIDTH){1'b0}};
-      config_reg5 <= {(AXI_DATA_WIDTH){1'b0}};
-      config_reg6 <= {(AXI_DATA_WIDTH){1'b0}};
-      config_reg7 <= {(AXI_DATA_WIDTH){1'b0}};
+      config_reg0 <= INITIAL_VALUE_word_0;
+      config_reg1 <= INITIAL_VALUE_word_1;
+      config_reg2 <= INITIAL_VALUE_word_2;
+      config_reg3 <= INITIAL_VALUE_word_3;
+      config_reg4 <= INITIAL_VALUE_word_4;
+      config_reg5 <= INITIAL_VALUE_word_5;
+      config_reg6 <= INITIAL_VALUE_word_6;
+      config_reg7 <= INITIAL_VALUE_word_7;
       rdatareg <= {(AXI_DATA_WIDTH){1'b0}};
       arreadyreg <= 1'b1;                           // ready for address transfer
       rvalidreg <= 1'b0;                            // not ready to transfer read data

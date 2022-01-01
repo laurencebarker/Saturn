@@ -30,7 +30,9 @@
 module AXIL_ConfigReg_64 #
 (
   parameter integer AXI_DATA_WIDTH = 32,
-  parameter integer AXI_ADDR_WIDTH = 16
+  parameter integer AXI_ADDR_WIDTH = 16,
+  parameter integer INITIAL_VALUE_word_0 = 0,
+  parameter integer INITIAL_VALUE_word_1 = 0
 )
 (
   // System signals
@@ -109,8 +111,8 @@ module AXIL_ConfigReg_64 #
     if(~aresetn)
     begin
 // reset to start states
-      config_reg0 <= {(AXI_DATA_WIDTH){1'b0}};
-      config_reg1 <= {(AXI_DATA_WIDTH){1'b0}};
+      config_reg0 <= INITIAL_VALUE_word_0;
+      config_reg1 <= INITIAL_VALUE_word_1;
       rdatareg <= {(AXI_DATA_WIDTH){1'b0}};
       arreadyreg <= 1'b1;                           // ready for address transfer
       rvalidreg <= 1'b0;                            // not ready to transfer read data
