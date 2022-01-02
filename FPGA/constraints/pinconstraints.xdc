@@ -227,8 +227,10 @@ set_property PACKAGE_PIN B7 [get_ports {pcie_7x_mgt_rtl_0_txp[3]}]
 
 
 #
-# added PROHIBITs for the analogue inputs
+# user access register
+# used for "version number" setting - currently a date code
 #
+set_property BITSTREAM.CONFIG.USR_ACCESS 0x02012022 [current_design]
 
 
 
@@ -242,8 +244,6 @@ set_property CONFIG_VOLTAGE 3.3 [current_design]
 set_property CFGBVS VCCO [current_design]
 set_property BITSTREAM.CONFIG.CONFIGFALLBACK ENABLE [current_design]
 #set_property BITSTREAM.STARTUP.STARTUPCLK CCLK [current_design]
-#"version number" setting
-set_property BITSTREAM.CONFIG.USR_ACCESS 0x01234567 [current_design]
 
 #PROHIBIT BANKS 12, 33
 set_property PROHIBIT true [get_sites AA17]
