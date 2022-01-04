@@ -30,7 +30,6 @@
 #include <math.h>
 #include <pthread.h>
 #include <termios.h>
-#include <sys/mman.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -78,9 +77,9 @@ int main(void)
   uint32_t code;                                                        // command word from PC app
   struct ifreq hwaddr;                                                  // holds this device MAC address
   struct sockaddr_in addr_ep2, addr_from[10];                           // holds MAC address of source of incoming messages
-  uint8_t buffer[8][VMETISFRAMESIZE];                                   // 8 outgoing buffers
-  struct iovec iovec[8][1];                                             // iovcnt buffer - 1 for each outgoing buffer
-  struct mmsghdr datagram[8];                                           // multiple incoming message header
+  uint8_t UDPInBuffer[VMETISFRAMESIZE];                                   // 8 outgoing buffers
+  struct iovec iovecinst;                                             // iovcnt buffer - 1 for each outgoing buffer
+  struct msghdr datagram;                                           // multiple incoming message header
   struct timeval tv;
   struct timespec ts;
   int yes = 1;
@@ -95,23 +94,6 @@ int main(void)
   InitialiseCWKeyerRamp();
   SetCWSidetoneEnabled(true);
   
-
-
-  /* keep until code fully documented
-  sts = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40000000);
-  cfg = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40001000);
-  alex = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40002000);
-  tx_mux = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40003000);
-  dac_data = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40006000);
-  adc_data = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40007000);
-  tx_data = mmap(NULL, 4*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x4000c000);
-  xadc = mmap(NULL, 16*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40020000);
-
-  for(i = 0; i < 5; ++i)
-  {
-    rx_data[i] = mmap(NULL, 2*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40010000 + i * 0x2000);
-  }
-  */
 
 
   //
@@ -160,121 +142,84 @@ int main(void)
   //
   while(1)
   {
-    memset(iovec, 0, sizeof(iovec));
-    memset(datagram, 0, sizeof(datagram));
+    memset(&iovecinst, 0, sizeof(struct iovec));
+    memset(&datagram, 0, sizeof(datagram));
 
-    for(i = 0; i < 8; ++i)
-    {
-      memcpy(buffer[i], id, 4);                         // don't know why we do this for incoming messages
-      iovec[i][0].iov_base = buffer[i];                 // set buffer for incoming message number i
-      iovec[i][0].iov_len = 1032;
-      datagram[i].msg_hdr.msg_iov = iovec[i];
-      datagram[i].msg_hdr.msg_iovlen = 1;
-      datagram[i].msg_hdr.msg_name = &addr_from[i];
-      datagram[i].msg_hdr.msg_namelen = sizeof(addr_from[i]);
-    }
+    memcpy(UDPInBuffer, id, 4);                         // don't know why we do this for incoming messages
+    iovecinst.iov_base = &UDPInBuffer;                  // set buffer for incoming message number i
+    iovecinst.iov_len = 1032;
+    datagram.msg_iov = &iovecinst;
+    datagram.msg_iovlen = 1;
+    datagram.msg_name = &addr_from[i];
+    datagram.msg_namelen = sizeof(addr_from[i]);
 
-    ts.tv_sec = 0;                                          // 1ms timeout
-    ts.tv_nsec = 1000000;
-
-    size = recvmmsg(sock_ep2, datagram, 8, 0, &ts);         // get a batch of 8 messages
+    size = recvmsg(sock_ep2, &datagram, 0);         // get a batch of 8 messages
     if(size < 0 && errno != EAGAIN)
     {
       perror("recvfrom");
       return EXIT_FAILURE;
     }
 
-    for(i = 0; i < size; ++i)                               // loop through incoming messages
+    memcpy(&code, &UDPInBuffer, 4);                          // copy the Metis frame identifier
+    switch(code)
     {
-      memcpy(&code, buffer[i], 4);                          // copy the Metis frame identifier
-      switch(code)
-      {
-        // PC to Metis data frame, EP2 data. C&C, TX I/Q, spkr
-        // this is "normal SDR traffic"
-        case 0x0201feef:
-          if(!tx_mux_data)
-          {
-            while(*tx_cntr > 3844) usleep(1000);            // sleep if not enough data available
-            if(*tx_cntr == 0) for(j = 0; j < 2520; ++j) *tx_data = 0;   // FIFO under-run??
-            if((*gpio_out & 1) | (*gpio_in & 1))                        // if TX
-            {
-              for(j = 0; j < 504; j += 8)                               // write TX I/Q to FIFO
-              {
-                *tx_data = tx_eer_data ? *(uint32_t *)(buffer[i] + 16 + j) : 0;     // 1st USB frame
-                *tx_data = *(uint32_t *)(buffer[i] + 20 + j);
-              }
-              for(j = 0; j < 504; j += 8)
-              {
-                *tx_data = tx_eer_data ? *(uint32_t *)(buffer[i] + 528 + j) : 0;    // 2nd USB frame
-                *tx_data = *(uint32_t *)(buffer[i] + 532 + j);
-              }
-            }
-            else
-            {
-              for(j = 0; j < 126; ++j) *tx_data = 0;                    // no TX so write zeros
-            }
-          }
-          if(i2c_codec)                                                 // speaker data if Codec attached
-          {
-            while(*dac_cntr > 898) usleep(1000);                        // sleep if not enough space yet
-            if(*dac_cntr == 0) for(j = 0; j < 504; ++j) *dac_data = 0;
-            for(j = 0; j < 504; j += 8) *dac_data = *(uint32_t *)(buffer[i] + 16 + j);
-            for(j = 0; j < 504; j += 8) *dac_data = *(uint32_t *)(buffer[i] + 528 + j);
-          }
-          process_incoming_CandC(buffer[i] + 11);                   // process 1st C&C frame
-          process_incoming_CandC(buffer[i] + 523);                  // process 2nd C&C frame
-          break;
+      // PC to Metis data frame, EP2 data. C&C, TX I/Q, spkr
+      // this is "normal SDR traffic"
+      case 0x0201feef:
+        printf("RX metis frame\n");
 
 
-        // Metis "discover request" from PC
-        // send message back to MAC address and port of originating request message
-        case 0x0002feef:
-          reply[2] = 2 + active_thread;                             // response 2 if not active, 3 if running
-          memset(buffer[i], 0, 60);
-          memcpy(buffer[i], reply, 11);
-          sendto(sock_ep2, buffer[i], 60, 0, (struct sockaddr *)&addr_from[i], sizeof(addr_from[i]));
-          break;
+        break;
 
 
-        // Metis STOP command from PC
-        // terminate outgoing thread
-        case 0x0004feef:
-          enable_thread = 0;                                        // signal thread to terminate
-          while(active_thread) usleep(1000);                        // sleep until thread has terminated
-          break;
+      // Metis "discover request" from PC
+      // send message back to MAC address and port of originating request message
+      case 0x0002feef:
+        printf("received metis discover request frame\n");
+        reply[2] = 2 + active_thread;                             // response 2 if not active, 3 if running
+        memset(&UDPInBuffer, 0, 60);
+        memcpy(&UDPInBuffer, reply, 11);
+        sendto(sock_ep2, &UDPInBuffer, 60, 0, (struct sockaddr *)&addr_from[i], sizeof(addr_from[i]));
+        break;
 
 
-        // Metis START commands to PC (01=IQ only; 02=wideband only; 03=both)
-        // initialise settings for outgoing data thread and start it
-        case 0x0104feef:
-        case 0x0204feef:
-        case 0x0304feef:
-          enable_thread = 0;                                // command outgoing thread to stop
-          while(active_thread) usleep(1000);                // wait until it has stopped
+      // Metis STOP command from PC
+      // terminate outgoing thread
+      case 0x0004feef:
+        enable_thread = 0;                                        // signal thread to terminate
+        while(active_thread) usleep(1000);                        // sleep until thread has terminated
+        break;
 
-          //
-          // get from MAC address and port; this is where the data goes back to
-          //
-          memset(&addr_ep6, 0, sizeof(addr_ep6));
-          addr_ep6.sin_family = AF_INET;
-          addr_ep6.sin_addr.s_addr = addr_from[i].sin_addr.s_addr;
-          addr_ep6.sin_port = addr_from[i].sin_port;
-          enable_thread = 1;                                // initialise thread to active
-          active_thread = 1;
-          rx_sync_data = 0;
 
-          //
-          // create outgoing packet thread
-          //
-          if(pthread_create(&thread, NULL, SendOutgoingPacketData, NULL) < 0)
-          {
-            perror("pthread_create");
-            return EXIT_FAILURE;
-          }
-          pthread_detach(thread);
-          break;
-      }
-    }               // end switch (packet type)
+      // Metis START commands to PC (01=IQ only; 02=wideband only; 03=both)
+      // initialise settings for outgoing data thread and start it
+      case 0x0104feef:
+      case 0x0204feef:
+      case 0x0304feef:
+        printf("received metis START command\n");
+        enable_thread = 0;                                // command outgoing thread to stop
+        while(active_thread) usleep(1000);                // wait until it has stopped
+
+        //
+        // get from MAC address and port; this is where the data goes back to
+        //
+        memset(&addr_ep6, 0, sizeof(addr_ep6));
+        addr_ep6.sin_family = AF_INET;
+        addr_ep6.sin_addr.s_addr = addr_from[i].sin_addr.s_addr;
+        addr_ep6.sin_port = addr_from[i].sin_port;
+        enable_thread = 1;                                // initialise thread to active
+        active_thread = 1;
+        //
+        // create outgoing packet thread
+        //
+        if(pthread_create(&thread, NULL, SendOutgoingPacketData, NULL) < 0)
+        {
+          perror("pthread_create");
+          return EXIT_FAILURE;
+        }
+        pthread_detach(thread);
+        break;
+    }// end switch (packet type)
 
 //
 // now do any "post packet" processing
@@ -284,6 +229,7 @@ int main(void)
 
   return EXIT_SUCCESS;
 }
+
 
 
 
@@ -506,33 +452,28 @@ void process_incoming_CandC(uint8_t *frame)
 
 
 
+
+
+
+
+
 //
-// this runs as its own thread to send outgoing data
-// thread initiated after a Metis "Start" command
-// will be instructed to stop & exit by main loop setting enable_thread to 0
-// this code signals thread terminated by setting active_thread = 0
+// global holding the current step of C&C data. Each new USB frame updates this.
 //
-void *SendOutgoingPacketData(void *arg)
-{
-  int i, j, k, m, n, size, rate_counter;
-  int data_offset, header_offset;
-  uint32_t counter;
-  int32_t value;
-  uint16_t audio[512];
-  uint8_t data0[4096];
-  uint8_t data1[4096];
-  uint8_t data2[4096];
-  uint8_t data3[4096];
-  uint8_t data4[4096];
-  uint8_t buffer[25 * 1032];
-  uint8_t *pointer;
-  struct iovec iovec[25][1];
-  struct mmsghdr datagram[25];
-  uint8_t id[4] = {0xef, 0xfe, 1, 6};
+uint32_t OutgoingCandCStep;                         // 0-1-2-3-4 sequence for C&C data
+#define VDMABUFFERSIZE 32768									      // memory buffer to reserve
+#define VALIGNMENT 4096                             // buffer alignment
+#define VBASE 0x1000									              // DMA start at 4K into buffer
+#define VMETISFRAMESIZE 1032
+#define VBASE 0x1000                                // offset into I/Q buffer for DMA to start
+#define VUSBSAMPLESIZE 504                          // useful data per USB Frame
+#define VDMATRANSFERSIZE 4096                       // read 4K at a time
+#define AXIBaseAddress 0x18000									    // address of StreamRead/Writer IP (Litefury only!)
+
   //
   // 5 USB data headers with outgoing C&C data
   //
-  uint8_t header[40] =
+  uint8_t USBCandC[40] =
   {
     127, 127, 127, 0, 0, 33, 17, 21,
     127, 127, 127, 8, 0, 0, 0, 0,
@@ -541,161 +482,196 @@ void *SendOutgoingPacketData(void *arg)
     127, 127, 127, 32, 66, 66, 66, 66
   };
 
-  memset(audio, 0, sizeof(audio));
-  memset(iovec, 0, sizeof(iovec));
-  memset(datagram, 0, sizeof(datagram));
+
+
+//
+// AddOutgoingC&CBytes(unsigned char* Ptr, uint32_t CandCSequence);
+//
+// add the 8 C&C bytes for one USB frame beginning at the address pointed. 
+// the C&C sequence is given by the other parameter, which is updated by this
+//
+void AddOutgoingCandCBytes(uint8_t* Ptr)
+{
+
+}
+
+
+
+//
+// MakeOutgoingUSBFrame(unsigned char* IQPtr, unsigned char* Dest);
+// make a new USB frame beginning at Dest using I/Q samples at the location passed by Ptr
+// pointers to the pointers are used, so we can update the pointers for the number of locations comsumed
+//
+void MakeOutgoingUSBFrame(uint8_t** IQSourcePtr, uint8_t** MicSourcePtr, uint8_t* Dest)
+{
+
+}
+
+
+
+
+//
+// this runs as its own thread to send outgoing data
+// thread initiated after a Metis "Start" command
+// will be instructed to stop & exit by main loop setting enable_thread to 0
+// this code signals thread terminated by setting active_thread = 0
+//
+void *SendOutgoingPacketData(void *arg)
+{
+//
+// memory buffers
+//
+  uint8_t* IQReadBuffer = NULL;											// data for DMA read from DDC
+	uint32_t IQBufferSize = VDMABUFFERSIZE;
+  uint8_t* MicBuffer = NULL;											    // data for DMA read from Mic
+	uint32_t MicBufferSize = VDMABUFFERSIZE;
+  bool InitError = false;                         // becomes true if we get an initialisation error
+	unsigned char* IQReadPtr;								        // pointer for reading out an I or Q sample
+	unsigned char* IQHeadPtr;								        // ptr to 1st free location in I/Q memory
+	unsigned char* IQBasePtr;								        // ptr to DMA location in I/Q memory
+	uint32_t ResidueBytes;
+	uint32_t Depth = 0;
+	int DMAReadfile_fd = -1;											// DMA read file device
+	uint32_t RegisterValue;
+
+
+//
+// variables for outgoing UDP frame
+//
+  struct iovec iovecinst;                                 // instance of iovec
+  struct msghdr datagram;
+  uint8_t UDPBuffer[VMETISFRAMESIZE];                     // Metis frame buffer
+  uint8_t metisid[4] = {0xef, 0xfe, 1, 6};                // Metis frame identifier
+  uint32_t SequenceCounter = 0;                           // UDP sequence count
+
+
+//
+// initialise. Create memory buffers and open DMA file devices
+//
+  printf("starting up outgoing thread\n");
+	posix_memalign((void **)&IQReadBuffer, VALIGNMENT, IQBufferSize);
+	if(!IQReadBuffer)
+	{
+		printf("I/Q read buffer allocation failed\n");
+		InitError = true;
+	}
+	IQReadPtr = IQReadBuffer + VBASE;							// offset 4096 bytes into buffer
+	IQHeadPtr = IQReadBuffer + VBASE;
+	IQBasePtr = IQReadBuffer + VBASE;
+  memset(IQReadBuffer, 0, IQBufferSize);
+
+
+	posix_memalign((void **)&MicBuffer, VALIGNMENT, MicBufferSize);
+	if(!MicBuffer)
+	{
+		printf("Mic sample buffer allocation failed\n");
+		InitError = true;
+	}
+  memset(MicBuffer, 0, MicBufferSize);
+
+//
+// open DMA device driver
+//
+	DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDWR);
+	if(DMAReadfile_fd < 0)
+	{
+		printf("XDMA read device open failed\n");
+		InitError = true;
+	}
 
   //
-  // initialise 25 outgoing metis frames
+  // initialise outgoing metis frame
   //
-  for(i = 0; i < 25; ++i)
-  {
-    memcpy(buffer + i * VMETISFRAMESIZE, id, 4);
-    iovec[i][0].iov_base = buffer + i * VMETISFRAMESIZE;
-    iovec[i][0].iov_len = VMETISFRAMESIZE;
-    datagram[i].msg_hdr.msg_iov = iovec[i];
-    datagram[i].msg_hdr.msg_iovlen = 1;
-    datagram[i].msg_hdr.msg_name = &addr_ep6;                   // MAC addr & port to send to
-    datagram[i].msg_hdr.msg_namelen = sizeof(addr_ep6);
-  }
+  memset(&iovecinst, 0, sizeof(struct iovec));
+  memset(&datagram, 0, sizeof(datagram));
+  memcpy(UDPBuffer, metisid, 4);
+  iovecinst.iov_base = UDPBuffer;
+  iovecinst.iov_len = VMETISFRAMESIZE;
+  datagram.msg_iov = &iovecinst;
+  datagram.msg_iovlen = 1;
+  datagram.msg_name = &addr_ep6;                   // MAC addr & port to send to
+  datagram.msg_namelen = sizeof(addr_ep6);
 
-  header_offset = 0;
-  counter = 0;
-  rate_counter = 1 << rate;                             // 1=48KHz; 2=96KHz; 4=192KHz; 8=384KHz
-  k = 0;
+//
+// write 0 to GPIO to clear FIFO; then set 2 to GPIO for normal operation
+// then read depth
+//
+	RegisterWrite(0xA000, 0);				// write to the GPIO register
+	RegisterWrite(0xA000, 2);				// write to the GPIO register
+	printf("GPIO Register written with value=0 then 2 to reset FIFO\n");
+	RegisterValue = RegisterRead(0x9000);				// read the FIFO Depth register
+	printf("FIFO Depth register = %08x (should be 0)\n", RegisterValue);
+	Depth=0;
+
+//
+// write 3 to GPIO to enable FIFO writes
+//
+	RegisterWrite(0xA000, 3);				// write to the GPIO register
+	printf("GPIO Register written with value=3, enabling writes\n");
+
 
 //
 // thread loop. runs continuously until commanded by main loop to exit
+// for now: add 1 RX data + mic data at 48KHz sample rate. Mic data is constant zero.
+// while there is enough I/Q data, make outgoing packets;
+// when not enough data, read more.
 //
-  while(1)
+  while(!InitError)
   {
-    if(!enable_thread) break;                           // exit thread if commanded
-
-    size = receivers * 6 + 2;                           // total bytes per sample
-    n = 504 / size;                                     // samples per USB frame
-    m = 256 / n;                                        // ???
-
+    if(!enable_thread) break;                                     // exit thread if commanded
+		
     //
-    // reset FIFOs if overflow has occurred
+    // while there is enough I/Q data, make Metis frames
     //
-    if((i2c_codec && *adc_cntr >= 1024) || *rx_cntr >= 2048)
+    while((IQHeadPtr - IQReadPtr)>2*VUSBSAMPLESIZE)
     {
-      if(i2c_codec)
-      {
-        /* reset codec ADC fifo */
-        *rx_rst |= 2;
-        *rx_rst &= ~2;
-      }
 
-      /* reset rx fifo */
-      *rx_rst |= 1;
-      *rx_rst &= ~1;
     }
-
     //
-    // sleep until there is enough data
-    //
-    while(*rx_cntr < m * n * 4) usleep(1000);
+    // now bring in more data via DMA
+    // first copy any residue to the start of the buffer (before the DMA point)
+//
+		ResidueBytes = IQHeadPtr- IQReadPtr;
+		printf("Residue = %d bytes\n",ResidueBytes);
+		if(ResidueBytes != 0)					// if there is residue
+		{
+			memcpy(IQBasePtr-ResidueBytes, IQReadPtr, ResidueBytes);
+			IQReadPtr = IQBasePtr-ResidueBytes;
+		}
+		else
+			IQReadPtr = IQBasePtr;
+//
+// now wait until there is data, then DMA it
+//
+		Depth = RegisterRead(0x9000);				// read the user access register
+		printf("read: depth = %d\n", Depth);
+		while(Depth < 512)			// 512 locations = 4K bytes
+		{
+			usleep(1000);								// 1ms wait
+			Depth = RegisterRead(0x9000);				// read the user access register
+			printf("read: depth = %d\n", Depth);
+		}
 
-    if(i2c_codec && --rate_counter == 0)
-    {
-      for(i = 0; i < m * n * 2; ++i)                        // read mic samples into a buffer
-      {
-        audio[i] = *adc_data;
-      }
-      rate_counter = 1 << rate;
-      k = 0;
-    }
+		printf("DMA read %d bytes from destination to base\n", VDMATRANSFERSIZE);
+		DMAReadFromFPGA(DMAReadfile_fd, IQBasePtr, VDMATRANSFERSIZE, AXIBaseAddress);
+		IQHeadPtr = IQBasePtr + VDMATRANSFERSIZE;
 
-    for(i = 0; i < m * n * 16; i += 8)
-    {
-      *(uint64_t *)(data0 + i) = *rx_data[0];
-      *(uint64_t *)(data1 + i) = *rx_data[1];
-      *(uint64_t *)(data2 + i) = *rx_data[2];
-      *(uint64_t *)(data3 + i) = *rx_data[3];
-      *(uint64_t *)(data4 + i) = *rx_data[4];
-    }
 
-    data_offset = 0;
-    for(i = 0; i < m; ++i)
-    {
-      *(uint32_t *)(buffer + i * 1032 + 4) = htonl(counter);
-      ++counter;
-    }
 
-    for(i = 0; i < m * 2; ++i)
-    {
-      pointer = buffer + i * 516 - i % 2 * 4 + 8;
-      memcpy(pointer, header + header_offset, 8);
-      pointer[3] |= (*gpio_in & 7) | cw_ptt;                        // outgoing C&C: C0 byte
-      if(header_offset == 8)
-      {
-        value = xadc[152] >> 3;
-        pointer[6] = (value >> 8) & 0xff;                           // Alex/Atlas forward power
-        pointer[7] = value & 0xff;
-      }
-      else if(header_offset == 16)
-      {
-        value = xadc[144] >> 3;
-        pointer[4] = (value >> 8) & 0xff;                           // Alex/Atlas reverse power
-        pointer[5] = value & 0xff;
-        value = xadc[145] >> 3;                                     // AIN3
-        pointer[6] = (value >> 8) & 0xff;
-        pointer[7] = value & 0xff;
-      }
-      else if(header_offset == 24)
-      {
-        value = xadc[153] >> 3;
-        pointer[4] = (value >> 8) & 0xff;                           // AIN4
-        pointer[5] = value & 0xff;
-      }
-      header_offset = header_offset >= 32 ? 0 : header_offset + 8;
-
-      pointer += 8;
-      memset(pointer, 0, 504);
-      for(j = 0; j < n; ++j)
-      {
-        memcpy(pointer, data0 + data_offset, 6);
-        if(size > 8)
-        {
-          memcpy(pointer + 6, data1 + data_offset, 6);
-        }
-#ifndef THETIS
-        if(size > 14)
-        {
-          memcpy(pointer + 12, data3 + data_offset, 6);
-        }
-        if(size > 20)
-        {
-          memcpy(pointer + 18, data4 + data_offset, 6);
-        }
-#else
-        if(size > 14)
-        {
-          memcpy(pointer + 12, data2 + data_offset, 6);
-        }
-        if(size > 20)
-        {
-          memcpy(pointer + 18, data3 + data_offset, 6);
-        }
-        if(size > 26)
-        {
-          memcpy(pointer + 24, data4 + data_offset, 6);
-        }
-#endif
-        data_offset += 8;
-        pointer += size;
-        if(i2c_codec) memcpy(pointer - 2, &audio[(k++) >> rate], 2);
-      }
-    }
+    *(uint32_t *)(UDPBuffer  + 4) = htonl(SequenceCounter++);     // add sequence count
     //
     // send outgoing packet
     //
-    sendmmsg(sock_ep2, datagram, m, 0);
-  }     // end of while(1) loop
+    sendmsg(sock_ep2, &datagram, 0);
+  }     // end of while(!InitError) loop
 
+//
+// tidy shutdown of the thread
+//
   active_thread = 0;        // signal that thread has closed
-
+	close(DMAReadfile_fd);
+  free(IQReadBuffer);
+  free(MicBuffer);
   return NULL;
 }
 

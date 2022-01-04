@@ -56,7 +56,7 @@ uint32_t FIFOMonitorAddresses[] =
 void SetupFIFOMonitorChannel(uint32_t Monitor, uint32_t Channel, uint32_t Depth, bool IsWriteFIFO, bool EnableInterrupt)
 {
 	uint32_t Address;							// register address
-	unit32_t Data;								// register content
+	uint32_t Data;								// register content
 
 	Address = FIFOMonitorAddresses[Monitor] + 4 * Channel + 0x10;			// config register address
 	Data = Depth;
@@ -80,7 +80,7 @@ void SetupFIFOMonitorChannel(uint32_t Monitor, uint32_t Channel, uint32_t Depth,
 uint32_t ReadFIFOMonitorChannel(uint32_t Monitor, uint32_t Channel, bool* Overflowed)
 {
 	uint32_t Address;							// register address
-	unit32_t Data = 0;							// register content
+	uint32_t Data = 0;							// register content
 	bool Overflow = false;
 
 	Address = FIFOMonitorAddresses[Monitor] + 4 * Channel;			// status register address
@@ -110,14 +110,14 @@ uint32_t ReadFIFOMonitorChannel(uint32_t Monitor, uint32_t Channel, bool* Overfl
 void EnableRXFIFOChannels(EDDCSelect DDCNum, bool Enabled, bool Interleaved)
 {
 	uint32_t Address;							// register address
-	unit32_t Data;								// register content
+	uint32_t Data;								// register content
 
 	Address = DDCConfigAddresses[(int)DDCNum];			// DDC config register address
 	Data = RegisterRead(Address);						// read current content
 	Data &= 0xFFFCFFFF;									// clear bits 16, 17
-	if (IsEnabled)
-		Data ~= 0x00020000;								// bit 17 
+	if (Enabled)
+		Data &= ~0x00020000;								// bit 17 
 	if (Interleaved)
-		Data ~= 0x00010000;								// bit 16
+		Data &= ~0x00010000;								// bit 16
 	RegisterWrite(Address, Data);						// write back
 }
