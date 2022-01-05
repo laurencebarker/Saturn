@@ -66,7 +66,7 @@ void *SendOutgoingPacketData(void *arg);
 //
 int main(void)
 {
-  int i, j, size;
+  int i, size;
   pthread_t thread;
 
 //
@@ -492,21 +492,27 @@ uint32_t OutgoingCandCStep;                         // 0-1-2-3-4 sequence for C&
 //
 void AddOutgoingCandCBytes(uint8_t* Ptr)
 {
-
+  memcpy(Ptr, USBCandC+8*OutgoingCandCStep, 8);
+  switch(OutgoingCandCStep)
+  {
+    case 0:
+      OutgoingCandCStep++;
+      break;
+    case 1:
+      OutgoingCandCStep++;
+      break;
+    case 2:
+      OutgoingCandCStep++;
+      break;
+    case 3:
+      OutgoingCandCStep++;
+      break;
+    case 4:
+    default:
+      OutgoingCandCStep = 0;
+      break;
+  }
 }
-
-
-
-//
-// MakeOutgoingUSBFrame(unsigned char* IQPtr, unsigned char* Dest);
-// make a new USB frame beginning at Dest using I/Q samples at the location passed by Ptr
-// pointers to the pointers are used, so we can update the pointers for the number of locations comsumed
-//
-void MakeOutgoingUSBFrame(uint8_t** IQSourcePtr, uint8_t** MicSourcePtr, uint8_t* Dest)
-{
-
-}
-
 
 
 
@@ -543,11 +549,13 @@ void *SendOutgoingPacketData(void *arg)
   uint8_t UDPBuffer[VMETISFRAMESIZE];                     // Metis frame buffer
   uint8_t metisid[4] = {0xef, 0xfe, 1, 6};                // Metis frame identifier
   uint32_t SequenceCounter = 0;                           // UDP sequence count
-
-
+  uint32_t USBFrame;
+  uint8_t *USBFramePtr;                                    // write address into o/p frame buffer
+  uint32_t IQCount;                                       // counter of words to read
 //
 // initialise. Create memory buffers and open DMA file devices
 //
+  OutgoingCandCStep = 0;                                  // initialise C&C output
   printf("starting up outgoing thread\n");
 	posix_memalign((void **)&IQReadBuffer, VALIGNMENT, IQBufferSize);
 	if(!IQReadBuffer)
@@ -625,7 +633,24 @@ void *SendOutgoingPacketData(void *arg)
     //
     while((IQHeadPtr - IQReadPtr)>2*VUSBSAMPLESIZE)
     {
-
+      *(uint32_t *)(UDPBuffer  + 4) = htonl(SequenceCounter++);     // add sequence count
+      for(USBFrame=0; USBFrame < 2; USBFrame++)
+      {
+        USBFramePtr = UDPBuffer + 8 + 512*USBFrame;                 // point to start of USB frame
+        AddOutgoingCandCBytes(USBFramePtr);
+        USBFramePtr += 8;
+        //
+        // now add I/Q and (null) microphone audio data.
+        //
+        for(IQCount = 0; IQCount < 63; IQCount++)
+        {
+          memcpy(USBFramePtr, IQReadPtr, 6);                        // copy one set of I/Q samples
+          USBFramePtr+= 6;
+          *USBFramePtr++ = 0;                                       // add 2 zero bytes for mic
+          *USBFramePtr++ = 0;
+          IQReadPtr += 6;
+        }
+      }
     }
     //
     // now bring in more data via DMA
@@ -657,8 +682,6 @@ void *SendOutgoingPacketData(void *arg)
 		IQHeadPtr = IQBasePtr + VDMATRANSFERSIZE;
 
 
-
-    *(uint32_t *)(UDPBuffer  + 4) = htonl(SequenceCounter++);     // add sequence count
     //
     // send outgoing packet
     //
