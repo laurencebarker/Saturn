@@ -469,17 +469,18 @@ uint32_t OutgoingCandCStep;                         // 0-1-2-3-4 sequence for C&
 #define VUSBSAMPLESIZE 504                          // useful data per USB Frame
 #define VDMATRANSFERSIZE 4096                       // read 4K at a time
 #define AXIBaseAddress 0x18000									    // address of StreamRead/Writer IP (Litefury only!)
+#define VIQBYTESPERMETISFRAME 228                   // 19 sets of (same) I/Q per USB, 2USB per metis
 
   //
   // 5 USB data headers with outgoing C&C data
   //
   uint8_t USBCandC[40] =
   {
-    127, 127, 127, 0, 0, 33, 17, 21,
-    127, 127, 127, 8, 0, 0, 0, 0,
-    127, 127, 127, 16, 0, 0, 0, 0,
-    127, 127, 127, 24, 0, 0, 0, 0,
-    127, 127, 127, 32, 66, 66, 66, 66
+    0x7F, 0x7F, 0x7F, 0, 0, 33, 17, 21,
+    0x7F, 0x7F, 0x7F, 8, 0, 0, 0, 0,
+    0x7F, 0x7F, 0x7F, 16, 0, 0, 0, 0,
+    0x7F, 0x7F, 0x7F, 24, 0, 0, 0, 0,
+    0x7F, 0x7F, 0x7F, 32, 66, 66, 66, 66
   };
 
 
@@ -631,7 +632,7 @@ void *SendOutgoingPacketData(void *arg)
     //
     // while there is enough I/Q data, make Metis frames
     //
-    while((IQHeadPtr - IQReadPtr)>2*VUSBSAMPLESIZE)
+    while((IQHeadPtr - IQReadPtr)>VIQBYTESPERMETISFRAME)
     {
       *(uint32_t *)(UDPBuffer  + 4) = htonl(SequenceCounter++);     // add sequence count
       for(USBFrame=0; USBFrame < 2; USBFrame++)
@@ -641,16 +642,29 @@ void *SendOutgoingPacketData(void *arg)
         USBFramePtr += 8;
         //
         // now add I/Q and (null) microphone audio data.
+        // the board is pretending to be a Hermes, so need to offer back 4 receivers worth of data
         //
-        for(IQCount = 0; IQCount < 63; IQCount++)
+        for(IQCount = 0; IQCount < 19; IQCount++)
         {
           memcpy(USBFramePtr, IQReadPtr, 6);                        // copy one set of I/Q samples
+          USBFramePtr+= 6;
+          memcpy(USBFramePtr, IQReadPtr, 6);                        // copy same set of I/Q samples
+          USBFramePtr+= 6;
+          memcpy(USBFramePtr, IQReadPtr, 6);                        // copy same set of I/Q samples
+          USBFramePtr+= 6;
+          memcpy(USBFramePtr, IQReadPtr, 6);                        // copy same set of I/Q samples
           USBFramePtr+= 6;
           *USBFramePtr++ = 0;                                       // add 2 zero bytes for mic
           *USBFramePtr++ = 0;
           IQReadPtr += 6;
         }
+        memset(USBFramePtr, 0, 10);                                 // add 10 padding bytes
+        USBFramePtr += 10;
       }
+      //
+      // send outgoing packet
+      //
+      sendmsg(sock_ep2, &datagram, 0);
     }
     //
     // now bring in more data via DMA
@@ -680,12 +694,6 @@ void *SendOutgoingPacketData(void *arg)
 		printf("DMA read %d bytes from destination to base\n", VDMATRANSFERSIZE);
 		DMAReadFromFPGA(DMAReadfile_fd, IQBasePtr, VDMATRANSFERSIZE, AXIBaseAddress);
 		IQHeadPtr = IQBasePtr + VDMATRANSFERSIZE;
-
-
-    //
-    // send outgoing packet
-    //
-    sendmsg(sock_ep2, &datagram, 0);
   }     // end of while(!InitError) loop
 
 //
