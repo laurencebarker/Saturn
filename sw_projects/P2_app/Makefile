@@ -1,12 +1,24 @@
-CFLAGS = -O3 -march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard -D_GNU_SOURCE
+# Makefile for p2app
+# *****************************************************
+# Variables to control Makefile operation
+ 
+CC = gcc
+LD = gcc
+CFLAGS = -Wall -Wextra -Wno-unused-function -g -D_GNU_SOURCE
+LDFLAGS = -lm -lpthread
+TARGET = p2app
+ 
+# ****************************************************
+# Targets needed to bring the executable up to date
 
-all: sdr-transceiver-hpsdr sdr-transceiver-hpsdr-thetis
+OBJS=    $(TARGET).o hwaccess.o saturnregisters.o saturndrivers.o
 
-sdr-transceiver-hpsdr: sdr-transceiver-hpsdr.c
-	gcc $(CFLAGS) -o $@ $^ -lm -lpthread
-
-sdr-transceiver-hpsdr-thetis: sdr-transceiver-hpsdr.c
-	gcc $(CFLAGS) -DTHETIS -o $@ $^ -lm -lpthread
+all: $(OBJS)
+	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS)
+ 
+ 
+%.o: %.c
+	$(CC) -c -o $(@F) $(CFLAGS) $<
 
 clean:
-	rm -f sdr-transceiver-hpsdr sdr-transceiver-hpsdr-thetis
+	rm -rf $(TARGET) *.o *.bin
