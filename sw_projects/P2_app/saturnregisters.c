@@ -30,7 +30,6 @@ unsigned int DACStepAttenROM[256];                  // provides most atten setti
 //
 // local copies of values written to registers
 //
-#define VNUMDDC 10                                  // downconverters available
 #define VNUMP1DDCS 5                                // DDCs used for P1
 #define VSAMPLERATE 122880000                       // sample rate in Hz
 

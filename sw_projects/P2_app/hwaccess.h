@@ -34,7 +34,7 @@ int OpenXDMADriver(void);
 // Length: number of bytes to copy
 // AXIAddr: offset address in the FPGA window 
 //
-int DMAWriteToFPGA(int fd, char*SrcData, uint32_t Length, uint32_t AXIAddr);
+int DMAWriteToFPGA(int fd, unsigned char*SrcData, uint32_t Length, uint32_t AXIAddr);
 
 
 
@@ -46,7 +46,7 @@ int DMAWriteToFPGA(int fd, char*SrcData, uint32_t Length, uint32_t AXIAddr);
 // Length: number of bytes to copy
 // AXIAddr: offset address in the FPGA window 
 //
-int DMAReadFromFPGA(int fd, char*DestData, uint32_t Length, uint32_t AXIAddr);
+int DMAReadFromFPGA(int fd, unsigned char*DestData, uint32_t Length, uint32_t AXIAddr);
 
 
 //

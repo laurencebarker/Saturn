@@ -18,6 +18,9 @@
 
 #include "saturntypes.h"
 
+
+#define VNUMDDC 10                                  // downconverters available
+
 //
 // enum type for sample rate. The last 2 options not allowed for protocol 1
 //
