@@ -38,14 +38,13 @@
 #include "saturnregisters.h"              // register I/O for Saturn
 
 
-struct sockaddr_in reply_addr;                // destination address for outgoing data
+struct sockaddr_in reply_addr;              // destination address for outgoing data
 
 int enable_thread = 0;                      // true if outgoing data thread enabled
 int active_thread = 0;                      // true if outgoing thread is running
-bool DataThreadEnabled = false;             // true if data threads established. 
+bool DataThreadEnabled = false;             // true if data threads to transfer data. 
                                             // Set to false to tell them to terminate
-
-bool SDRRunActive = false;                  // true if told to run by host
+bool EnableOutgoingData;                    // set true by high priority to start dataflow
 
 void *OutgoingDDCIQ(void *arg);
 void *IncomingDDCSpecific(void *arg);           // listener thread
@@ -59,7 +58,12 @@ void *IncomingSpkrAudio(void *arg);             // listener thread
 #define SDRSWVERSION 1                  // version of this software
 #define VDDCPACKETSIZE 1444             // each DDC packet
 #define VDISCOVERYREPLYSIZE 60          // reply packet
-
+#define VDISCOVERYSIZE 60               // discovery packet
+#define VHIGHPRIOTIYTOSDRSIZE 1444      // high priority packet to SDR
+#define VSPEAKERAUDIOSIZE 260           // speaker audio packet
+#define VDUCIQSIZE 1444                 // TX DUC I/Q data packet
+#define VDDCSPECIFICSIZE 1444           // DDC specific packet
+#define VDUCSPECIFICSIZE 60             // DUC specific packet
 
 //
 // list of port numbers, provided in the general packet
@@ -104,25 +108,37 @@ struct ThreadSocketData
 struct ThreadSocketData SocketData[VPORTTABLESIZE] =
 {
   {0, 0, 1024, "Cmd", false},                      // command (incoming) thread
-  {0, 0, 0, "DDC Specific", false},             // DDC specifc (incoming) thread
-  {0, 0, 0, "DUC Specific", false},             // DUC specific (incoming) thread
-  {0, 0, 0, "High Priority In", false},         // High Priority (incoming) thread
-  {0, 0, 0, "Spkr Audio", false},               // Speaker Audio (incoming) thread
-  {0, 0, 0, "DUC I/Q", false},                  // DUC IQ (incoming) thread
-  {0, 0, 0, "High Priority Out", false},        // High Priority (outgoing) thread
-  {0, 0, 0, "Mic Audio", false},                // Mic Audio (outgoing) thread
-  {0, 0, 0, "DDC I/Q 0", false},                // DDC IQ 0 (outgoing) thread
-  {0, 0, 0, "DDC I/Q 1", false},                // DDC IQ 1 (outgoing) thread
-  {0, 0, 0, "DDC I/Q 2", false},                // DDC IQ 2 (outgoing) thread
-  {0, 0, 0, "DDC I/Q 3", false},                // DDC IQ 3 (outgoing) thread
-  {0, 0, 0, "DDC I/Q 4", false},                // DDC IQ 4 (outgoing) thread
-  {0, 0, 0, "DDC I/Q 5", false},                // DDC IQ 5 (outgoing) thread
-  {0, 0, 0, "DDC I/Q 6", false},                // DDC IQ 6 (outgoing) thread
-  {0, 0, 0, "DDC I/Q 7", false},                // DDC IQ 7 (outgoing) thread
-  {0, 0, 0, "DDC I/Q 8", false},                // DDC IQ 8 (outgoing) thread
-  {0, 0, 0, "DDC I/Q 9", false},                // DDC IQ 9 (outgoing) thread
-  {0, 0, 0, "Wideband 0", false},               // Wideband 0 (outgoing) thread
-  {0, 0, 0, "Wideband 1", false}                // Wideband 1 (outgoing) thread
+  {0, 0, 1025, "DDC Specific", false},             // DDC specifc (incoming) thread
+  {0, 0, 1026, "DUC Specific", false},             // DUC specific (incoming) thread
+  {0, 0, 1027, "High Priority In", false},         // High Priority (incoming) thread
+  {0, 0, 1028, "Spkr Audio", false},               // Speaker Audio (incoming) thread
+  {0, 0, 1029, "DUC I/Q", false},                  // DUC IQ (incoming) thread
+  {0, 0, 1025, "High Priority Out", false},        // High Priority (outgoing) thread
+  {0, 0, 1026, "Mic Audio", false},                // Mic Audio (outgoing) thread
+  {0, 0, 1035, "DDC I/Q 0", false},                // DDC IQ 0 (outgoing) thread
+  {0, 0, 1036, "DDC I/Q 1", false},                // DDC IQ 1 (outgoing) thread
+  {0, 0, 1037, "DDC I/Q 2", false},                // DDC IQ 2 (outgoing) thread
+  {0, 0, 1038, "DDC I/Q 3", false},                // DDC IQ 3 (outgoing) thread
+  {0, 0, 1039, "DDC I/Q 4", false},                // DDC IQ 4 (outgoing) thread
+  {0, 0, 1040, "DDC I/Q 5", false},                // DDC IQ 5 (outgoing) thread
+  {0, 0, 1041, "DDC I/Q 6", false},                // DDC IQ 6 (outgoing) thread
+  {0, 0, 1042, "DDC I/Q 7", false},                // DDC IQ 7 (outgoing) thread
+  {0, 0, 1043, "DDC I/Q 8", false},                // DDC IQ 8 (outgoing) thread
+  {0, 0, 1044, "DDC I/Q 9", false},                // DDC IQ 9 (outgoing) thread
+  {0, 0, 1027, "Wideband 0", false},               // Wideband 0 (outgoing) thread
+  {0, 0, 1028, "Wideband 1", false}                // Wideband 1 (outgoing) thread
+};
+
+
+//
+// default port numbers, used if incoming port number = 0
+//
+uint16_t DefaultPorts[VPORTTABLESIZE] =
+{
+  1024, 1025, 1026, 1027, 1028, 
+  1029, 1025, 1026, 1035, 1036, 
+  1037, 1038, 1039, 1040, 1041, 
+  1042, 1043, 1044, 1027, 1028
 };
 
 
@@ -145,13 +161,41 @@ bool CheckActiveThreads(int StartingPoint)
   struct ThreadSocketData* Ptr = SocketData+StartingPoint;
   bool Result = false;
 
-  for (int i = 0; i < VPORTTABLESIZE; i++)          // loop through the socket table
+  for (int i = StartingPoint; i < VPORTTABLESIZE; i++)          // loop through the socket table
   {
     if(Ptr->Active)                                 // check this thread
       Result = true;
     Ptr++;
   }
+    if(Result)
+      printf("found an active thread\n");
     return Result;
+}
+
+
+
+//
+// set the port for a given thread. If 0, set the default according to HPSDR spec.
+//
+void SetPort(uint32_t ThreadNum, uint16_t PortNum)
+{
+  printf("set port for socket row %d to port %d\n", ThreadNum, PortNum);
+  if(PortNum == 0)
+    SocketData[ThreadNum].Portid = DefaultPorts[ThreadNum];     //default if not set
+  else
+    SocketData[ThreadNum].Portid = PortNum;
+}
+
+
+
+//
+// function to fill data for outgoing thread
+// 1st parameter is a link into the socket data table
+//
+void SetupOutgoingThreadData(struct ThreadSocketData* Ptr, uint32_t DDC)
+{
+  Ptr-> DDCid = DDC;
+  Ptr -> Socketid = SocketData[VPORTCOMMAND].Socketid;          // use the command socket outgoing
 }
 
 
@@ -159,7 +203,7 @@ bool CheckActiveThreads(int StartingPoint)
 // function to make an incoming socket, bound to the specified port in the structure
 // 1st parameter is a link into the socket data table
 //
-void MakeIncomingSocket(struct ThreadSocketData* Ptr)
+int MakeIncomingSocket(struct ThreadSocketData* Ptr)
 {
   struct timeval ReadTimeout;                                       // read timeout
   int yes = 1;
@@ -202,7 +246,7 @@ void MakeIncomingSocket(struct ThreadSocketData* Ptr)
     perror("bind");
     return EXIT_FAILURE;
   }
-
+  return 0;
 }
 
 
@@ -210,62 +254,87 @@ void MakeIncomingSocket(struct ThreadSocketData* Ptr)
 //
 // protocol 2 handler for General Packet to SDR
 // parameter is a pointer to the UDP message buffer.
-// copy port numbers to port table, and create listener threads for incoming packets.
+// copy port numbers to port table, 
+// then create listener threads for incoming packets & senders foroutgoing
 //
-void HandleGeneralPacket(uint8_t *PacketBuffer)
+int HandleGeneralPacket(uint8_t *PacketBuffer)
 {
   uint16_t Port;                                  // port number from table
   int i;
+  struct ThreadSocketData* Ptr;
 
-  SocketData[VPORTDDCSPECIFIC].Portid = ntohs(*(uint16_t*)(PacketBuffer+5));
-  SocketData[VPORTDUCSPECIFIC].Portid = ntohs(*(uint16_t*)(PacketBuffer+7));
-  SocketData[VPORTHIGHPRIORITYTOSDR].Portid = ntohs(*(uint16_t*)(PacketBuffer+9));
-  SocketData[VPORTSPKRAUDIO].Portid = ntohs(*(uint16_t*)(PacketBuffer+13));
-  SocketData[VPORTDUCIQ].Portid = ntohs(*(uint16_t*)(PacketBuffer+15));
-  SocketData[VPORTHIGHPRIORITYTOSDR].Portid = ntohs(*(uint16_t*)(PacketBuffer+11));
-  SocketData[VPORTMICAUDIO].Portid = ntohs(*(uint16_t*)(PacketBuffer+19));
-  Port = ntohs(*(uint16_t*)(PacketBuffer+19));            // DDC0
+  printf("setting ports\n");
+  SetPort(VPORTDDCSPECIFIC, ntohs(*(uint16_t*)(PacketBuffer+5)));
+  SetPort(VPORTDUCSPECIFIC, ntohs(*(uint16_t*)(PacketBuffer+7)));
+  SetPort(VPORTHIGHPRIORITYTOSDR, ntohs(*(uint16_t*)(PacketBuffer+9)));
+  SetPort(VPORTSPKRAUDIO, ntohs(*(uint16_t*)(PacketBuffer+13)));
+  SetPort(VPORTDUCIQ, ntohs(*(uint16_t*)(PacketBuffer+15)));
+  SetPort(VPORTHIGHPRIORITYFROMSDR, ntohs(*(uint16_t*)(PacketBuffer+11)));
+  SetPort(VPORTMICAUDIO, ntohs(*(uint16_t*)(PacketBuffer+19)));
+
+// DDC ports start at the transferred value then increment
+  Port = ntohs(*(uint16_t*)(PacketBuffer+17));            // DDC0
   for (i=0; i<10; i++)
-    SocketData[VPORTDDCIQ0+i].Portid = Port++;                    // incremented numbers for each
+  {
+    if(Port==0)
+      SetPort(VPORTDDCIQ0+i, 0);
+    else
+      SetPort(VPORTDDCIQ0+i, Port+i);
+  }  
+
+// similarly, wideband ports start at the transferred value then increment
   Port = ntohs(*(uint16_t*)(PacketBuffer+21));            // DDC0
-  SocketData[VPORTWIDEBAND0].Portid = Port;                       // incremented numbers for each
-  SocketData[VPORTWIDEBAND1].Portid = Port+1;                     // incremented numbers for each
+  for (i=0; i<2; i++)
+  {
+    if(Port==0)
+      SetPort(VPORTWIDEBAND0+i, 0);
+    else
+      SetPort(VPORTWIDEBAND0+i, Port+i);
+  }  
 //
 // now we need to create the listener threads and outgoing data threads
 // first make sure the old ones (if any) are shut down
 //
-  DataThreadEnabled = false;                                // command data threads to stop
-  while(CheckActiveThreads(1)) usleep(1000);                 // wait until they have stopped
-
-  if(pthread_create(&DDCSpecificThread, NULL, IncomingDDCSpecific, NULL) < 0)
+  DataThreadEnabled = false;                                  // command data threads to stop
+  while(CheckActiveThreads(1)) usleep(1000);                  // wait until they have stopped
+  printf("ready to spin up new threads\n");
+  DataThreadEnabled = true;                                  // allow data threads to start
+  MakeIncomingSocket(SocketData+VPORTDDCSPECIFIC);            // create and bind a socket
+  Ptr = SocketData+VPORTDDCSPECIFIC;
+  if(pthread_create(&DDCSpecificThread, NULL, IncomingDDCSpecific, (void*)Ptr) < 0)
   {
     perror("pthread_create DDC specific");
     return EXIT_FAILURE;
   }
   pthread_detach(DDCSpecificThread);
 
-  if(pthread_create(&DUCSpecificThread, NULL, IncomingDUCSpecific, NULL) < 0)
+  MakeIncomingSocket(SocketData+VPORTDUCSPECIFIC);            // create and bind a socket
+  Ptr = SocketData+VPORTDUCSPECIFIC;
+  if(pthread_create(&DUCSpecificThread, NULL, IncomingDUCSpecific, (void*)Ptr) < 0)
   {
     perror("pthread_create DUC specific");
     return EXIT_FAILURE;
   }
   pthread_detach(DUCSpecificThread);
 
-  if(pthread_create(&HighPriorityToSDRThread, NULL, IncomingHighPriority, NULL) < 0)
+  MakeIncomingSocket(SocketData+VPORTHIGHPRIORITYTOSDR);            // create and bind a socket
+  if(pthread_create(&HighPriorityToSDRThread, NULL, IncomingHighPriority, (void*)&SocketData[VPORTHIGHPRIORITYTOSDR]) < 0)
   {
     perror("pthread_create High priority to SDR");
     return EXIT_FAILURE;
   }
   pthread_detach(HighPriorityToSDRThread);
 
-  if(pthread_create(&SpkrAudioThread, NULL, IncomingSpkrAudio, NULL) < 0)
+  MakeIncomingSocket(SocketData+VPORTSPKRAUDIO);            // create and bind a socket
+  if(pthread_create(&SpkrAudioThread, NULL, IncomingSpkrAudio, (void*)&SocketData[VPORTSPKRAUDIO]) < 0)
   {
     perror("pthread_create speaker audio");
     return EXIT_FAILURE;
   }
   pthread_detach(SpkrAudioThread);
 
-  if(pthread_create(&DUCIQThread, NULL, IncomingDUCIQ, NULL) < 0)
+  MakeIncomingSocket(SocketData+VPORTDUCIQ);            // create and bind a socket
+  if(pthread_create(&DUCIQThread, NULL, IncomingDUCIQ, (void*)&SocketData[VPORTDUCIQ]) < 0)
   {
     perror("pthread_create DUC I/Q");
     return EXIT_FAILURE;
@@ -275,19 +344,15 @@ void HandleGeneralPacket(uint8_t *PacketBuffer)
 //
 // and for now create just one outgoing data thread for DDC 0
 //
-  if(pthread_create(&DDCIQThread[0], NULL, OutgoingDDCIQ, NULL) < 0)
+  SetupOutgoingThreadData(SocketData+VPORTDDCIQ0, 0);
+  if(pthread_create(&DDCIQThread[0], NULL, OutgoingDDCIQ, (void*)&SocketData[VPORTDDCIQ0]) < 0)
   {
     perror("pthread_create DUC I/Q");
     return EXIT_FAILURE;
   }
-  pthread_detach(&DDCIQThread[0]);
-
-
+  pthread_detach(DDCIQThread[0]);
+  return NULL;
 }
-
-
-
-
 
 
 
@@ -299,7 +364,6 @@ void HandleGeneralPacket(uint8_t *PacketBuffer)
 int main(void)
 {
   int i, size;
-  struct ThreadSocketData *ThreadData;            // socket etc data for this thread
 //
 // part written discovery reply packet
 //
@@ -338,10 +402,8 @@ int main(void)
   InitialiseCWKeyerRamp();
   SetCWSidetoneEnabled(true);
   
-
-
   //
-  // create socket for incoming data
+  // create socket for incoming data on the command port
   //
   MakeIncomingSocket(SocketData);
 
@@ -350,6 +412,7 @@ int main(void)
   //
   memset(&hwaddr, 0, sizeof(hwaddr));
   strncpy(hwaddr.ifr_name, "eth0", IFNAMSIZ - 1);
+  ioctl(SocketData[VPORTCOMMAND].Socketid, SIOCGIFHWADDR, &hwaddr);
   for(i = 0; i < 6; ++i) DiscoveryReply[i + 5] = hwaddr.ifr_addr.sa_data[i];         // copy MAC to reply message
 
   //
@@ -382,7 +445,7 @@ int main(void)
 // (that means we can't handle the programming packet but we don't use that anyway)
 //
     CmdByte = UDPInBuffer[4];
-    if(size==60)
+    if(size==VDISCOVERYSIZE)  
       switch(CmdByte)
       {
         //
@@ -462,18 +525,41 @@ int main(void)
 //
 // listener thread for incoming DDC specific packets
 //
-void *IncomingDDCSpecific(void *arg)            // listener thread
+void *IncomingDDCSpecific(void *arg)                    // listener thread
 {
-  struct ThreadSocketData *ThreadData;            // socket etc data for this thread
+  struct ThreadSocketData *ThreadData;                  // socket etc data for this thread
+  struct sockaddr_in addr_from;                         // holds MAC address of source of incoming messages
+  uint8_t UDPInBuffer[VDDCPACKETSIZE];                  // outgoing buffer
+  struct iovec iovecinst;                               // iovcnt buffer - 1 for each outgoing buffer
+  struct msghdr datagram;                               // multiple incoming message header
+  int size;                                             // UDP datagram length
 
   ThreadData = (struct ThreadSocketData *)arg;
   ThreadData->Active = true;
+  printf("spinning up DDC specific thread with port %d\n", ThreadData->Portid);
   //
   // main processing loop
   //
   while(DataThreadEnabled)
   {
-
+    memset(&iovecinst, 0, sizeof(struct iovec));
+    memset(&datagram, 0, sizeof(datagram));
+    iovecinst.iov_base = &UDPInBuffer;                  // set buffer for incoming message number i
+    iovecinst.iov_len = VDDCPACKETSIZE;
+    datagram.msg_iov = &iovecinst;
+    datagram.msg_iovlen = 1;
+    datagram.msg_name = &addr_from;
+    datagram.msg_namelen = sizeof(addr_from);
+    size = recvmsg(SocketData[0].Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
+    if(size < 0 && errno != EAGAIN)
+    {
+      perror("recvfrom");
+      return EXIT_FAILURE;
+    }
+    if(size == VDDCSPECIFICSIZE)
+    {
+      printf("DDC specific packet received\n");
+    }
   }
 //
 // close down thread
@@ -481,6 +567,7 @@ void *IncomingDDCSpecific(void *arg)            // listener thread
   close(ThreadData->Socketid);                  // close incoming data socket
   ThreadData->Socketid = 0;
   ThreadData->Active = false;                   // indicate it is closed
+  return NULL;
 }
 
 
@@ -488,18 +575,41 @@ void *IncomingDDCSpecific(void *arg)            // listener thread
 //
 // listener thread for incoming DUC specific packets
 //
-void *IncomingDUCSpecific(void *arg)            // listener thread
+void *IncomingDUCSpecific(void *arg)                    // listener thread
 {
-  struct ThreadSocketData *ThreadData;            // socket etc data for this thread
+  struct ThreadSocketData *ThreadData;                  // socket etc data for this thread
+  struct sockaddr_in addr_from;                         // holds MAC address of source of incoming messages
+  uint8_t UDPInBuffer[VDDCPACKETSIZE];                  // outgoing buffer
+  struct iovec iovecinst;                               // iovcnt buffer - 1 for each outgoing buffer
+  struct msghdr datagram;                               // multiple incoming message header
+  int size;                                             // UDP datagram length
 
   ThreadData = (struct ThreadSocketData *)arg;
   ThreadData->Active = true;
+  printf("spinning up DUC specific thread with port %d\n", ThreadData->Portid);
   //
   // main processing loop
   //
   while(DataThreadEnabled)
   {
-
+    memset(&iovecinst, 0, sizeof(struct iovec));
+    memset(&datagram, 0, sizeof(datagram));
+    iovecinst.iov_base = &UDPInBuffer;                  // set buffer for incoming message number i
+    iovecinst.iov_len = VDDCPACKETSIZE;
+    datagram.msg_iov = &iovecinst;
+    datagram.msg_iovlen = 1;
+    datagram.msg_name = &addr_from;
+    datagram.msg_namelen = sizeof(addr_from);
+    size = recvmsg(SocketData[0].Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
+    if(size < 0 && errno != EAGAIN)
+    {
+      perror("recvfrom");
+      return EXIT_FAILURE;
+    }
+    if(size == VDUCSPECIFICSIZE)
+    {
+      printf("DUC specific packet received\n");
+    }
   }
 //
 // close down thread
@@ -507,6 +617,7 @@ void *IncomingDUCSpecific(void *arg)            // listener thread
   close(ThreadData->Socketid);                  // close incoming data socket
   ThreadData->Socketid = 0;
   ThreadData->Active = false;                   // indicate it is closed
+  return NULL;
 }
 
 
@@ -514,19 +625,43 @@ void *IncomingDUCSpecific(void *arg)            // listener thread
 //
 // listener thread for incoming high priority packets
 //
-void *IncomingHighPriority(void *arg)           // listener thread
+void *IncomingHighPriority(void *arg)                   // listener thread
 {
-  struct ThreadSocketData *ThreadData;            // socket etc data for this thread
+  struct ThreadSocketData *ThreadData;                  // socket etc data for this thread
+  struct sockaddr_in addr_from;                         // holds MAC address of source of incoming messages
+  uint8_t UDPInBuffer[VDDCPACKETSIZE];                  // outgoing buffer
+  struct iovec iovecinst;                               // iovcnt buffer - 1 for each outgoing buffer
+  struct msghdr datagram;                               // multiple incoming message header
+  int size;                                             // UDP datagram length
 
   ThreadData = (struct ThreadSocketData *)arg;
   ThreadData->Active = true;
+  printf("spinning up high priority incoming thread with port %d\n", ThreadData->Portid);
 
   //
   // main processing loop
   //
   while(DataThreadEnabled)
   {
+    memset(&iovecinst, 0, sizeof(struct iovec));
+    memset(&datagram, 0, sizeof(datagram));
+    iovecinst.iov_base = &UDPInBuffer;                  // set buffer for incoming message number i
+    iovecinst.iov_len = VDDCPACKETSIZE;
+    datagram.msg_iov = &iovecinst;
+    datagram.msg_iovlen = 1;
+    datagram.msg_name = &addr_from;
+    datagram.msg_namelen = sizeof(addr_from);
+    size = recvmsg(SocketData[0].Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
+    if(size < 0 && errno != EAGAIN)
+    {
+      perror("recvfrom");
+      return EXIT_FAILURE;
+    }
+    if(size == VHIGHPRIOTIYTOSDRSIZE)
+    {
+      printf("high priority packet received\n");
 
+    }
   }
 //
 // close down thread
@@ -534,6 +669,7 @@ void *IncomingHighPriority(void *arg)           // listener thread
   close(ThreadData->Socketid);                  // close incoming data socket
   ThreadData->Socketid = 0;
   ThreadData->Active = false;                   // indicate it is closed
+  return NULL;
 }
 
 
@@ -541,18 +677,41 @@ void *IncomingHighPriority(void *arg)           // listener thread
 //
 // listener thread for incoming DUC I/Q packets
 //
-void *IncomingDUCIQ(void *arg)                  // listener thread
+void *IncomingDUCIQ(void *arg)                          // listener thread
 {
-  struct ThreadSocketData *ThreadData;            // socket etc data for this thread
+  struct ThreadSocketData *ThreadData;                  // socket etc data for this thread
+  struct sockaddr_in addr_from;                         // holds MAC address of source of incoming messages
+  uint8_t UDPInBuffer[VDDCPACKETSIZE];                  // outgoing buffer
+  struct iovec iovecinst;                               // iovcnt buffer - 1 for each outgoing buffer
+  struct msghdr datagram;                               // multiple incoming message header
+  int size;                                             // UDP datagram length
 
   ThreadData = (struct ThreadSocketData *)arg;
   ThreadData->Active = true;
+  printf("spinning up DUC I/Q thread with port %d\n", ThreadData->Portid);
   //
   // main processing loop
   //
   while(DataThreadEnabled)
   {
-
+    memset(&iovecinst, 0, sizeof(struct iovec));
+    memset(&datagram, 0, sizeof(datagram));
+    iovecinst.iov_base = &UDPInBuffer;                  // set buffer for incoming message number i
+    iovecinst.iov_len = VDDCPACKETSIZE;
+    datagram.msg_iov = &iovecinst;
+    datagram.msg_iovlen = 1;
+    datagram.msg_name = &addr_from;
+    datagram.msg_namelen = sizeof(addr_from);
+    size = recvmsg(SocketData[0].Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
+    if(size < 0 && errno != EAGAIN)
+    {
+      perror("recvfrom");
+      return EXIT_FAILURE;
+    }
+    if(size == VDUCIQSIZE)
+    {
+      printf("DUC I/Q data packet received\n");
+    }
   }
 //
 // close down thread
@@ -560,6 +719,7 @@ void *IncomingDUCIQ(void *arg)                  // listener thread
   close(ThreadData->Socketid);                  // close incoming data socket
   ThreadData->Socketid = 0;
   ThreadData->Active = false;                   // indicate it is closed
+  return NULL;
 }
 
 
@@ -567,18 +727,41 @@ void *IncomingDUCIQ(void *arg)                  // listener thread
 //
 // listener thread for incoming DDC (speaker) audio packets
 //
-void *IncomingSpkrAudio(void *arg)              // listener thread
+void *IncomingSpkrAudio(void *arg)                      // listener thread
 {
-  struct ThreadSocketData *ThreadData;            // socket etc data for this thread
+  struct ThreadSocketData *ThreadData;                  // socket etc data for this thread
+  struct sockaddr_in addr_from;                         // holds MAC address of source of incoming messages
+  uint8_t UDPInBuffer[VDDCPACKETSIZE];                  // outgoing buffer
+  struct iovec iovecinst;                               // iovcnt buffer - 1 for each outgoing buffer
+  struct msghdr datagram;                               // multiple incoming message header
+  int size;                                             // UDP datagram length
 
   ThreadData = (struct ThreadSocketData *)arg;
   ThreadData->Active = true;
+  printf("spinning up speaker audio thread with port %d\n", ThreadData->Portid);
   //
   // main processing loop
   //
   while(DataThreadEnabled)
   {
-
+    memset(&iovecinst, 0, sizeof(struct iovec));
+    memset(&datagram, 0, sizeof(datagram));
+    iovecinst.iov_base = &UDPInBuffer;                  // set buffer for incoming message number i
+    iovecinst.iov_len = VDDCPACKETSIZE;
+    datagram.msg_iov = &iovecinst;
+    datagram.msg_iovlen = 1;
+    datagram.msg_name = &addr_from;
+    datagram.msg_namelen = sizeof(addr_from);
+    size = recvmsg(SocketData[0].Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
+    if(size < 0 && errno != EAGAIN)
+    {
+      perror("recvfrom");
+      return EXIT_FAILURE;
+    }
+    if(size == VSPEAKERAUDIOSIZE)
+    {
+      printf("speaker audio packet received\n");
+    }
   }
 //
 // close down thread
@@ -586,6 +769,7 @@ void *IncomingSpkrAudio(void *arg)              // listener thread
   close(ThreadData->Socketid);                  // close incoming data socket
   ThreadData->Socketid = 0;
   ThreadData->Active = false;                   // indicate it is closed
+  return NULL;
 }
 
 
@@ -639,15 +823,14 @@ void *OutgoingDDCIQ(void *arg)
   struct msghdr datagram;
   uint8_t UDPBuffer[VDDCPACKETSIZE];                      // DDC frame buffer
   uint32_t SequenceCounter = 0;                           // UDP sequence count
-  uint32_t IQCount;                                       // counter of words to read
 
 //
 // initialise. Create memory buffers and open DMA file devices
 //
   ThreadData = (struct ThreadSocketData *)arg;
   ThreadData->Active = true;
+  printf("spinning up outgoing I/Q thread with port %d\n", ThreadData->Portid);
 
-  printf("starting up outgoing thread\n");
 	posix_memalign((void **)&IQReadBuffer, VALIGNMENT, IQBufferSize);
 	if(!IQReadBuffer)
 	{
@@ -750,7 +933,7 @@ void *OutgoingDDCIQ(void *arg)
 		{
 			usleep(1000);								// 1ms wait
 			Depth = RegisterRead(0x9000);				// read the user access register
-			printf("read: depth = %d\n", Depth);
+//			printf("read: depth = %d\n", Depth);
 		}
 
 		printf("DMA read %d bytes from destination to base\n", VDMATRANSFERSIZE);
