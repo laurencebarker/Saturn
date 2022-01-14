@@ -103,30 +103,31 @@ struct ThreadSocketData
   uint16_t Portid;                              // port to access
   char *Nameid;                                 // name (for error msg etc)
   bool Active;                                  // true if thread is active
+  struct sockaddr_in addr_cmddata;
 };
 
 struct ThreadSocketData SocketData[VPORTTABLESIZE] =
 {
-  {0, 0, 1024, "Cmd", false},                      // command (incoming) thread
-  {0, 0, 1025, "DDC Specific", false},             // DDC specifc (incoming) thread
-  {0, 0, 1026, "DUC Specific", false},             // DUC specific (incoming) thread
-  {0, 0, 1027, "High Priority In", false},         // High Priority (incoming) thread
-  {0, 0, 1028, "Spkr Audio", false},               // Speaker Audio (incoming) thread
-  {0, 0, 1029, "DUC I/Q", false},                  // DUC IQ (incoming) thread
-  {0, 0, 1025, "High Priority Out", false},        // High Priority (outgoing) thread
-  {0, 0, 1026, "Mic Audio", false},                // Mic Audio (outgoing) thread
-  {0, 0, 1035, "DDC I/Q 0", false},                // DDC IQ 0 (outgoing) thread
-  {0, 0, 1036, "DDC I/Q 1", false},                // DDC IQ 1 (outgoing) thread
-  {0, 0, 1037, "DDC I/Q 2", false},                // DDC IQ 2 (outgoing) thread
-  {0, 0, 1038, "DDC I/Q 3", false},                // DDC IQ 3 (outgoing) thread
-  {0, 0, 1039, "DDC I/Q 4", false},                // DDC IQ 4 (outgoing) thread
-  {0, 0, 1040, "DDC I/Q 5", false},                // DDC IQ 5 (outgoing) thread
-  {0, 0, 1041, "DDC I/Q 6", false},                // DDC IQ 6 (outgoing) thread
-  {0, 0, 1042, "DDC I/Q 7", false},                // DDC IQ 7 (outgoing) thread
-  {0, 0, 1043, "DDC I/Q 8", false},                // DDC IQ 8 (outgoing) thread
-  {0, 0, 1044, "DDC I/Q 9", false},                // DDC IQ 9 (outgoing) thread
-  {0, 0, 1027, "Wideband 0", false},               // Wideband 0 (outgoing) thread
-  {0, 0, 1028, "Wideband 1", false}                // Wideband 1 (outgoing) thread
+  {0, 0, 1024, "Cmd", false,{}},                      // command (incoming) thread
+  {0, 0, 1025, "DDC Specific", false,{}},             // DDC specifc (incoming) thread
+  {0, 0, 1026, "DUC Specific", false,{}},             // DUC specific (incoming) thread
+  {0, 0, 1027, "High Priority In", false,{}},         // High Priority (incoming) thread
+  {0, 0, 1028, "Spkr Audio", false,{}},               // Speaker Audio (incoming) thread
+  {0, 0, 1029, "DUC I/Q", false,{}},                  // DUC IQ (incoming) thread
+  {0, 0, 1025, "High Priority Out", false,{}},        // High Priority (outgoing) thread
+  {0, 0, 1026, "Mic Audio", false,{}},                // Mic Audio (outgoing) thread
+  {0, 0, 1035, "DDC I/Q 0", false,{}},                // DDC IQ 0 (outgoing) thread
+  {0, 0, 1036, "DDC I/Q 1", false,{}},                // DDC IQ 1 (outgoing) thread
+  {0, 0, 1037, "DDC I/Q 2", false,{}},                // DDC IQ 2 (outgoing) thread
+  {0, 0, 1038, "DDC I/Q 3", false,{}},                // DDC IQ 3 (outgoing) thread
+  {0, 0, 1039, "DDC I/Q 4", false,{}},                // DDC IQ 4 (outgoing) thread
+  {0, 0, 1040, "DDC I/Q 5", false,{}},                // DDC IQ 5 (outgoing) thread
+  {0, 0, 1041, "DDC I/Q 6", false,{}},                // DDC IQ 6 (outgoing) thread
+  {0, 0, 1042, "DDC I/Q 7", false,{}},                // DDC IQ 7 (outgoing) thread
+  {0, 0, 1043, "DDC I/Q 8", false,{}},                // DDC IQ 8 (outgoing) thread
+  {0, 0, 1044, "DDC I/Q 9", false,{}},                // DDC IQ 9 (outgoing) thread
+  {0, 0, 1027, "Wideband 0", false,{}},               // Wideband 0 (outgoing) thread
+  {0, 0, 1028, "Wideband 1", false,{}}                // Wideband 1 (outgoing) thread
 };
 
 
@@ -207,8 +208,7 @@ int MakeIncomingSocket(struct ThreadSocketData* Ptr)
 {
   struct timeval ReadTimeout;                                       // read timeout
   int yes = 1;
-  struct ifreq hwaddr;                                              // holds this device MAC address
-  struct sockaddr_in addr_cmddata;
+//  struct sockaddr_in addr_cmddata;
   //
   // create socket for incoming data
   //
@@ -219,16 +219,9 @@ int MakeIncomingSocket(struct ThreadSocketData* Ptr)
   }
 
   //
-  // get this device MAC address
+  // set 1ms timeout, and re-use any recently open ports
   //
-  memset(&hwaddr, 0, sizeof(hwaddr));
-  strncpy(hwaddr.ifr_name, "eth0", IFNAMSIZ - 1);
-  ioctl(Ptr->Socketid, SIOCGIFHWADDR, &hwaddr);
   setsockopt(Ptr->Socketid, SOL_SOCKET, SO_REUSEADDR, (void *)&yes , sizeof(yes));
-
-  //
-  // set 1ms timeout
-  //
   ReadTimeout.tv_sec = 0;
   ReadTimeout.tv_usec = 1000;
   setsockopt(Ptr->Socketid, SOL_SOCKET, SO_RCVTIMEO, (void *)&ReadTimeout , sizeof(ReadTimeout));
@@ -236,16 +229,25 @@ int MakeIncomingSocket(struct ThreadSocketData* Ptr)
   //
   // bind application to the specified port
   //
-  memset(&addr_cmddata, 0, sizeof(addr_cmddata));
-  addr_cmddata.sin_family = AF_INET;
-  addr_cmddata.sin_addr.s_addr = htonl(INADDR_ANY);
-  addr_cmddata.sin_port = htons(Ptr->Portid);
+  memset(&Ptr->addr_cmddata, 0, sizeof(struct sockaddr_in));
+  Ptr->addr_cmddata.sin_family = AF_INET;
+  Ptr->addr_cmddata.sin_addr.s_addr = htonl(INADDR_ANY);
+  Ptr->addr_cmddata.sin_port = htons(Ptr->Portid);
 
-  if(bind(Ptr->Socketid, (struct sockaddr *)&addr_cmddata, sizeof(addr_cmddata)) < 0)
+  if(bind(Ptr->Socketid, (struct sockaddr *)&Ptr->addr_cmddata, sizeof(struct sockaddr_in)) < 0)
   {
     perror("bind");
     return EXIT_FAILURE;
   }
+
+  struct sockaddr_in checkin;
+  socklen_t len = sizeof(checkin);
+  if(getsockname(Ptr->Socketid, (struct sockaddr *)&checkin, &len)==-1)
+    perror("getsockname");
+  else
+    printf(" thread name= %s   bound port = %d\n", Ptr->Nameid, ntohs(checkin.sin_port));
+
+
   return 0;
 }
 
@@ -261,7 +263,6 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
 {
   uint16_t Port;                                  // port number from table
   int i;
-  struct ThreadSocketData* Ptr;
 
   printf("setting ports\n");
   SetPort(VPORTDDCSPECIFIC, ntohs(*(uint16_t*)(PacketBuffer+5)));
@@ -298,10 +299,11 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
   DataThreadEnabled = false;                                  // command data threads to stop
   while(CheckActiveThreads(1)) usleep(1000);                  // wait until they have stopped
   printf("ready to spin up new threads\n");
-  DataThreadEnabled = true;                                  // allow data threads to start
+  DataThreadEnabled = true;                                   // allow data threads to start
+  EnableOutgoingData = false;                                 // but not yet send any data out
+
   MakeIncomingSocket(SocketData+VPORTDDCSPECIFIC);            // create and bind a socket
-  Ptr = SocketData+VPORTDDCSPECIFIC;
-  if(pthread_create(&DDCSpecificThread, NULL, IncomingDDCSpecific, (void*)Ptr) < 0)
+  if(pthread_create(&DDCSpecificThread, NULL, IncomingDDCSpecific, (void*)&SocketData[VPORTDDCSPECIFIC]) < 0)
   {
     perror("pthread_create DDC specific");
     return EXIT_FAILURE;
@@ -309,8 +311,7 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
   pthread_detach(DDCSpecificThread);
 
   MakeIncomingSocket(SocketData+VPORTDUCSPECIFIC);            // create and bind a socket
-  Ptr = SocketData+VPORTDUCSPECIFIC;
-  if(pthread_create(&DUCSpecificThread, NULL, IncomingDUCSpecific, (void*)Ptr) < 0)
+  if(pthread_create(&DUCSpecificThread, NULL, IncomingDUCSpecific, (void*)&SocketData[VPORTDUCSPECIFIC]) < 0)
   {
     perror("pthread_create DUC specific");
     return EXIT_FAILURE;
@@ -351,6 +352,7 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
     return EXIT_FAILURE;
   }
   pthread_detach(DDCIQThread[0]);
+
   return NULL;
 }
 
@@ -550,7 +552,7 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
     datagram.msg_iovlen = 1;
     datagram.msg_name = &addr_from;
     datagram.msg_namelen = sizeof(addr_from);
-    size = recvmsg(SocketData[0].Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
+    size = recvmsg(ThreadData->Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
     if(size < 0 && errno != EAGAIN)
     {
       perror("recvfrom");
@@ -600,7 +602,7 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
     datagram.msg_iovlen = 1;
     datagram.msg_name = &addr_from;
     datagram.msg_namelen = sizeof(addr_from);
-    size = recvmsg(SocketData[0].Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
+    size = recvmsg(ThreadData->Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
     if(size < 0 && errno != EAGAIN)
     {
       perror("recvfrom");
@@ -608,7 +610,7 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
     }
     if(size == VDUCSPECIFICSIZE)
     {
-      printf("DUC specific packet received\n");
+      printf("DUC packet received\n");
     }
   }
 //
@@ -651,7 +653,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
     datagram.msg_iovlen = 1;
     datagram.msg_name = &addr_from;
     datagram.msg_namelen = sizeof(addr_from);
-    size = recvmsg(SocketData[0].Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
+    size = recvmsg(ThreadData->Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
     if(size < 0 && errno != EAGAIN)
     {
       perror("recvfrom");
@@ -702,7 +704,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     datagram.msg_iovlen = 1;
     datagram.msg_name = &addr_from;
     datagram.msg_namelen = sizeof(addr_from);
-    size = recvmsg(SocketData[0].Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
+    size = recvmsg(ThreadData->Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
     if(size < 0 && errno != EAGAIN)
     {
       perror("recvfrom");
@@ -752,7 +754,7 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
     datagram.msg_iovlen = 1;
     datagram.msg_name = &addr_from;
     datagram.msg_namelen = sizeof(addr_from);
-    size = recvmsg(SocketData[0].Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
+    size = recvmsg(ThreadData->Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
     if(size < 0 && errno != EAGAIN)
     {
       perror("recvfrom");
@@ -857,7 +859,7 @@ void *OutgoingDDCIQ(void *arg)
   // initialise outgoing DDC packet
   //
   memcpy(&DestAddr, &reply_addr, sizeof(struct sockaddr_in));
-  DestAddr.sin_port = ThreadData -> Portid;                     // destination port
+  DestAddr.sin_port = htons(ThreadData -> Portid);                     // dest port NETWORK BYTE ORDER
   memset(&iovecinst, 0, sizeof(struct iovec));
   memset(&datagram, 0, sizeof(datagram));
   iovecinst.iov_base = UDPBuffer;
@@ -902,8 +904,8 @@ void *OutgoingDDCIQ(void *arg)
     {
       *(uint32_t *)UDPBuffer = htonl(SequenceCounter++);        // add sequence count
       memset(UDPBuffer+4, 0,8);                                 // clear the timestamp data
-      *(uint16_t *)(UDPBuffer+12) = 24;                         // bits per sample
-      *(uint32_t *)(UDPBuffer+14) = VIQSAMPLESPERFRAME;         // I/Q samples for ths frame
+      *(uint16_t *)(UDPBuffer+12) = htons(24);                         // bits per sample
+      *(uint32_t *)(UDPBuffer+14) = htons(VIQSAMPLESPERFRAME);         // I/Q samples for ths frame
       //
       // now add I/Q data & send outgoing packet
       //
