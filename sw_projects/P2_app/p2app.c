@@ -524,8 +524,6 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
     if(size == VDDCSPECIFICSIZE)
     {
       printf("DDC specific packet received\n");
-      printf("sync0 = %x\n", UDPInBuffer[1363]);
-      printf("sync1 = %x\n", UDPInBuffer[1364]);
     }
   }
 //
@@ -601,6 +599,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
   struct msghdr datagram;                               // multiple incoming message header
   int size;                                             // UDP datagram length
   bool RunBit;                                          // true if "run" bit set
+  uint32_t DDCPhaseIncrement;                           // delta phase for a DDC
 
   ThreadData = (struct ThreadSocketData *)arg;
   ThreadData->Active = true;
@@ -636,6 +635,10 @@ void *IncomingHighPriority(void *arg)                   // listener thread
           SocketData[i].Cmdid |= VBITDATARUN;
         else
           SocketData[i].Cmdid &= ~VBITDATARUN;
+      // get DDC0 phase word and send to FPGA
+      DDCPhaseIncrement = ntohl(*(uint32_t *)(UDPInBuffer+9));
+      printf("DDC0 delta phi = %d\n", DDCPhaseIncrement);
+      RegisterWrite(0xA008, DDCPhaseIncrement);
     }
   }
 //
