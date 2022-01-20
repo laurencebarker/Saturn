@@ -44,6 +44,7 @@ int enable_thread = 0;                      // true if outgoing data thread enab
 int active_thread = 0;                      // true if outgoing thread is running
 
 void *OutgoingDDCIQ(void *arg);
+void *OutgoingMicSamples(void *arg);
 void *IncomingDDCSpecific(void *arg);           // listener thread
 void *IncomingDUCSpecific(void *arg);           // listener thread
 void *IncomingHighPriority(void *arg);          // listener thread
@@ -53,14 +54,17 @@ void *IncomingSpkrAudio(void *arg);             // listener thread
 
 #define SDRBOARDID 1                    // Hermes
 #define SDRSWVERSION 1                  // version of this software
-#define VDDCPACKETSIZE 1444             // each DDC packet
-#define VDISCOVERYREPLYSIZE 60          // reply packet
 #define VDISCOVERYSIZE 60               // discovery packet
+#define VDISCOVERYREPLYSIZE 60          // reply packet
 #define VHIGHPRIOTIYTOSDRSIZE 1444      // high priority packet to SDR
+#define VHIGHPRIOTIYFROMSDRSIZE 60      // high priority packet from SDR
+#define VMICPACKETSIZE 132              // microphone packet
 #define VSPEAKERAUDIOSIZE 260           // speaker audio packet
-#define VDUCIQSIZE 1444                 // TX DUC I/Q data packet
 #define VDDCSPECIFICSIZE 1444           // DDC specific packet
 #define VDUCSPECIFICSIZE 60             // DUC specific packet
+#define VDUCIQSIZE 1444                 // TX DUC I/Q data packet
+#define VDDCPACKETSIZE 1444             // each DDC I/Qpacket
+#define VWIDEBANDSIZE 1028              // wideband scalar samples
 
 //
 // list of port numbers, provided in the general packet
@@ -150,6 +154,11 @@ pthread_t HighPriorityToSDRThread;
 pthread_t SpkrAudioThread;
 pthread_t DUCIQThread;
 pthread_t DDCIQThread[VNUMDDC];               // array, but not sure how many
+pthread_t MicThread;
+
+
+// temp variable for getting mic sample rate correct
+uint32_t TransferredIQSamples = 0;
 
 
 
@@ -392,7 +401,19 @@ int main(void)
   pthread_detach(DUCIQThread);
 
 //
-// and for now create just one outgoing data thread for DDC 0
+// create outgoing mic data thread
+//
+  MakeSocket(SocketData+VPORTMICAUDIO, 0);
+  if(pthread_create(&MicThread, NULL, OutgoingMicSamples, (void*)&SocketData[VPORTMICAUDIO]) < 0)
+  {
+    perror("pthread_create Mic");
+    return EXIT_FAILURE;
+  }
+  pthread_detach(MicThread);
+
+
+//
+// and for now create just one outgoing DDC data thread for DDC 0
 //
   MakeSocket(SocketData+VPORTDDCIQ0, 0);
   if(pthread_create(&DDCIQThread[0], NULL, OutgoingDDCIQ, (void*)&SocketData[VPORTDDCIQ0]) < 0)
@@ -688,7 +709,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     }
     if(size == VDUCIQSIZE)
     {
-      printf("DUC I/Q data packet received\n");
+      //printf("DUC I/Q data packet received\n");
     }
   }
 //
@@ -738,7 +759,7 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
     }
     if(size == VSPEAKERAUDIOSIZE)
     {
-      printf("speaker audio packet received\n");
+      //printf("speaker audio packet received\n");
     }
   }
 //
@@ -842,7 +863,7 @@ void *OutgoingDDCIQ(void *arg)
 	RegisterValue = RegisterRead(0x9000);				// read the FIFO Depth register
 	printf("FIFO Depth register = %08x (should be 0)\n", RegisterValue);
 	Depth=0;
-
+  TransferredIQSamples = 0;
 
 
 //
@@ -895,6 +916,8 @@ void *OutgoingDDCIQ(void *arg)
       int Error;
 
       Error = sendmsg(ThreadData -> Socketid, &datagram, 0);
+      TransferredIQSamples += VIQSAMPLESPERFRAME;
+
       if(Error == -1)
       {
         printf("Send Error, errno=%d\n",errno);
@@ -939,6 +962,88 @@ void *OutgoingDDCIQ(void *arg)
   ThreadData->Active = false;                   // signal closed
 	close(DMAReadfile_fd);
   free(IQReadBuffer);
+  return NULL;
+}
+
+
+#define VMICSAMPLESPERFRAME 64
+
+
+// this runs as its own thread to send outgoing data
+// thread initiated after a "Start" command
+// will be instructed to stop & exit by main loop setting enable_thread to 0
+// this code signals thread terminated by setting active_thread = 0
+// for now this code aims to send out packets until it is just ahead of the I/Q packets
+//
+void *OutgoingMicSamples(void *arg)
+{
+  uint32_t TransferredMicSamples=0;
+//
+// variables for outgoing UDP frame
+//
+  struct iovec iovecinst;                                 // instance of iovec
+  struct msghdr datagram;
+  uint8_t UDPBuffer[VMICPACKETSIZE];                      // DDC frame buffer
+  uint32_t SequenceCounter = 0;                           // UDP sequence count
+
+  struct ThreadSocketData *ThreadData;            // socket etc data for this thread
+  struct sockaddr_in DestAddr;                    // destination address for outgoing data
+  bool InitError = false;
+  int Error;
+
+//
+// initialise. Create memory buffers and open DMA file devices
+//
+  ThreadData = (struct ThreadSocketData *)arg;
+  ThreadData->Active = true;
+  printf("spinning up outgoing mic thread with port %d\n", ThreadData->Portid);
+
+
+
+  while(!(ThreadData->Cmdid & VBITDATARUN))
+  {
+    usleep(100);
+  }
+  printf("starting outgoing mic data\n");
+  //
+  // initialise outgoing DDC packet
+  //
+  memcpy(&DestAddr, &reply_addr, sizeof(struct sockaddr_in));           // local copy of PC destination address
+  memset(&iovecinst, 0, sizeof(struct iovec));
+  memset(&datagram, 0, sizeof(datagram));
+  iovecinst.iov_base = UDPBuffer;
+  iovecinst.iov_len = VMICPACKETSIZE;
+  datagram.msg_iov = &iovecinst;
+  datagram.msg_iovlen = 1;
+  datagram.msg_name = &DestAddr;                   // MAC addr & port to send to
+  datagram.msg_namelen = sizeof(DestAddr);
+
+  while(!InitError)                               // main loop
+  {
+    if(TransferredIQSamples >= TransferredMicSamples+1000)         // if mic samples is caught up, just sleep for 1ms then try again
+      usleep(1000);
+    else
+    {
+      // send a dummy mic packet with zero data
+      memset(UDPBuffer, 0,sizeof(UDPBuffer));                      // clear the whole packet
+      *(uint32_t *)UDPBuffer = htonl(SequenceCounter++);        // add sequence count
+      Error = sendmsg(ThreadData -> Socketid, &datagram, 0);
+      TransferredMicSamples += VMICSAMPLESPERFRAME;
+
+      if(Error == -1)
+      {
+        printf("Mic Send Error, errno=%d\n",errno);
+        printf("socket id = %d\n", ThreadData -> Socketid);
+        InitError=true;
+      }
+
+    }
+  }
+//
+// tidy shutdown of the thread
+//
+  printf("shutting down outgoing mic thread\n");
+  ThreadData->Active = false;                   // signal closed
   return NULL;
 }
 
