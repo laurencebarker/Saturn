@@ -238,6 +238,13 @@ void SetApolloBits(bool EnableFilter, bool EnableATU, bool StartAutoTune);
 
 
 //
+// SetApolloEnabled(bool EnableFilter)
+// sets the enabled bit for Apollo. No support for these in Saturn at present.
+//
+void SetApolloEnabled(bool EnableFilter);
+
+
+//
 // SelectFilterBoard(bool IsApollo)
 // Selects between Apollo and Alex controls. Currently ignored & hw supports only Alex.
 //
@@ -334,7 +341,7 @@ void SetCWKeyerSpeed(unsigned int Speed);
 
 //
 // SetCWKeyerMode(unsigned int Mode)
-// sets the CW keyer mode
+// sets the CW keyer mode, True if mode B
 //
 void SetCWKeyerMode(unsigned int Mode);
 
@@ -347,7 +354,7 @@ void SetCWKeyerWeight(unsigned int Weight);
 
 
 //
-// SetCWKeyerEnabled(bool Enabled)
+// SetCWKeyerSpacing(bool Spacing)
 // sets CW keyer spacing bit
 //
 void SetCWKeyerSpacing(bool Spacing);
@@ -358,6 +365,14 @@ void SetCWKeyerSpacing(bool Spacing);
 // enables or disables the CW keyer
 //
 void SetCWKeyerEnabled(bool Enabled);
+
+
+//
+// SetCWKeyerBits(bool Enabled, bool Reversed, bool ModeB, bool Strict, bool BreakIn)
+// set several bits associated with the CW iambic keyer
+//
+void SetCWKeyerBits(bool Enabled, bool Reversed, bool ModeB, bool Strict, bool BreakIn);
+
 
 
 //
@@ -442,10 +457,10 @@ void SetXvtrEnable(bool Enabled);
 
 
 //
-// SetWidebandEnable(EADCSelect ADC)
+// SetWidebandEnable(EADCSelect ADC, bool Enabled)
 // enables wideband sample collection from an ADC.
 //
-void SetWidebandEnable(EADCSelect ADC);
+void SetWidebandEnable(EADCSelect ADC, bool Enabled);
 
 
 //
@@ -493,6 +508,7 @@ void EnableVITA49(bool Enabled);
 //
 // SetAlexEnabled(unsigned int Alex)
 // 8 bit parameter enables up to 8 Alex units.
+// numbered 0 to 7
 //
 void SetAlexEnabled(unsigned int Alex);
 

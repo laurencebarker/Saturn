@@ -61,8 +61,9 @@ uint32_t GAlexCoarseAttenuatorBits;                 // Alex coarse atten NOT USE
 bool GAlexManualFilterSelect;                       // true if manual (remote CPU) filter setting
 bool GEnableAlexTXRXRelay;                          // true if TX allowed
 bool GCWKeysReversed;                               // true if keys reversed. Not yet used but will be
+bool GCWKeyerBreakIn;                               // true if full break-in
 unsigned int GCWKeyerSpeed;                         // Keyer speed in WPM. Not yet used
-unsigned int GCWKeyerMode;                          // Keyer Mode. Not yet used
+unsigned int GCWKeyerMode;                          // Keyer Mode. True if mode B. Not yet used
 unsigned int GCWKeyerWeight;                        // Keyer Weight. Not yet used
 bool GCWKeyerSpacing;                               // Keyer spacing
 bool GCWKeyerEnabled;                               // true if iambic keyer is enabled
@@ -74,7 +75,8 @@ uint32_t GClassEPWMMax;                             // max class E PWM. NOT USED
 uint32_t GCodecConfigReg;                           // codec configuration
 bool GSidetoneEnabled;                              // true if sidetone is enabled
 unsigned int GSidetoneVolume;                       // assigned sidetone volume (8 bit signed)
-EADCSelect GWidebandADC;                            // P2 - not used yet.
+bool GWidebandADC1;                                 // true if wideband on ADC1. For P2 - not used yet.
+bool GWidebandADC2;                                 // true if wideband on ADC2. For P2 - not used yet.
 unsigned int GWidebandSampleCount;                  // P2 - not used yet
 unsigned int GWidebandSamplesPerPacket;             // P2 - not used yet
 unsigned int GWidebandUpdateRate;                   // update rate in ms. P2 - not used yet. 
@@ -874,6 +876,17 @@ void SetApolloBits(bool EnableFilter, bool EnableATU, bool StartAutoTune)
 
 
 //
+// SetApolloEnabled(bool EnableFilter)
+// sets the enabled bit for Apollo. No support for these in Saturn at present.
+//
+void SetApolloEnabled(bool EnableFilter)
+{
+    GEnableApolloFilter = EnableFilter;
+}
+
+
+
+//
 // SelectFilterBoard(bool IsApollo)
 // Selects between Apollo and Alex controls. Currently ignored & hw supports only Alex.
 //
@@ -1174,6 +1187,22 @@ void SetCWKeyerEnabled(bool Enabled)
 
 
 //
+// SetCWKeyerBits(bool Enabled, bool Reversed, bool ModeB, bool Strict, bool BreakIn)
+// set several bits associated with the CW iambic keyer
+//
+void SetCWKeyerBits(bool Enabled, bool Reversed, bool ModeB, bool Strict, bool BreakIn)
+{
+    GCWKeyerEnabled = Enabled;
+    GCWKeysReversed = Reversed;                     // just save it for now
+    GCWKeyerMode = ModeB;                            // just save it for now
+    GCWKeyerSpacing = Strict;
+    GCWKeyerBreakIn = BreakIn;
+}
+
+
+
+
+//
 // SetDDCADC(int DDC, EADCSelect ADC)
 // sets the ADC to be used for each DDC
 // DDC = 0 to 9
@@ -1394,13 +1423,17 @@ void SetXvtrEnable(bool Enabled)
 
 
 //
-// SetWidebandEnable(EADCSelect ADC)
+// SetWidebandEnable(EADCSelect ADC, bool Enabled)
 // enables wideband sample collection from an ADC.
 // P2 - not yet implemented
 //
-void SetWidebandEnable(EADCSelect ADC)
+void SetWidebandEnable(EADCSelect ADC, bool Enabled)
 {
-    GWidebandADC = ADC;                                         // just save for now
+    if(ADC == eADC1)                        // if ADC1 save its state
+        GWidebandADC1 = Enabled; 
+    else if(ADC == eADC2)                   // similarly for ADC2
+        GWidebandADC2 = Enabled; 
+
 }
 
 

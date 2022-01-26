@@ -11,7 +11,7 @@ TARGET = p2app
 # ****************************************************
 # Targets needed to bring the executable up to date
 
-OBJS=    $(TARGET).o hwaccess.o saturnregisters.o saturndrivers.o
+OBJS=    $(TARGET).o hwaccess.o saturnregisters.o saturndrivers.o generalpacket.o IncomingDDCSpecific.o  IncomingDUCSpecific.o InHighPriority.o InDUCIQ.o InSpkrAudio.o OutMicAudio.o OutDDCIQ.o OutHighPriority.o
 
 all: $(OBJS)
 	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS)
