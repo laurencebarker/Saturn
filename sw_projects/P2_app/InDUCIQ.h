@@ -1,0 +1,34 @@
+/////////////////////////////////////////////////////////////
+//
+// Saturn project: Artix7 FPGA + Raspberry Pi4 Compute Module
+// PCI Express interface from linux on Raspberry pi
+// this application uses C code to emulate HPSDR protocol 2 
+//
+// copyright Laurence Barker November 2021
+// licenced under GNU GPL3
+// derived from Pavel Demin code 
+//
+// InDUCIQ.h:
+//
+// header: handle "incoming DUC I/Q" message
+//
+//////////////////////////////////////////////////////////////
+
+#ifndef __InDUCIQ_h
+#define __InDUCIQ_h
+
+
+#include <stdint.h>
+#include "saturntypes.h"
+
+
+#define VDUCIQSIZE 1444                 // TX DUC I/Q data packet
+
+
+//
+// protocol 2 handler for incoming DUC I/Q data Packet to SDR
+//
+void *IncomingDUCIQ(void *arg);                 // listener thread
+
+
+#endif
