@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include "saturnregisters.h"
 
 
 
@@ -40,6 +41,10 @@ void *IncomingHighPriority(void *arg)                   // listener thread
   int size;                                             // UDP datagram length
   bool RunBit;                                          // true if "run" bit set
   uint32_t DDCPhaseIncrement;                           // delta phase for a DDC
+  uint8_t Byte, Byte2;                                  // received dat being decoded
+  uint32_t LongWord;
+  uint16_t Word;
+  int i;                                                // counter
 
   ThreadData = (struct ThreadSocketData *)arg;
   ThreadData->Active = true;
@@ -67,7 +72,12 @@ void *IncomingHighPriority(void *arg)                   // listener thread
     if(size == VHIGHPRIOTIYTOSDRSIZE)
     {
       printf("high priority packet received\n");
-      RunBit = (bool)(UDPInBuffer[4]&1);
+      //
+      // Litefury current test code - to be removed eventually
+      //
+      Byte = (uint8_t)(UDPInBuffer[4]);
+      RunBit = (bool)(Byte&1);
+      SetMOX((bool)(Byte&2));
       if(RunBit)
         printf("enabling streaming threads\n");
       for(int i=0; i < VPORTTABLESIZE; i++)
@@ -79,6 +89,46 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       DDCPhaseIncrement = ntohl(*(uint32_t *)(UDPInBuffer+9));
       printf("DDC0 delta phi = %d\n", DDCPhaseIncrement);
       RegisterWrite(0xA008, DDCPhaseIncrement);
+//
+// now properly decode DDC frequencies
+//
+      for (i=0; i<VNUMDDC; i++)
+      {
+        LongWord = ntohl(*(uint32_t *)(UDPInBuffer+i*4+9));
+        SetDDCFrequency(i, LongWord, true);
+      }
+      //
+      // DUC frequency & drive level
+      //
+      LongWord = ntohl(*(uint32_t *)(UDPInBuffer+329));
+      SetDUCFrequency(i, LongWord, true);
+      Byte = (uint8_t)(UDPInBuffer[345]);
+      SetTXDriveLevel(Byte);
+      //
+      // transverter, speaker mute, open collector, user outputs
+      //
+      Byte = (uint8_t)(UDPInBuffer[1400]);
+      SetXvtrEnable((bool)(Byte&1));
+      SetSpkrMute((bool)((Byte>>1)&1));
+      Byte = (uint8_t)(UDPInBuffer[1401]);
+      SetOpenCollectorOutputs(Byte);
+      Byte = (uint8_t)(UDPInBuffer[1402]);
+      SetUserOutputBits(Byte);
+      //
+      // Alex
+      //
+      Word = ntohs(*(uint16_t *)(UDPInBuffer+1430));
+      AlexManualRXFilters(Word, 2);
+      Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));
+      AlexManualTXFilters(Word);
+      Word = ntohs(*(uint16_t *)(UDPInBuffer+1434));
+      AlexManualRXFilters(Word, 0);
+      //
+      // RX atten during TX
+      //
+      Byte2 = (uint8_t)(UDPInBuffer[1442]);
+      Byte = (uint8_t)(UDPInBuffer[1443]);
+      SetADCAttenDuringTX(Byte, Byte2);
     }
   }
 //

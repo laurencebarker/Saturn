@@ -101,7 +101,7 @@ bool GEnableVITA49;                                 // true if tyo enable VITA49
 
 unsigned int DACCurrentROM[256];                    // used for residual attenuation
 unsigned int DACStepAttenROM[256];                  // provides most atten setting
-
+unsigned int GNumADCs;                              // count of ADCs available
 
 
 //
@@ -399,15 +399,29 @@ void SetP1SampleRate(ESampleRate Rate)
 
 
 //
-// SetP2SampleRate(unsigned int DDC, ESampleRate Rate)
+// SetP2SampleRate(unsigned int DDC, unsigned int SampleRate)
 // sets the sample rate for a single DDC (used in protocol 2)
 // allowed rates are 48KHz to 1536KHz.
 // simpler: just set one DDC config reg
 //
-void SetP2SampleRate(unsigned int DDC, ESampleRate Rate)
+void SetP2SampleRate(unsigned int DDC, unsigned int SampleRate)
 {
     uint32_t ConfigReg;
     uint32_t RegisterValue;
+    ESampleRate Rate = e48KHz;
+
+    // look up enum value
+    if(SampleRate == 96)
+        Rate = e96KHz;
+    else if(SampleRate == 192)
+        Rate = e192KHz;
+    else if(SampleRate == 384)
+        Rate = e384KHz;
+    else if(SampleRate == 768)
+        Rate = e768KHz;
+    else if(SampleRate == 1536)
+        Rate = e1536KHz;
+
     RegisterValue = DDCConfigReg[DDC / 2];         // get current register setting
     if((DDC & 1) == 0)                              // if even register
     {
@@ -458,6 +472,17 @@ void SetOpenCollectorOutputs(unsigned int bits)
 //        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
     }
 }
+
+
+//
+// SetADCCount(unsigned int ADCCount)
+// sets the number of ADCs available in the hardware.
+//
+void SetADCCount(unsigned int ADCCount)
+{
+    GNumADCs = ADCCount;                            // just save the value
+}
+
 
 
 //
@@ -907,32 +932,28 @@ void EnablePPSStamp(bool Enabled)
 
 
 //
-// SetTXDriveLevel(unsigned int Dac, unsigned int Level)
+// SetTXDriveLevel(unsigned int Level)
 // sets the TX DAC current via a PWM DAC output
-// DAC: the DAC number (must be zero)
 // level: 0 to 255 drive level value (255 = max current)
 // sets both step attenuator drive and PWM DAC drive for high speed DAC current,
 // using ROMs calculated at initialise.
 //
-void SetTXDriveLevel(unsigned int Dac, unsigned int Level)
+void SetTXDriveLevel(unsigned int Level)
 {
     uint32_t RegisterValue = 0;
     uint32_t DACDrive, AttenDrive;
 
-    if(Dac == 0)
+    Level &= 0xFF;                                  // make sure 8 bits only
+    DACDrive = DACCurrentROM[Level];                // get PWM
+    AttenDrive = DACStepAttenROM[Level];            // get step atten
+    RegisterValue = DACDrive;                       // set drive level when RX
+    RegisterValue |= (DACDrive << 8);               // set drive level when TX
+    RegisterValue |= (AttenDrive << 16);            // set step atten when RX
+    RegisterValue |= (AttenDrive << 24);            // set step atten when TX
+    if(GTXDACCtrl != RegisterValue)                 // write back if changed
     {
-        Level &= 0xFF;                                  // make sure 8 bits only
-        DACDrive = DACCurrentROM[Level];                // get PWM
-        AttenDrive = DACStepAttenROM[Level];            // get step atten
-        RegisterValue = DACDrive;                       // set drive level when RX
-        RegisterValue |= (DACDrive << 8);               // set drive level when TX
-        RegisterValue |= (AttenDrive << 16);            // set step atten when RX
-        RegisterValue |= (AttenDrive << 24);            // set step atten when TX
-        if(GTXDACCtrl != RegisterValue)                 // write back if changed
-        {
-            GTXDACCtrl = RegisterValue;
+        GTXDACCtrl = RegisterValue;
 //            RegisterWrite(VADDRDACCTRLREG, RegisterValue);  // and write to it
-        }
     }
 }
 
@@ -1104,16 +1125,16 @@ void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool Enabled)
 
 
 //
-// SetADCAttenDuringTX(unsigned int Atten)
-// sets the attenuation value to be set on the RX atten during TX. Sets both ADCs.
+// SetADCAttenDuringTX(unsigned int Atten1, unsigned int Atten2)
+// sets the attenuation value to be set on the RX atten during TX.
 //
-void SetADCAttenDuringTX(unsigned int Atten)
+void SetADCAttenDuringTX(unsigned int Atten1, unsigned int Atten2)
 {
     uint32_t Register;                              // local copy
     Register = GRXADCCtrl;                          // get existing settings
     Register &= 0xFFF07C1F;                         // remove existing bits for ADC1&2;
-    Register |= (Atten & 0X1F) << 5;                // add in new bits for ADC1
-    Register |= (Atten & 0X1F) << 15;               // add in new bits for ADC2
+    Register |= (Atten1 & 0X1F) << 5;               // add in new bits for ADC1
+    Register |= (Atten2 & 0X1F) << 15;              // add in new bits for ADC2
     if (Register != GRXADCCtrl)                     // only write back if changed
     {
         GRXADCCtrl = Register; 
@@ -1888,3 +1909,32 @@ void SetFreqPhaseWord(bool IsPhase)
 
 
 
+//
+// SetDDCEnabled(unsigned int DDC, bool Enabled)
+// set whether an DDC is enabled
+// this may need to move!
+//
+void SetDDCEnabled(unsigned int DDC, bool Enabled)
+{
+
+}
+
+
+//
+// SetDDCInterleaved(unsigned int DDC, bool Interleaved)
+// set whether an DDC is interleaved
+//
+void SetDDCInterleaved(unsigned int DDC, bool Interleaved)
+{
+
+}
+
+
+//
+// SetDDCSampleSize(unsigned int DDC, unsgned int Size)
+// set sample resolution for DDC (only 24 bits supported)
+//
+void SetDDCSampleSize(unsigned int DDC, unsigned int Size)
+{
+
+}

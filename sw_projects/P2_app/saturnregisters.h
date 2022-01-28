@@ -99,11 +99,11 @@ void SetP1SampleRate(ESampleRate Rate);
 
 
 //
-// SetP2SampleRate(unsigned int DDC, ESampleRate Rate)
+// SetP2SampleRate(unsigned int DDC, unsigned int SampleRate)
 // sets the sample rate for a single DDC (used in protocol 2)
 // allowed rates are 48KHz to 1536KHz.
 //
-void SetP2SampleRate(unsigned int DDC, ESampleRate Rate);
+void SetP2SampleRate(unsigned int DDC, unsigned int SampleRate);
 
 
 //
@@ -119,6 +119,13 @@ void SetClassEPA(bool IsClassE);
 //
 void SetOpenCollectorOutputs(unsigned int bits);
 
+
+
+//
+// SetADCCount(unsigned int ADCCount)
+// sets the number of ADCs available in the hardware.
+//
+void SetADCCount(unsigned int ADCCount);
 
 //
 // SetADCOptions(EADCSelect ADC, bool Dither, bool Random);
@@ -139,7 +146,7 @@ void SetDDCFrequency(unsigned int DDC, unsigned int Value, bool IsDeltaPhase);
 
 
 //
-// SetDUCFrequency(unsigned int DDC, unsigned int Value, bool IsDeltaPhase)
+// SetDUCFrequency(unsigned int DUC, unsigned int Value, bool IsDeltaPhase)
 // sets a DUC frequency. (Currently only 1 DUC, therefore DUC must be 0)
 // Value: 32 bit phase word or frequency word (1Hz resolution)
 // IsDeltaPhase: true if a delta phase value, false if a frequency value (P1)
@@ -259,12 +266,11 @@ void EnablePPSStamp(bool Enabled);
 
 
 //
-// SetTXDriveLevel(unsigned int Dac, unsigned int Level)
+// SetTXDriveLevel(unsigned int Level)
 // sets the TX DAC current via a PWM DAC output
-// DAC: the DAC number (must be zero)
 // level: 0 to 255 drive level value (255 = max current)
 //
-void SetTXDriveLevel(unsigned int Dac, unsigned int Level);
+void SetTXDriveLevel(unsigned int Level);
 
 
 //
@@ -319,10 +325,10 @@ void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool Enabled);
 
 
 //
-// SetADCAttenDuringTX(unsigned int Atten)
-// sets the attenuation value to be set on the RX atten during TX. Sets both ADCs.
+// SetADCAttenDuringTX(unsigned int Atten1, unsigned int Atten2)
+// sets the attenuation value to be set on the RX atten during TX.
 //
-void SetADCAttenDuringTX(unsigned int Atten);
+void SetADCAttenDuringTX(unsigned int Atten1, unsigned int Atten2);
 
 
 //
@@ -711,19 +717,27 @@ void SetOperateMode(bool IsRunMode);
 void SetFreqPhaseWord(bool IsPhase);
 
 
+//
+// SetDDCEnabled(unsigned int DDC, bool Enabled)
+// set whether an DDC is enabled
+//
+void SetDDCEnabled(unsigned int DDC, bool Enabled);
 
 
+//
+// SetDDCInterleaved(unsigned int DDC, bool Interleaved)
+// set whether an DDC is interleaved
+// this is called for odd DDCs, and if interleaved synchs to next lower number
+// eg DDC3 can synch to DDC2
+//
+void SetDDCInterleaved(unsigned int DDC, bool Interleaved);
 
 
-
-
-
-
-
-
-
-
-
+//
+// SetDDCSampleSize(unsigned int DDC, unsgned int Size)
+// set sample resolution for DDC (only 24 bits supported)
+//
+void SetDDCSampleSize(unsigned int DDC, unsigned int Size);
 
 
 
