@@ -18,7 +18,6 @@
 
 #include "saturntypes.h"
 
-
 #define VNUMDDC 10                                  // downconverters available
 
 //
@@ -612,11 +611,24 @@ bool GetKeyerDashInput(void);
 bool GetKeyerDotInput(void);
 
 
+
+//
+// GetP2PTTKeyInputs(void)
+// return several bits from Saturn status register:
+// bit 0 - true if PTT active
+// bit 1 - true if CW dot input active
+// bit 2 - true if CW dash input active
+// bit 4 - true if 10MHz to 122MHz PLL is locked
+//
+unsigned int GetP2PTTKeyInputs(void);
+
+
+
 //
 // GetADCOverflow(void)
 // return true if ADC overflow has occurred since last read.
 // the overflow stored state is reset when this is read.
-// returns bit0: 1 if ADC1 overflow; bit1: 1 if ARC2 overflow
+// returns bit0: 1 if ADC1 overflow; bit1: 1 if ADC2 overflow
 //
 unsigned int GetADCOverflow(void);
 

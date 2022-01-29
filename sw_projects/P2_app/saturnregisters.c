@@ -242,6 +242,7 @@ uint32_t DDCConfigRegs[VNUMDDC] =
 #define VPTTIN2BIT 1                    // not currently used
 #define VKEYINA 2                       // dot key
 #define VKEYINB 3                       // dash key
+#define VPLLLOCKED 4
 #define VUSERIO4 4
 #define VUSERIO5 5
 #define VUSERIO6 8
@@ -1696,6 +1697,31 @@ bool GetKeyerDotInput(void)
     bool Result = false;
     Result = (bool)((GStatusRegister >> VKEYINA) & 1);                       // get PTT bit
 
+    return Result;
+}
+
+
+//
+// GetP2PTTKeyInputs(void)
+// return several bits from Saturn status register:
+// bit 0 - true if PTT active
+// bit 1 - true if CW dot input active
+// bit 2 - true if CW dash input active
+// bit 4 - true if 10MHz to 122MHz PLL is locked
+//
+unsigned int GetP2PTTKeyInputs(void)
+{
+    unsigned int Result = 0;
+
+    // ReadStatusRegister();
+    if (GStatusRegister & 1)
+        Result |= 1;                                                        // set PTT output bit
+    if ((GStatusRegister >> VKEYINA) & 1)
+        Result |= 2;                                                        // set dot output bit
+    if ((GStatusRegister >> VKEYINB) & 1)
+        Result |= 4;                                                        // set dash output bit
+    if ((GStatusRegister >> VPLLLOCKED) & 1)
+        Result |= 16;                                                        // set PLL output bit
     return Result;
 }
 
