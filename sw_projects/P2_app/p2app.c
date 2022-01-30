@@ -52,7 +52,8 @@
 
 struct sockaddr_in reply_addr;              // destination address for outgoing data
 
-int active_thread = 0;                      // true if outgoing thread is running
+bool IsTXMode;                              // true if in TX
+bool SDRActive;                             // true if this SDR is running at the moment
 
 
 #define SDRBOARDID 1                    // Hermes
@@ -64,26 +65,26 @@ int active_thread = 0;                      // true if outgoing thread is runnin
 
 struct ThreadSocketData SocketData[VPORTTABLESIZE] =
 {
-  {0, 0, 1024, "Cmd", false,{}, 0},                      // command (incoming) thread
-  {0, 0, 1025, "DDC Specific", false,{}, 0},             // DDC specifc (incoming) thread
-  {0, 0, 1026, "DUC Specific", false,{}, 0},             // DUC specific (incoming) thread
-  {0, 0, 1027, "High Priority In", false,{}, 0},         // High Priority (incoming) thread
-  {0, 0, 1028, "Spkr Audio", false,{}, 0},               // Speaker Audio (incoming) thread
-  {0, 0, 1029, "DUC I/Q", false,{}, 0},                  // DUC IQ (incoming) thread
-  {0, 0, 1025, "High Priority Out", false,{}, 0},        // High Priority (outgoing) thread
-  {0, 0, 1026, "Mic Audio", false,{}, 0},                // Mic Audio (outgoing) thread
-  {0, 0, 1035, "DDC I/Q 0", false,{}, 0},                // DDC IQ 0 (outgoing) thread
-  {0, 0, 1036, "DDC I/Q 1", false,{}, 0},                // DDC IQ 1 (outgoing) thread
-  {0, 0, 1037, "DDC I/Q 2", false,{}, 0},                // DDC IQ 2 (outgoing) thread
-  {0, 0, 1038, "DDC I/Q 3", false,{}, 0},                // DDC IQ 3 (outgoing) thread
-  {0, 0, 1039, "DDC I/Q 4", false,{}, 0},                // DDC IQ 4 (outgoing) thread
-  {0, 0, 1040, "DDC I/Q 5", false,{}, 0},                // DDC IQ 5 (outgoing) thread
-  {0, 0, 1041, "DDC I/Q 6", false,{}, 0},                // DDC IQ 6 (outgoing) thread
-  {0, 0, 1042, "DDC I/Q 7", false,{}, 0},                // DDC IQ 7 (outgoing) thread
-  {0, 0, 1043, "DDC I/Q 8", false,{}, 0},                // DDC IQ 8 (outgoing) thread
-  {0, 0, 1044, "DDC I/Q 9", false,{}, 0},                // DDC IQ 9 (outgoing) thread
-  {0, 0, 1027, "Wideband 0", false,{}, 0},               // Wideband 0 (outgoing) thread
-  {0, 0, 1028, "Wideband 1", false,{}, 0}                // Wideband 1 (outgoing) thread
+  {0, 0, 1024, "Cmd", false,{}, 0, 0},                      // command (incoming) thread
+  {0, 0, 1025, "DDC Specific", false,{}, 0, 0},             // DDC specifc (incoming) thread
+  {0, 0, 1026, "DUC Specific", false,{}, 0, 0},             // DUC specific (incoming) thread
+  {0, 0, 1027, "High Priority In", false,{}, 0, 0},         // High Priority (incoming) thread
+  {0, 0, 1028, "Spkr Audio", false,{}, 0, 0},               // Speaker Audio (incoming) thread
+  {0, 0, 1029, "DUC I/Q", false,{}, 0, 0},                  // DUC IQ (incoming) thread
+  {0, 0, 1025, "High Priority Out", false,{}, 0, 0},        // High Priority (outgoing) thread
+  {0, 0, 1026, "Mic Audio", false,{}, 0, 0},                // Mic Audio (outgoing) thread
+  {0, 0, 1035, "DDC I/Q 0", false,{}, 0, 0},                // DDC IQ 0 (outgoing) thread
+  {0, 0, 1036, "DDC I/Q 1", false,{}, 0, 0},                // DDC IQ 1 (outgoing) thread
+  {0, 0, 1037, "DDC I/Q 2", false,{}, 0, 0},                // DDC IQ 2 (outgoing) thread
+  {0, 0, 1038, "DDC I/Q 3", false,{}, 0, 0},                // DDC IQ 3 (outgoing) thread
+  {0, 0, 1039, "DDC I/Q 4", false,{}, 0, 0},                // DDC IQ 4 (outgoing) thread
+  {0, 0, 1040, "DDC I/Q 5", false,{}, 0, 0},                // DDC IQ 5 (outgoing) thread
+  {0, 0, 1041, "DDC I/Q 6", false,{}, 0, 0},                // DDC IQ 6 (outgoing) thread
+  {0, 0, 1042, "DDC I/Q 7", false,{}, 0, 0},                // DDC IQ 7 (outgoing) thread
+  {0, 0, 1043, "DDC I/Q 8", false,{}, 0, 0},                // DDC IQ 8 (outgoing) thread
+  {0, 0, 1044, "DDC I/Q 9", false,{}, 0, 0},                // DDC IQ 9 (outgoing) thread
+  {0, 0, 1027, "Wideband 0", false,{}, 0, 0},               // Wideband 0 (outgoing) thread
+  {0, 0, 1028, "Wideband 1", false,{}, 0, 0}                // Wideband 1 (outgoing) thread
 };
 
 
@@ -223,7 +224,7 @@ int main(void)
     0,0,0,0,                                      // sequence bytes
     2,                                            // 2 if not active; 3 if active
     0,0,0,0,0,0,                                  // SDR (raspberry i) MAC address
-    1,                                            // board type. currently masquerading as "Hermes"
+    5,                                            // board type. changed from "hermes" to "orion mk2"
     38,                                           // protocol version 3.8
     10,                                           // this SDR firmware version. 
     0,0,0,0,0,0,                                  // Mercury, Metis, Penny version numbers
@@ -242,7 +243,6 @@ int main(void)
   uint8_t UDPInBuffer[VDDCPACKETSIZE];                              // outgoing buffer
   struct iovec iovecinst;                                           // iovcnt buffer - 1 for each outgoing buffer
   struct msghdr datagram;                                           // multiple incoming message header
-
 
 //
 // setup Orion hardware
@@ -385,7 +385,11 @@ int main(void)
         //
         case 2:
           printf("P2 Discovery packet\n");
-          DiscoveryReply[4] = 2 + active_thread;                             // response 2 if not active, 3 if running
+          if(SDRActive)
+            DiscoveryReply[4] = 3;                             // response 2 if not active, 3 if running
+          else
+            DiscoveryReply[4] = 2;                             // response 2 if not active, 3 if running
+
           memset(&UDPInBuffer, 0, VDISCOVERYREPLYSIZE);
           memcpy(&UDPInBuffer, DiscoveryReply, VDISCOVERYREPLYSIZE);
           sendto(SocketData[0].Socketid, &UDPInBuffer, VDISCOVERYREPLYSIZE, 0, (struct sockaddr *)&addr_from, sizeof(addr_from));

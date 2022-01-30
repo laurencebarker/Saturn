@@ -22,7 +22,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define VTRANSFERSIZE 4096											// size in bytes to transfer
+#define VTRANSFERSIZE 128											// size in bytes to transfer
 #define VMEMBUFFERSIZE 32768										// memory buffer to reserve
 #define AXIBaseAddress 0x10000									// address of StreamRead/Writer IP
 

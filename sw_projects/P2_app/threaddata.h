@@ -63,16 +63,20 @@ struct ThreadSocketData
   bool Active;                                  // true if thread is active
   struct sockaddr_in addr_cmddata;
   uint32_t Cmdid;                               // command from app to thread - bits set for each command
+  uint32_t DDCSampleRate;                       // DDC sample rate
 };
 
 
 extern struct ThreadSocketData SocketData[];        // data for each thread
 extern struct sockaddr_in reply_addr;               // destination address for outgoing data
+extern bool IsTXMode;                               // true if in TX
+extern bool SDRActive;                              // true if this SDR is running at the moment
 
 
 #define VBITCHANGEPORT 1                        // if set, thread must close its socket and open a new one on different port
 #define VBITDATARUN 2                           // if set, streaming threads stream data
 #define VBITINTERLEAVE 4                        // if set, DDC threads should interleave data
+#define VBITDDCENABLE 8                         // if set, DDC is enabled
 
 //
 // default port numbers, used if incoming port number = 0

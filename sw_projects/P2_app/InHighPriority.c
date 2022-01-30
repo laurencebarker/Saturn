@@ -72,12 +72,11 @@ void *IncomingHighPriority(void *arg)                   // listener thread
     if(size == VHIGHPRIOTIYTOSDRSIZE)
     {
       printf("high priority packet received\n");
-      //
-      // Litefury current test code - to be removed eventually
-      //
       Byte = (uint8_t)(UDPInBuffer[4]);
       RunBit = (bool)(Byte&1);
-      SetMOX((bool)(Byte&2));
+      SDRActive = RunBit;                                       // set state of whole app
+      IsTXMode = (bool)(Byte&2);
+      SetMOX(IsTXMode);
       if(RunBit)
         printf("enabling streaming threads\n");
       for(int i=0; i < VPORTTABLESIZE; i++)
@@ -85,6 +84,9 @@ void *IncomingHighPriority(void *arg)                   // listener thread
           SocketData[i].Cmdid |= VBITDATARUN;
         else
           SocketData[i].Cmdid &= ~VBITDATARUN;
+
+      //
+      // Litefury current test code - to be removed eventually
       // get DDC0 phase word and send to FPGA
       DDCPhaseIncrement = ntohl(*(uint32_t *)(UDPInBuffer+9));
       printf("DDC0 delta phi = %d\n", DDCPhaseIncrement);
