@@ -69,6 +69,10 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       perror("recvfrom");
       return EXIT_FAILURE;
     }
+
+    //
+    // if correct packet, process it
+    //
     if(size == VHIGHPRIOTIYTOSDRSIZE)
     {
       printf("high priority packet received\n");
@@ -77,13 +81,6 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       SDRActive = RunBit;                                       // set state of whole app
       IsTXMode = (bool)(Byte&2);
       SetMOX(IsTXMode);
-      if(RunBit)
-        printf("enabling streaming threads\n");
-      for(int i=0; i < VPORTTABLESIZE; i++)
-        if(RunBit)
-          SocketData[i].Cmdid |= VBITDATARUN;
-        else
-          SocketData[i].Cmdid &= ~VBITDATARUN;
 
       //
       // Litefury current test code - to be removed eventually

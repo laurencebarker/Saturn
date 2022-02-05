@@ -133,7 +133,7 @@ void *OutgoingDDCIQ(void *arg)
 // while there is enough I/Q data, make outgoing packets;
 // when not enough data, read more.
 //
-  while(!(ThreadData->Cmdid & VBITDATARUN))
+  while(!SDRActive)
   {
     usleep(100);
   }
@@ -229,27 +229,42 @@ void *OutgoingDDCIQ(void *arg)
 
 //
 // interface calls to get commands from PC settings
+// sample rate, DDC enabled and interleaved are all signalled through the socket 
+// data structure
+//
+// the meanings are:
+// enabled - the DDC sends data in its own right
+// interleaved - can be set for "even" DDCs; the next higher odd DDC also has its data routed
+// through here. That DDC is NOT enabled. 
 //
 
 //
 // HandlerSetDDCEnabled(unsigned int DDC, bool Enabled)
-// set whether an DDC is enabled
+// set whether a DDC is enabled
 //
 void HandlerSetDDCEnabled(unsigned int DDC, bool Enabled)
 {
-  SetDDCEnabled(DDC, Enabled);
+  if(!Enabled)
+    SocketData[VPORTDDCIQ0 + DDC].Cmdid &= ~VBITDDCENABLE;
+  else
+    SocketData[VPORTDDCIQ0 + DDC].Cmdid |= VBITDDCENABLE;
+  SetDDCEnabled(DDC, Enabled);                          // placeholder - move tohandler
 }
 
 
 //
 // HandlerSetDDCInterleaved(unsigned int DDC, bool Interleaved)
-// set whether an DDC is interleaved
+// set whether a DDC is interleaved
 // this is called for odd DDCs, and if interleaved synchs to next lower number
 // eg DDC3 can synch to DDC2
 //
 void HandlerSetDDCInterleaved(unsigned int DDC, bool Interleaved)
 {
-  SetDDCInterleaved(DDC, Interleaved);
+  if(!Interleaved)
+    SocketData[VPORTDDCIQ0 + DDC].Cmdid &= ~VBITINTERLEAVE;
+  else
+    SocketData[VPORTDDCIQ0 + DDC].Cmdid |= VBITINTERLEAVE;
+  SetDDCInterleaved(DDC, Interleaved);      // placeholder
 }
 
 
@@ -260,6 +275,6 @@ void HandlerSetDDCInterleaved(unsigned int DDC, bool Interleaved)
 //
 void HandlerSetP2SampleRate(unsigned int DDC, unsigned int SampleRate)
 {
-  SetP2SampleRate(DDC, SampleRate);
+  SocketData[VPORTDDCIQ0 + DDC].DDCSampleRate = SampleRate;
+  SetP2SampleRate(DDC, SampleRate);         // do set this here!
 }
-
