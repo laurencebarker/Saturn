@@ -175,7 +175,6 @@ void *OutgoingDDCIQ(void *arg)
       IQReadPtr += VIQBYTESPERFRAME;
 
       int Error;
-
       Error = sendmsg(ThreadData -> Socketid, &datagram, 0);
       TransferredIQSamples += VIQSAMPLESPERFRAME;
 
@@ -247,7 +246,10 @@ void HandlerSetDDCEnabled(unsigned int DDC, bool Enabled)
   if(!Enabled)
     SocketData[VPORTDDCIQ0 + DDC].Cmdid &= ~VBITDDCENABLE;
   else
+  {
     SocketData[VPORTDDCIQ0 + DDC].Cmdid |= VBITDDCENABLE;
+    printf("DDC %d enabled\n", DDC);
+  }
   SetDDCEnabled(DDC, Enabled);                          // placeholder - move tohandler
 }
 
@@ -263,7 +265,10 @@ void HandlerSetDDCInterleaved(unsigned int DDC, bool Interleaved)
   if(!Interleaved)
     SocketData[VPORTDDCIQ0 + DDC].Cmdid &= ~VBITINTERLEAVE;
   else
+  {
     SocketData[VPORTDDCIQ0 + DDC].Cmdid |= VBITINTERLEAVE;
+    printf("DDC %d interleave enabled\n", DDC);
+  }
   SetDDCInterleaved(DDC, Interleaved);      // placeholder
 }
 

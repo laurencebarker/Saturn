@@ -131,7 +131,7 @@ void *OutgoingHighPriority(void *arg)
 //
 // tidy shutdown of the thread
 //
-  printf("shutting down outgoing mic thread\n");
+  printf("shutting down outgoing high priority thread\n");
   close(ThreadData->Socketid); 
   ThreadData->Active = false;                   // signal closed
   return NULL;
