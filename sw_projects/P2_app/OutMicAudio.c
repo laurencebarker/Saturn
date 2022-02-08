@@ -85,6 +85,7 @@ void *OutgoingMicSamples(void *arg)
     // if we get here, run has been initiated
     // initialise outgoing data packet
     //
+    SequenceCounter = 0;
     memcpy(&DestAddr, &reply_addr, sizeof(struct sockaddr_in));           // local copy of PC destination address
     memset(&iovecinst, 0, sizeof(struct iovec));
     memset(&datagram, 0, sizeof(datagram));

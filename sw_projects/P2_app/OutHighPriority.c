@@ -80,6 +80,7 @@ void *OutgoingHighPriority(void *arg)
     // if we get here, run has been initiated
     // initialise outgoing data packet
     //
+    SequenceCounter = 0;
     printf("starting outgoing high priority data\n");
     memcpy(&DestAddr, &reply_addr, sizeof(struct sockaddr_in));           // local copy of PC destination address
     memset(&iovecinst, 0, sizeof(struct iovec));
