@@ -93,6 +93,14 @@ void *OutgoingHighPriority(void *arg)
     datagram.msg_name = &DestAddr;                   // MAC addr & port to send to
     datagram.msg_namelen = sizeof(DestAddr);
 
+    //
+    // this is the main loop. SDR is running. transfer data;
+    // also check for changes to DDC enabled, and DDC interleaved
+    //
+    // potential race conditions: thread execution order is underfined. 
+    // when a DDC becomes enabled, its paired DDC may not know yet and may still be set to interleaved.
+    // when a DDC is set to interleaved, the paired DDC may not have been disabled yet.
+    //
     while(SDRActive && !InitError)                               // main loop
     {
       // create the packet
