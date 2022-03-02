@@ -107,6 +107,7 @@ pthread_t SpkrAudioThread;
 pthread_t DUCIQThread;
 pthread_t DDCIQThread[VNUMDDC];               // array, but not sure how many
 pthread_t MicThread;
+pthread_t HighPriorityFromSDRThread;
 
 
 // temp variable for getting mic sample rate correct
@@ -316,6 +317,18 @@ int main(void)
     return EXIT_FAILURE;
   }
   pthread_detach(MicThread);
+
+
+//
+// create outgoing high priority data thread
+//
+  MakeSocket(SocketData+VPORTHIGHPRIORITYFROMSDR, 0);
+  if(pthread_create(&HighPriorityFromSDRThread, NULL, OutgoingHighPriority, (void*)&SocketData[VPORTHIGHPRIORITYFROMSDR]) < 0)
+  {
+    perror("pthread_create outgoing hi priority");
+    return EXIT_FAILURE;
+  }
+  pthread_detach(HighPriorityFromSDRThread);
 
 
 //

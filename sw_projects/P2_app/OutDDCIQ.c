@@ -133,95 +133,104 @@ void *OutgoingDDCIQ(void *arg)
 // while there is enough I/Q data, make outgoing packets;
 // when not enough data, read more.
 //
-  while(!(ThreadData->Cmdid & VBITDATARUN))
-  {
-    usleep(100);
-  }
-  printf("starting outgoing data\n");
-  //
-  // initialise outgoing DDC packet
-  //
-  memcpy(&DestAddr, &reply_addr, sizeof(struct sockaddr_in));           // local copy of PC destination address
-  memset(&iovecinst, 0, sizeof(struct iovec));
-  memset(&datagram, 0, sizeof(datagram));
-  iovecinst.iov_base = UDPBuffer;
-  iovecinst.iov_len = VDDCPACKETSIZE;
-  datagram.msg_iov = &iovecinst;
-  datagram.msg_iovlen = 1;
-  datagram.msg_name = &DestAddr;                   // MAC addr & port to send to
-  datagram.msg_namelen = sizeof(DestAddr);
-
-//
-// write 3 to GPIO to enable FIFO writes
-//
-	RegisterWrite(0xA000, 3);				// write to the GPIO register
-	printf("GPIO Register written with value=3, enabling writes\n");
   while(!InitError)
   {
-	
-    //
-    // while there is enough I/Q data, make DDC Packets
-    //
-    while((IQHeadPtr - IQReadPtr)>VIQBYTESPERFRAME)
+    while(!SDRActive)
     {
-      *(uint32_t *)UDPBuffer = htonl(SequenceCounter++);        // add sequence count
-      memset(UDPBuffer+4, 0,8);                                 // clear the timestamp data
-      *(uint16_t *)(UDPBuffer+12) = htons(24);                         // bits per sample
-      *(uint32_t *)(UDPBuffer+14) = htons(VIQSAMPLESPERFRAME);         // I/Q samples for ths frame
-      //
-      // now add I/Q data & send outgoing packet
-      //
-      memcpy(UDPBuffer + 16, IQReadPtr, VIQBYTESPERFRAME);
-      IQReadPtr += VIQBYTESPERFRAME;
-
-      int Error;
-
-      Error = sendmsg(ThreadData -> Socketid, &datagram, 0);
-      TransferredIQSamples += VIQSAMPLESPERFRAME;
-
-      if(Error == -1)
+      if(ThreadData->Cmdid & VBITCHANGEPORT)
       {
-        printf("Send Error, errno=%d\n",errno);
-        printf("socket id = %d\n", ThreadData -> Socketid);
-        InitError=true;
+        close(ThreadData->Socketid);                      // close old socket, open new one
+        MakeSocket(ThreadData, 0);                        // this binds to the new port.
+        ThreadData->Cmdid &= ~VBITCHANGEPORT;             // clear command bit
       }
+      usleep(100);
     }
+    printf("starting outgoing data\n");
     //
-    // now bring in more data via DMA
-    // first copy any residue to the start of the buffer (before the DMA point)
-//
-		ResidueBytes = IQHeadPtr- IQReadPtr;
-//		printf("Residue = %d bytes\n",ResidueBytes);
-		if(ResidueBytes != 0)					// if there is residue
-		{
-			memcpy(IQBasePtr-ResidueBytes, IQReadPtr, ResidueBytes);
-			IQReadPtr = IQBasePtr-ResidueBytes;
-		}
-		else
-			IQReadPtr = IQBasePtr;
-//
-// now wait until there is data, then DMA it
-//
-		Depth = RegisterRead(0x9000);				// read the user access register
-//		printf("read: depth = %d\n", Depth);
-		while(Depth < 512)			// 512 locations = 4K bytes
-		{
-			usleep(1000);								// 1ms wait
-			Depth = RegisterRead(0x9000);				// read the user access register
-//			printf("read: depth = %d\n", Depth);
-		}
+    // initialise outgoing DDC packet
+    //
+    SequenceCounter = 0;
+    memcpy(&DestAddr, &reply_addr, sizeof(struct sockaddr_in));           // local copy of PC destination address
+    memset(&iovecinst, 0, sizeof(struct iovec));
+    memset(&datagram, 0, sizeof(datagram));
+    iovecinst.iov_base = UDPBuffer;
+    iovecinst.iov_len = VDDCPACKETSIZE;
+    datagram.msg_iov = &iovecinst;
+    datagram.msg_iovlen = 1;
+    datagram.msg_name = &DestAddr;                   // MAC addr & port to send to
+    datagram.msg_namelen = sizeof(DestAddr);
 
-//		printf("DMA read %d bytes from destination to base\n", VDMATRANSFERSIZE);
-		DMAReadFromFPGA(DMAReadfile_fd, IQBasePtr, VDMATRANSFERSIZE, AXIBaseAddress);
-		IQHeadPtr = IQBasePtr + VDMATRANSFERSIZE;
-  }     // end of while(!InitError) loop
+  //
+  // write 3 to GPIO to enable FIFO writes
+  //
+    RegisterWrite(0xA000, 3);				// write to the GPIO register
+    printf("GPIO Register written with value=3, enabling writes\n");
+    while(!InitError && SDRActive)
+    {
+    
+      //
+      // while there is enough I/Q data, make DDC Packets
+      //
+      while((IQHeadPtr - IQReadPtr)>VIQBYTESPERFRAME)
+      {
+        *(uint32_t *)UDPBuffer = htonl(SequenceCounter++);        // add sequence count
+        memset(UDPBuffer+4, 0,8);                                 // clear the timestamp data
+        *(uint16_t *)(UDPBuffer+12) = htons(24);                         // bits per sample
+        *(uint32_t *)(UDPBuffer+14) = htons(VIQSAMPLESPERFRAME);         // I/Q samples for ths frame
+        //
+        // now add I/Q data & send outgoing packet
+        //
+        memcpy(UDPBuffer + 16, IQReadPtr, VIQBYTESPERFRAME);
+        IQReadPtr += VIQBYTESPERFRAME;
+
+        int Error;
+        Error = sendmsg(ThreadData -> Socketid, &datagram, 0);
+        TransferredIQSamples += VIQSAMPLESPERFRAME;
+
+        if(Error == -1)
+        {
+          printf("Send Error, errno=%d\n",errno);
+          printf("socket id = %d\n", ThreadData -> Socketid);
+          InitError=true;
+        }
+      }
+      //
+      // now bring in more data via DMA
+      // first copy any residue to the start of the buffer (before the DMA point)
+  //
+      ResidueBytes = IQHeadPtr- IQReadPtr;
+  //		printf("Residue = %d bytes\n",ResidueBytes);
+      if(ResidueBytes != 0)					// if there is residue
+      {
+        memcpy(IQBasePtr-ResidueBytes, IQReadPtr, ResidueBytes);
+        IQReadPtr = IQBasePtr-ResidueBytes;
+      }
+      else
+        IQReadPtr = IQBasePtr;
+  //
+  // now wait until there is data, then DMA it
+  //
+      Depth = RegisterRead(0x9000);				// read the user access register
+  //		printf("read: depth = %d\n", Depth);
+      while(Depth < 512)			// 512 locations = 4K bytes
+      {
+        usleep(1000);								// 1ms wait
+        Depth = RegisterRead(0x9000);				// read the user access register
+  //			printf("read: depth = %d\n", Depth);
+      }
+
+  //		printf("DMA read %d bytes from destination to base\n", VDMATRANSFERSIZE);
+      DMAReadFromFPGA(DMAReadfile_fd, IQBasePtr, VDMATRANSFERSIZE, AXIBaseAddress);
+      IQHeadPtr = IQBasePtr + VDMATRANSFERSIZE;
+    }     // end of while(!InitError) loop
+  }
 
 //
 // tidy shutdown of the thread
 //
   printf("shutting down DDC outgoing thread\n");
+  close(ThreadData->Socketid); 
   ThreadData->Active = false;                   // signal closed
-	close(DMAReadfile_fd);
   free(IQReadBuffer);
   return NULL;
 }
@@ -229,27 +238,48 @@ void *OutgoingDDCIQ(void *arg)
 
 //
 // interface calls to get commands from PC settings
+// sample rate, DDC enabled and interleaved are all signalled through the socket 
+// data structure
+//
+// the meanings are:
+// enabled - the DDC sends data in its own right
+// interleaved - can be set for "even" DDCs; the next higher odd DDC also has its data routed
+// through here. That DDC is NOT enabled. 
 //
 
 //
 // HandlerSetDDCEnabled(unsigned int DDC, bool Enabled)
-// set whether an DDC is enabled
+// set whether a DDC is enabled
 //
 void HandlerSetDDCEnabled(unsigned int DDC, bool Enabled)
 {
-  SetDDCEnabled(DDC, Enabled);
+  if(!Enabled)
+    SocketData[VPORTDDCIQ0 + DDC].Cmdid &= ~VBITDDCENABLE;
+  else
+  {
+    SocketData[VPORTDDCIQ0 + DDC].Cmdid |= VBITDDCENABLE;
+    printf("DDC %d enabled\n", DDC);
+  }
+  SetDDCEnabled(DDC, Enabled);                          // placeholder - move tohandler
 }
 
 
 //
 // HandlerSetDDCInterleaved(unsigned int DDC, bool Interleaved)
-// set whether an DDC is interleaved
+// set whether a DDC is interleaved
 // this is called for odd DDCs, and if interleaved synchs to next lower number
 // eg DDC3 can synch to DDC2
 //
 void HandlerSetDDCInterleaved(unsigned int DDC, bool Interleaved)
 {
-  SetDDCInterleaved(DDC, Interleaved);
+  if(!Interleaved)
+    SocketData[VPORTDDCIQ0 + DDC].Cmdid &= ~VBITINTERLEAVE;
+  else
+  {
+    SocketData[VPORTDDCIQ0 + DDC].Cmdid |= VBITINTERLEAVE;
+    printf("DDC %d interleave enabled\n", DDC);
+  }
+  SetDDCInterleaved(DDC, Interleaved);      // placeholder
 }
 
 
@@ -260,6 +290,6 @@ void HandlerSetDDCInterleaved(unsigned int DDC, bool Interleaved)
 //
 void HandlerSetP2SampleRate(unsigned int DDC, unsigned int SampleRate)
 {
-  SetP2SampleRate(DDC, SampleRate);
+  SocketData[VPORTDDCIQ0 + DDC].DDCSampleRate = SampleRate;
+  SetP2SampleRate(DDC, SampleRate);         // do set this here!
 }
-

@@ -74,9 +74,8 @@ extern bool SDRActive;                              // true if this SDR is runni
 
 
 #define VBITCHANGEPORT 1                        // if set, thread must close its socket and open a new one on different port
-#define VBITDATARUN 2                           // if set, streaming threads stream data
-#define VBITINTERLEAVE 4                        // if set, DDC threads should interleave data
-#define VBITDDCENABLE 8                         // if set, DDC is enabled
+#define VBITINTERLEAVE 2                        // if set, DDC threads should interleave data
+#define VBITDDCENABLE 4                         // if set, DDC is enabled
 
 //
 // default port numbers, used if incoming port number = 0

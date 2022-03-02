@@ -69,51 +69,59 @@ void *OutgoingMicSamples(void *arg)
   printf("spinning up outgoing mic thread with port %d\n", ThreadData->Portid);
 
 
-
-  while(!(ThreadData->Cmdid & VBITDATARUN))
+  while (!InitError)
   {
-    usleep(100);
-  }
-  printf("starting outgoing mic data\n");
-  //
-  // initialise outgoing mic data packet
-  //
-  memcpy(&DestAddr, &reply_addr, sizeof(struct sockaddr_in));           // local copy of PC destination address
-  memset(&iovecinst, 0, sizeof(struct iovec));
-  memset(&datagram, 0, sizeof(datagram));
-  iovecinst.iov_base = UDPBuffer;
-  iovecinst.iov_len = VMICPACKETSIZE;
-  datagram.msg_iov = &iovecinst;
-  datagram.msg_iovlen = 1;
-  datagram.msg_name = &DestAddr;                   // MAC addr & port to send to
-  datagram.msg_namelen = sizeof(DestAddr);
-
-  while(!InitError)                               // main loop
-  {
-    if(TransferredIQSamples >= TransferredMicSamples+1000)         // if mic samples is caught up, just sleep for 1ms then try again
-      usleep(1000);
-    else
+    while(!(SDRActive))
     {
-      // send a dummy mic packet with zero data
-      memset(UDPBuffer, 0,sizeof(UDPBuffer));                      // clear the whole packet
-      *(uint32_t *)UDPBuffer = htonl(SequenceCounter++);        // add sequence count
-      Error = sendmsg(ThreadData -> Socketid, &datagram, 0);
-      TransferredMicSamples += VMICSAMPLESPERFRAME;
+      if(ThreadData->Cmdid & VBITCHANGEPORT)
+      {
+        close(ThreadData->Socketid);                      // close old socket, open new one
+        MakeSocket(ThreadData, 0);                        // this binds to the new port.
+        ThreadData->Cmdid &= ~VBITCHANGEPORT;             // clear command bit
+      }
+      usleep(100);
+    }
+    //
+    // if we get here, run has been initiated
+    // initialise outgoing data packet
+    //
+    SequenceCounter = 0;
+    memcpy(&DestAddr, &reply_addr, sizeof(struct sockaddr_in));           // local copy of PC destination address
+    memset(&iovecinst, 0, sizeof(struct iovec));
+    memset(&datagram, 0, sizeof(datagram));
+    iovecinst.iov_base = UDPBuffer;
+    iovecinst.iov_len = VMICPACKETSIZE;
+    datagram.msg_iov = &iovecinst;
+    datagram.msg_iovlen = 1;
+    datagram.msg_name = &DestAddr;                   // MAC addr & port to send to
+    datagram.msg_namelen = sizeof(DestAddr);
 
+    while(SDRActive && !InitError)                               // main loop
+    {
+      // create the packet into UDPBuffer
+      if(TransferredIQSamples >= TransferredMicSamples)         // if mic samples is caught up, just sleep for 1ms then try again
+      {
+        // send a dummy mic packet with zero data
+        memset(UDPBuffer, 0,sizeof(UDPBuffer));                      // clear the whole packet
+        *(uint32_t *)UDPBuffer = htonl(SequenceCounter++);        // add sequence count
+        Error = sendmsg(ThreadData -> Socketid, &datagram, 0);
+        TransferredMicSamples += VMICSAMPLESPERFRAME;
+      }
+      else
+        usleep(1000);
       if(Error == -1)
       {
-        printf("Mic Send Error, errno=%d\n",errno);
+        printf("Mic Send Error, errno=%d\n", errno);
         printf("socket id = %d\n", ThreadData -> Socketid);
         InitError=true;
       }
-
     }
   }
 //
 // tidy shutdown of the thread
 //
-  printf("shutting down outgoing mic thread\n");
+  printf("shutting down outgoing mic data thread\n");
+  close(ThreadData->Socketid); 
   ThreadData->Active = false;                   // signal closed
   return NULL;
 }
-

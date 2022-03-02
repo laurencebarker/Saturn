@@ -58,29 +58,51 @@ void *OutgoingHighPriority(void *arg)
   ThreadData->Active = true;
   printf("spinning up outgoing high priority with port %d\n", ThreadData->Portid);
 
-
-
-  while(!(ThreadData->Cmdid & VBITDATARUN))
+//
+// OK, now the main work
+// thread commanded to transfer / stop transferring data by global bool SDRActive
+// threat may also be commanded to close down and re-open its socket by command byte 
+// VBITCHANGEPORT bit being set (shold only happen when not running)
+//
+  while (!InitError)
   {
-    usleep(100);
-  }
-  printf("starting outgoing high priority data\n");
-  //
-  // initialise outgoing data packet
-  //
-  memcpy(&DestAddr, &reply_addr, sizeof(struct sockaddr_in));           // local copy of PC destination address
-  memset(&iovecinst, 0, sizeof(struct iovec));
-  memset(&datagram, 0, sizeof(datagram));
-  memset(UDPBuffer, 0,sizeof(UDPBuffer));                      // clear the whole packet
-  iovecinst.iov_base = UDPBuffer;
-  iovecinst.iov_len = VHIGHPRIOTIYFROMSDRSIZE;
-  datagram.msg_iov = &iovecinst;
-  datagram.msg_iovlen = 1;
-  datagram.msg_name = &DestAddr;                   // MAC addr & port to send to
-  datagram.msg_namelen = sizeof(DestAddr);
+    while(!(SDRActive))
+    {
+      if(ThreadData->Cmdid & VBITCHANGEPORT)
+      {
+        close(ThreadData->Socketid);                      // close old socket, open new one
+        MakeSocket(ThreadData, 0);                        // this binds to the new port.
+        ThreadData->Cmdid &= ~VBITCHANGEPORT;             // clear command bit
+      }
+      usleep(100);
+    }
+    //
+    // if we get here, run has been initiated
+    // initialise outgoing data packet
+    //
+    SequenceCounter = 0;
+    printf("starting outgoing high priority data\n");
+    memcpy(&DestAddr, &reply_addr, sizeof(struct sockaddr_in));           // local copy of PC destination address
+    memset(&iovecinst, 0, sizeof(struct iovec));
+    memset(&datagram, 0, sizeof(datagram));
+    memset(UDPBuffer, 0,sizeof(UDPBuffer));                      // clear the whole packet
+    iovecinst.iov_base = UDPBuffer;
+    iovecinst.iov_len = VHIGHPRIOTIYFROMSDRSIZE;
+    datagram.msg_iov = &iovecinst;
+    datagram.msg_iovlen = 1;
+    datagram.msg_name = &DestAddr;                   // MAC addr & port to send to
+    datagram.msg_namelen = sizeof(DestAddr);
 
-  while(!InitError)                               // main loop
-  {
+    //
+    // this is the main loop. SDR is running. transfer data;
+    // also check for changes to DDC enabled, and DDC interleaved
+    //
+    // potential race conditions: thread execution order is underfined. 
+    // when a DDC becomes enabled, its paired DDC may not know yet and may still be set to interleaved.
+    // when a DDC is set to interleaved, the paired DDC may not have been disabled yet.
+    //
+    while(SDRActive && !InitError)                               // main loop
+    {
       // create the packet
       *(uint32_t *)UDPBuffer = htonl(SequenceCounter++);        // add sequence count
       Byte = (uint8_t)GetP2PTTKeyInputs();
@@ -113,11 +135,13 @@ void *OutgoingHighPriority(void *arg)
         InitError=true;
       }
       usleep(50000);                                    // 50ms gap between messages
+    }
   }
 //
 // tidy shutdown of the thread
 //
-  printf("shutting down outgoing mic thread\n");
+  printf("shutting down outgoing high priority thread\n");
+  close(ThreadData->Socketid); 
   ThreadData->Active = false;                   // signal closed
   return NULL;
 }
