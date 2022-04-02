@@ -1,4 +1,5 @@
 # GIT should ignore:
 saturn_project
+bdtest
 .Xil
 vivado.*
