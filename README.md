@@ -12,7 +12,8 @@ project_documentation		overall project level documentation
 hardware			releasable information about the Saturn hardware (note the design is not open source)
 sw_projects			software projects for Saturn
 sw_tools			software tools including debugging tools
-testing				project etest resources
+testing				project test resources
+desktop                         desktop shortcuts to application files
 
 
 FPGA\sources

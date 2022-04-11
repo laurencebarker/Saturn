@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=flashwriter
+Comment=Saturn FPGA Config Flash programmer
+Icon=/usr/share/pixmaps/obconf.png
+Exec=/home/pi/github/Saturn/sw_tools/flashwriter/flashwriter
+Type=Application
+Encoding=UTF-8
+Terminal=false
+Path=/home/pi/github/Saturn/sw_tools/flashwriter
+StartupNotify=false
