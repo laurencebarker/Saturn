@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Link
+Name=Visual Studio Code
+Icon=com.visualstudio.code
+URL=/usr/share/applications/code.desktop

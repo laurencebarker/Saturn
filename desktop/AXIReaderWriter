@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=AXIReaderWriter
+Comment=Saturn FPGA Register Read/Write
+Icon=/usr/share/pixmaps/obconf.png
+Exec=/home/pi/github/Saturn/sw_tools/axi_rw/axi_rw
+Type=Application
+Encoding=UTF-8
+Terminal=false
+Path=/home/pi/github/Saturn/sw_tools/axi_rw
+StartupNotify=false
