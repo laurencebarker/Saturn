@@ -167,8 +167,8 @@ set_property IOSTANDARD LVCMOS33 [get_ports RF_SPI_RX_LOAD]
 set_property IOSTANDARD LVCMOS33 [get_ports RF_SPI_TX_LOAD]
 set_property IOSTANDARD LVCMOS33 [get_ports TX_DAC_PWM]
 set_property IOSTANDARD LVCMOS33 [get_ports {TXRX_RELAY[0]}]
-set_property IOSTANDARD LVDS_25 [get_ports {pcie_diff_clock_rtl_clk_n[0]}]
-set_property IOSTANDARD LVDS_25 [get_ports {pcie_diff_clock_rtl_clk_p[0]}]
+#set_property IOSTANDARD LVDS_25 [get_ports {pcie_diff_clock_rtl_clk_n[0]}]    this isn't LVDS!
+#set_property IOSTANDARD LVDS_25 [get_ports {pcie_diff_clock_rtl_clk_p[0]}]    this isn't LVDS!
 set_property IOSTANDARD LVCMOS33 [get_ports iic_rtl_0_scl_io]
 set_property IOSTANDARD LVCMOS33 [get_ports iic_rtl_0_sda_io]
 set_property IOSTANDARD LVCMOS33 [get_ports {PCIECLKREQN[0]}]
