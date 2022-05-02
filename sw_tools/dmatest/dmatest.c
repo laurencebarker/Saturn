@@ -2,6 +2,9 @@
 // test of write and read DME using XDMA driver
 // Laurence Barker July 2021
 //
+// ./dmatest <transfersize>
+// so for 512 byte test: command line ./dmatest 512
+//
 
 #define _DEFAULT_SOURCE
 #define _XOPEN_SOURCE 500
@@ -22,7 +25,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define VTRANSFERSIZE 128											// size in bytes to transfer
+//#define VTRANSFERSIZE 65536											// size in bytes to transfer
 #define VMEMBUFFERSIZE 32768										// memory buffer to reserve
 #define AXIBaseAddress 0x10000									// address of StreamRead/Writer IP
 
@@ -242,112 +245,121 @@ int main(int argc, char *argv[])
 	double WriteTime, ReadTime;
 	double WriteRate, ReadRate;
 	uint32_t RegisterValue;
-//
-// initialise. Create memory buffers and open DMA file devices
-//
-	posix_memalign((void **)&WriteBuffer, VALIGNMENT, BufferSize);
-	posix_memalign((void **)&ReadBuffer, VALIGNMENT, BufferSize);
-	if(!WriteBuffer)
+	uint32_t TransferSize = 0;
+
+	if (argc != 2)
+		printf("Usage: ./dmatest <transfersize>\n");
+	else
+		TransferSize = (atoi(argv[1]));
+	if(TransferSize > 0)
 	{
-		printf("write buffer allocation failed\n");
-		goto out;
-	}
-	if(!ReadBuffer)
-	{
-		printf("read buffer allocation failed\n");
-		goto out;
-	}
+	//
+	// initialise. Create memory buffers and open DMA file devices
+	//
+		posix_memalign((void **)&WriteBuffer, VALIGNMENT, BufferSize);
+		posix_memalign((void **)&ReadBuffer, VALIGNMENT, BufferSize);
+		if(!WriteBuffer)
+		{
+			printf("write buffer allocation failed\n");
+			goto out;
+		}
+		if(!ReadBuffer)
+		{
+			printf("read buffer allocation failed\n");
+			goto out;
+		}
 
-//
-// try to open memory device
-//
-	if ((register_fd = open("/dev/xdma0_user", O_RDWR)) == -1)
-    {
-		printf("register R/W address space not available\n");
-		goto out;
-    }
-    else
-    {
-		printf("register access connected to /dev/xdma0_user\n");
-    }
+	//
+	// try to open memory device
+	//
+		if ((register_fd = open("/dev/xdma0_user", O_RDWR)) == -1)
+		{
+			printf("register R/W address space not available\n");
+			goto out;
+		}
+		else
+		{
+			printf("register access connected to /dev/xdma0_user\n");
+		}
 
-//
-// now read the user access register (it should have a date code)
-//
-	RegisterValue = RegisterRead(0xB000);				// read the user access register
-	printf("User register = %08x\n", RegisterValue);
+	//
+	// now read the user access register (it should have a date code)
+	//
+		RegisterValue = RegisterRead(0xB000);				// read the user access register
+		printf("User register = %08x\n", RegisterValue);
 
 
-	printf("Initialising XDMA write\n");
-	DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDWR);
+		printf("Initialising XDMA write\n");
+		DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDWR);
 
-	printf("Initialising XDMA read\n");
-	DMAWritefile_fd = open("/dev/xdma0_h2c_0", O_RDWR);
-	if(DMAReadfile_fd < 0)
-	{
-		printf("XDMA read device open failed\n");
-		goto out;
-	}
-	if(DMAWritefile_fd < 0)
-	{
-		printf("XDMA write device open failed\n");
-		goto out;
-	}
+		printf("Initialising XDMA read\n");
+		DMAWritefile_fd = open("/dev/xdma0_h2c_0", O_RDWR);
+		if(DMAReadfile_fd < 0)
+		{
+			printf("XDMA read device open failed\n");
+			goto out;
+		}
+		if(DMAWritefile_fd < 0)
+		{
+			printf("XDMA write device open failed\n");
+			goto out;
+		}
 
-//
-// we have devices and memory.
-// create test data, and display it
-//
-	CreateTestData(WriteBuffer, VTRANSFERSIZE);
+	//
+	// we have devices and memory.
+	// create test data, and display it
+	//
+		CreateTestData(WriteBuffer, TransferSize);
 
-//
-// do DMA write; get time taken into ts_write
-//
-	printf("DMA write %d bytes to destination\n", VTRANSFERSIZE);
-	rc = clock_gettime(CLOCK_MONOTONIC, &ts_start);
-	DMAWriteToFPGA(DMAWritefile_fd, WriteBuffer, VTRANSFERSIZE, AXIBaseAddress);
-	rc = clock_gettime(CLOCK_MONOTONIC, &ts_write);
-	timespec_sub(&ts_write, &ts_start);
+	//
+	// do DMA write; get time taken into ts_write
+	//
+		printf("DMA write %d bytes to destination\n", TransferSize);
+		rc = clock_gettime(CLOCK_MONOTONIC, &ts_start);
+		DMAWriteToFPGA(DMAWritefile_fd, WriteBuffer, TransferSize, AXIBaseAddress);
+		rc = clock_gettime(CLOCK_MONOTONIC, &ts_write);
+		timespec_sub(&ts_write, &ts_start);
 
-//
-// now read the FIFO write and read depth FIFOs
-//
-	RegisterValue = RegisterRead(0xD000);				// read the write depth count
-	printf("FIFO write depth = %d\n", RegisterValue);
-	RegisterValue = RegisterRead(0xD004);				// read the read depth count
-	printf("FIFO read depth = %d\n", RegisterValue);
+	//
+	// now read the FIFO write and read depth FIFOs
+	//
+		RegisterValue = RegisterRead(0xD000);				// read the write depth count
+		printf("FIFO write depth = %d\n", RegisterValue);
+		RegisterValue = RegisterRead(0xD004);				// read the read depth count
+		printf("FIFO read depth = %d\n", RegisterValue);
 
-//
-// do DMA read; get time taken into ts_read
-//
-	printf("DMA read %d bytes from destination\n", VTRANSFERSIZE);
-	rc = clock_gettime(CLOCK_MONOTONIC, &ts_start);
-	DMAReadFromFPGA(DMAReadfile_fd, ReadBuffer, VTRANSFERSIZE, AXIBaseAddress);
-	rc = clock_gettime(CLOCK_MONOTONIC, &ts_read);
-	timespec_sub(&ts_read, &ts_start);
-	
-	CompareMemoryBuffers(WriteBuffer, ReadBuffer, VTRANSFERSIZE);
-	DumpMemoryBuffer(ReadBuffer, VTRANSFERSIZE);
+	//
+	// do DMA read; get time taken into ts_read
+	//
+		printf("DMA read %d bytes from destination\n", TransferSize);
+		rc = clock_gettime(CLOCK_MONOTONIC, &ts_start);
+		DMAReadFromFPGA(DMAReadfile_fd, ReadBuffer, TransferSize, AXIBaseAddress);
+		rc = clock_gettime(CLOCK_MONOTONIC, &ts_read);
+		timespec_sub(&ts_read, &ts_start);
+		
+		CompareMemoryBuffers(WriteBuffer, ReadBuffer, TransferSize);
+		DumpMemoryBuffer(ReadBuffer, TransferSize);
 
-//
-// now check timings
-//
-	WriteTime = 1000.0*timespec2double(&ts_write);
-	ReadTime = 1000.0*timespec2double(&ts_read);
-	WriteRate = ((double)VTRANSFERSIZE) /(1.0E3*WriteTime);		// Mbyte/s
-	ReadRate = ((double)VTRANSFERSIZE) /(1.0E3*ReadTime);		// Mbyte/s
-	printf("Write time = %1.3fms; data rate = %3.1fMByte/s\n", WriteTime, WriteRate);
-	printf("Read time = %1.3fms; data rate = %3.1fMByte/s\n", ReadTime, ReadRate);
+	//
+	// now check timings
+	//
+		WriteTime = 1000.0*timespec2double(&ts_write);
+		ReadTime = 1000.0*timespec2double(&ts_read);
+		WriteRate = ((double)TransferSize) /(1.0E3*WriteTime);		// Mbyte/s
+		ReadRate = ((double)TransferSize) /(1.0E3*ReadTime);		// Mbyte/s
+		printf("Write time = %1.3fms; data rate = %3.1fMByte/s\n", WriteTime, WriteRate);
+		printf("Read time = %1.3fms; data rate = %3.1fMByte/s\n", ReadTime, ReadRate);
 
-//
-// close down. Deallocate memory and close files
-//
+	//
+	// close down. Deallocate memory and close files
+	//
 out:
-	close(DMAWritefile_fd);
-	close(DMAReadfile_fd);
-	close(register_fd);
+		close(DMAWritefile_fd);
+		close(DMAReadfile_fd);
+		close(register_fd);
 
-	free(WriteBuffer);
-	free(ReadBuffer);
+		free(WriteBuffer);
+		free(ReadBuffer);
+	}
 }
 
