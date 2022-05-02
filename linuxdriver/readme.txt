@@ -1,3 +1,58 @@
+These files include two patches to enable operation on a 32 bit or 64 bit RaspberryPi4 Compute Module:
+
+
+1. function "bridge_mmap (cdev_ctrl.c, line 195): 4 variables to become 64 bits
+
+int bridge_mmap(struct file *file, struct vm_area_struct *vma)
+{
+struct xdma_dev *xdev;
+struct xdma_cdev *xcdev = (struct xdma_cdev *)file->private_data;
+uint64_t off;// LVB 21/2/2021: must be 64 bit
+uint64_t phys;// LVB 21/2/2021: must be 64 bit
+uint64_t vsize;// LVB 21/2/2021: must be 64 bit
+uint64_t psize;// LVB 21/2/2021: must be 64 bit
+
+
+
+2. function set_dma_mask (libxdma.c, line 3881): needs to use 64 bit version for pci_set_consistent_dma_mask()
+
+static int set_dma_mask(struct pci_dev *pdev)
+{
+	if (!pdev) {
+		pr_err("Invalid pdev\n");
+		return -EINVAL;
+	}
+
+	dbg_init("sizeof(dma_addr_t) == %ld\n", sizeof(dma_addr_t));
+	/* 64-bit addressing capability for XDMA? */
+	if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(64))) {
+		/* query for DMA transfer */
+		/* @see Documentation/DMA-mapping.txt */
+		dbg_init("pci_set_dma_mask()\n");
+		/* use 64-bit DMA */
+		dbg_init("Using a 64-bit DMA mask.\n");
+		/* use 32-bit DMA for descriptors */
+		pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
+		/* use 64-bit DMA, 32-bit for consistent */
+	} else if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(32))) {
+		dbg_init("Could not set 64-bit DMA mask.\n");
+		pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+		/* use 32-bit DMA */
+		dbg_init("Using a 32-bit DMA mask.\n");
+	} else {
+		dbg_init("No suitable DMA possible.\n");
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+
+
+
+
+
+
 The files in this directory provide Xilinx PCIe DMA drivers, example software,
 and example test scripts that can be used to exercise the Xilinx PCIe DMA IP.
 
