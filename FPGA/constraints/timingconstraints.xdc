@@ -13,22 +13,24 @@ set_input_delay -clock pcie_diff_clock_rtl_clk_p[0] -max -add_delay 0.000 [get_p
 ## ADC input constraints
 # LTC2208 tpd=1.3ns min 2.8ns max; assumed trace delay 0.1 to 0.5ns (approx 3cm to 15cm)
 # see formula Xilinx UG949 p158
-set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 1.400 [get_ports {ADC1_In_N[*]}]
-set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.300 [get_ports {ADC1_In_N[*]}]
-set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 1.400 [get_ports {ADC1_In_P[*]}]
-set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.300 [get_ports {ADC1_In_P[*]}]
-set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 1.400 [get_ports {ADC2_In_N[*]}]
-set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.300 [get_ports {ADC2_In_N[*]}]
-set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 1.400 [get_ports {ADC2_In_P[*]}]
-set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.300 [get_ports {ADC2_In_P[*]}]
-set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 1.400 [get_ports ADC1Ovr_In_N]
-set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.300 [get_ports ADC1Ovr_In_N]
-set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 1.400 [get_ports ADC1Ovr_In_P]
-set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.300 [get_ports ADC1Ovr_In_P]
-set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 1.400 [get_ports ADC2Ovr_In_N]
-set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.300 [get_ports ADC2Ovr_In_N]
-set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 1.400 [get_ports ADC2Ovr_In_P]
-set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.300 [get_ports ADC2Ovr_In_P]
+# adjusted because FPGA clock is about 0.6ns after ADC clock
+#
+set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 0.700 [get_ports {ADC1_In_N[*]}]
+set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.200 [get_ports {ADC1_In_N[*]}]
+set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 0.700 [get_ports {ADC1_In_P[*]}]
+set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.200 [get_ports {ADC1_In_P[*]}]
+set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 0.700 [get_ports {ADC2_In_N[*]}]
+set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.200 [get_ports {ADC2_In_N[*]}]
+set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 0.700 [get_ports {ADC2_In_P[*]}]
+set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.200 [get_ports {ADC2_In_P[*]}]
+set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 0.700 [get_ports ADC1Ovr_In_N]
+set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.200 [get_ports ADC1Ovr_In_N]
+set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 0.700 [get_ports ADC1Ovr_In_P]
+set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.200 [get_ports ADC1Ovr_In_P]
+set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 0.700 [get_ports ADC2Ovr_In_N]
+set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.200 [get_ports ADC2Ovr_In_N]
+set_input_delay -clock [get_clocks clock_122_in_p] -min -add_delay 0.700 [get_ports ADC2Ovr_In_P]
+set_input_delay -clock [get_clocks clock_122_in_p] -max -add_delay 3.200 [get_ports ADC2Ovr_In_P]
 ## DAC output constraints
 # MAX5891 tsu -1.5ns min; th 2.6ns min assumed trace delay 0.1 to 0.5ns (approx 3cm to 15cm)
 ## (this means data can change up to 1.5ns AFTER the clock edge)
