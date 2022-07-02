@@ -230,7 +230,7 @@ set_property PACKAGE_PIN B7 [get_ports {pcie_7x_mgt_rtl_0_txp[3]}]
 # user access register
 # used for "version number" settig - currently a date code
 #
-set_property BITSTREAM.CONFIG.USR_ACCESS 0x21062022 [current_design]
+set_property BITSTREAM.CONFIG.USR_ACCESS 0x29062022 [current_design]
 
 
 
