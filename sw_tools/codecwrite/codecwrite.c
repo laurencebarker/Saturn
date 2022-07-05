@@ -476,11 +476,9 @@ uint32_t XIic_Send(uint32_t BaseAddress, uint8_t Address,
 //
 uint32_t WriteCodecRegister(uint16_t CodecData)
 {
-	uint32_t RemainingByteCount;
 	uint32_t ControlReg;
 	uint32_t IntrStatus;
 	volatile uint32_t StatusReg;
-	uint32_t ByteCount = 2;						// number of bytes to send
 
 	/* Wait until I2C bus is freed, exit if timed out. */
 	if (XIic_WaitBusFree(VIICIPCOREADDR) != XST_SUCCESS)
@@ -536,10 +534,8 @@ uint32_t WriteCodecRegister(uint16_t CodecData)
 		//
 		XIic_Send7BitAddress(VIICIPCOREADDR, VCODEC7BITADDR, XIIC_WRITE_OPERATION);
 	}
-//
-// Send the specified data to the device on the IIC bus specified by the the address
-//
 	//
+	// Send bytes. 
 	// Wait for the transmit to be empty before sending any more
 	// data by polling the interrupt status register
 	//
@@ -548,7 +544,7 @@ uint32_t WriteCodecRegister(uint16_t CodecData)
 		IntrStatus = XIic_ReadIisr(VIICIPCOREADDR);
 
 		if (IntrStatus & (XIIC_INTR_TX_ERROR_MASK | XIIC_INTR_ARB_LOST_MASK | XIIC_INTR_BNB_MASK))
-			return ByteCount;
+			return 0;
 
 		if (IntrStatus & XIIC_INTR_TX_EMPTY_MASK) 
 			break;
@@ -571,7 +567,7 @@ uint32_t WriteCodecRegister(uint16_t CodecData)
 			// RSTA bit should be set only when the FIFO is completely Empty.
 			//
 			XIic_WriteReg(VIICIPCOREADDR, XIIC_CR_REG_OFFSET, XIIC_CR_REPEATED_START_MASK | 
-									XIIC_CR_ENABLE_DEVICE_MASK | XIIC_CR_DIR_IS_TX_MASK | XIIC_CR_MSMS_MASK);
+						  XIIC_CR_ENABLE_DEVICE_MASK | XIIC_CR_DIR_IS_TX_MASK | XIIC_CR_MSMS_MASK);
 			break;
 		}
 	}
@@ -596,9 +592,7 @@ uint32_t WriteCodecRegister(uint16_t CodecData)
 		 * the bus.
 		 */
 		if ((ControlReg & XIIC_CR_MSMS_MASK) != 0)
-		{
 			XIic_WriteReg(VIICIPCOREADDR,  XIIC_CR_REG_OFFSET, (ControlReg & ~XIIC_CR_MSMS_MASK));
-		}
 
 		if ((XIic_ReadReg(VIICIPCOREADDR, XIIC_SR_REG_OFFSET) & XIIC_SR_ADDR_AS_SLAVE_MASK) != 0)
 			XIic_WriteReg(VIICIPCOREADDR,  XIIC_CR_REG_OFFSET, 0);
@@ -610,7 +604,7 @@ uint32_t WriteCodecRegister(uint16_t CodecData)
 		}
 	}
 
-	return 0;
+	return 2;
 }
 
 
@@ -625,6 +619,7 @@ uint32_t WriteCodecRegister(uint16_t CodecData)
 int main(void)
 {
 	uint32_t RegisterValue;
+	uint32_t ByteCount;
 
 	//
 	// try to open memory device
@@ -645,8 +640,11 @@ int main(void)
 	RegisterValue = RegisterRead(0xB000);				// read the user access register
 	printf("User register = %08x\n", RegisterValue);
 
+	ByteCount = WriteCodecRegister(0x1E00);
+	printf("send 0x1E00; transferred %d bytes\n", ByteCount);
 
-
+	ByteCount = WriteCodecRegister(0x1201);
+	printf("send 0x1201; transferred %d bytes\n", ByteCount);
 
 
 
