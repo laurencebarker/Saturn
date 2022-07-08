@@ -476,15 +476,17 @@ uint32_t XIic_Send(uint32_t BaseAddress, uint8_t Address,
 //
 uint32_t WriteCodecRegister(uint16_t CodecData)
 {
-	uint32_t RemainingByteCount;
 	uint32_t ControlReg;
 	uint32_t IntrStatus;
 	volatile uint32_t StatusReg;
-	uint32_t ByteCount = 2;						// number of bytes to send
 
 	/* Wait until I2C bus is freed, exit if timed out. */
 	if (XIic_WaitBusFree(VIICIPCOREADDR) != XST_SUCCESS)
+	{
+		IntrStatus = XIic_ReadIisr(VIICIPCOREADDR);
+		printf("I2C bus not freed; ISR = %2x\n", IntrStatus);
 		return 0;
+	}
 
 	// Check to see if already Master on the Bus.
 	// If Repeated Start bit is not set send Start bit by setting
@@ -536,45 +538,40 @@ uint32_t WriteCodecRegister(uint16_t CodecData)
 		//
 		XIic_Send7BitAddress(VIICIPCOREADDR, VCODEC7BITADDR, XIIC_WRITE_OPERATION);
 	}
-//
-// Send the specified data to the device on the IIC bus specified by the the address
-//
 	//
+	// Send bytes. 
 	// Wait for the transmit to be empty before sending any more
 	// data by polling the interrupt status register
 	//
 	while (1)
 	{
 		IntrStatus = XIic_ReadIisr(VIICIPCOREADDR);
-
 		if (IntrStatus & (XIIC_INTR_TX_ERROR_MASK | XIIC_INTR_ARB_LOST_MASK | XIIC_INTR_BNB_MASK))
-			return ByteCount;
-
+		{
+				printf("TX error or arb lost. ISR = %2x\n", IntrStatus);
+				return 0;
+		}
 		if (IntrStatus & XIIC_INTR_TX_EMPTY_MASK) 
 			break;
 	}
-	// Put the 2 bytes in the FIFO
-	// we should use "repeated start" option
-	XIic_WriteReg(VIICIPCOREADDR,  XIIC_DTR_REG_OFFSET, CodecData >> 8);
-	XIic_WriteReg(VIICIPCOREADDR,  XIIC_DTR_REG_OFFSET, (CodecData & 0xFF));
-
-	XIic_ClearIisr(VIICIPCOREADDR, XIIC_INTR_TX_EMPTY_MASK);
 	//
-	// Wait for the transmit to be empty before setting RSTA bit.
+	// Put the 1st byte in the FIFO & wait till empty
+	// issue a "stop" after 1st byte
 	//
+	XIic_WriteReg(VIICIPCOREADDR,  XIIC_DTR_REG_OFFSET, (CodecData >> 8)&0xFF);	// high byte
 	while (1)
 	{
 		IntrStatus = XIic_ReadIisr(VIICIPCOREADDR);
-		if (IntrStatus & XIIC_INTR_TX_EMPTY_MASK)
+		if (IntrStatus & (XIIC_INTR_TX_ERROR_MASK | XIIC_INTR_ARB_LOST_MASK | XIIC_INTR_BNB_MASK))
 		{
-			//
-			// RSTA bit should be set only when the FIFO is completely Empty.
-			//
-			XIic_WriteReg(VIICIPCOREADDR, XIIC_CR_REG_OFFSET, XIIC_CR_REPEATED_START_MASK | 
-									XIIC_CR_ENABLE_DEVICE_MASK | XIIC_CR_DIR_IS_TX_MASK | XIIC_CR_MSMS_MASK);
-			break;
+			printf("TX error or arb lost. ISR = %2x\n", IntrStatus);
+			return 0;
 		}
+		if (IntrStatus & XIIC_INTR_TX_EMPTY_MASK)
+			break;
 	}
+	XIic_WriteReg(VIICIPCOREADDR, XIIC_CR_REG_OFFSET, XIIC_CR_ENABLE_DEVICE_MASK | XIIC_CR_DIR_IS_TX_MASK);
+	XIic_WriteReg(VIICIPCOREADDR,  XIIC_DTR_REG_OFFSET, (CodecData & 0xFF)); // low byte
 
 	//
 	// Clear the latched interrupt status register and this must be
@@ -588,17 +585,15 @@ uint32_t WriteCodecRegister(uint16_t CodecData)
 	ControlReg = XIic_ReadReg(VIICIPCOREADDR,  XIIC_CR_REG_OFFSET);
 	if ((ControlReg & XIIC_CR_REPEATED_START_MASK) == 0)
 	{
-		/*
-		 * The Transmission is completed, disable the IIC device if
-		 * the Option is to release the Bus after transmission of data
-		 * and return the number of bytes that was received. Only wait
-		 * if master, if addressed as slave just reset to release
-		 * the bus.
-		 */
+		//
+		// The Transmission is completed, disable the IIC device if
+		// the Option is to release the Bus after transmission of data
+		// and return the number of bytes that was received. Only wait
+		// if master, if addressed as slave just reset to release
+		// the bus.
+		//
 		if ((ControlReg & XIIC_CR_MSMS_MASK) != 0)
-		{
 			XIic_WriteReg(VIICIPCOREADDR,  XIIC_CR_REG_OFFSET, (ControlReg & ~XIIC_CR_MSMS_MASK));
-		}
 
 		if ((XIic_ReadReg(VIICIPCOREADDR, XIIC_SR_REG_OFFSET) & XIIC_SR_ADDR_AS_SLAVE_MASK) != 0)
 			XIic_WriteReg(VIICIPCOREADDR,  XIIC_CR_REG_OFFSET, 0);
@@ -610,7 +605,7 @@ uint32_t WriteCodecRegister(uint16_t CodecData)
 		}
 	}
 
-	return 0;
+	return 2;
 }
 
 
@@ -622,9 +617,15 @@ uint32_t WriteCodecRegister(uint16_t CodecData)
 //
 // main program
 //
-int main(void)
+// either call: ./codecwrite    (sends all regs)
+// or call: ./codecwrite 3C57 (write ox57 to register 0x3C)
+//
+//
+int main(int argc, char *argv[])
 {
 	uint32_t RegisterValue;
+	uint32_t ByteCount;
+	uint16_t CodecReg;
 
 	//
 	// try to open memory device
@@ -642,11 +643,44 @@ int main(void)
 	//
 	// now read the user access register (it should have a date code)
 	//
-	RegisterValue = RegisterRead(0xB000);				// read the user access register
+	RegisterValue = RegisterRead(0x4004);				// read the user access register
 	printf("User register = %08x\n", RegisterValue);
 
+//
+// now write all reset registers, or one specificed register
+//
+	if(argc==2)					// just one reg from command line
+	{
+		CodecReg = strtol(argv[1], NULL, 16);
+		ByteCount = WriteCodecRegister(CodecReg);
+		printf("send %4X; transferred %d bytes\n", CodecReg, ByteCount);
+	}
+	else
+	{
+		ByteCount = WriteCodecRegister(0x1E00);
+		printf("send 0x1E00; transferred %d bytes\n", ByteCount);
 
+		ByteCount = WriteCodecRegister(0x1201);
+		printf("send 0x1201; transferred %d bytes\n", ByteCount);
 
+		ByteCount = WriteCodecRegister(0x0814);
+		printf("send 0x0814; transferred %d bytes\n", ByteCount);
+
+		ByteCount = WriteCodecRegister(0x0C00);
+		printf("send 0x0C00; transferred %d bytes\n", ByteCount);
+
+		ByteCount = WriteCodecRegister(0x0E02);
+		printf("send 0x0E02; transferred %d bytes\n", ByteCount);
+
+		ByteCount = WriteCodecRegister(0x1000);
+		printf("send 0x1000; transferred %d bytes\n", ByteCount);
+
+		ByteCount = WriteCodecRegister(0x0A00);
+		printf("send 0x0A00; transferred %d bytes\n", ByteCount);
+
+		ByteCount = WriteCodecRegister(0x0000);
+		printf("send 0x0000; transferred %d bytes\n", ByteCount);
+	}
 
 
 

@@ -1,7 +1,7 @@
 ## timing assertions
 create_clock -period 10.000 -name {pcie_diff_clock_rtl_clk_p[0]} -waveform {0.000 5.000} [get_ports {pcie_diff_clock_rtl_clk_p[0]}]
 create_clock -period 8.000 -name VIRTUAL_clk_125mhz -waveform {0.000 4.000}
-create_clock -period 8.138 -name {EMC_CLK} -waveform {0.000 4.069} [get_ports {EMC_CLK}]
+create_clock -period 8.138 -name EMC_CLK -waveform {0.000 4.069} [get_ports EMC_CLK]
 
 
 
@@ -168,7 +168,7 @@ create_generated_clock -name clk_sck -source [get_pins -hierarchical *axi_quad_s
 #set_input_delay -clock clk_sck -clock_fall -max 8.800 [get_ports PROM_SPI_MISO]
 #set_input_delay -clock clk_sck -clock_fall -min 0.400 [get_ports PROM_SPI_MISO]
 
-set_multicycle_path -setup -from clk_sck -to [get_clocks -of_objects [get_pins {saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/FIFO_EXISTS.CLK_CROSS_I/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/FIFO_EXISTS.RX_FIFO_EMPTY_SYNC_AXI_2_SPI_CDC/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/FIFO_EXISTS.TX_FIFO_II/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/LOGIC_FOR_MD_0_GEN.SPI_MODULE_I/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/RESET_SYNC_AXI_SPI_CLK_INST/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/ext_spi_clk}]] 2
+set_multicycle_path -setup -from clk_sck -to [get_clocks -of_objects [get_pins [list saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/FIFO_EXISTS.CLK_CROSS_I/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/FIFO_EXISTS.RX_FIFO_EMPTY_SYNC_AXI_2_SPI_CDC/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/FIFO_EXISTS.TX_FIFO_II/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/RESET_SYNC_AXI_SPI_CLK_INST/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/ext_spi_clk]]] 2
 set_multicycle_path -hold -end -from clk_sck -to [get_clocks -of_objects [get_pins -hierarchical */ext_spi_clk]] 1
 # Data is captured into SPI on the following rising edge of SCK
 # Data is driven by the IP on alternate rising_edge of the ext_spi_clk
@@ -182,7 +182,7 @@ set_output_delay -clock clk_sck -max 1.700 [get_ports PROM_SPI_io3_io]
 set_output_delay -clock clk_sck -min -2.200 [get_ports PROM_SPI_io3_io]
 set_output_delay -clock clk_sck -max 1.700 [get_ports {PROM_SPI_ss_io[0]}]
 set_output_delay -clock clk_sck -min -2.200 [get_ports {PROM_SPI_ss_io[0]}]
-set_multicycle_path -setup -start -from [get_clocks -of_objects [get_pins {saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/FIFO_EXISTS.CLK_CROSS_I/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/FIFO_EXISTS.RX_FIFO_EMPTY_SYNC_AXI_2_SPI_CDC/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/FIFO_EXISTS.TX_FIFO_II/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/LOGIC_FOR_MD_0_GEN.SPI_MODULE_I/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/RESET_SYNC_AXI_SPI_CLK_INST/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/ext_spi_clk}]] -to clk_sck 2
+set_multicycle_path -setup -start -from [get_clocks -of_objects [get_pins [list saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/FIFO_EXISTS.CLK_CROSS_I/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/FIFO_EXISTS.RX_FIFO_EMPTY_SYNC_AXI_2_SPI_CDC/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/FIFO_EXISTS.TX_FIFO_II/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/RESET_SYNC_AXI_SPI_CLK_INST/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/QSPI_LEGACY_MD_GEN.QSPI_CORE_INTERFACE_I/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/NO_DUAL_QUAD_MODE.QSPI_NORMAL/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/U0/ext_spi_clk saturn_top_i/PCIe/axi_quad_spi_0/ext_spi_clk]]] -to clk_sck 2
 set_multicycle_path -hold -from [get_clocks -of_objects [get_pins -hierarchical */ext_spi_clk]] -to clk_sck 1
 
 
@@ -201,6 +201,7 @@ set_false_path -from [get_ports iic_rtl_0_scl_io]
 set_false_path -to [get_ports iic_rtl_0_scl_io]
 set_false_path -from [get_ports iic_rtl_0_sda_io]
 set_false_path -to [get_ports iic_rtl_0_sda_io]
+
 
 
 
