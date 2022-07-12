@@ -146,6 +146,7 @@ void XIic_Send7BitAddress(uint32_t BaseAddress, uint8_t SlaveAddress, uint8_t Op
 	uint8_t LocalAddr = (SlaveAddress << 1);
 	LocalAddr = (LocalAddr & 0xFE) | (Operation);
 	XIic_WriteReg(BaseAddress, XIIC_DTR_REG_OFFSET, LocalAddr);
+	printf("Sent 7 bit addr word 0x%2X\n", LocalAddr);
 }
 
 
@@ -435,7 +436,7 @@ uint32_t XIic_Send(uint32_t BaseAddress, uint8_t Address,
 		 * the Option is to release the Bus after transmission of data
 		 * and return the number of bytes that was received. Only wait
 		 * if master, if addressed as slave just reset to release
-		 * the bus.
+		 * the bus. 
 		 */
 		if ((ControlReg & XIIC_CR_MSMS_MASK) != 0)
 		{
@@ -478,7 +479,11 @@ uint32_t WriteCodecRegister(uint16_t CodecData)
 {
 	uint32_t ControlReg;
 	uint32_t IntrStatus;
+	uint8_t HighByte, LowByte;
 	volatile uint32_t StatusReg;
+
+	HighByte = CodecData >> 8;				// high byte 1st
+	LowByte = CodecData & 0xFF;				// low byte 2nd
 
 	/* Wait until I2C bus is freed, exit if timed out. */
 	if (XIic_WaitBusFree(VIICIPCOREADDR) != XST_SUCCESS)
@@ -558,8 +563,10 @@ uint32_t WriteCodecRegister(uint16_t CodecData)
 	// Put the 1st byte in the FIFO & wait till empty
 	// issue a "stop" after 1st byte
 	//
-	XIic_WriteReg(VIICIPCOREADDR,  XIIC_DTR_REG_OFFSET, (CodecData >> 8)&0xFF);	// high byte
-	while (1)
+	XIic_WriteReg(VIICIPCOREADDR,  XIIC_DTR_REG_OFFSET, HighByte);	// high byte
+	printf("Sent 1st Byte 0x%02X\n", HighByte);
+
+	while (1)				// wait till TX empty
 	{
 		IntrStatus = XIic_ReadIisr(VIICIPCOREADDR);
 		if (IntrStatus & (XIIC_INTR_TX_ERROR_MASK | XIIC_INTR_ARB_LOST_MASK | XIIC_INTR_BNB_MASK))
@@ -571,7 +578,20 @@ uint32_t WriteCodecRegister(uint16_t CodecData)
 			break;
 	}
 	XIic_WriteReg(VIICIPCOREADDR, XIIC_CR_REG_OFFSET, XIIC_CR_ENABLE_DEVICE_MASK | XIIC_CR_DIR_IS_TX_MASK);
-	XIic_WriteReg(VIICIPCOREADDR,  XIIC_DTR_REG_OFFSET, (CodecData & 0xFF)); // low byte
+	XIic_WriteReg(VIICIPCOREADDR,  XIIC_DTR_REG_OFFSET, LowByte); // low byte
+	printf("Sent 2nd Byte 0x%02X\n", LowByte);
+
+	while (1)				// wait till TX empty
+	{
+		IntrStatus = XIic_ReadIisr(VIICIPCOREADDR);
+		if (IntrStatus & (XIIC_INTR_TX_ERROR_MASK | XIIC_INTR_ARB_LOST_MASK | XIIC_INTR_BNB_MASK))
+		{
+			printf("TX error or arb lost. ISR = %2x\n", IntrStatus);
+			return 0;
+		}
+		if (IntrStatus & XIIC_INTR_TX_EMPTY_MASK)
+			break;
+	}
 
 	//
 	// Clear the latched interrupt status register and this must be
