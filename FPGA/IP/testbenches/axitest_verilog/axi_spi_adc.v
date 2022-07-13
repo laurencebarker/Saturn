@@ -73,6 +73,7 @@ module AXI_SPI_ADC #
   reg rvalidreg;                            // true when read data out is valid
 
   reg[1:0] clk_divide;				// derive input clock/4 (31.25MHz)
+  reg[1:0] clk_phase;				// derive input clock/16 as 4 phases (7.8125MHz)
 
 // internal storage registers for ADC results
   reg [11:0] AIN1; // 
@@ -83,16 +84,17 @@ module AXI_SPI_ADC #
   reg [11:0] AIN6; // holds 13.8v supply voltage
 
 // internal registers for SPI shift
-  reg  [15:0] ADC_address;
-  reg  [15:0] ADC_data;
-  reg   [2:0] ADC_state;
-  reg   [3:0] bit_cnt;
+  reg  [2:0] ADCAddress;			// current register address
+  reg  [2:0] NextADCAddress;			// next ADC address			
+  reg  [15:0] ADCData;				// shifted data
+  reg   [4:0] BitCnt;				// bit counter in shift sequence
 
 // internal registers. When set, clear AIN1 or AIN2
   reg clear_AIN1;                       // asserted by AXI read block to clear a peak hold reg when next accessed
   reg clear_AIN2;
   reg release_clear_AIN1;               // signal to AXI red block
   reg release_clear_AIN2;
+
 //
 // generate 31.25MHz clock
 //
@@ -106,6 +108,7 @@ module AXI_SPI_ADC #
     if(clk_divide == 2'b11)             // if count =3, reset to 0
     begin
       clk_divide <= 2'b00;
+
     end
     else
     begin
