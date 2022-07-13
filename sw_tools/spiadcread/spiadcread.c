@@ -93,7 +93,7 @@ int main(void)
 	//
 	// now read the user access register (it should have a date code)
 	//
-	RegisterValue = RegisterRead(0xB000);				// read the user access register
+	RegisterValue = RegisterRead(0x4004);				// read the user access register
 	printf("User register = %08x\n", RegisterValue);
 
 	//
