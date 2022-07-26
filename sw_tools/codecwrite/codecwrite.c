@@ -667,7 +667,7 @@ int main(int argc, char *argv[])
 	printf("User register = %08x\n", RegisterValue);
 
 //
-// now write all reset registers, or one specificed register
+// now write all reset registers, or one specified register
 //
 	if(argc==2)					// just one reg from command line
 	{
