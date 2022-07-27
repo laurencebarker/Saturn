@@ -202,6 +202,12 @@ set_false_path -to [get_ports iic_rtl_0_scl_io]
 set_false_path -from [get_ports iic_rtl_0_sda_io]
 set_false_path -to [get_ports iic_rtl_0_sda_io]
 
+##
+## clock monitor paths
+##
+set_false_path -from [get_pins saturn_top_i/clock_generator/clk_wiz_0/inst/mmcm_adv_inst/CLKOUT0] -to [get_pins saturn_top_i/clock_monitor_0/inst/ck3_rega_reg/D]
+set_false_path -from [get_ports EMC_CLK] -to [get_pins saturn_top_i/clock_monitor_0/inst/ck2_rega_reg/D]
+set_false_path -from [get_pins saturn_top_i/clock_generator/clk_wiz_0/inst/mmcm_adv_inst/CLKOUT0] -to [get_pins saturn_top_i/clock_monitor_0/inst/ck0_rega_reg/D]
 
 
 
