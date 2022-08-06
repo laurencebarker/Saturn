@@ -97,7 +97,11 @@ AXI_GPIO_Sim_wrapper UUT
     .config_reg256_4        (config_reg256_4),
     .config_reg256_5        (config_reg256_5),
     .config_reg256_6        (config_reg256_6),
-    .config_reg256_7        (config_reg256_7)
+    .config_reg256_7        (config_reg256_7),
+    .SPICk                  (SPICk),
+    .SPIData                (SPIData),
+    .SPILoad_0              (SPILoad_0),
+    .SPILoad_1              (SPILoad_1)
 );
 
 // Generate the clock : 50 MHz    
@@ -343,6 +347,42 @@ addr = 32'h0000201C;
 data = 32'h00000000;
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read axi-lite config256 reg 7 after write: data = 0x%x", data);
+
+
+//
+// now test the AXILite shift register
+// 
+$display("testing AXILite SPI shift registers");
+$display("expecting stall on 2nd write until 1st shift completes");
+#100ns
+addr = 32'h00003000;
+data = 32'h01234567;
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+#100ns
+addr = 32'h00003004;
+data = 32'hdeadbeef;
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+
+//
+// gap, then 3 shifts in quick succession
+//
+#10us
+addr = 32'h00003000;
+data = 32'h00001112;
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+#100ns
+addr = 32'h00003000;
+data = 32'h00002224;
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+#100ns
+addr = 32'h00003000;
+data = 32'h00003336;
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+
+
+
+
+
 
 
      
