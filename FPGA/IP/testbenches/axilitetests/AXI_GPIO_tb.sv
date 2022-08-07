@@ -362,6 +362,10 @@ master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
 addr = 32'h00003004;
 data = 32'hdeadbeef;
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+#100ns
+addr = 32'h00003008;
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("read axi-lite SPI writer status while busy: data = 0x%x", data);
 
 //
 // gap, then 3 shifts in quick succession
@@ -378,8 +382,19 @@ master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
 addr = 32'h00003000;
 data = 32'h00003336;
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+#100ns
+addr = 32'h00003000;
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("read axi-lite SPI writer reg 0 after write: data = 0x%x", data);
+#100ns
+addr = 32'h00003004;
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("read axi-lite SPI writer reg 1 after write: data = 0x%x", data);
 
-
+#10us
+addr = 32'h00003008;
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("read axi-lite SPI writer status after write: data = 0x%x", data);
 
 
 
