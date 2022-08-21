@@ -16,7 +16,7 @@
 #ifndef __saturnregisters_h
 #define __saturnregisters_h
 
-#include "saturntypes.h"
+#include "../common/saturntypes.h"
 
 #define VNUMDDC 10                                  // downconverters available
 
@@ -55,6 +55,77 @@ eFixed0Hz,
 eTXDDS,
 eCWKeyer
 } ETXModulationSource;
+
+
+
+
+//
+// FPGA register map
+//
+#define VADDRDDC0REG 0x0
+#define VADDRDDC1REG 0x4
+#define VADDRDDC2REG 0xC
+#define VADDRDDC3REG 0x10
+#define VADDRDDC4REG 0x18
+#define VADDRDDC5REG 0x1C
+#define VADDRDDC6REG 0x1004
+#define VADDRDDC7REG 0x1008
+#define VADDRDDC8REG 0x1010
+#define VADDRDDC9REG 0x1014
+#define VADDRDDC0_1CONFIG 0x08
+#define VADDRDDC2_3CONFIG 0x14
+#define VADDRDDC4_5CONFIG 0x1000
+#define VADDRDDC6_7CONFIG 0x100C
+#define VADDRDDC8_9CONFIG 0x1018
+#define VADDRRXTESTDDSREG 0X101C
+#define VADDRKEYERCONFIGREG 0x2000
+#define VADDRCODECCONFIGREG 0x2004
+#define VADDRTXCONFIGREG 0x2008
+#define VADDRTXDUCREG 0x200C
+#define VADDRTXMODTESTREG 0x2010
+#define VADDRRFGPIOREG 0x2014
+#define VADDRADCCTRLREG 0x2018
+#define VADDRDACCTRLREG 0x201C
+#define VADDRDEBUGLEDREG 0x3000
+#define VADDRSTATUSREG 0x1000
+#define VADDRADCOVERFLOWBASE 0x5000
+#define VADDRFIFOMON0BASE 0x6000
+#define VADDRFIFOMON1BASE 0x7000
+#define VADDRFIFOMON2BASE 0x8000
+#define VADDRFIFOMON3BASE 0x9000
+#define VADDRALEXADCBASE 0xA000
+#define VADDRCWKEYERRAM 0x1C000                 // keyer RAM mapped here
+#define VADDRALEXSPIREG 0x0B000
+#define VADDRCONFIGSPIREG 0x10000
+#define VADDRCODECI2CREG 0x14000
+#define VADDRXADCREG 0x18000                    // on-chip XADC (temp, VCC...)
+
+
+
+
+//
+// DDC register addresses
+//
+
+//
+// addresses of the DDC frequency registers
+//
+extern uint32_t DDCRegisters[VNUMDDC];
+
+//
+// addresses of the DDC config registers
+//
+extern uint32_t DDCConfigRegs[VNUMDDC];
+
+//
+// addresses of the FIFO monitors
+//
+extern uint32_t FIFOMonitorAddresses[];
+
+//
+// read/write addresses on the AXI4 bus for DMA transfers
+//
+extern uint32_t FIFORWAddresses[];
 
 
 

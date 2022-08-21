@@ -31,7 +31,7 @@
 #define VMEMBUFFERSIZE 32768										// memory buffer to reserve
 #define AXIBaseAddress 0x10000									// address of StreamRead/Writer IP
 
-#include "hwaccess.h"
+#include "../common/hwaccess.h"
 
 
 //
@@ -155,21 +155,3 @@ void RegisterWrite(uint32_t Address, uint32_t Data)
 
 
 
-//
-// 8 bit Codec register read over the AXILite bus via I2C
-//
-unsigned int CodecRegisterRead(unsigned int Address)
-{
-	unsigned int Result = 0;
-
-	return Result;
-}
-
-
-//
-// 8 bit Codec register write over the AXILite bus via I2C
-//
-void CodecRegisterWrite(unsigned int Address, unsigned int Data)
-{
-	
-}

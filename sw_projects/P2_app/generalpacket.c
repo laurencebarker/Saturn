@@ -6,7 +6,6 @@
 //
 // copyright Laurence Barker November 2021
 // licenced under GNU GPL3
-// derived from Pavel Demin code 
 //
 // generalpacket.c:
 //
@@ -19,7 +18,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include "generalpacket.h"
-#include "saturnregisters.h"
+#include "../common/saturnregisters.h"
 
 
 

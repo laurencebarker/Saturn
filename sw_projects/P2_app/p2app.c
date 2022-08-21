@@ -6,7 +6,6 @@
 //
 // copyright Laurence Barker November 2021
 // licenced under GNU GPL3
-// derived from Pavel Demin code 
 //
 // p2app.c:
 //
@@ -34,8 +33,12 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 
-#include "hwaccess.h"                     // access to PCIe read & write
-#include "saturnregisters.h"              // register I/O for Saturn
+#include "../common/saturntypes.h"
+#include "../common/hwaccess.h"                     // access to PCIe read & write
+#include "../common/saturnregisters.h"              // register I/O for Saturn
+#include "../common/codecwrite.h"                   // codec register I/O for Saturn
+#include "../common/version.h"                      // version I/O for Saturn
+
 #include "threaddata.h"
 #include "generalpacket.h"
 #include "IncomingDDCSpecific.h"
@@ -246,13 +249,21 @@ int main(void)
   struct msghdr datagram;                                           // multiple incoming message header
 
 //
-// setup Orion hardware
+// setup Saturn hardware
 //
+  PrintVersionInfo();
   OpenXDMADriver();
   CodecInitialise();
   InitialiseDACAttenROMs();
   InitialiseCWKeyerRamp();
   SetCWSidetoneEnabled(true);
+
+  //
+  // debug code
+  //
+  RegisterWrite(VADDRRXTESTDDSREG, 66409813);                       // test DDS to 1.9MHz
+
+
   
   //
   // create socket for incoming data on the command port

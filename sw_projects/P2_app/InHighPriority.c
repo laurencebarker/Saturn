@@ -6,7 +6,6 @@
 //
 // copyright Laurence Barker November 2021
 // licenced under GNU GPL3
-// derived from Pavel Demin code 
 //
 // InHighPriority.c:
 //
@@ -16,7 +15,7 @@
 
 #include "threaddata.h"
 #include <stdint.h>
-#include "saturntypes.h"
+#include "../common/saturntypes.h"
 #include "InHighPriority.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -24,7 +23,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include "saturnregisters.h"
+#include "../common/saturnregisters.h"
 
 
 
@@ -83,18 +82,19 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       SetMOX(IsTXMode);
 
       //
-      // Litefury current test code - to be removed eventually
+      // Saturn current test code - to be removed eventually
       // get DDC0 phase word and send to FPGA
       DDCPhaseIncrement = ntohl(*(uint32_t *)(UDPInBuffer+9));
       printf("DDC0 delta phi = %d\n", DDCPhaseIncrement);
-      RegisterWrite(0xA008, DDCPhaseIncrement);
+      RegisterWrite(0x0004, DDCPhaseIncrement);                 // short term bodge!
+      SetDDCFrequency(0, DDCPhaseIncrement, true);
 //
 // now properly decode DDC frequencies
 //
       for (i=0; i<VNUMDDC; i++)
       {
         LongWord = ntohl(*(uint32_t *)(UDPInBuffer+i*4+9));
-        SetDDCFrequency(i, LongWord, true);
+//        SetDDCFrequency(i, LongWord, true);                   // temporarily set above
       }
       //
       // DUC frequency & drive level

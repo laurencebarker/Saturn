@@ -6,7 +6,6 @@
 //
 // copyright Laurence Barker November 2021
 // licenced under GNU GPL3
-// derived from Pavel Demin code 
 //
 // OutDDCIQ.c:
 //
@@ -16,7 +15,7 @@
 
 #include "threaddata.h"
 #include <stdint.h>
-#include "saturntypes.h"
+#include "../common/saturntypes.h"
 #include "OutMicAudio.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -25,7 +24,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
-#include "saturnregisters.h"
+#include "../common/saturnregisters.h"
+#include "../common/saturndrivers.h"
+
 
 
 // temp variable for getting mic sample rate correct
@@ -40,8 +41,7 @@ extern uint32_t TransferredIQSamples;
 #define VALIGNMENT 4096                             // buffer alignment
 #define VBASE 0x1000									              // DMA start at 4K into buffer
 #define VBASE 0x1000                                // offset into I/Q buffer for DMA to start
-#define VDMATRANSFERSIZE 4096                       // read 4K at a time
-#define AXIBaseAddress 0x18000									    // address of StreamRead/Writer IP (Litefury only!)
+#define VDMATRANSFERSIZE 4096                       // read 4K at a time  *** DEBUG amount***
 
 #define VDDCPACKETSIZE 1444
 #define VIQSAMPLESPERFRAME 238                      // total I/Q samples in one DDC packet
@@ -70,6 +70,7 @@ void *OutgoingDDCIQ(void *arg)
 	uint32_t Depth = 0;
 	int DMAReadfile_fd = -1;											  // DMA read file device
 	uint32_t RegisterValue;
+    bool FIFOOverflow;
 
 
   struct ThreadSocketData *ThreadData;            // socket etc data for this thread
@@ -105,6 +106,7 @@ void *OutgoingDDCIQ(void *arg)
 
 //
 // open DMA device driver
+//    this will probably have to move, as there won't be enough of them!
 //
 	DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDWR);
 	if(DMAReadfile_fd < 0)
@@ -113,18 +115,18 @@ void *OutgoingDDCIQ(void *arg)
 		InitError = true;
 	}
 
-
 //
-// write 0 to GPIO to clear FIFO; then set 2 to GPIO for normal operation
+// now initialise Saturn hardware.
+// ***This os debug code at the moment. ***
+// clear FIFO
 // then read depth
 //
-	RegisterWrite(0xA000, 0);				// write to the GPIO register
-	RegisterWrite(0xA000, 2);				// write to the GPIO register
-	printf("GPIO Register written with value=0 then 2 to reset FIFO\n");
-	RegisterValue = RegisterRead(0x9000);				// read the FIFO Depth register
+    SetupFIFOMonitorChannel(0, 0, 2048, false, false);
+    ResetDDCFIFO(0);
+    RegisterValue = ReadFIFOMonitorChannel(0, 0, &FIFOOverflow);				// read the FIFO Depth register
 	printf("FIFO Depth register = %08x (should be 0)\n", RegisterValue);
 	Depth=0;
-  TransferredIQSamples = 0;
+    TransferredIQSamples = 0;
 
 
 //
@@ -161,15 +163,15 @@ void *OutgoingDDCIQ(void *arg)
     datagram.msg_namelen = sizeof(DestAddr);
 
   //
-  // write 3 to GPIO to enable FIFO writes
+  // enable Saturn DDC to transfer data
   //
-    RegisterWrite(0xA000, 3);				// write to the GPIO register
-    printf("GPIO Register written with value=3, enabling writes\n");
+    EnableRXFIFOChannels(eDDC0_1, true, false);
+    printf("enabled DDC\n");
     while(!InitError && SDRActive)
     {
     
       //
-      // while there is enough I/Q data, make DDC Packets
+      // while there is enough I/Q data in ARM memory, make DDC Packets
       //
       while((IQHeadPtr - IQReadPtr)>VIQBYTESPERFRAME)
       {
@@ -210,17 +212,17 @@ void *OutgoingDDCIQ(void *arg)
   //
   // now wait until there is data, then DMA it
   //
-      Depth = RegisterRead(0x9000);				// read the user access register
+      Depth = ReadFIFOMonitorChannel(0, 0, &FIFOOverflow);				// read the FIFO Depth register
   //		printf("read: depth = %d\n", Depth);
       while(Depth < 512)			// 512 locations = 4K bytes
       {
         usleep(1000);								// 1ms wait
-        Depth = RegisterRead(0x9000);				// read the user access register
-  //			printf("read: depth = %d\n", Depth);
+        Depth = ReadFIFOMonitorChannel(0, 0, &FIFOOverflow);				// read the FIFO Depth register
+    //			printf("read: depth = %d\n", Depth);
       }
 
   //		printf("DMA read %d bytes from destination to base\n", VDMATRANSFERSIZE);
-      DMAReadFromFPGA(DMAReadfile_fd, IQBasePtr, VDMATRANSFERSIZE, AXIBaseAddress);
+      DMAReadFromFPGA(DMAReadfile_fd, IQBasePtr, VDMATRANSFERSIZE, FIFORWAddresses[0]);
       IQHeadPtr = IQBasePtr + VDMATRANSFERSIZE;
     }     // end of while(!InitError) loop
   }
@@ -260,7 +262,7 @@ void HandlerSetDDCEnabled(unsigned int DDC, bool Enabled)
     SocketData[VPORTDDCIQ0 + DDC].Cmdid |= VBITDDCENABLE;
     printf("DDC %d enabled\n", DDC);
   }
-  SetDDCEnabled(DDC, Enabled);                          // placeholder - move tohandler
+  //SetDDCEnabled(DDC, Enabled);                          // placeholder - move tohandler
 }
 
 
@@ -279,7 +281,7 @@ void HandlerSetDDCInterleaved(unsigned int DDC, bool Interleaved)
     SocketData[VPORTDDCIQ0 + DDC].Cmdid |= VBITINTERLEAVE;
     printf("DDC %d interleave enabled\n", DDC);
   }
-  SetDDCInterleaved(DDC, Interleaved);      // placeholder
+  //SetDDCInterleaved(DDC, Interleaved);      // placeholder
 }
 
 
@@ -291,5 +293,5 @@ void HandlerSetDDCInterleaved(unsigned int DDC, bool Interleaved)
 void HandlerSetP2SampleRate(unsigned int DDC, unsigned int SampleRate)
 {
   SocketData[VPORTDDCIQ0 + DDC].DDCSampleRate = SampleRate;
-  SetP2SampleRate(DDC, SampleRate);         // do set this here!
+  //SetP2SampleRate(DDC, SampleRate);         // do set this here!
 }

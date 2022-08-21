@@ -6,7 +6,6 @@
 //
 // copyright Laurence Barker November 2021
 // licenced under GNU GPL3
-// derived from Pavel Demin code 
 //
 // OutHighPriority.c:
 //
@@ -16,7 +15,7 @@
 
 #include "threaddata.h"
 #include <stdint.h>
-#include "saturntypes.h"
+#include "../common/saturntypes.h"
 #include "OutHighPriority.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -25,6 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
+#include "../common/saturnregisters.h"
 
 
 

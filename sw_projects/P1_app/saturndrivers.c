@@ -22,28 +22,6 @@
 
 
 //
-// register addresses
-// DDC mox control is in the DDC Config registers
-uint32_t DDCConfigAddresses[] =
-{
-	0x0008,							// DDC 0 & 1 config
-	0x0014,							// DDC 2 & 3 config
-	0x0020,							// DDC 4 & 5 config
-	0x002C,							// DDC 6 & 7 config
-	0x0038							// DDC 8 & 9 config
-};
-
-
-uint32_t FIFOMonitorAddresses[] =
-{
-	0x3000,							// FIFO mon 0: DDC 0-3
-	0x3100,							// FIFO mon 1: DDC 4-7
-	0x3200,							// FIFO mon 2: DDC 8, 9,
-	0x3300							// FIFO mon 3: TX DUC, Codec RX, Codec TX
-};
-
-
-//
 // void SetupFIFOMonitorChannel(uint32_t Monitor, uint32_t Channel, uint32_t Depth, bool IsWriteFIFO, bool EnableInterrupt);
 //
 // Setup a single FIFO monitor channel.
@@ -112,12 +90,31 @@ void EnableRXFIFOChannels(EDDCSelect DDCNum, bool Enabled, bool Interleaved)
 	uint32_t Address;							// register address
 	uint32_t Data;								// register content
 
-	Address = DDCConfigAddresses[(int)DDCNum];			// DDC config register address
-	Data = RegisterRead(Address);						// read current content
-	Data &= 0xFFFCFFFF;									// clear bits 16, 17
+	Address = DDCConfigRegs[2*(int)DDCNum];		// DDC config register address
+	Data = RegisterRead(Address);				// read current content
+	Data &= 0xFFFCFFFF;							// clear bits 16, 17
 	if (Enabled)
-		Data &= ~0x00020000;								// bit 17 
+		Data &= ~0x00020000;					// bit 17 
 	if (Interleaved)
-		Data &= ~0x00010000;								// bit 16
-	RegisterWrite(Address, Data);						// write back
+		Data &= ~0x00010000;					// bit 16
+	RegisterWrite(Address, Data);				// write back
+}
+
+
+
+
+//
+// reset a DDC FIFO (note they are reset on DDC pairs)
+//
+void ResetDDCFIFO(EDDCSelect DDCNum)
+{
+	uint32_t Address;							// register address
+	uint32_t Data;								// register content
+
+	Address = DDCConfigRegs[2 * (int)DDCNum];		// DDC config register address
+	Data = RegisterRead(Address);				// read current content
+	Data &= 0xFFFBFFFF;							// clear bits 18
+	RegisterWrite(Address, Data);				// write back
+	Data |= 00040000;							// set bit 18
+	RegisterWrite(Address, Data);				// write back
 }

@@ -14,8 +14,8 @@
 //////////////////////////////////////////////////////////////
 
 
-#include "saturnregisters.h"
-#include "hwaccess.h"                   // low level access
+#include "../common/saturnregisters.h"
+#include "../common/hwaccess.h"                   // low level access
 #include <stdlib.h>                     // for function min()
 #include <math.h>
 
@@ -136,50 +136,12 @@ unsigned int GCodecAnaloguePath;                    // value written in Codec an
 #define VCODECRESETREG 15                           // reset register
 
 
+
+
+
 //
-// FPGA register map
+// addresses of the DDC frequency registers
 //
-#define VADDRDDC0REG 0x0
-#define VADDRDDC1REG 0x4
-#define VADDRDDC2REG 0xC
-#define VADDRDDC3REG 0x10
-#define VADDRDDC4REG 0x18
-#define VADDRDDC5REG 0x1C
-#define VADDRDDC6REG 0x1004
-#define VADDRDDC7REG 0x1008
-#define VADDRDDC8REG 0x1010
-#define VADDRDDC9REG 0x1014
-#define VADDRDDC0_1CONFIG 0x08
-#define VADDRDDC2_3CONFIG 0x14
-#define VADDRDDC4_5CONFIG 0x1000
-#define VADDRDDC6_7CONFIG 0x100C
-#define VADDRDDC8_9CONFIG 0x1018
-#define VADDRRXTESTDDSREG 0X101C
-#define VADDRKEYERCONFIGREG 0x2000
-#define VADDRCODECCONFIGREG 0x2004
-#define VADDRTXCONFIGREG 0x2008
-#define VADDRTXDUCREG 0x200C
-#define VADDRTXMODTESTREG 0x2010
-#define VADDRRFGPIOREG 0x2014
-#define VADDRADCCTRLREG 0x2018
-#define VADDRDACCTRLREG 0x201C
-#define VADDRDEBUGLEDREG 0x3000
-#define VADDRSTATUSREG 0x1000
-#define VADDRUSERVERSIONREG 0x4004              // user defined version register
-#define VADDRADCOVERFLOWBASE 0x5000
-#define VADDRFIFOMON0BASE 0x6000
-#define VADDRFIFOMON1BASE 0x7000
-#define VADDRFIFOMON2BASE 0x8000
-#define VADDRFIFOMON3BASE 0x9000
-#define VADDRALEXADCBASE 0xA000
-#define VADDRCWKEYERRAM 0x1C000                 // keyer RAM mapped here
-#define VADDRALEXSPIREG 0x0B000
-#define VADDRCONFIGSPIREG 0x10000
-#define VADDRCODECI2CREG 0x14000
-#define VADDRXADCREG 0x18000                    // on-chip XADC (temp, VCC...)
-
-
-
 uint32_t DDCRegisters[VNUMDDC] =
 {
   VADDRDDC0REG,
@@ -194,6 +156,9 @@ uint32_t DDCRegisters[VNUMDDC] =
   VADDRDDC9REG,
 };
 
+//
+// addresses of the DDC config registers
+//
 uint32_t DDCConfigRegs[VNUMDDC] = 
 {
   VADDRDDC0_1CONFIG,                            // 0 & 1
@@ -207,6 +172,38 @@ uint32_t DDCConfigRegs[VNUMDDC] =
   VADDRDDC8_9CONFIG,                            // 8 & 9
   VADDRDDC8_9CONFIG
 };
+
+
+//
+// addresses of the FIFO monitors
+//
+uint32_t FIFOMonitorAddresses[] =
+{
+    0x6000,							// FIFO mon 0: DDC 0-3
+    0x7000,							// FIFO mon 1: DDC 4-7
+    0x8000,							// FIFO mon 2: DDC 8, 9,
+    0x9000							// FIFO mon 3: TX DUC, Codec RX, Codec TX
+};
+
+
+//
+// read/write addresses on the AXI4 bus for DMA transfers
+//
+uint32_t FIFORWAddresses[] = 
+{
+    0x00000,                        // DDC0, and DUC TX
+    0x10000,                        // DDC1
+    0x20000,                        // DDC2
+    0x30000,                        // DDC3
+    0x40000,                        // DDC4
+    0x50000,                        // DDC5
+    0x60000,                        // DDC6
+    0x70000,                        // DDC7
+    0x80000,                        // DDC8
+    0x90000,                        // DDC9
+    0xA0000                         // Codec Audio
+}
+
 
 //
 // ALEX SPI registers
@@ -553,7 +550,7 @@ void SetDDCFrequency(unsigned int DDC, unsigned int Value, bool IsDeltaPhase)
     {
         DDCDeltaPhase[DDC] = DeltaPhase;        // store this delta phase
         RegAddress =DDCRegisters[DDC];          // get DDC reg address, 
-//        RegisterWrite(VADDRTXDUCREG, DeltaPhase);  // and write to it
+        RegisterWrite(RegAddress, DeltaPhase);  // and write to it
     }
 }
 
@@ -1778,6 +1775,8 @@ unsigned int GetAnalogueIn(unsigned int AnalogueSelect)
 //
 
 
+
+
 //
 // CodecInitialise(void)
 // initialise the CODEC, with the register values that don't normally change
@@ -1787,14 +1786,14 @@ void CodecInitialise(void)
 {
     GCodecLineGain = 0;                                     // Codec left line in gain register
     GCodecAnaloguePath = 0x14;                              // Codec analogue path register (mic input, no boost)
-//    CodecRegisterWrite(VCODECRESETREG, 0x0);          // reset register: reset deveice
-//    CodecRegisterWrite(VCODECACTIVATIONREG, 0x1);     // digital activation set to ACTIVE
-//    CodecRegisterWrite(VCODECANALOGUEPATHREG, GCodecAnaloguePath);        // mic input, no boost
-//    CodecRegisterWrite(VCODECPOWERDOWNREG, 0x0);      // all elements powered on
-//    CodecRegisterWrite(VCODECDIGITALFORMATREG, 0x2);  // slave; no swap; right when LRC high; 16 bit, I2S
-//    CodecRegisterWrite(VCODECSAMPLERATEREG, 0x0);     // no clock divide; rate ctrl=0; normal mode, oversample 256Fs
-//    CodecRegisterWrite(VCODECDIGITALPATHREG, 0x0);    // no soft mute; no deemphasis; ADC high pss filter enabled
-//    CodecRegisterWrite(VCODECLLINEVOLREG, GCodecLineGain);        // line in gain=0
+    CodecRegisterWrite(VCODECRESETREG, 0x0);          // reset register: reset deveice
+    CodecRegisterWrite(VCODECACTIVATIONREG, 0x1);     // digital activation set to ACTIVE
+    CodecRegisterWrite(VCODECANALOGUEPATHREG, GCodecAnaloguePath);        // mic input, no boost
+    CodecRegisterWrite(VCODECPOWERDOWNREG, 0x0);      // all elements powered on
+    CodecRegisterWrite(VCODECDIGITALFORMATREG, 0x2);  // slave; no swap; right when LRC high; 16 bit, I2S
+    CodecRegisterWrite(VCODECSAMPLERATEREG, 0x0);     // no clock divide; rate ctrl=0; normal mode, oversample 256Fs
+    CodecRegisterWrite(VCODECDIGITALPATHREG, 0x0);    // no soft mute; no deemphasis; ADC high pss filter enabled
+    CodecRegisterWrite(VCODECLLINEVOLREG, GCodecLineGain);        // line in gain=0
 
 }
 

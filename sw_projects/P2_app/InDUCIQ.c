@@ -6,7 +6,6 @@
 //
 // copyright Laurence Barker November 2021
 // licenced under GNU GPL3
-// derived from Pavel Demin code 
 //
 // InDUCIQ.c:
 //
@@ -16,7 +15,7 @@
 
 #include "threaddata.h"
 #include <stdint.h>
-#include "saturntypes.h"
+#include "../common/saturntypes.h"
 #include "InDUCIQ.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -24,6 +23,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include "../common/saturnregisters.h"
 
 
 

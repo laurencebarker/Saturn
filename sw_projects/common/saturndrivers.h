@@ -17,7 +17,7 @@
 #define __saturndrivers_h
 
 #include <stdint.h>
-#include "saturntypes.h"
+#include "../common/saturntypes.h"
 
 
 //
@@ -76,6 +76,11 @@ uint32_t ReadFIFOMonitorChannel(uint32_t Monitor, uint32_t Channel, bool* Overfl
 //
 void EnableRXFIFOChannels(EDDCSelect DDCNum, bool Enabled, bool Interleaved);
 
+
+//
+// reset a DDC FIFO (note they are reset on DDC pairs)
+//
+void ResetDDCFIFO(EDDCSelect DDCNum);
 
 
 #endif

@@ -6,7 +6,6 @@
 //
 // copyright Laurence Barker November 2021
 // licenced under GNU GPL3
-// derived from Pavel Demin code 
 //
 // incomingDUCspecific.c:
 //
@@ -25,6 +24,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include "../common/saturnregisters.h"
 
 
 
