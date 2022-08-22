@@ -19,7 +19,7 @@
 
 
 #include <stdint.h>
-#include "saturntypes.h"
+#include "../common/saturntypes.h"
 
 
 #define VDDCSPECIFICSIZE 1444           // DDC specific packet size in bytes

@@ -1,6 +1,16 @@
 # Outputs
 sw/build/*
 
+dma_from_device
+dma_to_device
+performance
+reg_rw
+userio_rw
+output_datafile0_4k.bin
+output_datafile1_4k.bin
+output_datafile2_4k.bin
+output_datafile3_4k.bin
+
 #-------------
 
 # Prerequisites

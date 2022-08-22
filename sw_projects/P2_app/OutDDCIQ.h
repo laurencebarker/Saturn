@@ -19,7 +19,7 @@
 
 
 #include <stdint.h>
-#include "saturntypes.h"
+#include "../common/saturntypes.h"
 
 
 #define VDDCPACKETSIZE 1444             // each DDC I/Qpacket

@@ -113,5 +113,8 @@ void ResetDDCFIFO(EDDCSelect DDCNum)
 
 	Address = DDCConfigRegs[2*(int)DDCNum];				// DDC config register address
 	Data = RegisterRead(Address);						// read current content
-	Data = Data & ()
+	Data = Data & ~(1<<18);
+	RegisterWrite(Address, Data);						// set reset bit to zero
+	Data = Data | (1<<18);
+	RegisterWrite(Address, Data);						// set reset bit to 1
 }

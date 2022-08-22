@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 #include <netinet/in.h>
-#include "saturntypes.h"
+#include "../common/saturntypes.h"
 
 
 //

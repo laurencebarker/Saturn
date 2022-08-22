@@ -19,7 +19,7 @@
 
 
 #include <stdint.h>
-#include "saturntypes.h"
+#include "../common/saturntypes.h"
 
 
 #define VDUCIQSIZE 1444                 // TX DUC I/Q data packet

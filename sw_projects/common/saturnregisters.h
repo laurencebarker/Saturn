@@ -17,6 +17,7 @@
 #define __saturnregisters_h
 
 #include "../common/saturntypes.h"
+#include <stdint.h>
 
 #define VNUMDDC 10                                  // downconverters available
 

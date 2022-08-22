@@ -202,7 +202,7 @@ uint32_t FIFORWAddresses[] =
     0x80000,                        // DDC8
     0x90000,                        // DDC9
     0xA0000                         // Codec Audio
-}
+};
 
 
 //

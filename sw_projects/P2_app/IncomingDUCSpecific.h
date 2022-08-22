@@ -19,7 +19,7 @@
 
 
 #include <stdint.h>
-#include "saturntypes.h"
+#include "../common/saturntypes.h"
 
 
 #define VDUCSPECIFICSIZE 60             // DUC specific packet

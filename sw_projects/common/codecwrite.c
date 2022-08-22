@@ -21,7 +21,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "xiic_regdefs.h"
+#include "../common/xiic_regdefs.h"
 #include "../common/hwaccess.h"
 
 //

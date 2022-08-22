@@ -16,7 +16,7 @@
 
 #include "threaddata.h"
 #include <stdint.h>
-#include "saturntypes.h"
+#include "../common/saturntypes.h"
 #include "IncomingDUCSpecific.h"
 #include <errno.h>
 #include <stdlib.h>

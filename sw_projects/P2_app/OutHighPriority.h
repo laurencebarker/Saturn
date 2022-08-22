@@ -19,7 +19,7 @@
 
 
 #include <stdint.h>
-#include "saturntypes.h"
+#include "../common/saturntypes.h"
 
 
 #define VHIGHPRIOTIYFROMSDRSIZE 60      // high priority packet from SDR
