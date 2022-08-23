@@ -251,8 +251,8 @@ int main(void)
 //
 // setup Saturn hardware
 //
-  PrintVersionInfo();
   OpenXDMADriver();
+  PrintVersionInfo();
   CodecInitialise();
   InitialiseDACAttenROMs();
   InitialiseCWKeyerRamp();

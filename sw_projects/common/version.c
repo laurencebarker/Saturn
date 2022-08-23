@@ -31,6 +31,8 @@
 
 #include "../common/version.h"
 #include "../common/saturnregisters.h"
+#include "../common/hwaccess.h"
+
 
 
 #define VADDRUSERVERSIONREG 0x4004              // user defined version register
@@ -78,7 +80,8 @@ void PrintVersionInfo(void)
 	uint32_t ClockInfo;						// clock status
 	uint32_t Cntr;
 
-	char* ProdString, SWString;
+	char* ProdString;
+	char* SWString;
 
 	//
 	// read the raw data from registers
@@ -88,7 +91,7 @@ void PrintVersionInfo(void)
 	DateCode = RegisterRead(VADDRUSERVERSIONREG);
 	printf("FPGA BIT file data code = %08x\n", DateCode);
 
-	ClockInfo = (SoftwareInformation && 0xF);				// 4 clock bits
+	ClockInfo = (SoftwareInformation & 0xF);				// 4 clock bits
 	SWVer = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version
 	SWID = SoftwareInformation >> 20;						// 12 bit software ID
 
@@ -98,15 +101,15 @@ void PrintVersionInfo(void)
 	//
 	// now chack if IDs are valid and print strings
 	//
-	if (ProdId > VMAXPRODUCTID)
+	if (ProdID > VMAXPRODUCTID)
 		ProdString = ProductIDStrings[0];
 	else
-		ProdString = ProductIDStrings[ProdId];
+		ProdString = ProductIDStrings[ProdID];
 
-	if (SWId > VMAXPRODUCTID)
+	if (SWID > VMAXSWID)
 		SWString = SWIDStrings[0];
 	else
-		SWString = SWIDStrings[SWId];
+		SWString = SWIDStrings[SWID];
 
 	printf(" Product: %s; Version = %d\n", ProdString, ProdVer);
 	printf(" Software loaded: %s; SW Version = %d\n", SWString, SWVer);
@@ -115,12 +118,12 @@ void PrintVersionInfo(void)
 		printf("All clocks present\n");
 	else
 	{
-		for (Cntr = 0; Cntr < 2; Cntr++)
+		for (Cntr = 0; Cntr < 4; Cntr++)
 		{
 			if (ClockInfo & 1)
-				Printf("%s present", ClockStrings[Cntr]);
+				printf("%s present\n", ClockStrings[Cntr]);
 			else
-				Printf("%s not present", ClockStrings[Cntr]);
+				printf("%s not present\n", ClockStrings[Cntr]);
 			ClockInfo = ClockInfo >> 1;
 		}
 	}

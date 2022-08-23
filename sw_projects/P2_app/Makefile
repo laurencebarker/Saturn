@@ -7,11 +7,12 @@ LD = gcc
 CFLAGS = -Wall -Wextra -Wno-unused-function -g -D_GNU_SOURCE
 LDFLAGS = -lm -lpthread
 TARGET = p2app
+VPATH=.:../common
  
 # ****************************************************
 # Targets needed to bring the executable up to date
 
-OBJS=    $(TARGET).o ../common/hwaccess.o ../common/saturnregisters.o ../common/codecwrite.o ../common/saturndrivers.o generalpacket.o IncomingDDCSpecific.o  IncomingDUCSpecific.o InHighPriority.o InDUCIQ.o InSpkrAudio.o OutMicAudio.o OutDDCIQ.o OutHighPriority.o
+OBJS=    $(TARGET).o hwaccess.o saturnregisters.o codecwrite.o saturndrivers.o version.o generalpacket.o IncomingDDCSpecific.o  IncomingDUCSpecific.o InHighPriority.o InDUCIQ.o InSpkrAudio.o OutMicAudio.o OutDDCIQ.o OutHighPriority.o
 
 all: $(OBJS)
 	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS)
