@@ -1,0 +1,8 @@
+# GIT should ignore:
+ipcores.cache
+ipcores.hw
+ipcores.ip_user_files
+ipcores.sim
+ipcores.srcs
+
+.Xil
