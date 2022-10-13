@@ -1,0 +1,84 @@
+config is;
+
+DDC0 48KHz    (1 sample)
+DDC1 = 96KHz  (2 samples)
+DDC2 = 384KHz (8 samples)
+others disabled
+
+
+
+Slave received Transaction data: 8000 0000 0000 0111	// config
+Slave received Transaction data: 0000 0000 ff00 0000	// DDC0
+Slave received Transaction data: 0000 0011 ff00 0000	// DDC1
+Slave received Transaction data: 0000 0011 ff00 0001	// DDC1
+Slave received Transaction data: 0000 0022 ff00 0000	// DDC2
+Slave received Transaction data: 0000 0022 ff00 0001	// DDC2
+Slave received Transaction data: 0000 0022 ff00 0002	// DDC2
+Slave received Transaction data: 0000 0022 ff00 0003	// DDC2
+Slave received Transaction data: 0000 0022 ff00 0004	// DDC2
+Slave received Transaction data: 0000 0022 ff00 0005	// DDC2
+Slave received Transaction data: 0000 0022 ff00 0006	// DDC2
+Slave received Transaction data: 0000 0022 ff00 0007	// DDC2
+
+Slave received Transaction data: 8000 0000 0000 0111
+Slave received Transaction data: 0000 0000 ff00 0001
+Slave received Transaction data: 0000 0011 ff00 0002
+Slave received Transaction data: 0000 0011 ff00 0003
+Slave received Transaction data: 0000 0022 ff00 0008
+Slave received Transaction data: 0000 0022 ff00 0009
+Slave received Transaction data: 0000 0022 ff00 000a
+Slave received Transaction data: 0000 0022 ff00 000b
+Slave received Transaction data: 0000 0022 ff00 000c
+Slave received Transaction data: 0000 0022 ff00 000d
+Slave received Transaction data: 0000 0022 ff00 000e
+Slave received Transaction data: 0000 0022 ff00 000f
+
+Slave received Transaction data: 8000 0000 0000 0111
+Slave received Transaction data: 0000 0000 ff00 0002
+Slave received Transaction data: 0000 0011 ff00 0004
+Slave received Transaction data: 0000 0011 ff00 0005
+Slave received Transaction data: 0000 0022 ff00 0010
+Slave received Transaction data: 0000 0022 ff00 0011
+Slave received Transaction data: 0000 0022 ff00 0012
+Slave received Transaction data: 0000 0022 ff00 0013
+Slave received Transaction data: 0000 0022 ff00 0014
+Slave received Transaction data: 0000 0022 ff00 0015
+Slave received Transaction data: 0000 0022 ff00 0016
+Slave received Transaction data: 0000 0022 ff00 0017
+
+Slave received Transaction data: 8000 0000 0000 0111
+Slave received Transaction data: 0000 0000 ff00 0003
+Slave received Transaction data: 0000 0011 ff00 0006
+Slave received Transaction data: 0000 0011 ff00 0007
+Slave received Transaction data: 0000 0022 ff00 0018
+Slave received Transaction data: 0000 0022 ff00 0019
+Slave received Transaction data: 0000 0022 ff00 001a
+Slave received Transaction data: 0000 0022 ff00 001b
+Slave received Transaction data: 0000 0022 ff00 001c
+Slave received Transaction data: 0000 0022 ff00 001d
+Slave received Transaction data: 0000 0022 ff00 001e
+Slave received Transaction data: 0000 0022 ff00 001f
+
+Slave received Transaction data: 8000 0000 0000 0111
+Slave received Transaction data: 0000 0000 ff00 0004
+Slave received Transaction data: 0000 0011 ff00 0008
+Slave received Transaction data: 0000 0011 ff00 0009
+Slave received Transaction data: 0000 0022 ff00 0020
+Slave received Transaction data: 0000 0022 ff00 0021
+Slave received Transaction data: 0000 0022 ff00 0022
+Slave received Transaction data: 0000 0022 ff00 0023
+Slave received Transaction data: 0000 0022 ff00 0024
+Slave received Transaction data: 0000 0022 ff00 0025
+Slave received Transaction data: 0000 0022 ff00 0026
+Slave received Transaction data: 0000 0022 ff00 0027
+
+Slave received Transaction data: 8000 0000 0000 0111
+Slave received Transaction data: 0000 0000 ff00 0005
+Slave received Transaction data: 0000 0011 ff00 000a
+Slave received Transaction data: 0000 0011 ff00 000b
+Slave received Transaction data: 0000 0022 ff00 0028
+Slave received Transaction data: 0000 0022 ff00 0029
+Slave received Transaction data: 0000 0022 ff00 002a
+Slave received Transaction data: 0000 0022 ff00 002b
+Slave received Transaction data: 0000 0022 ff00 002c
+Slave received Transaction data: 0000 0022 ff00 002d

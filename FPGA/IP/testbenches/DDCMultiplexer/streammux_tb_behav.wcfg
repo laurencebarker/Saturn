@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="streammux_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="axi4stream_vip_pkg" />
+            <top_module name="glbl" />
+            <top_module name="streammux_tb" />
+            <top_module name="xil_common_vip_pkg" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="438.329 ns"></ZoomEndTime>
+      <Cursor1Time time="379.123 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="212"></NameColumnWidth>
+      <ValueColumnWidth column_width="66"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="28" />
+   <wave_markers>
+      <marker time="8900061" label="" />
+   </wave_markers>
+   <wvobject fp_name="/streammux_tb/mst_agent_verbosity" type="array">
+      <obj_property name="ElementShortName">mst_agent_verbosity[31:0]</obj_property>
+      <obj_property name="ObjectShortName">mst_agent_verbosity[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/slv_agent_verbosity" type="array">
+      <obj_property name="ElementShortName">slv_agent_verbosity[31:0]</obj_property>
+      <obj_property name="ObjectShortName">slv_agent_verbosity[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/clock" type="logic">
+      <obj_property name="ElementShortName">clock</obj_property>
+      <obj_property name="ObjectShortName">clock</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/reset" type="logic">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DDCconfigin" type="array">
+      <obj_property name="ElementShortName">DDCconfigin[31:0]</obj_property>
+      <obj_property name="ObjectShortName">DDCconfigin[31:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DDCconfigout" type="array">
+      <obj_property name="ElementShortName">DDCconfigout[31:0]</obj_property>
+      <obj_property name="ObjectShortName">DDCconfigout[31:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/fiforstnout" type="logic">
+      <obj_property name="ElementShortName">fiforstnout</obj_property>
+      <obj_property name="ObjectShortName">fiforstnout</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/enabledin" type="logic">
+      <obj_property name="ElementShortName">enabledin</obj_property>
+      <obj_property name="ObjectShortName">enabledin</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/activeout" type="logic">
+      <obj_property name="ElementShortName">activeout</obj_property>
+      <obj_property name="ObjectShortName">activeout</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/m_axis_tdata" type="array">
+      <obj_property name="ElementShortName">m_axis_tdata[63:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axis_tdata[63:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/enabledstate" type="array">
+      <obj_property name="ElementShortName">enabledstate[1:0]</obj_property>
+      <obj_property name="ObjectShortName">enabledstate[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/internalactive" type="logic">
+      <obj_property name="ElementShortName">internalactive</obj_property>
+      <obj_property name="ObjectShortName">internalactive</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/DDCstate" type="array">
+      <obj_property name="ElementShortName">DDCstate[1:0]</obj_property>
+      <obj_property name="ObjectShortName">DDCstate[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/enablemux" type="logic">
+      <obj_property name="ElementShortName">enablemux</obj_property>
+      <obj_property name="ObjectShortName">enablemux</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/DDCn" type="array">
+      <obj_property name="ElementShortName">DDCn[3:0]</obj_property>
+      <obj_property name="ObjectShortName">DDCn[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DDCconfigout" type="array">
+      <obj_property name="ElementShortName">DDCconfigout[31:0]</obj_property>
+      <obj_property name="ObjectShortName">DDCconfigout[31:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/DDCrates" type="array">
+      <obj_property name="ElementShortName">DDCrates[31:0]</obj_property>
+      <obj_property name="ObjectShortName">DDCrates[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/muxstate" type="array">
+      <obj_property name="ElementShortName">muxstate[2:0]</obj_property>
+      <obj_property name="ObjectShortName">muxstate[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/muxactive" type="logic">
+      <obj_property name="ElementShortName">muxactive</obj_property>
+      <obj_property name="ObjectShortName">muxactive</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/samplecount" type="array">
+      <obj_property name="ElementShortName">samplecount[5:0]</obj_property>
+      <obj_property name="ObjectShortName">samplecount[5:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/m_axis_tdata" type="array">
+      <obj_property name="ElementShortName">m_axis_tdata[63:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axis_tdata[63:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/m_axis_tvalid" type="logic">
+      <obj_property name="ElementShortName">m_axis_tvalid</obj_property>
+      <obj_property name="ObjectShortName">m_axis_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/m_axis_tready" type="logic">
+      <obj_property name="ElementShortName">m_axis_tready</obj_property>
+      <obj_property name="ObjectShortName">m_axis_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/s02_axis_tvalid" type="logic">
+      <obj_property name="ElementShortName">s02_axis_tvalid</obj_property>
+      <obj_property name="ObjectShortName">s02_axis_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/s02_axis_tready" type="logic">
+      <obj_property name="ElementShortName">s02_axis_tready</obj_property>
+      <obj_property name="ObjectShortName">s02_axis_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/s00_axis_tvalid" type="logic">
+      <obj_property name="ElementShortName">s00_axis_tvalid</obj_property>
+      <obj_property name="ObjectShortName">s00_axis_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/s00_axis_tready" type="logic">
+      <obj_property name="ElementShortName">s00_axis_tready</obj_property>
+      <obj_property name="ObjectShortName">s00_axis_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/s02_axis_tdata" type="array">
+      <obj_property name="ElementShortName">s02_axis_tdata[47:0]</obj_property>
+      <obj_property name="ObjectShortName">s02_axis_tdata[47:0]</obj_property>
+   </wvobject>
+</wave_config>
