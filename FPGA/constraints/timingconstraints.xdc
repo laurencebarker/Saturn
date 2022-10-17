@@ -197,10 +197,10 @@ set_false_path -from [get_ports pcie_reset_n]
 set_false_path -from [get_ports TX_ENABLE]
 
 
-set_false_path -from [get_ports iic_rtl_0_scl_io]
-set_false_path -to [get_ports iic_rtl_0_scl_io]
-set_false_path -from [get_ports iic_rtl_0_sda_io]
-set_false_path -to [get_ports iic_rtl_0_sda_io]
+set_false_path -from [get_ports CODEC_SPI_CLK]
+set_false_path -to [get_ports CODEC_SPI_CLK]
+set_false_path -from [get_ports CODEC_SPI_DATA]
+set_false_path -to [get_ports CODEC_SPI_DATA]
 
 ##
 ## clock monitor paths

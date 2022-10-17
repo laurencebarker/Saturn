@@ -73,8 +73,8 @@ module saturn_top_wrapper
     clock_122_in_p,
     i2srxd,
     i2stxd,
-    iic_rtl_0_scl_io,
-    iic_rtl_0_sda_io,
+    CODEC_SPI_CLK,
+    CODEC_SPI_DATA,
     nADC_CS,
     pcie_7x_mgt_rtl_0_rxn,
     pcie_7x_mgt_rtl_0_rxp,
@@ -149,8 +149,8 @@ module saturn_top_wrapper
   input clock_122_in_p;
   input i2srxd;
   output i2stxd;
-  inout iic_rtl_0_scl_io;
-  inout iic_rtl_0_sda_io;
+  inout CODEC_SPI_CLK;
+  inout CODEC_SPI_DATA;
   output [0:0]nADC_CS;
   input [3:0]pcie_7x_mgt_rtl_0_rxn;
   input [3:0]pcie_7x_mgt_rtl_0_rxp;
@@ -241,14 +241,6 @@ module saturn_top_wrapper
   wire clock_122_in_p;
   wire i2srxd;
   wire i2stxd;
-  wire iic_rtl_0_scl_i;
-  wire iic_rtl_0_scl_io;
-  wire iic_rtl_0_scl_o;
-  wire iic_rtl_0_scl_t;
-  wire iic_rtl_0_sda_i;
-  wire iic_rtl_0_sda_io;
-  wire iic_rtl_0_sda_o;
-  wire iic_rtl_0_sda_t;
   wire [0:0]nADC_CS;
   wire [3:0]pcie_7x_mgt_rtl_0_rxn;
   wire [3:0]pcie_7x_mgt_rtl_0_rxp;
@@ -261,41 +253,7 @@ module saturn_top_wrapper
   wire ref_in_10;
   wire [9:0]status_in;
 
-  IOBUF PROM_SPI_io0_iobuf
-       (.I(PROM_SPI_io0_o),
-        .IO(PROM_SPI_io0_io),
-        .O(PROM_SPI_io0_i),
-        .T(PROM_SPI_io0_t));
-  IOBUF PROM_SPI_io1_iobuf
-       (.I(PROM_SPI_io1_o),
-        .IO(PROM_SPI_io1_io),
-        .O(PROM_SPI_io1_i),
-        .T(PROM_SPI_io1_t));
-  IOBUF PROM_SPI_io2_iobuf
-       (.I(PROM_SPI_io2_o),
-        .IO(PROM_SPI_io2_io),
-        .O(PROM_SPI_io2_i),
-        .T(PROM_SPI_io2_t));
-  IOBUF PROM_SPI_io3_iobuf
-       (.I(PROM_SPI_io3_o),
-        .IO(PROM_SPI_io3_io),
-        .O(PROM_SPI_io3_i),
-        .T(PROM_SPI_io3_t));
-  IOBUF PROM_SPI_ss_iobuf_0
-       (.I(PROM_SPI_ss_o_0),
-        .IO(PROM_SPI_ss_io[0]),
-        .O(PROM_SPI_ss_i_0),
-        .T(PROM_SPI_ss_t));
-  IOBUF iic_rtl_0_scl_iobuf
-       (.I(iic_rtl_0_scl_o),
-        .IO(iic_rtl_0_scl_io),
-        .O(iic_rtl_0_scl_i),
-        .T(iic_rtl_0_scl_t));
-  IOBUF iic_rtl_0_sda_iobuf
-       (.I(iic_rtl_0_sda_o),
-        .IO(iic_rtl_0_sda_io),
-        .O(iic_rtl_0_sda_i),
-        .T(iic_rtl_0_sda_t));
+
   saturn_top saturn_top_i
        (.ADC1Ovr_In_N(ADC1Ovr_In_N),
         .ADC1Ovr_In_P(ADC1Ovr_In_P),
@@ -370,12 +328,8 @@ module saturn_top_wrapper
         .clock_122_in_p(clock_122_in_p),
         .i2srxd(i2srxd),
         .i2stxd(i2stxd),
-        .iic_rtl_0_scl_i(iic_rtl_0_scl_i),
-        .iic_rtl_0_scl_o(iic_rtl_0_scl_o),
-        .iic_rtl_0_scl_t(iic_rtl_0_scl_t),
-        .iic_rtl_0_sda_i(iic_rtl_0_sda_i),
-        .iic_rtl_0_sda_o(iic_rtl_0_sda_o),
-        .iic_rtl_0_sda_t(iic_rtl_0_sda_t),
+        .CODEC_SPI_CLK(CODEC_SPI_CLK),
+        .CODEC_SPI_DATA(CODEC_SPI_DATA),
         .nADC_CS(nADC_CS),
         .pcie_7x_mgt_rtl_0_rxn(pcie_7x_mgt_rtl_0_rxn),
         .pcie_7x_mgt_rtl_0_rxp(pcie_7x_mgt_rtl_0_rxp),

@@ -12,6 +12,7 @@
 // Description: Reader for ADC78H90. Reads data into registers; peah hold for
 //              forward/reverse power; axi4 read port.
 //              clocked by AXI clock, not ADC clock
+//              modified 13/10/2022 to add 7th analogue input
 //
 // Copyright 2022 Laurence Barker G8NJJ
 // 
@@ -80,6 +81,7 @@ module AXI_SPI_ADC #
   reg [11:0] AIN4; // 
   reg [11:0] AIN5; // holds VFWD volts
   reg [11:0] AIN6; // holds 13.8v supply voltage
+  reg [11:0] AIN7; // holds driver PA current reading
 
 // internal registers for SPI shift
   reg  [2:0] ADCAddress;			        // current register address
@@ -141,6 +143,7 @@ module AXI_SPI_ADC #
 	AIN4 <= 0;
 	AIN5 <= 0;
 	AIN6 <= 0;
+	AIN7 <= 0;
   end
   //
   // do erase on alternate ticks (every 4th clock, but out of phase with main code)
@@ -190,6 +193,7 @@ module AXI_SPI_ADC #
                     3:	AIN4 <= ADCData;
                     4:	AIN5 <= ADCData;
                     5:	AIN6 <= ADCData;
+                    6:  AIN7 <= ADCData;
                 endcase	
                 
             end
@@ -209,7 +213,7 @@ module AXI_SPI_ADC #
             if(BitCnt == 16)            // increment ADC address
             begin
                 ADCAddress <= NextADCAddress;
-                if(NextADCAddress >= 5)
+                if(NextADCAddress >= 6)
                     NextADCAddress <= 0;
                 else
                     NextADCAddress <= NextADCAddress + 1;
@@ -288,6 +292,7 @@ module AXI_SPI_ADC #
           3: rdatareg <= AIN4;
           4: rdatareg <= AIN5;
           5: rdatareg <= AIN6;
+          6: rdatareg <= AIN7;
           default: rdatareg <= 0;
         endcase
       end
