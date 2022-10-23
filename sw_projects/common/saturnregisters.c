@@ -38,7 +38,7 @@ uint32_t DUCDeltaPhase;                             // DUC frequency setting
 uint32_t GStatusRegister;                           // most recent status register setting
 uint32_t GPIORegValue;                              // value stored into GPIO
 uint32_t TXConfigRegValue;                          // value written into TX config register
-
+uint32_t DDCConfigReg;                              // vlaue written into DDC config register
 
 bool GPTTEnabled;                                   // true if PTT is enabled
 bool GPureSignalEnabled;                            // true if PureSignal is enabled
@@ -139,6 +139,20 @@ unsigned int GCodecAnaloguePath;                    // value written in Codec an
 
 
 
+
+//
+// DMA FIFO depths
+// this is the number of 64 bit FIFO locations
+//
+uint32_t DMAFIFODepths[VNUMDMAFIFO] =
+{
+   8192,            //  eRXDDCDMA,		selects RX
+  1024,             //  eTXDUCDMA,		selects TX
+  256,              //  eMicCodecDMA,	selects mic samples
+  256               //  eSpkCodecDMA	selects speaker samples
+};
+
+
 //
 // addresses of the DDC frequency registers
 //
@@ -153,36 +167,7 @@ uint32_t DDCRegisters[VNUMDDC] =
   VADDRDDC6REG,
   VADDRDDC7REG,
   VADDRDDC8REG,
-  VADDRDDC9REG,
-};
-
-//
-// addresses of the DDC config registers
-//
-uint32_t DDCConfigRegs[VNUMDDC] = 
-{
-  VADDRDDC0_1CONFIG,                            // 0 & 1
-  VADDRDDC0_1CONFIG, 
-  VADDRDDC2_3CONFIG,                            // 2 & 3
-  VADDRDDC2_3CONFIG,
-  VADDRDDC4_5CONFIG,                            // 4 & 5
-  VADDRDDC4_5CONFIG,
-  VADDRDDC6_7CONFIG,                            // 6 & 7
-  VADDRDDC6_7CONFIG,
-  VADDRDDC8_9CONFIG,                            // 8 & 9
-  VADDRDDC8_9CONFIG
-};
-
-
-//
-// addresses of the FIFO monitors
-//
-uint32_t FIFOMonitorAddresses[] =
-{
-    0x6000,							// FIFO mon 0: DDC 0-3
-    0x7000,							// FIFO mon 1: DDC 4-7
-    0x8000,							// FIFO mon 2: DDC 8, 9,
-    0x9000							// FIFO mon 3: TX DUC, Codec RX, Codec TX
+  VADDRDDC9REG
 };
 
 
@@ -1231,26 +1216,111 @@ void SetDDCADC(int DDC, EADCSelect ADC)
     uint32_t ConfigReg;
     uint32_t RegisterValue;
     uint32_t ADCSetting;
+    uint32_t Mask;
 
     ADCSetting = (uint32_t)ADC & 0x3;               // 2 bits with ADC setting
-    RegisterValue = DDCConfigReg[DDC / 2];          // get current register setting
-    if((DDC & 1) == 0)                              // if even register
+    RegisterValue = DDCConfigReg;                   // get current register setting
+    Mask = 0x11;
+    Mask = Mask << ((DDC / 2) * 5);                 // 0,5,10,15,20 bit positions
+    ADCSetting = ADCSetting << ((DDC / 2) * 5);
+
+    if ((DDC & 1))                                  // if odd register
     {
-        RegisterValue &= 0xFFFFFFFC;                // set sample rate to zero
-        RegisterValue |= ADCSetting;                // add in the new sample rate
+        Mask = Mask << 2;
+        ADCSetting = ADCSetting << 2;
     }
-    else                                            // must be an odd register
+    RegisterValue &= ~Mask;                         // strip ADC bits
+    RegisterValue |= ADCSetting;
+
+    if(RegisterValue != DDCConfigReg)      // write back if changed
     {
-        RegisterValue &= 0xFFFFFCFF;                // set sample rate to zero
-        RegisterValue |= ADCSetting << 8;           // add in the new sample rate
-    }
-    if(RegisterValue != DDCConfigReg[DDC / 2])      // write back if changed
-    {
-        DDCConfigReg[DDC / 2] = RegisterValue;          // write back
-        ConfigReg = DDCConfigRegs[DDC];                 // get FPGA address
-//        RegisterWrite(ConfigReg, RegisterValue);        // and write to it
+        DDCConfigReg = RegisterValue;          // write back
+//        RegisterWrite(VADDRDDCCONFIG, RegisterValue);        // and write to it
     }
 }
+
+
+
+//
+// void SetDDCInterleaved(uint32_t DDCNum, bool Interleaved)
+//
+// Enable or disable interleaving for a DDC pair.
+// // this should only be called for odd numbered DDC
+// If interleaved, the DDC LO is set to the same as the paired DDC
+// // this doesn't affect the sample data stream generation!
+//
+void SetDDCInterleaved(uint32_t DDCNum, bool Interleaved)
+{
+    uint32_t Address;									// register address
+    uint32_t Data;										// register content
+    uint32_t Mask = 0x0;
+
+    Address = VADDRDDCCONFIG;							// DDC config register address
+    if (DDCNum & 1)										// if odd
+    {
+        DDCNum = (DDCNum >> 1) * 5;							// 0,5,10,15,20
+    }
+    Mask = 0x1 << (DDCNum + 4);
+    Data = DDCConfigReg;                                // get current register setting
+    Data &= ~Mask;										// clear current interleaved bit
+    if (Interleaved)
+        Data |= Mask;									// set new mask bit
+    if(Data != DDCConfigReg)
+    //RegisterWrite(Address, Data);						// write back
+}
+
+
+
+//
+// void SetRXDDCEnabled(bool IsEnabled);
+// sets enable bit so DDC operates normally. Resets input FIFO when starting.
+//
+void SetRXDDCEnabled(bool IsEnabled)
+{
+    uint32_t Address;									// register address
+    uint32_t Data;										// register content
+
+    Address = VADDRDDCCONFIG;							// DDC config register address
+    Data = DDCConfigReg;                                // get current register setting
+    if (IsEnabled)
+        Data != (1 << 30);								// set new bit
+    else
+        Data &= ~(1 << 30);								// clear new bit
+
+    if (Data != DDCConfigReg)
+        //RegisterWrite(Address, Data);					// write back
+}
+
+
+
+//
+// void ClearRXDDCFIFO(bool Clear);
+// if set true, clears MUX output FIFO contents. 
+//
+void ClearRXDDCFIFO(bool Clear)
+{
+    uint32_t Address;									// register address
+    uint32_t Data;										// register content
+
+    Address = VADDRDDCCONFIG;							// DDC config register address
+    Data = DDCConfigReg;                                // get current register setting
+    if (!Clear)                                         // if normal operation, set bit
+        Data != (1 << 31);								// set new bit
+    else
+        Data &= ~(1 << 31);								// clear new bit for clear FIFO
+
+    if (Data != DDCConfigReg)
+        //RegisterWrite(Address, Data);					// write back
+}
+
+
+
+
+
+
+
+
+
 
 
 uint32_t GKeyerSidetoneVol;                             // sidetone volume for CW TX

@@ -23,23 +23,20 @@
 
 
 //
-// void SetupFIFOMonitorChannel(uint32_t Monitor, uint32_t Channel, uint32_t Depth, bool IsWriteFIFO, bool EnableInterrupt);
+// void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt);
 //
 // Setup a single FIFO monitor channel.
-//   Monitor:			FIFO monitor number (0 to 3)
-//   Channel:			IP core channel number (0 to 3)
-//   Depth:				FIFO depth in words.
-//   IsWriteFIFO:		true if a write FIFO (ie must not underflow)
+//   Channel:			IP channel number (enum)
 //   EnableInterrupt:	true if interrupt generation enabled for overflows
 //
-void SetupFIFOMonitorChannel(uint32_t Monitor, uint32_t Channel, uint32_t Depth, bool IsWriteFIFO, bool EnableInterrupt)
+void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt)
 {
 	uint32_t Address;							// register address
 	uint32_t Data;								// register content
 
-	Address = FIFOMonitorAddresses[Monitor] + 4 * Channel + 0x10;			// config register address
-	Data = Depth;
-	if (IsWriteFIFO)
+	Address = VADDRFIFOMONBASE + 4 * Channel + 0x10;			// config register address
+	Data = DMAFIFODepths[(int)Channel];							// memory depth
+	if ((Channel == eTXDUCDMA) || (Channel == eSpkCodecDMA))	// if a "write" FIFO
 		Data += 0x40000000;						// bit 30 
 	if (EnableInterrupt)
 		Data += 0x80000000;						// bit 31
@@ -49,20 +46,19 @@ void SetupFIFOMonitorChannel(uint32_t Monitor, uint32_t Channel, uint32_t Depth,
 
 
 //
-// uint32_t ReadFIFOMonitorChannel(uint32_t Monitor, uint32_t Channel, bool* Overflowed);
+// uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed);
 //
 // Read number of locations in a FIFO
-//   Monitor:			FIFO monitor number (0 to 3)
-//   Channel:			IP core channel number (0 to 3)
+//   Channel:			IP core channel number (enum)
 //   Overflowed:		true if an overflow has occurred. Reading clears the overflow bit.
 //
-uint32_t ReadFIFOMonitorChannel(uint32_t Monitor, uint32_t Channel, bool* Overflowed)
+uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed)
 {
 	uint32_t Address;							// register address
 	uint32_t Data = 0;							// register content
 	bool Overflow = false;
 
-	Address = FIFOMonitorAddresses[Monitor] + 4 * Channel;			// status register address
+	Address = VADDRFIFOMONBASE + 4 * Channel;			// status register address
 	Data = RegisterRead(Address);
 	if (Data & 0x80000000)						// if top bit set, declare overflow
 		Overflow = true;
@@ -73,33 +69,13 @@ uint32_t ReadFIFOMonitorChannel(uint32_t Monitor, uint32_t Channel, bool* Overfl
 
 
 
-//
-// void EnableRXFIFOChannels(EDDCSelect DDCNum, bool Enabled, bool Interleaved);
-//
-// Enable or disable sample stream from a DDC pair.
-// If interleaved, one sample stream emerges for both DDCs
-// To change between interleaved or not:
-// 1. Disable sample flow;
-// 2. clear out FIFO;
-// 3. select new mode then re-enable
-// 
-// If there is ever a FIFO overflow, that process will need to be followed too
-// otherwise there is ambiguity whether the samples left begin with even or odd DDC
-//
-void EnableRXFIFOChannels(EDDCSelect DDCNum, bool Enabled, bool Interleaved)
-{
-	uint32_t Address;									// register address
-	uint32_t Data;										// register content
 
-	Address = DDCConfigRegs[2*(int)DDCNum];				// DDC config register address
-	Data = RegisterRead(Address);						// read current content
-	Data &= 0xFFFCFFFF;									// clear bits 16, 17
-	if (Enabled)
-		Data &= ~0x00020000;							// bit 17 
-	if (Interleaved)
-		Data &= ~0x00010000;							// bit 16
-	RegisterWrite(Address, Data);						// write back
-}
+
+
+
+
+
+
 
 
 //

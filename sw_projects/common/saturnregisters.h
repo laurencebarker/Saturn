@@ -59,26 +59,36 @@ eCWKeyer
 
 
 
+//
+// enum type for FIFO monitor and DMA channel selection
+//
+typedef enum
+{
+	eRXDDCDMA,							// selects RX
+	eTXDUCDMA,							// selects TX
+	eMicCodecDMA,						// selects mic samples
+	eSpkCodecDMA						// selects speaker samples
+} EDMAStreamSelect;
+
+
+
 
 //
 // FPGA register map
 //
 #define VADDRDDC0REG 0x0
 #define VADDRDDC1REG 0x4
-#define VADDRDDC2REG 0xC
-#define VADDRDDC3REG 0x10
-#define VADDRDDC4REG 0x18
-#define VADDRDDC5REG 0x1C
-#define VADDRDDC6REG 0x1004
-#define VADDRDDC7REG 0x1008
-#define VADDRDDC8REG 0x1010
-#define VADDRDDC9REG 0x1014
-#define VADDRDDC0_1CONFIG 0x08
-#define VADDRDDC2_3CONFIG 0x14
-#define VADDRDDC4_5CONFIG 0x1000
-#define VADDRDDC6_7CONFIG 0x100C
-#define VADDRDDC8_9CONFIG 0x1018
-#define VADDRRXTESTDDSREG 0X101C
+#define VADDRDDC2REG 0x8
+#define VADDRDDC3REG 0xC
+#define VADDRDDC4REG 0x10
+#define VADDRDDC5REG 0x14
+#define VADDRDDC6REG 0x18
+#define VADDRDDC7REG 0x1C
+#define VADDRDDC8REG 0x1000
+#define VADDRDDC9REG 0x1004
+#define VADDRRXTESTDDSREG 0x1008
+#define VADDRDDCRATES 0x100C
+#define VADDRDDCCONFIG 0x1010
 #define VADDRKEYERCONFIGREG 0x2000
 #define VADDRCODECCONFIGREG 0x2004
 #define VADDRTXCONFIGREG 0x2008
@@ -88,20 +98,22 @@ eCWKeyer
 #define VADDRADCCTRLREG 0x2018
 #define VADDRDACCTRLREG 0x201C
 #define VADDRDEBUGLEDREG 0x3000
-#define VADDRSTATUSREG 0x1000
+#define VADDRSTATUSREG 0x4000
+#define VADDRDATECODE 0x4004
 #define VADDRADCOVERFLOWBASE 0x5000
-#define VADDRFIFOMON0BASE 0x6000
-#define VADDRFIFOMON1BASE 0x7000
-#define VADDRFIFOMON2BASE 0x8000
-#define VADDRFIFOMON3BASE 0x9000
+#define VADDRFIFOOVERFLOWBASE 0x6000
+#define VADDRFIFOMONBASE 0x9000
 #define VADDRALEXADCBASE 0xA000
-#define VADDRCWKEYERRAM 0x1C000                 // keyer RAM mapped here
 #define VADDRALEXSPIREG 0x0B000
+#define VADDRBOARDID1 0xC000
+#define VADDRBOARDID2 0xC004
 #define VADDRCONFIGSPIREG 0x10000
-#define VADDRCODECI2CREG 0x14000
+#define VADDRCODECI2CREG 0x14000				// obsolete: moved to SPI now
+#define VADDRCODECSPIREG 0x14000
 #define VADDRXADCREG 0x18000                    // on-chip XADC (temp, VCC...)
+#define VADDRCWKEYERRAM 0x1C000                 // keyer RAM mapped here
 
-
+#define VNUMDMAFIFO 4							// DMA streams available
 
 
 //
@@ -117,11 +129,6 @@ extern uint32_t DDCRegisters[VNUMDDC];
 // addresses of the DDC config registers
 //
 extern uint32_t DDCConfigRegs[VNUMDDC];
-
-//
-// addresses of the FIFO monitors
-//
-extern uint32_t FIFOMonitorAddresses[];
 
 //
 // read/write addresses on the AXI4 bus for DMA transfers
@@ -458,6 +465,32 @@ void SetCWKeyerBits(bool Enabled, bool Reversed, bool ModeB, bool Strict, bool B
 // DDC = 0 to 9
 //
 void SetDDCADC(int DDC, EADCSelect ADC);
+
+
+//
+// void SetDDCInterleaved(uint32_t DDCNum, bool Interleaved)
+//
+// Enable or disable interleaving for a DDC pair.
+// // this should only be called for odd numbered DDC
+// If interleaved, the DDC LO is set to the same as the paired DDC
+// // this doesn't affect the sample data stream generation!
+//
+void SetDDCInterleaved(uint32_t DDCNum, bool Interleaved);
+
+
+//
+// void SetRXDDCEnabled(bool IsEnabled);
+// sets enable bit so DDC operates normally. Resets input FIFO when starting.
+//
+void SetRXDDCEnabled(bool IsEnabled);
+
+
+//
+// void ClearRXDDCFIFO(bool Clear);
+// if set true, clears MUX output FIFO contents. 
+//
+void ClearRXDDCFIFO(bool Clear);
+
 
 
 //

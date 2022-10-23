@@ -23,35 +23,35 @@
 // import verification IP
 // the second and third come from the names in the "sources" window with _pkg annotated
 import axi4stream_vip_pkg::*;
-import testbench_axi4stream_vip_0_0_pkg::*;             // master 0
-import testbench_axi4stream_master0_vip_0_pkg::*;             // master 1
-import testbench_axi4stream_master0_vip_1_pkg::*;             // master 2
-import testbench_axi4stream_master0_vip_2_pkg::*;             // master 3
-import testbench_axi4stream_master0_vip_3_pkg::*;             // master 4
-import testbench_axi4stream_master0_vip_4_pkg::*;             // master 5
-import testbench_axi4stream_master0_vip_5_pkg::*;             // master 6
-import testbench_axi4stream_master0_vip_6_pkg::*;             // master 7
-import testbench_axi4stream_master0_vip_7_pkg::*;             // master 8
-import testbench_axi4stream_master0_vip_8_pkg::*;             // master 9
+import testbench_axi4stream_master0_vip_0_pkg::*;             // master 0
+import testbench_axi4stream_master1_vip_0_pkg::*;             // master 1
+import testbench_axi4stream_master2_vip_0_pkg::*;             // master 2
+import testbench_axi4stream_master3_vip_0_pkg::*;             // master 3
+import testbench_axi4stream_master4_vip_0_pkg::*;             // master 4
+import testbench_axi4stream_master5_vip_0_pkg::*;             // master 5
+import testbench_axi4stream_master6_vip_0_pkg::*;             // master 6
+import testbench_axi4stream_master7_vip_0_pkg::*;             // master 7
+import testbench_axi4stream_master8_vip_0_pkg::*;             // master 8
+import testbench_axi4stream_master9_vip_0_pkg::*;             // master 9
 
-import testbench_axi4stream_vip_1_0_pkg::*;             // slave
+import testbench_axi4stream_slave_vip_0_pkg::*;             // slave
 
 module streammux_tb();
 
 // create instances
 // this time the names come from the sources window with _mst_t and _slv_t annotated 
-  testbench_axi4stream_vip_0_0_mst_t mst_agent0;
-  testbench_axi4stream_master0_vip_0_mst_t mst_agent1;
-  testbench_axi4stream_master0_vip_1_mst_t mst_agent2;
-  testbench_axi4stream_master0_vip_2_mst_t mst_agent3;
-  testbench_axi4stream_master0_vip_3_mst_t mst_agent4;
-  testbench_axi4stream_master0_vip_4_mst_t mst_agent5;
-  testbench_axi4stream_master0_vip_5_mst_t mst_agent6;
-  testbench_axi4stream_master0_vip_6_mst_t mst_agent7;
-  testbench_axi4stream_master0_vip_7_mst_t mst_agent8;
-  testbench_axi4stream_master0_vip_8_mst_t mst_agent9;
+  testbench_axi4stream_master0_vip_0_mst_t mst_agent0;
+  testbench_axi4stream_master1_vip_0_mst_t mst_agent1;
+  testbench_axi4stream_master2_vip_0_mst_t mst_agent2;
+  testbench_axi4stream_master3_vip_0_mst_t mst_agent3;
+  testbench_axi4stream_master4_vip_0_mst_t mst_agent4;
+  testbench_axi4stream_master5_vip_0_mst_t mst_agent5;
+  testbench_axi4stream_master6_vip_0_mst_t mst_agent6;
+  testbench_axi4stream_master7_vip_0_mst_t mst_agent7;
+  testbench_axi4stream_master8_vip_0_mst_t mst_agent8;
+  testbench_axi4stream_master9_vip_0_mst_t mst_agent9;
   axi4stream_ready_gen  ready_gen;    
-  testbench_axi4stream_vip_1_0_slv_t slv_agent;
+  testbench_axi4stream_slave_vip_0_slv_t slv_agent;
   xil_axi4stream_uint mst_agent_verbosity = 0;   // Master VIP agent verbosity level
   xil_axi4stream_uint slv_agent_verbosity = 0;  // Slave VIP agent verbosity level
   event ev_disable, ev_changedata;
@@ -208,8 +208,9 @@ module streammux_tb();
   
   while (1) begin
     @ev_changedata;
-    DDCconfigin <= 32'b00000000000000000001000100010001;
-    $display ("change DDC signalled");
+    //                 XX999888777666555444333222111000
+    DDCconfigin <= 32'b00000001000000011111000100010001;
+    $display ("change DDC signalled; 4&5 will now be interleaved; 192KHz (4 samples); DDC8 enabled at 48KHz");
   end
   endtask
 

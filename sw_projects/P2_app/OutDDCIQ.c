@@ -121,9 +121,9 @@ void *OutgoingDDCIQ(void *arg)
 // clear FIFO
 // then read depth
 //
-    SetupFIFOMonitorChannel(0, 0, 2048, false, false);
+    SetupFIFOMonitorChannel(eRXDDCDMA, false);
     ResetDDCFIFO(0);
-    RegisterValue = ReadFIFOMonitorChannel(0, 0, &FIFOOverflow);				// read the FIFO Depth register
+    RegisterValue = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow);				// read the FIFO Depth register
 	printf("FIFO Depth register = %08x (should be 0)\n", RegisterValue);
 	Depth=0;
     TransferredIQSamples = 0;
@@ -165,7 +165,8 @@ void *OutgoingDDCIQ(void *arg)
   //
   // enable Saturn DDC to transfer data
   //
-    EnableRXFIFOChannels(eDDC0_1, true, false);
+    SetDDCInterleaved(0, false);
+    SetRXDDCEnabled(true);
     printf("enabled DDC\n");
     while(!InitError && SDRActive)
     {

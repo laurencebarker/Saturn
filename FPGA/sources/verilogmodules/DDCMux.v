@@ -15,13 +15,15 @@
 // when enabled, resets input FIFO then transfers words
 //
 // the IP processes the DDCConfig settings to know if each DDC is enabled, and what sample rate
-// if 48KHz: transfer 1 sample
-// if 96KHz: transfer 2 sample
-// if 193KHz: transfer 4 sample
-// if 384KHz: transfer 8 sample
-// if 768KHz: transfer 16 sample
-// if 1536KHz: transfer 32 sample
-// if not enabled: read 1 sample (as DDC will be set to $8KHz) but don't pass to output
+// DDC config bits = 000: not enabled: read 1 sample (as DDC will be set to 48KHz) but don't pass to output
+// DDC config bits = 001: 48KHz: transfer 1 samples
+// DDC config bits = 002: 96KHz: transfer 2 samples
+// DDC config bits = 003: 193KHz: transfer 4 samples
+// DDC config bits = 004: 384KHz: transfer 8 samples
+// DDC config bits = 005: 768KHz: transfer 16 samples
+// DDC config bits = 006: 1536KHz: transfer 32 samples
+// DDC config bits = 111: (even DDC only) interleaved with next DDC: use DDC settings for next DDC
+//                        sample streams for DDC n and DDC n+1 are interleaved
 
 // 
 // I/O signals:
@@ -39,7 +41,7 @@
 // DDC config values: 3 bits per DDC, starting at bits 2:0 for DDC 0
 // top 2 bits not used
 // xx999888777666555444333222111000
-// input is from processor; output drive DDCs, so nsure they change at the right time
+// input is from processor; output drive DDCs, to ensure they change at the right time
 //
 // Dependencies: 
 // Revision:
@@ -191,9 +193,17 @@ localparam muxddcwrite = 1;                     // start transferring DDC settin
 localparam muxddclookup = 2;                    // lookup transfer count
 localparam muxslvrdy = 3;                       // slave ready for transfer
 localparam muxslvxfer = 4;                      // slave data transfer
-localparam muxmstxfer = 5;                      // master aclk
-localparam muxend = 6;                          // sequence aclk
-localparam muxillegal = 7;                      // illegal state 
+localparam muxevenslvxfer = 5;                  // interleaved, even slave transfer
+localparam muxevenmstxfer = 6;                  // interleaved, even master transfer
+localparam muxoddslvrdy = 7;                    // interleaved, even slave transfer
+localparam muxoddmstxfer = 8;                   // interleaved, even master transfer
+localparam muxmstxfer = 9;                      // master aclk
+localparam muxend = 10;                         // sequence aclk
+localparam muxillegal1 = 11;                     // illegal state 
+localparam muxillegal2 = 12;                     // illegal state 
+localparam muxillegal3 = 13;                     // illegal state 
+localparam muxillegal4 = 14;                     // illegal state 
+localparam muxillegal5 = 15;                     // illegal state 
 
 //
 // internal registers
@@ -201,7 +211,7 @@ localparam muxillegal = 7;                      // illegal state
   reg internalactive = 0;                       // true if active state achieved
   reg [1:0] enabledstate = enidle;              // enable sequencer state
   reg [1:0] DDCstate = ddcidle;                 // DDC sequencer state
-  reg [2:0] muxstate = muxidle;                 // multiplexer sequencer state
+  reg [3:0] muxstate = muxidle;                 // multiplexer sequencer state
   reg [3:0] rstcounter = 0;                     // counter for reset duration 
   reg [5:0] samplecount = 0;                    // counter for sample transfer
   reg enablemux = 0;                            // true if o/p mux to be active
@@ -340,7 +350,14 @@ localparam muxillegal = 7;                      // illegal state
                         DDCstate <= ddcenablemux;
                         if(DDCn == 9)                   // if finished this set of DDC:
                         begin
-                            if(internalactive == 0)     // if sequencer halted excternall, go back to idle
+                            if(internalactive == 0)     // if sequencer halted externally, go back to idle
+                                DDCstate <= ddcidle;
+                             else                       // else restart sequence
+                                DDCstate <= ddcstart;
+                        end
+                        else if ((DDCn == 8) && (DDCrates[2:0] == 3'b111))          // if last pair of DDCs is interleaved
+                        begin
+                            if(internalactive == 0)     // if sequencer halted externally, go back to idle
                                 DDCstate <= ddcidle;
                              else                       // else restart sequence
                                 DDCstate <= ddcstart;
@@ -349,8 +366,18 @@ localparam muxillegal = 7;                      // illegal state
                             DDCn <= 0;
                         else
                         begin
-                            DDCn <= DDCn + 1;
-                            DDCrates <= (DDCrates >> 3);        // shift to next DDC setting
+                            // if DDC bits = 111, and DDC is an even number, 
+                            // we will have interleaved DDCn and n+1 so move on by two sets
+                            if((DDCrates[2:0] == 3'b111) && (DDCn[0] == 0))                 // if even & interleaved
+                            begin
+                                DDCrates <= (DDCrates >> 6);
+                                DDCn <= DDCn + 2;
+                            end
+                            else
+                            begin
+                                DDCrates <= (DDCrates >> 3);        // shift to next DDC setting
+                                DDCn <= DDCn + 1;
+                            end
                         end
                     end
                 end
@@ -432,27 +459,47 @@ localparam muxillegal = 7;                      // illegal state
                         muxstate <= muxend;                              // go to wait till command removed
                     end
                 end
-                   
+
+                // check for 2 interleaved DDC; get correct sample count                   
                 muxddclookup: begin                // initiate transfer data for DDCn: lookup count
-                case (DDCrates[2:0])
-                    0: samplecount <= 0;                    // disabled DDC
-                    1: samplecount <= 0;                    // 48KHz DDC
-                    2: samplecount <= 1;                    // 96KHz DDC
-                    3: samplecount <= 3;                    // 192KHz DDC
-                    4: samplecount <= 7;                    // 384KHz DDC
-                    5: samplecount <= 15;                   // 768KHz DDC
-                    6: samplecount <= 31;                   // 1536KHz DDC
-                    7: samplecount <= 31;                   // 1536KHz DDC
-                endcase
-                muxstate <= muxslvrdy;                              // go to "process samples" state
+                    if((DDCrates[2:0] == 3'b111) && (DDCn[0] == 0)) // even DDC, interleaved with next DDC
+                    begin
+                        case (DDCrates[5:3])                        // rate settings are listed for NEXT DDC
+                            0: samplecount <= 0;                    // disabled DDC
+                            1: samplecount <= 0;                    // 48KHz DDC
+                            2: samplecount <= 1;                    // 96KHz DDC
+                            3: samplecount <= 3;                    // 192KHz DDC
+                            4: samplecount <= 7;                    // 384KHz DDC
+                            5: samplecount <= 15;                   // 768KHz DDC
+                            6: samplecount <= 31;                   // 1536KHz DDC
+                            7: samplecount <= 31;                   // 1536KHz DDC
+                        endcase
+                        muxstate <= muxevenslvxfer;                 // go to "process samples" state
+                        s_axis_tready[DDCn] <= 1;                   // assert ready to initiate transfer
+                    end
+                    else                                            // non interleaved; just get DDC rate as normal
+                    begin
+                        case (DDCrates[2:0])
+                            0: samplecount <= 0;                    // disabled DDC
+                            1: samplecount <= 0;                    // 48KHz DDC
+                            2: samplecount <= 1;                    // 96KHz DDC
+                            3: samplecount <= 3;                    // 192KHz DDC
+                            4: samplecount <= 7;                    // 384KHz DDC
+                            5: samplecount <= 15;                   // 768KHz DDC
+                            6: samplecount <= 31;                   // 1536KHz DDC
+                            7: samplecount <= 31;                   // 1536KHz DDC
+                        endcase
+                        muxstate <= muxslvrdy;                              // go to "process samples" state
+                    end
                 end
                 
+                // non interleaved DDC. perform a slave transaction then a master tranaction. 
                 muxslvrdy: begin                // transfer data for DDCn
                     s_axis_tready[DDCn] <= 1;               // assert reasy to initiate transfer
                     muxstate <= muxslvxfer;
                 end
                 
-                muxslvxfer: begin                // transfer data for DDCn
+                muxslvxfer: begin                // slave transfer data for DDCn
                     if(s_axis_tready[DDCn] && s_axis_tvalid[DDCn])      // if input transfer complete
                     begin
                         m_axis_tdata[63:48] <= 16'b0;
@@ -479,10 +526,10 @@ localparam muxillegal = 7;                      // illegal state
                     end
                 end
                 
-                muxmstxfer: begin                // transfer data for DDCn
+                muxmstxfer: begin                // master (output) transfer data for DDCn
                     if(m_axis_tvalid && m_axis_tready)
                     begin
-                        m_axis_tvalid <= 0;                     // deassert valid
+                        m_axis_tvalid <= 0;                 // deassert valid
                         if(samplecount == 0)                // if complete, deassert active & goto wait
                         begin
                             muxactive <= 0;
@@ -495,14 +542,81 @@ localparam muxillegal = 7;                      // illegal state
                         end
                     end
                 end
+
+                // 4 states for interleaved operation process slave N, master N, slave N+1, master N+1
+                muxevenslvxfer: begin                        // interleaved. start even slave transfer.
+                    if(s_axis_tready[DDCn] && s_axis_tvalid[DDCn])      // if even input transfer complete
+                    begin
+                        m_axis_tdata[63:48] <= 16'b0;
+                        m_axis_tdata[47:0] <= s_axis_tdata[DDCn];
+                        s_axis_tready[DDCn] <= 0;               // deassert ready to not initiate transfer
+                        m_axis_tvalid <= 1;                     // and data available for master transfer
+                        muxstate <= muxevenmstxfer;
+                    end
+                end
+
+                muxevenmstxfer: begin                       // interleaved: start even master transfer
+                    if(m_axis_tvalid && m_axis_tready)
+                    begin
+                        m_axis_tvalid <= 0;                 // deassert valid
+                        muxstate <= muxoddslvrdy;
+                        s_axis_tready[DDCn+1] <= 1;         // assert reasy to initiate odd DDC transfer
+                    end
+                end
+
+                muxoddslvrdy: begin                         // interleaved. start odd slave transfer.
+                    if(s_axis_tready[DDCn+1] && s_axis_tvalid[DDCn+1])      // if odd DDC input transfer complete
+                    begin
+                        m_axis_tdata[63:48] <= 16'b0;
+                        m_axis_tdata[47:0] <= s_axis_tdata[DDCn+1];
+                        s_axis_tready[DDCn+1] <= 0;               // deassert ready, to not initiate transfer
+                        m_axis_tvalid <= 1;                       // and data available for master transfer
+                        muxstate <= muxoddmstxfer;
+                    end
+                end
+
+
+                muxoddmstxfer: begin                        // interleaved: start odd master transfer. Check count when completed xfer.
+                    if(m_axis_tvalid && m_axis_tready)
+                    begin
+                        m_axis_tvalid <= 0;                 // deassert valid
+                        if(samplecount == 0)                // if complete, deassert active & goto wait
+                        begin
+                            muxactive <= 0;
+                            muxstate <= muxend;
+                        end
+                        else                                // decrement sample count and loop for next sample
+                        begin
+                            samplecount <= (samplecount-1);
+                            s_axis_tready[DDCn] <= 1;               // assert ready to initiate next even transfer
+                            muxstate <= muxevenslvxfer;
+                        end
+                    end
+                end
                 
                 muxend: begin                // close down - wait till enable=0 then goto idle
                     if(enablemux == 0)
                         muxstate <= muxidle;
                 end
                 
-                muxillegal: begin                                    // unused state
-                muxstate <= muxidle;
+                muxillegal1: begin                                    // unused state
+                    muxstate <= muxidle;
+                end
+                
+                muxillegal2: begin                                    // unused state
+                    muxstate <= muxidle;
+                end
+                
+                muxillegal3: begin                                    // unused state
+                    muxstate <= muxidle;
+                end
+                
+                muxillegal4: begin                                    // unused state
+                    muxstate <= muxidle;
+                end
+                
+                muxillegal5: begin                                    // unused state
+                    muxstate <= muxidle;
                 end
                 
             endcase

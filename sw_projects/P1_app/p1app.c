@@ -37,8 +37,11 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 
-#include "hwaccess.h"                     // access to PCIe read & write
-#include "saturnregisters.h"              // register I/O for Saturn
+#include "../common/saturntypes.h"
+#include "../common/hwaccess.h"                     // access to PCIe read & write
+#include "../common/saturnregisters.h"              // register I/O for Saturn
+#include "../common/codecwrite.h"                   // codec register I/O for Saturn
+#include "../common/version.h"                      // version I/O for Saturn
 
 
 int receivers = 1;                          // number of requested DDC (1-8)
