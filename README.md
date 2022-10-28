@@ -26,12 +26,13 @@ FPGA\constraints			holds the .XDC constraint files
 FPGA\create_saturn_project.tcl	script to recreate the project
 
 This script is not relocatable. We recommend you use the same directory structure we use. The TCL script will need to be edited if not.
+open it in path: c:/xilinxdesigns/Saturn/FPGA          (case sensitive!)
 
 To use this repository:
 1. Install vivado 2021.2
 2. Copy this repository to c:\xilinxdesigns\saturn
 3. Open vivado and find the TCL command line
-4. type: cd c:/xilinxdesigns/saturn/FPGA
+4. type: cd c:/xilinxdesigns/Saturn/FPGA
 5. type: source create_saturn_project.tcl
 
 A new xilinx project will be created in the subdirectory FPGA\saturn_project

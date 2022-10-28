@@ -75,6 +75,7 @@ module saturn_top_wrapper
     i2stxd,
     CODEC_SPI_CLK,
     CODEC_SPI_DATA,
+    CODEC_CS,
     nADC_CS,
     pcie_7x_mgt_rtl_0_rxn,
     pcie_7x_mgt_rtl_0_rxp,
@@ -151,6 +152,7 @@ module saturn_top_wrapper
   output i2stxd;
   inout CODEC_SPI_CLK;
   inout CODEC_SPI_DATA;
+  output CODEC_CS;
   output [0:0]nADC_CS;
   input [3:0]pcie_7x_mgt_rtl_0_rxn;
   input [3:0]pcie_7x_mgt_rtl_0_rxp;
@@ -330,6 +332,7 @@ module saturn_top_wrapper
         .i2stxd(i2stxd),
         .CODEC_SPI_CLK(CODEC_SPI_CLK),
         .CODEC_SPI_DATA(CODEC_SPI_DATA),
+        .CODEC_CS(CODEC_CS),
         .nADC_CS(nADC_CS),
         .pcie_7x_mgt_rtl_0_rxn(pcie_7x_mgt_rtl_0_rxn),
         .pcie_7x_mgt_rtl_0_rxp(pcie_7x_mgt_rtl_0_rxp),
