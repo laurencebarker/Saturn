@@ -18,10 +18,11 @@
 
 
 //
-// 8 bit Codec register write over the AXILite bus via I2C
+// 8 bit Codec register write over the AXILite bus via SPI
+// // using simple SPI writer IP
 // given 7 bit register address and 9 bit data
 //
-void CodecRegisterWrite(unsigned int Address, unsigned int Data);
+void CodecRegisterWrite(uint32_t Address, uint32_t Data);
 
 
 #endif

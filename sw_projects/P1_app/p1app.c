@@ -269,7 +269,7 @@ void process_incoming_CandC(uint8_t *frame)
     // DDC count; time stamp on / off
         case 0:
         case 1:
-            SetP1SampleRate((ESampleRate)(C1 & 3));
+            SetP1SampleRate((ESampleRate)((C1 & 3)+1), ((C4 >> 3) & 7)+1);
             // skip Atlas bus controls (10MHz source, clock source, config, mic)
             SetClassEPA((bool)(C2 & 1));
             SetOpenCollectorOutputs(C2 >> 1);

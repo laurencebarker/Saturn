@@ -45,13 +45,11 @@ uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed);
 
 
 
-
-
-
 //
-// reset a DDC FIFO (note they are reset on DDC pairs)
+// reset a stream FIFO
+// clears the FIFOs directly read ori written by the FPGA
 //
-void ResetDDCFIFO(EDDCSelect DDCNum);
+void ResetDMAStreamFIFO(EDMAStreamSelect DDCNum);
 
 
 #endif

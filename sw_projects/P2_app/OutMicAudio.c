@@ -27,15 +27,11 @@
 
 
 #define VMICSAMPLESPERFRAME 64
-
-
-
-
-// temp variable for getting mic sample rate correct
-extern uint32_t TransferredIQSamples;
-
-
-
+#define VDMABUFFERSIZE 32768									      // memory buffer to reserve
+#define VALIGNMENT 4096                             // buffer alignment
+#define VBASE 0x1000									              // DMA start at 4K into buffer
+#define VBASE 0x1000                                // offset into I/Q buffer for DMA to start
+#define VDMATRANSFERSIZE 4096                       // read 4K at a time  *** DEBUG amount***
 
 
 
@@ -56,17 +52,81 @@ void *OutgoingMicSamples(void *arg)
   uint8_t UDPBuffer[VMICPACKETSIZE];                      // DDC frame buffer
   uint32_t SequenceCounter = 0;                           // UDP sequence count
 
-  struct ThreadSocketData *ThreadData;            // socket etc data for this thread
+  struct ThreadSocketData* ThreadData;            // socket etc data for this thread
   struct sockaddr_in DestAddr;                    // destination address for outgoing data
   bool InitError = false;
   int Error;
 
 //
-// initialise. Create memory buffers and open DMA file devices
+// variables for DMA buffer 
+//
+  uint8_t* MicReadBuffer = NULL;							// data for DMA read from DDC
+  uint32_t MicBufferSize = VDMABUFFERSIZE;
+  bool InitError = false;                                   // becomes true if we get an initialisation error
+  unsigned char* MicReadPtr;								// pointer for reading out an I or Q sample
+  unsigned char* MicHeadPtr;								// ptr to 1st free location in I/Q memory
+  unsigned char* MicBasePtr;								// ptr to DMA location in I/Q memory
+  uint32_t ResidueBytes;
+  uint32_t Depth = 0;
+  int DMAReadfile_fd = -1;									// DMA read file device
+  uint32_t RegisterValue;
+  bool FIFOOverflow;
+
+
+//
+// initialise. Get parameters for thread; 
+// then create memory buffers and open DMA file devices
 //
   ThreadData = (struct ThreadSocketData *)arg;
   ThreadData->Active = true;
   printf("spinning up outgoing mic thread with port %d\n", ThreadData->Portid);
+
+//
+// setup DMA buffer
+//
+  posix_memalign((void**)&MicReadBuffer, VALIGNMENT, MicBufferSize);
+  if (!MicReadBuffer)
+  {
+      printf("mic read buffer allocation failed\n");
+      InitError = true;
+  }
+  MicReadPtr = MicReadBuffer + VBASE;							// offset 4096 bytes into buffer
+  MicHeadPtr = MicReadBuffer + VBASE;
+  MicBasePtr = MicReadBuffer + VBASE;
+  memset(MicReadBuffer, 0, MicBufferSize);
+
+
+  //
+  // open DMA device driver
+  //    this will probably have to move, as there won't be enough of them!
+  //
+  DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDWR);
+  if (DMAReadfile_fd < 0)
+  {
+      printf("XDMA read device open failed\n");
+      InitError = true;
+  }
+
+  //
+  // now initialise Saturn hardware.
+  // ***This os debug code at the moment. ***
+  // clear FIFO
+  // then read depth
+  //
+  SetupFIFOMonitorChannel(eRXDDCDMA, false);
+  ResetDMAStreamFIFO(eMicCodecDMA);
+  RegisterValue = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow);				// read the FIFO Depth register
+  printf("FIFO Depth register = %08x (should be 0)\n", RegisterValue);
+  Depth = 0;
+  TransferredIQSamples = 0;
+
+
+
+
+
+
+
+
 
 
   while (!InitError)

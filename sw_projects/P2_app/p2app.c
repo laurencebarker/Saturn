@@ -251,6 +251,7 @@ int main(void)
 //
 // setup Saturn hardware
 //
+  SetByteSwapping(true);                                            // h/w to generate network byte order
   OpenXDMADriver();
   PrintVersionInfo();
   CodecInitialise();

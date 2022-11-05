@@ -30,7 +30,7 @@ unsigned int DACStepAttenROM[256];                  // provides most atten setti
 //
 // local copies of values written to registers
 //
-#define VNUMP1DDCS 5                                // DDCs used for P1
+#define VMAXP1DDCS 7                                // max number of DDCs used for P1
 #define VSAMPLERATE 122880000                       // sample rate in Hz
 
 uint32_t DDCDeltaPhase[VNUMDDC];                    // DDC frequency settings
@@ -38,13 +38,15 @@ uint32_t DUCDeltaPhase;                             // DUC frequency setting
 uint32_t GStatusRegister;                           // most recent status register setting
 uint32_t GPIORegValue;                              // value stored into GPIO
 uint32_t TXConfigRegValue;                          // value written into TX config register
-uint32_t DDCConfigReg;                              // vlaue written into DDC config register
+uint32_t DDCInSelReg;                               // value written into DDC config register
+uint32_t DDCRateReg;                                // value written into DDC rate register
 
+bool GByteSwapEnabled;                              // true if byte swapping enabled for sample readout 
 bool GPTTEnabled;                                   // true if PTT is enabled
 bool GPureSignalEnabled;                            // true if PureSignal is enabled
 ESampleRate P1SampleRate;                           // rate for all DDC
-ESampleRate P2DDCSampleRate[VNUMDDC];               // array for all DDCs
-uint32_t DDCConfigReg[VNUMDDC/2];                   // config registers
+uint32_t P2SampleRates[VNUMDDC];                    // numerical sample rates for each DDC
+uint32_t GDDCEnabled;                               // 1 bit per DDC
 bool GClassESetting;                                // NOT CURRENTLY USED - true if class E operation
 bool GIsApollo;                                     // NOT CURRENTLY USED - true if Apollo filter selected
 bool GEnableApolloFilter;                           // Apollo filter bit - NOT USED
@@ -146,7 +148,7 @@ unsigned int GCodecAnaloguePath;                    // value written in Codec an
 //
 uint32_t DMAFIFODepths[VNUMDMAFIFO] =
 {
-   8192,            //  eRXDDCDMA,		selects RX
+  8192,             //  eRXDDCDMA,		selects RX
   1024,             //  eTXDUCDMA,		selects TX
   256,              //  eMicCodecDMA,	selects mic samples
   256               //  eSpkCodecDMA	selects speaker samples
@@ -171,23 +173,7 @@ uint32_t DDCRegisters[VNUMDDC] =
 };
 
 
-//
-// read/write addresses on the AXI4 bus for DMA transfers
-//
-uint32_t FIFORWAddresses[] = 
-{
-    0x00000,                        // DDC0, and DUC TX
-    0x10000,                        // DDC1
-    0x20000,                        // DDC2
-    0x30000,                        // DDC3
-    0x40000,                        // DDC4
-    0x50000,                        // DDC5
-    0x60000,                        // DDC6
-    0x70000,                        // DDC7
-    0x80000,                        // DDC8
-    0x90000,                        // DDC9
-    0xA0000                         // Codec Audio
-};
+
 
 
 //
@@ -302,6 +288,25 @@ void InitialiseCWKeyerRamp(void)
 
 
 //
+// SetByteSwap(bool)
+// set whether byte swapping is enabled. True if yes, to get data in network byte order.
+//
+void SetByteSwapping(bool IsSwapped)
+{
+    uint32_t Register;
+
+    Register = GPIORegValue;                        // get current settings
+    GByteSwapEnabled = IsSwapped;
+    if (Register != GPIORegValue)                   // write back if different
+    {
+        GPIORegValue = Register;                    // store it back
+//        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
+    }
+
+}
+
+
+//
 // SetMOX(bool Mox)
 // sets or clears TX state
 // set or clear the relevant bit in GPIO
@@ -311,11 +316,11 @@ void SetMOX(bool Mox)
     uint32_t Register;
 
     Register = GPIORegValue;                    // get current settings
-    if(Mox)
-        Register |= (1<<VMOXBIT);
+    if (Mox)
+        Register |= (1 << VMOXBIT);
     else
-        Register &= ~(1<<VMOXBIT);
-    if(Register != GPIORegValue)                    // write back if different
+        Register &= ~(1 << VMOXBIT);
+    if (Register != GPIORegValue)                    // write back if different
     {
         GPIORegValue = Register;                    // store it back
 //        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
@@ -333,11 +338,11 @@ void SetATUTune(bool TuneEnabled)
     uint32_t Register;
 
     Register = GPIORegValue;                    // get current settings
-    if(TuneEnabled)
-        Register |= (1<<VATUTUNEBIT);
+    if (TuneEnabled)
+        Register |= (1 << VATUTUNEBIT);
     else
-        Register &= ~(1<<VATUTUNEBIT);
-    if(Register != GPIORegValue)                    // write back if different
+        Register &= ~(1 << VATUTUNEBIT);
+    if (Register != GPIORegValue)                    // write back if different
     {
         GPIORegValue = Register;                    // store it back
 //        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
@@ -346,82 +351,134 @@ void SetATUTune(bool TuneEnabled)
 
 
 //
-// SetP1SampleRate(ESampleRate Rate)
+// SetP1SampleRate(ESampleRate Rate, unsigned int Count)
 // sets the sample rate for all DDC used in protocol 1. 
 // allowed rates are 48KHz to 384KHz.
-// save the new bits to stored values, and write to FPGA, for all DDC used in P1
+// also sets the number of enabled DDCs, 1-8. Count = #DDC reqd
+// DDCs are enabled by setting a rate; if rate bits=000, DDC is not enabled
+// and for P1, no DDCs are interleaved
 //
-void SetP1SampleRate(ESampleRate Rate)
+void SetP1SampleRate(ESampleRate Rate, unsigned int DDCCount)
 {
     int Cntr;
     uint32_t ConfigReg;
-    uint32_t RegisterValue;
+    uint32_t RegisterValue = 0;
+    uint32_t RateBits;
 
+    if (Count > VMAXP1DDCS)                             // limit the number of DDC to max allowed
+        Count = VMAXP1DDCS;
+    RateBits = (uint32_t)Rate;                          // bits to go in DDC word
     P1SampleRate = Rate;                                // rate for all DDC
-    for(Cntr=0; Cntr < VNUMP1DDCS; Cntr++)
+//
+    // set all DDC up to max to rate; rest to 0
+    for (Cntr = 0; Cntr < (DDCCount + 1); Cntr++)
     {
-        RegisterValue = DDCConfigReg[Cntr / 2];         // get current register setting
-        if((Cntr & 1) == 0)                             // if even register
-        {
-            RegisterValue &= 0xFFFFFFE3;                // set sample rate to zero
-            RegisterValue |= ((uint32_t)Rate) << 2;     // add in the new sample rate
-        }
-        else                                            // must be an odd register
-        {
-            RegisterValue &= 0xFFFFE3FF;                // set sample rate to zero
-            RegisterValue |= ((uint32_t)Rate) << 10;    // add in the new sample rate
-        }
-        if(RegisterValue != DDCConfigReg[Cntr / 2])     // write back if changed
-        {
-            DDCConfigReg[Cntr / 2] = RegisterValue;         // write back
-            ConfigReg = DDCConfigRegs[Cntr];                // get FPGA address
-//            RegisterWrite(ConfigReg, RegisterValue);        // and write to it
-        }
+        RegisterValue |= RateBits;                      // add in rate bits for this DDC
+        RateBits = RateBits << 3;                       // get ready for next DDC
+    }
+    if (RegisterValue != DDCRateReg)                     // write back if changed
+    {
+        DDCRateReg = RegisterValue;                     // write back
+//        RegisterWrite(VADDRDDCRATES, RegisterValue);        // and write to h/w register
     }
 }
 
 
 //
-// SetP2SampleRate(unsigned int DDC, unsigned int SampleRate)
+// SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bool InterleaveWithNext)
 // sets the sample rate for a single DDC (used in protocol 2)
 // allowed rates are 48KHz to 1536KHz.
-// simpler: just set one DDC config reg
+// This sets the DDCRateReg variable and does NOT write to hardware
+// The WriteP2DDCRateRegister() call must be made after setting values for all DDCs
 //
-void SetP2SampleRate(unsigned int DDC, unsigned int SampleRate)
+void SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bool InterleaveWithNext)
 {
-    uint32_t ConfigReg;
     uint32_t RegisterValue;
-    ESampleRate Rate = e48KHz;
+    uint32_t Mask;
+    ESampleRate Rate = eDisabled;
 
-    // look up enum value
-    if(SampleRate == 96)
-        Rate = e96KHz;
-    else if(SampleRate == 192)
-        Rate = e192KHz;
-    else if(SampleRate == 384)
-        Rate = e384KHz;
-    else if(SampleRate == 768)
-        Rate = e768KHz;
-    else if(SampleRate == 1536)
-        Rate = e1536KHz;
+    if (!Enabled)                                   // if not enabled, clear sample rate value & enabled flag
+    {
+        P2SampleRates[DDC] = 0;
+        GDDCEnabled &= ~(1 << DDC);                 // clear enable bit
+    }
+    else
+    {
+        P2SampleRates[DDC] = SampleRate;
+        GDDCEnabled |= (1 << DDC);                  // set enable bit
+        Mask = 7 << (DDC * 3);                      // 3 bits in correct position
+        if (InterleaveWithNext)
+            Rate = eInterleaveWithNext;
+        else
+        {
+            // look up enum value
+            Rate = e48KHz;                          // assume 48KHz; then check other rates
+            if (SampleRate == 96)
+                Rate = e96KHz;
+            else if (SampleRate == 192)
+                Rate = e192KHz;
+            else if (SampleRate == 384)
+                Rate = e384KHz;
+            else if (SampleRate == 768)
+                Rate = e768KHz;
+            else if (SampleRate == 1536)
+                Rate = e1536KHz;
+        }
+    }
 
-    RegisterValue = DDCConfigReg[DDC / 2];         // get current register setting
-    if((DDC & 1) == 0)                              // if even register
-    {
-        RegisterValue &= 0xFFFFFF1C;                // set sample rate to zero
-        RegisterValue |= ((uint32_t)Rate) << 2;     // add in the new sample rate
-    }
-    else                                            // must be an odd register
-    {
-        RegisterValue &= 0xFFFF1CFF;                // set sample rate to zero
-        RegisterValue |= ((uint32_t)Rate) << 10;    // add in the new sample rate
-    }
-    if(RegisterValue != DDCConfigReg[DDC / 2])     //write back if changed
-    {
-        DDCConfigReg[DDC / 2] = RegisterValue;          // write back
-        ConfigReg = DDCConfigRegs[DDC];                 // get FPGA address
-//        RegisterWrite(ConfigReg, RegisterValue);        // and write to it
-    }
+    RegisterValue = DDCRateReg;                     // get current register setting
+    RegisterValue &= ~Mask;                         // strip current bits
+    Mask = (uint32_t)Rate;                          // new bits
+    Mask = Mask << (DDC * 3);                       // get new bits to right bit position
+    RegisterValue |= Mask;
+    DDCRateReg = RegisterValue;                     // don't save to hardware
+}
+
+
+//
+// bool WriteP2DDCRateRegister(void)
+// writes the DDCRateRegister, once all settings have been made
+// this is done so the number of changes to the DDC rates are minimised
+// and the information all comes form one P2 message anyway.
+// returns true if changes were made to the hardware register
+//
+bool WriteP2DDCRateRegister(void)
+{
+    uint32_t CurrentValue;                          // current register setting
+    bool Result = false;                            // return value
+    CurrentValue = RegisterRead(VADDRDDCRATES);
+    if (CurrentValue != DDCRateReg)
+        Result = true;
+
+    RegisterWrite(VADDRDDCRATES, DDCRateReg);        // and write to hardware register
+    return Result;
+}
+
+
+//
+// uint32_t GetTotalSampleRate(void)
+// get the total sample rate transferred for all DDCs
+// this is needed to set timings and sizes for DMA transfers
+//
+uint32_t GetTotalSampleRate(void)
+{
+    int i;
+    unit32_t Total = 0;
+    for (i = 0; i < VNUMDDC; i++)
+        Total += P2SamplesRates[i];
+    return Total;
+}
+
+
+
+//
+// uint32_t GetDDCEnables(void)
+// get enable bits for each DDC; 1 bit per DDC
+// this is needed to set timings and sizes for DMA transfers
+//
+uint32_t GetDDCEnables(void)
+{
+    return GDDCEnabled;
 }
 
 
@@ -1219,23 +1276,18 @@ void SetDDCADC(int DDC, EADCSelect ADC)
     uint32_t Mask;
 
     ADCSetting = (uint32_t)ADC & 0x3;               // 2 bits with ADC setting
-    RegisterValue = DDCConfigReg;                   // get current register setting
+    RegisterValue = DDCInSelReg;                   // get current register setting
     Mask = 0x11;
-    Mask = Mask << ((DDC / 2) * 5);                 // 0,5,10,15,20 bit positions
-    ADCSetting = ADCSetting << ((DDC / 2) * 5);
+    Mask = Mask << (DDC*2);                 // 0,5,10,15,20 bit positions
+    ADCSetting = ADCSetting << (DDC * 2);
 
-    if ((DDC & 1))                                  // if odd register
-    {
-        Mask = Mask << 2;
-        ADCSetting = ADCSetting << 2;
-    }
     RegisterValue &= ~Mask;                         // strip ADC bits
     RegisterValue |= ADCSetting;
 
-    if(RegisterValue != DDCConfigReg)      // write back if changed
+    if(RegisterValue != DDCInSelReg)      // write back if changed
     {
-        DDCConfigReg = RegisterValue;          // write back
-//        RegisterWrite(VADDRDDCCONFIG, RegisterValue);        // and write to it
+        DDCInSelReg = RegisterValue;          // write back
+//        RegisterWrite(VADDRDDCINSEL, RegisterValue);        // and write to it
     }
 }
 
@@ -1255,17 +1307,17 @@ void SetDDCInterleaved(uint32_t DDCNum, bool Interleaved)
     uint32_t Data;										// register content
     uint32_t Mask = 0x0;
 
-    Address = VADDRDDCCONFIG;							// DDC config register address
+    Address = VADDRDDCINSEL;							// DDC config register address
     if (DDCNum & 1)										// if odd
     {
         DDCNum = (DDCNum >> 1) * 5;							// 0,5,10,15,20
     }
     Mask = 0x1 << (DDCNum + 4);
-    Data = DDCConfigReg;                                // get current register setting
+    Data = DDCInSelReg;                                // get current register setting
     Data &= ~Mask;										// clear current interleaved bit
     if (Interleaved)
         Data |= Mask;									// set new mask bit
-    if(Data != DDCConfigReg)
+    if(Data != DDCInSelReg)
     //RegisterWrite(Address, Data);						// write back
 }
 
@@ -1280,14 +1332,14 @@ void SetRXDDCEnabled(bool IsEnabled)
     uint32_t Address;									// register address
     uint32_t Data;										// register content
 
-    Address = VADDRDDCCONFIG;							// DDC config register address
-    Data = DDCConfigReg;                                // get current register setting
+    Address = VADDRDDCINSEL;							// DDC config register address
+    Data = DDCInSelReg;                                // get current register setting
     if (IsEnabled)
-        Data != (1 << 30);								// set new bit
+        Data |= (1 << 30);								// set new bit
     else
         Data &= ~(1 << 30);								// clear new bit
 
-    if (Data != DDCConfigReg)
+    if (Data != DDCInSelReg)
         //RegisterWrite(Address, Data);					// write back
 }
 
@@ -1302,14 +1354,14 @@ void ClearRXDDCFIFO(bool Clear)
     uint32_t Address;									// register address
     uint32_t Data;										// register content
 
-    Address = VADDRDDCCONFIG;							// DDC config register address
-    Data = DDCConfigReg;                                // get current register setting
+    Address = VADDRDDCINSEL;							// DDC config register address
+    Data = DDCInSelReg;                                // get current register setting
     if (!Clear)                                         // if normal operation, set bit
-        Data != (1 << 31);								// set new bit
+        Data |= (1 << 31);								// set new bit
     else
         Data &= ~(1 << 31);								// clear new bit for clear FIFO
 
-    if (Data != DDCConfigReg)
+    if (Data != DDCInSelReg)
         //RegisterWrite(Address, Data);					// write back
 }
 
@@ -1965,16 +2017,6 @@ void SetDuplex(bool Enabled)
 
 
 //
-// SetNumP1DDC(unsigned int Count)
-// sets the number of DDCs for which data is transferred back to the PC in protocol 1
-//
-void SetNumP1DDC(unsigned int Count)
-{
-
-}
-
-
-//
 // SetDataEndian(unsigned int Bits)
 // sets endianness for transferred data. See P2 specification, and not implemented yet.
 //
@@ -2027,7 +2069,7 @@ void SetDDCInterleaved(unsigned int DDC, bool Interleaved)
 
 //
 // SetDDCSampleSize(unsigned int DDC, unsgned int Size)
-// set sample resolution for DDC (only 24 bits supported)
+// set sample resolution for DDC (only 24 bits supported, so ignore)
 //
 void SetDDCSampleSize(unsigned int DDC, unsigned int Size)
 {

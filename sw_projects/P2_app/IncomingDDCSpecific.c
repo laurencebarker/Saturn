@@ -42,7 +42,7 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
   int size;                                             // UDP datagram length
   uint8_t Byte1, Byte2;                                 // received data
   bool Dither, Random;                                  // ADC bits
-  uint16_t Word;                                        // 16 bit read value
+  uint16_t Word, Word2;                                 // 16 bit read value
   int i;                                                // counter
   EADCSelect ADC = eADC1;                               // ADC to use for a DDC
 
@@ -72,32 +72,32 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
     {
       printf("DDC specific packet received\n");
       // get ADC details:
-      Byte1 = *(uint8_t*)(UDPInBuffer+4);                 // get ADC count
+      Byte1 = *(uint8_t*)(UDPInBuffer+4);                   // get ADC count
       SetADCCount(Byte1);
-      Byte1 = *(uint8_t*)(UDPInBuffer+5);                 // get ADC Dither bits
-      Byte2 = *(uint8_t*)(UDPInBuffer+6);                 // get ADC Random bits
+      Byte1 = *(uint8_t*)(UDPInBuffer+5);                   // get ADC Dither bits
+      Byte2 = *(uint8_t*)(UDPInBuffer+6);                   // get ADC Random bits
       Dither  = (bool)(Byte1&1);
       Random  = (bool)(Byte2&1);
-      SetADCOptions(eADC1, false, Dither, Random);        // ADC1 settings
-      Byte1 = Byte1 >> 1;                                 // move onto ADC bits
+      SetADCOptions(eADC1, false, Dither, Random);          // ADC1 settings
+      Byte1 = Byte1 >> 1;                                   // move onto ADC bits
       Byte2 = Byte2 >> 1;
       Dither  = (bool)(Byte1&1);
       Random  = (bool)(Byte2&1);
-      SetADCOptions(eADC2, false, Dither, Random);        // ADC2 settings
+      SetADCOptions(eADC2, false, Dither, Random);          // ADC2 settings
       
-      // get DDC settings
-      Word = *(uint16_t*)(UDPInBuffer+7);                 // get DDC enables 15:0 (note low byte 1st!)
-      for(i=0; i<VNUMDDC; i++)
-      {
-        HandlerSetDDCEnabled(i, (bool)(Word&1));          // bit=1 for DDC enabled
-        Word = Word >> 1;                                 // move onto next DDC bit
-      }
-
+      //
       // main settings for each DDC
+      // reuse "dither" for interleaved with next;
+      // reuse "random" for DDC enabled.
+      // be aware an interleaved "odd" DDC will usually be set to disabled, and we need to revert this!
+      //
+      Word = *(uint16_t*)(UDPInBuffer + 7);                 // get DDC enables 15:0 (note it is already low byte 1st!)
       for(i=0; i<VNUMDDC; i++)
       {
+        Random = (bool)(Word & 1);                        // get enable state
         Byte1 = *(uint8_t*)(UDPInBuffer+i*6+17);          // get ADC for this DDC
-        Word = *(uint16_t*)(UDPInBuffer+i*6+18);          // get sample rate for this DDC
+        Word2 = *(uint16_t*)(UDPInBuffer+i*6+18);         // get sample rate for this DDC
+        Word2 = ntohs(Word2);                             // swap byte order
         Byte2 = *(uint8_t*)(UDPInBuffer+i*6+22);          // get sample size for this DDC
         HandlerSetP2SampleRate(i, Word);
         SetDDCSampleSize(i, Byte2);
@@ -108,41 +108,76 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
         else if(Byte1 == 2)
           ADC = eTXSamples;
         SetDDCADC(i, ADC);
+
+        Dither = false;                                 // assume no synch
+        // finally DDC synchronisation: my implementation it seems isn't what the spec intended!
+        // check: is DDC1 programmed to sync with DDC0;
+        // check: is DDC3 programmed to sync with DDC2;
+        // check: is DDC5 programmed to sync with DDC4;
+        // check: is DDC7 programmed to sync with DDC6;
+        // check: if DDC1 synch to DDC0, enable it;
+        // check: if DDC3 synch to DDC2, enable it;
+        // check: if DDC5 synch to DDC4, enable it;
+        // check: if DDC7 synch to DDC6, enable it;
+        // (reuse the Dither variable)
+        switch(i)
+        {
+            case 0:
+                Byte1 = *(uint8_t*)(UDPInBuffer + 1363);          // get DDC0 synch
+                if (Byte1 == 0b00000010)
+                    Dither = true;                                // set interleave
+                break;
+
+            case 1: 
+                Byte1 = *(uint8_t*)(UDPInBuffer + 1363);          // get DDC0 synch
+                if (Byte1 == 0b00000010)                          // if synch to DDC1
+                    Random = true;                                // enable DDC1
+                break;
+
+            case 2:
+                Byte1 = *(uint8_t*)(UDPInBuffer + 1365);          // get DDC2 synch
+                if (Byte1 == 0b00001000)
+                    Dither = true;                                // set interleave
+                break;
+
+            case 3:
+                Byte1 = *(uint8_t*)(UDPInBuffer + 1365);          // get DDC2 synch
+                if (Byte1 == 0b00001000)                          // if synch to DDC3
+                    Random = true;                                // enable DDC3
+                break;
+
+            case 4:
+                Byte1 = *(uint8_t*)(UDPInBuffer + 1367);          // get DDC4 synch
+                if (Byte1 == 0b00100000)
+                    Dither = true;                                // set interleave
+                break;
+        
+            case 5:
+                Byte1 = *(uint8_t*)(UDPInBuffer + 1367);          // get DDC4 synch
+                if (Byte1 == 0b00100000)                          // if synch to DDC5
+                    Random = true;                                // enable DDC5
+                break;
+
+            case 6:
+                Byte1 = *(uint8_t*)(UDPInBuffer + 1369);          // get DDC6 synch
+                if (Byte1 == 0b10000000)
+                    Dither = true;                                // set interleave
+                break;
+
+            case 7:
+                Byte1 = *(uint8_t*)(UDPInBuffer + 1369);          // get DDC6 synch
+                if (Byte1 == 0b10000000)                          // if synch to DDC7
+                    Random = true;                                // enable DDC7
+                break;
+
+        }
+        SetP2SampleRate(i, Random, Word2, Dither);
+        Word = Word >> 1;                                 // move onto next DDC enabled bit
       }
-
-      // finally DDC synchronisation
-      // my implementation it seems isn't what the spec intended!
-      // check: is DDC1 programmed to sync with DDC0;
-      // check: is DDC3 programmed to sync with DDC2;
-      // check: is DDC5 programmed to sync with DDC4;
-      // check: is DDC7 programmed to sync with DDC6;
-      // (reuse the Dither word)
-      Dither = false;                                 // assume no synch
-      Byte1 = *(uint8_t*)(UDPInBuffer+1363);          // get DDC0 synch
-      if(Byte1 == 0b00000010)
-        Dither = true;
-      HandlerSetDDCInterleaved(1, Dither);
-
-      Dither = false;                                 // assume no synch
-      Byte1 = *(uint8_t*)(UDPInBuffer+1365);          // get DDC2 synch
-      if(Byte1 == 0b00001000)
-        Dither = true;
-      HandlerSetDDCInterleaved(3, Dither);
-
-      Dither = false;                                 // assume no synch
-      Byte1 = *(uint8_t*)(UDPInBuffer+1367);          // get DDC4 synch
-      if(Byte1 == 0b00100000)
-        Dither = true;
-      HandlerSetDDCInterleaved(5, Dither);
-
-      Dither = false;                                 // assume no synch
-      Byte1 = *(uint8_t*)(UDPInBuffer+1369);          // get DDC6 synch
-      if(Byte1 == 0b10000000)
-        Dither = true;
-      HandlerSetDDCInterleaved(7, Dither);
-
-
-
+      // now set register, and see if any changes made; reuse Dither again
+      Dither = WriteP2DDCRateRegister();
+      if (Dither)
+          HandlerCheckDDCSettings();
     }
   }
 //

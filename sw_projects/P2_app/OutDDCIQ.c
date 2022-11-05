@@ -61,16 +61,16 @@ void *OutgoingDDCIQ(void *arg)
 // memory buffers
 //
   uint8_t* IQReadBuffer = NULL;											// data for DMA read from DDC
-	uint32_t IQBufferSize = VDMABUFFERSIZE;
+  uint32_t IQBufferSize = VDMABUFFERSIZE;
   bool InitError = false;                         // becomes true if we get an initialisation error
-	unsigned char* IQReadPtr;								        // pointer for reading out an I or Q sample
-	unsigned char* IQHeadPtr;								        // ptr to 1st free location in I/Q memory
-	unsigned char* IQBasePtr;								        // ptr to DMA location in I/Q memory
-	uint32_t ResidueBytes;
-	uint32_t Depth = 0;
-	int DMAReadfile_fd = -1;											  // DMA read file device
-	uint32_t RegisterValue;
-    bool FIFOOverflow;
+  unsigned char* IQReadPtr;								        // pointer for reading out an I or Q sample
+  unsigned char* IQHeadPtr;								        // ptr to 1st free location in I/Q memory
+  unsigned char* IQBasePtr;								        // ptr to DMA location in I/Q memory
+  uint32_t ResidueBytes;
+  uint32_t Depth = 0;
+  int DMAReadfile_fd = -1;											  // DMA read file device
+  uint32_t RegisterValue;
+  bool FIFOOverflow;
 
 
   struct ThreadSocketData *ThreadData;            // socket etc data for this thread
@@ -122,7 +122,7 @@ void *OutgoingDDCIQ(void *arg)
 // then read depth
 //
     SetupFIFOMonitorChannel(eRXDDCDMA, false);
-    ResetDDCFIFO(0);
+    ResetDMAStreamFIFO(eRXDDCDMA);
     RegisterValue = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow);				// read the FIFO Depth register
 	printf("FIFO Depth register = %08x (should be 0)\n", RegisterValue);
 	Depth=0;
@@ -223,7 +223,7 @@ void *OutgoingDDCIQ(void *arg)
       }
 
   //		printf("DMA read %d bytes from destination to base\n", VDMATRANSFERSIZE);
-      DMAReadFromFPGA(DMAReadfile_fd, IQBasePtr, VDMATRANSFERSIZE, FIFORWAddresses[0]);
+      DMAReadFromFPGA(DMAReadfile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDDCSTREAMREAD);
       IQHeadPtr = IQBasePtr + VDMATRANSFERSIZE;
     }     // end of while(!InitError) loop
   }
@@ -250,10 +250,21 @@ void *OutgoingDDCIQ(void *arg)
 // through here. That DDC is NOT enabled. 
 //
 
+
+//
+// HandlerCheckDDCSettings()
+// called when DDC settings have been changed. Check which DDCs are enabled, and sample rate.
+//
+void HandlerCheckDDCSettings(void)
+{
+
+}
+
+
 //
 // HandlerSetDDCEnabled(unsigned int DDC, bool Enabled)
 // set whether a DDC is enabled
-//
+// SHOULD BE OBSOLETE NOW ********************************************************
 void HandlerSetDDCEnabled(unsigned int DDC, bool Enabled)
 {
   if(!Enabled)

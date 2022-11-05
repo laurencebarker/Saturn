@@ -22,16 +22,18 @@
 #define VNUMDDC 10                                  // downconverters available
 
 //
-// enum type for sample rate. The last 2 options not allowed for protocol 1
+// enum type for sample rate. only 48-384KHz allowed for protocol 1
 //
 typedef enum
 {
-  e48KHz,
-  e96KHz,
-  e192KHz,
-  e384KHz,
-  e768KHz,
-  e1536KHz
+	eDisabled,
+	e48KHz,
+	e96KHz,
+	e192KHz,
+	e384KHz,
+	e768KHz,
+	e1536KHz,
+	eInterleaveEithNext;
 } ESampleRate;
 
 //
@@ -88,7 +90,7 @@ typedef enum
 #define VADDRDDC9REG 0x1004
 #define VADDRRXTESTDDSREG 0x1008
 #define VADDRDDCRATES 0x100C
-#define VADDRDDCCONFIG 0x1010
+#define VADDRDDCINSEL 0x1010
 #define VADDRKEYERCONFIGREG 0x2000
 #define VADDRCODECCONFIGREG 0x2004
 #define VADDRTXCONFIGREG 0x2008
@@ -102,23 +104,27 @@ typedef enum
 #define VADDRDATECODE 0x4004
 #define VADDRADCOVERFLOWBASE 0x5000
 #define VADDRFIFOOVERFLOWBASE 0x6000
+#define VADDRCODECCONFIG2 0x7000
 #define VADDRFIFOMONBASE 0x9000
 #define VADDRALEXADCBASE 0xA000
 #define VADDRALEXSPIREG 0x0B000
 #define VADDRBOARDID1 0xC000
 #define VADDRBOARDID2 0xC004
 #define VADDRCONFIGSPIREG 0x10000
-#define VADDRCODECI2CREG 0x14000				// obsolete: moved to SPI now
 #define VADDRCODECSPIREG 0x14000
 #define VADDRXADCREG 0x18000                    // on-chip XADC (temp, VCC...)
 #define VADDRCWKEYERRAM 0x1C000                 // keyer RAM mapped here
 
 #define VNUMDMAFIFO 4							// DMA streams available
+#define VADDRDDCSTREAMREAD 0x0L					// stream reader/writer on AXI-4 bus
+#define VADDRDUCSTREAMWRITE 0x0L				// stream reader/writer on AXI-4 bus
+#define VADDRMICSTREAMREAD 0x40000L				// stream reader/writer on AXI-4 bus
+#define VADDRSPKRSTREAMWRITE 0x40000L			// stream reader/writer on AXI-4 bus
 
-
-//
-// DDC register addresses
-//
+#define VBITDDCFIFORESET 31						// reset bit in register
+#define VBITDUCFIFORESET 22						// reset bit in register
+#define VBITCODECMICFIFORESET 0					// reset bit in register
+#define VBITCODECSPKFIFORESET 1					// reset bit in register
 
 //
 // addresses of the DDC frequency registers
@@ -129,12 +135,6 @@ extern uint32_t DDCRegisters[VNUMDDC];
 // addresses of the DDC config registers
 //
 extern uint32_t DDCConfigRegs[VNUMDDC];
-
-//
-// read/write addresses on the AXI4 bus for DMA transfers
-//
-extern uint32_t FIFORWAddresses[];
-
 
 
 //
@@ -154,6 +154,12 @@ void InitialiseCWKeyerRamp(void);
 void InitialiseDACAttenROMs(void);
 
 
+//
+// SetByteSwap(bool)
+// set whether byte swapping is enabled. True if yes, to get data in network byte order.
+//
+void SetByteSwapping(bool IsSwapped);
+
 
 //
 // SetMOX(bool Mox)
@@ -169,19 +175,48 @@ void SetMOX(bool Mox);
 void SetATUTune(bool TuneEnabled);
 
 //
-// SetP1SampleRate(ESampleRate Rate)
+// SetP1SampleRate(ESampleRate Rate, unsigned int Count)
 // sets the sample rate for all DDC used in protocol 1. 
 // allowed rates are 48KHz to 384KHz.
+// also sets the number of enabled DDCs, 1-8. Count = #DDC reqd
 //
-void SetP1SampleRate(ESampleRate Rate);
+void SetP1SampleRate(ESampleRate Rate, unsigned int Count);
 
 
 //
-// SetP2SampleRate(unsigned int DDC, unsigned int SampleRate)
+// SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bool InterleaveWithNext)
 // sets the sample rate for a single DDC (used in protocol 2)
 // allowed rates are 48KHz to 1536KHz.
+// This sets the DDCRateReg variable and does NOT write to hardware
+// The WriteP2DDCRateRegister() call must be made after setting values for all DDCs
 //
-void SetP2SampleRate(unsigned int DDC, unsigned int SampleRate);
+void SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bool InterleaveWithNext);
+
+
+//
+// bool WriteP2DDCRateRegister(void)
+// writes the DDCRateRegister, once all settings have been made
+// this is done so the number of changes to the DDC rates are minimised
+// and the information all comes form one P2 message anyway.
+// returns true if changes were made to the hardware register
+//
+bool WriteP2DDCRateRegister(void);
+
+
+//
+// uint32_t GetTotalSampleRate(void)
+// get the total sample rate transferred for all DDCs
+// this is needed to set timings and sizes for DMA transfers
+//
+uint32_t GetTotalSampleRate(void);
+
+
+//
+// uint32_t GetDDCEnables(void)
+// get enable bits for each DDC; 1 bit per DDC
+// this is needed to set timings and sizes for DMA transfers
+//
+uint32_t GetDDCEnables(void);
 
 
 //
@@ -805,13 +840,6 @@ void SetTXProtocol (bool Protocol);
 // if Enabled, the RX signal is transferred back during TX; else TX drive signal
 //
 void SetDuplex(bool Enabled);
-
-
-//
-// SetNumP1DDC(unsigned int Count)
-// sets the number of DDCs for which data is transferred back to the PC in protocol 1
-//
-void SetNumP1DDC(unsigned int Count);
 
 
 //

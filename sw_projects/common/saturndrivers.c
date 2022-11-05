@@ -58,7 +58,7 @@ uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed)
 	uint32_t Data = 0;							// register content
 	bool Overflow = false;
 
-	Address = VADDRFIFOMONBASE + 4 * Channel;			// status register address
+	Address = VADDRFIFOMONBASE + 4 * (uint32_t)Channel;			// status register address
 	Data = RegisterRead(Address);
 	if (Data & 0x80000000)						// if top bit set, declare overflow
 		Overflow = true;
@@ -71,26 +71,41 @@ uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed)
 
 
 
-
-
-
-
-
-
-
 //
-// reset a DDC FIFO
-// these are reset in pairs, so resetting DDC0 also resets DDC1
+// reset a stream FIFO
 //
-void ResetDDCFIFO(EDDCSelect DDCNum)
+void ResetDMAStreamFIFO(EDMAStreamSelect DDCNum)
 {
 	uint32_t Address;									// DDC register address
 	uint32_t Data;										// DDC register content
+	uint32_t DataBit;
 
-	Address = DDCConfigRegs[2*(int)DDCNum];				// DDC config register address
+	switch (DDCNum)
+	{
+		case eRXDDCDMA:							// selects RX
+			Address = VADDRDDCINSEL;			// bit is in DDC input select register
+			DataBit = (1 << VBITDDCFIFORESET);
+			break;
+
+		case eTXDUCDMA:							// selects TX
+			Address = VADDRTXCONFIGREG;			// bit is in TX config register
+			DataBit = (1 << VBITDUCFIFORESET);
+			break;
+
+		case eMicCodecDMA:						// selects mic samples
+			Address = VADDRCODECCONFIG2;		// bit is in codec config 2 register
+			DataBit = (1 << VBITCODECMICFIFORESET);
+			break;
+
+		case eSpkCodecDMA:						// selects speaker samples
+			Address = VADDRCODECCONFIG2;		// bit is in codec config 2 register
+			DataBit = (1 << VBITCODECMICFIFORESET);
+			break;
+	}
+
 	Data = RegisterRead(Address);						// read current content
-	Data = Data & ~(1<<18);
+	Data = Data & ~DataBit;
 	RegisterWrite(Address, Data);						// set reset bit to zero
-	Data = Data | (1<<18);
+	Data = Data | DataBit;
 	RegisterWrite(Address, Data);						// set reset bit to 1
 }

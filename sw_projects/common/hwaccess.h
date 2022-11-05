@@ -61,17 +61,4 @@ uint32_t RegisterRead(uint32_t Address);
 void RegisterWrite(uint32_t Address, uint32_t Data);
 
 
-
-//
-// 8 bit Codec register read over the AXILite bus via I2C
-//
-unsigned int CodecRegisterRead(unsigned int Address);
-
-
-//
-// 8 bit Codec register write over the AXILite bus via I2C
-//
-void CodecRegisterWrite(unsigned int Address, unsigned int Data);
-
-
 #endif

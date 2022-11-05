@@ -35,28 +35,17 @@ void *OutgoingDDCIQ(void *arg);
 // interface calls to get commands from PC settings
 //
 
-//
-// HandlerSetDDCEnabled(unsigned int DDC, bool Enabled)
-// set whether an DDC is enabled
-//
-void HandlerSetDDCEnabled(unsigned int DDC, bool Enabled);
-
 
 //
-// HandlerSetDDCInterleaved(unsigned int DDC, bool Interleaved)
-// set whether an DDC is interleaved
-// this is called for odd DDCs, and if interleaved synchs to next lower number
-// eg DDC3 can synch to DDC2
+// HandlerCheckDDCSettings()
+// called when DDC settings have been changed. Check which DDCs are enabled, and sample rate.
 //
-void HandlerSetDDCInterleaved(unsigned int DDC, bool Interleaved);
+void HandlerCheckDDCSettings(void)
+{
+
+}
 
 
-//
-// HandlerSetP2SampleRate(unsigned int DDC, unsigned int SampleRate)
-// sets the sample rate for a single DDC (used in protocol 2)
-// allowed rates are 48KHz to 1536KHz.
-//
-void HandlerSetP2SampleRate(unsigned int DDC, unsigned int SampleRate);
 
 
 
