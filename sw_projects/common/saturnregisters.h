@@ -73,6 +73,13 @@ typedef enum
 } EDMAStreamSelect;
 
 
+//
+// DMA channel allocations
+//
+#define VMICDMADEVICE "/dev/xdma0_c2h_1"
+#define VDDCDMADEVICE "/dev/xdma0_c2h_0"
+#define VSPKDMADEVICE "/dev/xdma0_h2c_1"
+#define VDUCDMADEVICE "/dev/xdma0_h2c_0"
 
 
 //
@@ -104,7 +111,7 @@ typedef enum
 #define VADDRDATECODE 0x4004
 #define VADDRADCOVERFLOWBASE 0x5000
 #define VADDRFIFOOVERFLOWBASE 0x6000
-#define VADDRCODECCONFIG2 0x7000
+#define VADDRFIFORESET 0x7000
 #define VADDRFIFOMONBASE 0x9000
 #define VADDRALEXADCBASE 0xA000
 #define VADDRALEXSPIREG 0x0B000
@@ -121,8 +128,8 @@ typedef enum
 #define VADDRMICSTREAMREAD 0x40000L				// stream reader/writer on AXI-4 bus
 #define VADDRSPKRSTREAMWRITE 0x40000L			// stream reader/writer on AXI-4 bus
 
-#define VBITDDCFIFORESET 31						// reset bit in register
-#define VBITDUCFIFORESET 22						// reset bit in register
+#define VBITDDCFIFORESET 2						// reset bit in register
+#define VBITDUCFIFORESET 3						// reset bit in register
 #define VBITCODECMICFIFORESET 0					// reset bit in register
 #define VBITCODECSPKFIFORESET 1					// reset bit in register
 
@@ -518,14 +525,6 @@ void SetDDCInterleaved(uint32_t DDCNum, bool Interleaved);
 // sets enable bit so DDC operates normally. Resets input FIFO when starting.
 //
 void SetRXDDCEnabled(bool IsEnabled);
-
-
-//
-// void ClearRXDDCFIFO(bool Clear);
-// if set true, clears MUX output FIFO contents. 
-//
-void ClearRXDDCFIFO(bool Clear);
-
 
 
 //

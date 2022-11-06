@@ -1345,31 +1345,6 @@ void SetRXDDCEnabled(bool IsEnabled)
 
 
 
-//
-// void ClearRXDDCFIFO(bool Clear);
-// if set true, clears MUX output FIFO contents. 
-//
-void ClearRXDDCFIFO(bool Clear)
-{
-    uint32_t Address;									// register address
-    uint32_t Data;										// register content
-
-    Address = VADDRDDCINSEL;							// DDC config register address
-    Data = DDCInSelReg;                                // get current register setting
-    if (!Clear)                                         // if normal operation, set bit
-        Data |= (1 << 31);								// set new bit
-    else
-        Data &= ~(1 << 31);								// clear new bit for clear FIFO
-
-    if (Data != DDCInSelReg)
-        //RegisterWrite(Address, Data);					// write back
-}
-
-
-
-
-
-
 
 
 

@@ -108,10 +108,10 @@ void *OutgoingDDCIQ(void *arg)
 // open DMA device driver
 //    this will probably have to move, as there won't be enough of them!
 //
-	DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDWR);
+	DMAReadfile_fd = open(VDDCDMADEVICE, O_RDWR);
 	if(DMAReadfile_fd < 0)
 	{
-		printf("XDMA read device open failed\n");
+		printf("XDMA read device open failed for DDC data\n");
 		InitError = true;
 	}
 

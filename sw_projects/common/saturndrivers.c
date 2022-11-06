@@ -49,6 +49,8 @@ void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt)
 // uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed);
 //
 // Read number of locations in a FIFO
+// for a read FIFO: returns the number of occupied locations available to read
+// for a write FIFO: returns the number of free locations available to write
 //   Channel:			IP core channel number (enum)
 //   Overflowed:		true if an overflow has occurred. Reading clears the overflow bit.
 //
@@ -60,11 +62,13 @@ uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed)
 
 	Address = VADDRFIFOMONBASE + 4 * (uint32_t)Channel;			// status register address
 	Data = RegisterRead(Address);
-	if (Data & 0x80000000)						// if top bit set, declare overflow
+	if (Data & 0x80000000)										// if top bit set, declare overflow
 		Overflow = true;
-	Data = Data & 0xFFFF;						// strip to 16 bits
-	*Overflowed = Overflow;						// send out overflow result
-	return Data;								// return 16 bit FIFO count
+	Data = Data & 0xFFFF;										// strip to 16 bits
+	*Overflowed = Overflow;										// send out overflow result
+	if ((Channel == eTXDUCDMA) || (Channel == eSpkCodecDMA))	// if a write channel
+		Data = DMAFIFODepths[Channel] - Data;					// calculate free locations
+	return Data;												// return 16 bit FIFO count
 }
 
 
@@ -83,29 +87,25 @@ void ResetDMAStreamFIFO(EDMAStreamSelect DDCNum)
 	switch (DDCNum)
 	{
 		case eRXDDCDMA:							// selects RX
-			Address = VADDRDDCINSEL;			// bit is in DDC input select register
 			DataBit = (1 << VBITDDCFIFORESET);
 			break;
 
 		case eTXDUCDMA:							// selects TX
-			Address = VADDRTXCONFIGREG;			// bit is in TX config register
 			DataBit = (1 << VBITDUCFIFORESET);
 			break;
 
 		case eMicCodecDMA:						// selects mic samples
-			Address = VADDRCODECCONFIG2;		// bit is in codec config 2 register
 			DataBit = (1 << VBITCODECMICFIFORESET);
 			break;
 
 		case eSpkCodecDMA:						// selects speaker samples
-			Address = VADDRCODECCONFIG2;		// bit is in codec config 2 register
 			DataBit = (1 << VBITCODECMICFIFORESET);
 			break;
 	}
 
-	Data = RegisterRead(Address);						// read current content
+	Data = RegisterRead(VADDRFIFORESET);						// read current content
 	Data = Data & ~DataBit;
-	RegisterWrite(Address, Data);						// set reset bit to zero
+	RegisterWrite(VADDRFIFORESET, Data);						// set reset bit to zero
 	Data = Data | DataBit;
-	RegisterWrite(Address, Data);						// set reset bit to 1
+	RegisterWrite(VADDRFIFORESET, Data);						// set reset bit to 1
 }
