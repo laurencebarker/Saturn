@@ -109,3 +109,72 @@ void ResetDMAStreamFIFO(EDMAStreamSelect DDCNum)
 	Data = Data | DataBit;
 	RegisterWrite(VADDRFIFORESET, Data);						// set reset bit to 1
 }
+
+
+
+//
+// SetTXAmplitudeEER (bool EEREnabled)
+// enables amplitude restoratino mode. Generates envelope output alongside I/Q samples.
+// NOTE hardware does not properly support this yet!
+// 
+void SetTXAmplitudeEER(bool EEREnabled)
+{
+	GEEREnabled = EEREnabled;								// save value
+	HandlerSetEERMode(EEREnabled);							// I/Q send handler
+}
+
+
+//
+// number of samples to read for each DDC setting
+// these settings must match behaviour of the FPGA IP!
+// a value of "7" indicates an interleaved DDC
+// and the rate value is stored for *next* DDC
+//
+const uint32_t DDCSamplesCounts[] =
+{
+	0,						// set to zero so no samples transferred
+	1,
+	2,
+	4,
+	8,
+	16,
+	32,
+	0						// when set to 7, use next value & double it
+};
+
+//
+// uint32_t AnalyseDDCHeader(unit32_t Header, unit32_t** DDCCounts)
+// parameters are the header read from the DDC stream, and
+// a pointer to an array [DDC count] of ints
+// the array of ints is populated with the number of samples to read for each DDC
+// returns the number of words per frame, which helps set the DMA transfer size
+//
+uint32_t AnalyseDDCHeader(unit32_t Header, unit32_t** DDCCounts)
+{
+	uint32_t DDC;								// DDC counter
+	uint32_t Rate;								// 3 bit value for this DDC
+	uint32_t Count;
+	uint32_t Total = 0;
+	for (DDC = 0; DDC < VNUMDDC; DDC++)
+	{
+		Rate = Header & 7;						// get settings for this DDC
+		if (Rate != 7)
+		{
+			Count = DDCSampleCounts[Rate];
+			*DDCCounts[DDC] = Count;
+			Total += Count;						// add up samples
+		}
+		else									// interleaved
+		{
+			Header = Header >> 3;
+			Rate = Header & 7;					// next 3 bits
+			Count = 2*DDCSampleCounts[Rate];
+			*DDCCounts[DDC] = Count;
+			Total += Count;
+			*DDCCounts[DDC + 1] = 0;
+			DDC += 1;
+		}
+		Header = Header >> 3;					// ready for next DDC rate
+	}
+	return Total;
+}

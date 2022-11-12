@@ -30,5 +30,12 @@
 //
 void *IncomingDUCIQ(void *arg);                 // listener thread
 
+//
+// HandlerSetEERMode (bool EEREnabled)
+// enables amplitude restoration mode. Generates envelope output alongside I/Q samples.
+// NOTE hardware does not properly support this yet!
+// TX FIFO must be empty. Stop multiplexer; set bit; restart
+// 
+void HandlerSetEERMode(EEREnabled);
 
 #endif

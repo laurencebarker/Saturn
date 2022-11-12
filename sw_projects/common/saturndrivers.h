@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 #include "../common/saturntypes.h"
+#include "inDUCIQ.h"
 
 
 
@@ -45,13 +46,29 @@ void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt);
 uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed);
 
 
-
-
 //
 // reset a stream FIFO
 // clears the FIFOs directly read ori written by the FPGA
 //
 void ResetDMAStreamFIFO(EDMAStreamSelect DDCNum);
+
+
+//
+// SetTXAmplitudeEER (bool EEREnabled)
+// enables amplitude restoratino mode. Generates envelope output alongside I/Q samples.
+// NOTE hardware does not properly support this yet!
+// 
+void SetTXAmplitudeEER(bool EEREnabled);
+
+
+//
+// uint32_t AnalyseDDCHeader(unit32_t Header, unit32_t** DDCCounts)
+// parameters are the header read from the DDC stream, and
+// a pointer to an array [DDC count] of ints
+// the array of ints is populated with the number of samples to read for each DDC
+// returns the number of words per frame, which helps set the DMA transfer size
+//
+uint32_t AnalyseDDCHeader(unit32_t Header, unit32_t** DDCCounts)
 
 
 #endif

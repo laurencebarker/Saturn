@@ -829,6 +829,36 @@ void SetTXModulationSource(ETXModulationSource Source);
 void SetTXProtocol (bool Protocol);
 
 
+//
+// void ResetDUCMux(void)
+//
+void ResetDUCMux(void);
+
+
+//
+// void SetTXOutputGate(bool AlwaysOn)
+// sets the sample output gater. If false, samples gated by TX strobe.
+// if true, samples are alweays enabled.
+//
+void SetTXOutputGate(bool AlwaysOn);
+
+
+//
+// void SetTXIQDeinterleaved(bool Interleaved)
+// if true, put DUC hardware in EER mode
+// this must only be called by the TX datas handler
+// as it needs ot reset the DUC mux at the same time
+//
+void SetTXIQDeinterleaved(bool Interleaved);
+
+
+//
+// void EnableDUCMux(bool Enabled)
+// enabled the multiplexer to take samples from FIFO and hand on to DUC
+// // needs to be stoppable if there is an error condition
+//
+void EnableDUCMux(bool Enabled);
+
 //////////////////////////////////////////////////////////////////////////////////
 // control the data transfer app
 //

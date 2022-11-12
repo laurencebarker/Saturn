@@ -50,10 +50,10 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
     struct msghdr datagram;                               // multiple incoming message header
     int size;                                             // UDP datagram length
 
- //
+//
 // variables for DMA buffer 
 //
-    uint8_t* SpkWriteBuffer = NULL;							// data for DMA read from DDC
+    uint8_t* SpkWriteBuffer = NULL;							// data for DMA to write to spkr
     uint32_t SpkBufferSize = VDMABUFFERSIZE;
     bool InitError = false;                                 // becomes true if we get an initialisation error
     unsigned char* SpkReadPtr;								// pointer for reading out a spkr sample
@@ -115,7 +115,7 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
         if(size == VSPEAKERAUDIOSIZE)                           // we have received a packet!
         {
             Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow);        // read the FIFO free locations
-            while (Depth < (VSPKSAMPLESPERFRAME / VSPKSAMPLESPERMEMWORD))       // loop till space availavle
+            while (Depth < (VSPKSAMPLESPERFRAME / VSPKSAMPLESPERMEMWORD))       // loop till space available
             {
                 usleep(1000);								                    // 1ms wait
                 Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow);    // read the FIFO free locations

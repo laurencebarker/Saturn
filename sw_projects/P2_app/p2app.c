@@ -113,8 +113,6 @@ pthread_t MicThread;
 pthread_t HighPriorityFromSDRThread;
 
 
-// temp variable for getting mic sample rate correct
-uint32_t TransferredIQSamples = 0;
 
 
 
@@ -258,7 +256,9 @@ int main(void)
   InitialiseDACAttenROMs();
   InitialiseCWKeyerRamp();
   SetCWSidetoneEnabled(true);
-
+  SetTXProtocol(true);                                              // set to protocol 2
+  SetTXModulationSource(eIQData);                                   // disable debug options
+  SetTXAmplitudeEER(false);                                         // no EER
   //
   // debug code
   //
@@ -345,8 +345,18 @@ int main(void)
 
 //
 // and for now create just one outgoing DDC data thread for DDC 0
+// create all the sockets though!
 //
-  MakeSocket(SocketData+VPORTDDCIQ0, 0);
+  MakeSocket(SocketData + VPORTDDCIQ0, 0);
+  MakeSocket(SocketData + VPORTDDCIQ1, 0);
+  MakeSocket(SocketData + VPORTDDCIQ2, 0);
+  MakeSocket(SocketData + VPORTDDCIQ3, 0);
+  MakeSocket(SocketData + VPORTDDCIQ4, 0);
+  MakeSocket(SocketData + VPORTDDCIQ5, 0);
+  MakeSocket(SocketData + VPORTDDCIQ6, 0);
+  MakeSocket(SocketData + VPORTDDCIQ7, 0);
+  MakeSocket(SocketData + VPORTDDCIQ8, 0);
+  MakeSocket(SocketData + VPORTDDCIQ9, 0);
   if(pthread_create(&DDCIQThread[0], NULL, OutgoingDDCIQ, (void*)&SocketData[VPORTDDCIQ0]) < 0)
   {
     perror("pthread_create DUC I/Q");

@@ -95,6 +95,10 @@ bool GDashPressed;                                  // P2. True if dash input pr
 bool GDotPressed;                                   // P2. true if dot input pressed.
 unsigned int GUserOutputBits;                       // P2. Not yet implermented.
 unsigned int GTXAmplScaleFactor;                    // values multipled into TX output after DUC
+bool GTXAlwaysEnabled;                              // true if TX samples always enabled (for test)
+bool GTXIQInterleaved;                              // true if IQ is interleaved, for EER mode
+bool GTXDUCMuxActive;                               // true if I/Q mux is enabled to transfer data
+bool GEEREnabled;                                   // P2. true if EER is enabled
 ETXModulationSource GTXModulationSource;            // values added to register
 bool GTXProtocolP2;                                 // true if P2
 uint32_t TXModulationTestReg;                       // modulation test DDS
@@ -1915,10 +1919,11 @@ void SetTXAmplitudeScaling (unsigned int Amplitude)
 }
 
 
+
 //
 // SetTXProtocol (bool Protocol)
 // sets whether TX configured for P1 (48KHz) or P2 (192KHz)
-//
+// true for P2
 void SetTXProtocol (bool Protocol)
 {
     uint32_t Register;
@@ -1933,6 +1938,106 @@ void SetTXProtocol (bool Protocol)
 //        RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
     }
 }
+
+
+//
+// void ResetDUCMux(void)
+// resets to 64 to 48 bit multiplexer to initial state, expecting 1st 64 bit word
+// also causes any input data to be discarded, so don't set it for long!
+//
+void ResetDUCMux(void)
+{
+    uint32_t Register;
+    uint32_t BitMask;
+
+    BitMask = (1 << 29);
+    Register = TXConfigRegValue;                        // get current settings
+    Register |= BitMask;                                // set reset bit
+//    RegisterWrite(VADDRTXCONFIGREG, Register);          // and write to it
+    Register &= ~BitMask;                               // remove old bit
+//    RegisterWrite(VADDRTXCONFIGREG, Register);          // and write to it
+}
+
+
+
+//
+// void SetTXOutputGate(bool AlwaysOn)
+// sets the sample output gater. If false, samples gated by TX strobe.
+// if true, samples are alweays enabled.
+//
+void SetTXOutputGate(bool AlwaysOn)
+{
+    uint32_t Register;
+    uint32_t BitMask;
+
+    GTXAlwaysEnabled = AlwaysOn;
+    BitMask = (1 << 2);
+    Register = TXConfigRegValue;                        // get current settings
+    if (AlwaysOn)
+        Register |= BitMask;                            // set bit if true
+        else
+        Register &= ~BitMask;                           // clear bit if false
+    if (Register != TXConfigRegValue)                    // write back if different
+    {
+        TXConfigRegValue = Register;                    // store it back
+//        RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
+    }
+}
+
+
+//
+// void SetTXIQDeinterleave(bool Interleaved)
+// if true, put DUC hardware in EER mode. Alternate IQ samples go:
+// even samples to I/Q modulation; odd samples to EER.
+// ensure FIFO empty & reset multiplexer when changing this bit!
+// shgould be called by the TX I/Q data handler only to be sure
+// of meeting that constraint 
+//
+void SetTXIQDeinterleaved(bool Interleaved)
+{
+    uint32_t Register;
+    uint32_t BitMask;
+
+    GTXIQInterleaved = Interleaved;
+    BitMask = (1 << 30);
+    Register = TXConfigRegValue;                        // get current settings
+    if (Interleaved)
+        Register |= BitMask;                            // set bit if true
+    else
+        Register &= ~BitMask;                           // clear bit if false
+    if (Register != TXConfigRegValue)                   // write back if different
+    {
+        TXConfigRegValue = Register;                    // store it back
+//        RegisterWrite(VADDRTXCONFIGREG, Register);    // and write to it
+    }
+}
+
+
+//
+// void EnableDUCMux(bool Enabled)
+// enabled the multiplexer to take samples from FIFO and hand on to DUC
+// // needs to be stoppable if there is an error condition
+//
+void EnableDUCMux(bool Enabled)
+{
+    uint32_t Register;
+    uint32_t BitMask;
+
+    GTXDUCMuxActive = Enabled;
+    BitMask = (1 << 31);
+    Register = TXConfigRegValue;                        // get current settings
+    if (Enabled)
+        Register |= BitMask;                            // set bit if true
+    else
+        Register &= ~BitMask;                           // clear bit if false
+    if (Register != TXConfigRegValue)                   // write back if different
+    {
+        TXConfigRegValue = Register;                    // store it back
+//        RegisterWrite(VADDRTXCONFIGREG, Register);    // and write to it
+    }
+}
+
+
 
 
 //
@@ -1975,10 +2080,6 @@ void SetTXModulationSource(ETXModulationSource Source)
 
 
 
-
-//////////////////////////////////////////////////////////////////////////////////
-// control the data transfer app
-//
 
 
 //
