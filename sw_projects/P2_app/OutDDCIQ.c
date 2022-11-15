@@ -215,10 +215,23 @@ void *OutgoingDDCIQ(void *arg)
     struct msghdr datagram[VNUMDDC];
     uint8_t* UDPBuffer[VNUMDDC];                                // DDC frame buffer
     uint32_t SequenceCounter[VNUMDDC];                          // UDP sequence count
+//
+// variables for analysing a DDC frame
+//
+    uint32_t FrameLength;                                       // number of words per frame
+    uint32_t DDCCounts[VNUMDDC];                                // number of samples per DDC in a frame
+    uint32_t RateWord;                                          // DDC rate word from buffer
+    uint32_t HdrWord;                                           // check word read form DMA's data
+    uint16_t* SrcWordPtr, * DestWordPtr;                        // 16 bit read & write pointers
+    uint32_t LongWordPtr;
+    uint32_t PrevRateWord;                                      // last used rate word
+    bool EnoughData;
+    uint32_t Cntr;                                              // sample word counter
 
 //
 // initialise. Create memory buffers and open DMA file devices
 //
+    PrevRateWord = 0xFFFFFFFF;                                  // illegal value to forc re-calculation of rates
     DMATransferSize = VDMATRANSFERSIZE;                         // initial size, but can be changed
     posix_memalign((void**)&DMAReadBuffer, VALIGNMENT, DMABufferSize);
     DMAReadPtr = DMAReadBuffer + VBASE;		                    // offset 4096 bytes into buffer
@@ -377,7 +390,7 @@ void *OutgoingDDCIQ(void *arg)
             //
             Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow);				// read the FIFO Depth register
             //		printf("read: depth = %d\n", Depth);
-            while(Depth < (DMATransferSize/8)			// 8 bytes per location
+            while(Depth < (DMATransferSize/8))			// 8 bytes per location
             {
                 usleep(1000);								// 1ms wait
                 Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow);				// read the FIFO Depth register
@@ -386,13 +399,78 @@ void *OutgoingDDCIQ(void *arg)
             //		printf("DMA read %d bytes from destination to base\n", VDMATRANSFERSIZE);
             DMAReadFromFPGA(IQReadfile_fd, DMAHeadPtr, DMATransferSize, VADDRDDCSTREAMREAD);
             DMAHeadPtr += DMATransferSize;
+            EnoughData = true;
 
             //
             // finally copy data to DMA buffers according to the embedded DDC rate words
+            // the 1st word is pointed by DMAReadPtr and it should point to a DDC rate word
+            // (it should always be left in that state).
+            // the top half of the 1st 64 bit word should be 0x8000
+            // and that is located in the 2nd 32 bit location.
+            // assume that DMA is > 1 frame.
+            while (EnoughData)
+            {
+                LongWordPtr = (uint32_t*)DMAReadPtr;                                    // get 32 bit ptr
+                RateWord = *LongWordPtr++;                                              // read rate word
+                HdrWord = *LongWordPtr++;                                               // read rate flags
+                if ((HdrWord & 0x80000000) == 0)                                        // if rate flag not set
+                {
+                    printf("Rate word not found when expected\n");
+                    InitError = true;
+                }
+                else                                                                    // analyse word, then process
+                {
+                    if (RateWord != PrevRateWord)
+                    {
+                        FrameLength = AnalyseDDCHeader(RateWord, &DDCCounts);           // read new settings
+                        PrevRateWord = RateWord;                                        // so so we know its analysed
+                    }
+                    if ((DMAHeadPtr - DMAReadPtr) >= (FrameLength * 8))                 // if enough bytes available
+                    {
+                        //THEN COPY DMA DATA TO I / Q BUFFERS
+                        DMAReadPtr += 8;                                                // point to 1st location past rate word
+                        SrcWordPtr = (uint16_t*)DMAReadPtr;                             // read sample data in 16 bit chunks
+                        for (DDC = 0; DDC < VNUMDDC; DDC++)
+                        {
+                            HdrWord = DDCCounts[DDC];                                   // number of words for this DDC. reuse variable
+                            if (HdrWord != 0)
+                            {
+                                DstWordPtr = (uint16_t *)IQHeadPtr[DDC];
+                                for (Cntr = 0; Cntr < HdrWord; Cntr++)                  // count 64 bit words
+                                {
+                                    *DstWordPtr++ = *SrcWordPtr++;                      // move 48 bits of sample data
+                                    *DstWordPtr++ = *SrcWordPtr++;
+                                    *DstWordPtr++ = *SrcWordPtr++;
+                                    SrcWordPtr++;                                       // and skip 16 bits where theres no data
+                                }
+                                IQHeadPtr[DDC] += 6 * HdrWord;                          // 6 bytes per sample
+                            }
+                            // read N samples; write at head ptr
+                        }
+                        DMAReadPtr += FrameLength * 8;                                  // that's how many bytes we read out
+                    }
+                    else
+                        EnoughData = false;                                             // if not enough left, flag to read more
+                }
+            }
             //
-            THEN COPY DMA DATA TO I/Q BUFFERS
-
-
+            // now copy any residue to the start of the buffer (before the data copy in point)
+            // unless the buffer already starts at or below the base
+            // if we do a copy, the 1st free location is always base addr
+            //
+            ResidueBytes = DMAHeadPtr - DMAReadPtr;
+            //		printf("Residue = %d bytes\n",ResidueBytes);
+            if (DMAReadPtr > DMABasePtr)                                // move data down
+            {
+                if (ResidueBytes != 0) 		// if there is residue to move
+                {
+                    memcpy(DMABasePtr - ResidueBytes, DMAReadPtr, ResidueBytes);
+                    DMAReadPtr = DMABasePtr - ResidueBytes;
+                }
+                else
+                    DMAReadPtr = DMABasePtr;
+                DMAHeadPtr = DMABasePtr;                            // ready for new data at base
+            }
         }     // end of while(!InitError) loop
     }
 
