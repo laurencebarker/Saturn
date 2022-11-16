@@ -258,7 +258,7 @@ int main(void)
   SetCWSidetoneEnabled(true);
   SetTXProtocol(true);                                              // set to protocol 2
   SetTXModulationSource(eIQData);                                   // disable debug options
-  SetTXAmplitudeEER(false);                                         // no EER
+  HandlerSetEERMode(false);                                         // no EER
   //
   // debug code
   //

@@ -18,7 +18,8 @@
 
 #include <stdint.h>
 #include "../common/saturntypes.h"
-#include "inDUCIQ.h"
+#include "../common/saturnregisters.h"
+#include "../P2_app/InDUCIQ.h"
 
 
 
@@ -68,7 +69,7 @@ void SetTXAmplitudeEER(bool EEREnabled);
 // the array of ints is populated with the number of samples to read for each DDC
 // returns the number of words per frame, which helps set the DMA transfer size
 //
-uint32_t AnalyseDDCHeader(unit32_t Header, unit32_t** DDCCounts)
+uint32_t AnalyseDDCHeader(uint32_t Header, uint32_t** DDCCounts);
 
 
 #endif

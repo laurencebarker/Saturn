@@ -18,6 +18,7 @@
 #include "../common/saturntypes.h"
 #include "OutMicAudio.h"
 #include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <unistd.h>
@@ -25,6 +26,7 @@
 #include <string.h>
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
+#include "../common/hwaccess.h"
 
 
 #define VMICSAMPLESPERFRAME 64
@@ -61,7 +63,6 @@ void *OutgoingMicSamples(void *arg)
 //
     uint8_t* MicReadBuffer = NULL;							// data for DMA read from DDC
     uint32_t MicBufferSize = VDMABUFFERSIZE;
-    bool InitError = false;                                 // becomes true if we get an initialisation error
     unsigned char* MicReadPtr;								// pointer for reading out a mic sample
     unsigned char* MicHeadPtr;								// ptr to 1st free location in mic memory
     unsigned char* MicBasePtr;								// ptr to DMA location in mic memory

@@ -26,6 +26,7 @@
 #include <fcntl.h>
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
+#include "../common/hwaccess.h"
 
 
 
@@ -190,7 +191,7 @@ void *OutgoingDDCIQ(void *arg)
     unsigned char* DMAReadPtr;							        // pointer for 1st available location in DMA memory
     unsigned char* DMAHeadPtr;							        // ptr to 1st free location in DMA memory
     unsigned char* DMABasePtr;							        // ptr to target DMA location in DMA memory
-    unit32_t DMATransferSize;
+    uint32_t DMATransferSize;
     bool InitError = false;                                     // becomes true if we get an initialisation error
     
     uint8_t* DDCSampleBuffer[VNUMDDC];                          // buffer per DDC
@@ -223,7 +224,7 @@ void *OutgoingDDCIQ(void *arg)
     uint32_t RateWord;                                          // DDC rate word from buffer
     uint32_t HdrWord;                                           // check word read form DMA's data
     uint16_t* SrcWordPtr, * DestWordPtr;                        // 16 bit read & write pointers
-    uint32_t LongWordPtr;
+    uint32_t *LongWordPtr;
     uint32_t PrevRateWord;                                      // last used rate word
     bool EnoughData;
     uint32_t Cntr;                                              // sample word counter
@@ -301,9 +302,9 @@ void *OutgoingDDCIQ(void *arg)
                 {
                     close((ThreadData+DDC) -> Socketid);                      // close old socket, open new one
                     MakeSocket((ThreadData + DDC), 0);                        // this binds to the new port.
-                    (ThreadData + DDC) - >Cmdid &= ~VBITCHANGEPORT;           // clear command bit
+                    (ThreadData + DDC) -> Cmdid &= ~VBITCHANGEPORT;           // clear command bit
                 }
-                usleep(100);
+            usleep(100);
         }
         printf("starting outgoing data\n");
         //
@@ -317,7 +318,7 @@ void *OutgoingDDCIQ(void *arg)
             memset(&datagram[DDC], 0, sizeof(datagram));
             iovecinst[DDC].iov_base = UDPBuffer;
             iovecinst[DDC].iov_len = VDDCPACKETSIZE;
-            datagram[DDC].msg_iov = &iovecinst;
+            datagram[DDC].msg_iov = &iovecinst[DDC];
             datagram[DDC].msg_iovlen = 1;
             datagram[DDC].msg_name = &DestAddr;                   // MAC addr & port to send to
             datagram[DDC].msg_namelen = sizeof(DestAddr);
@@ -352,7 +353,7 @@ void *OutgoingDDCIQ(void *arg)
                     IQReadPtr[DDC] += VIQBYTESPERFRAME;
 
                     int Error;
-                    Error = sendmsg((ThreadData+DDC)->Socketid, &datagram, 0);
+                    Error = sendmsg((ThreadData+DDC)->Socketid, &datagram[DDC], 0);
 
                     if (Error == -1)
                     {
@@ -390,7 +391,7 @@ void *OutgoingDDCIQ(void *arg)
             //
             Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow);				// read the FIFO Depth register
             //		printf("read: depth = %d\n", Depth);
-            while(Depth < (DMATransferSize/8))			// 8 bytes per location
+            while(Depth < (DMATransferSize/8U))			// 8 bytes per location
             {
                 usleep(1000);								// 1ms wait
                 Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow);				// read the FIFO Depth register
@@ -435,12 +436,12 @@ void *OutgoingDDCIQ(void *arg)
                             HdrWord = DDCCounts[DDC];                                   // number of words for this DDC. reuse variable
                             if (HdrWord != 0)
                             {
-                                DstWordPtr = (uint16_t *)IQHeadPtr[DDC];
+                                DestWordPtr = (uint16_t *)IQHeadPtr[DDC];
                                 for (Cntr = 0; Cntr < HdrWord; Cntr++)                  // count 64 bit words
                                 {
-                                    *DstWordPtr++ = *SrcWordPtr++;                      // move 48 bits of sample data
-                                    *DstWordPtr++ = *SrcWordPtr++;
-                                    *DstWordPtr++ = *SrcWordPtr++;
+                                    *DestWordPtr++ = *SrcWordPtr++;                     // move 48 bits of sample data
+                                    *DestWordPtr++ = *SrcWordPtr++;
+                                    *DestWordPtr++ = *SrcWordPtr++;
                                     SrcWordPtr++;                                       // and skip 16 bits where theres no data
                                 }
                                 IQHeadPtr[DDC] += 6 * HdrWord;                          // 6 bytes per sample

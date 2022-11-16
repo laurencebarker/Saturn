@@ -13,11 +13,11 @@
 //////////////////////////////////////////////////////////////
 
 
+#include <stdlib.h>                     // for function min()
+#include <math.h>
 #include "../common/saturndrivers.h"
 #include "../common/saturnregisters.h"
 #include "../common/hwaccess.h"                   // low level access
-#include <stdlib.h>                     // for function min()
-#include <math.h>
 
 
 
@@ -80,7 +80,6 @@ uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed)
 //
 void ResetDMAStreamFIFO(EDMAStreamSelect DDCNum)
 {
-	uint32_t Address;									// DDC register address
 	uint32_t Data;										// DDC register content
 	uint32_t DataBit;
 
@@ -130,7 +129,7 @@ void SetTXAmplitudeEER(bool EEREnabled)
 // a value of "7" indicates an interleaved DDC
 // and the rate value is stored for *next* DDC
 //
-const uint32_t DDCSamplesCounts[] =
+const uint32_t DDCSampleCounts[] =
 {
 	0,						// set to zero so no samples transferred
 	1,
@@ -149,7 +148,7 @@ const uint32_t DDCSamplesCounts[] =
 // the array of ints is populated with the number of samples to read for each DDC
 // returns the number of words per frame, which helps set the DMA transfer size
 //
-uint32_t AnalyseDDCHeader(unit32_t Header, unit32_t** DDCCounts)
+uint32_t AnalyseDDCHeader(uint32_t Header, uint32_t** DDCCounts)
 {
 	uint32_t DDC;								// DDC counter
 	uint32_t Rate;								// 3 bit value for this DDC

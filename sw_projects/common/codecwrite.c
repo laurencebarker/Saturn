@@ -17,6 +17,8 @@
 #define _XOPEN_SOURCE 500
 #include "../common/hwaccess.h"
 #include "../common/saturnregisters.h"
+#include "stdio.h"
+
 
 
 //

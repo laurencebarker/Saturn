@@ -33,7 +33,7 @@ typedef enum
 	e384KHz,
 	e768KHz,
 	e1536KHz,
-	eInterleaveEithNext;
+	eInterleaveWithNext
 } ESampleRate;
 
 //
@@ -143,6 +143,16 @@ extern uint32_t DDCRegisters[VNUMDDC];
 //
 extern uint32_t DDCConfigRegs[VNUMDDC];
 
+//
+// DMA FIFO depths
+// this is the number of 64 bit FIFO locations
+//
+extern uint32_t DMAFIFODepths[VNUMDMAFIFO];
+
+extern bool GEEREnabled;                                   // P2. true if EER is enabled
+
+
+
 
 //
 // InitialiseCWKeyerRamp(void)
@@ -211,14 +221,6 @@ bool WriteP2DDCRateRegister(void);
 
 
 //
-// uint32_t GetTotalSampleRate(void)
-// get the total sample rate transferred for all DDCs
-// this is needed to set timings and sizes for DMA transfers
-//
-uint32_t GetTotalSampleRate(void);
-
-
-//
 // uint32_t GetDDCEnables(void)
 // get enable bits for each DDC; 1 bit per DDC
 // this is needed to set timings and sizes for DMA transfers
@@ -266,12 +268,12 @@ void SetDDCFrequency(unsigned int DDC, unsigned int Value, bool IsDeltaPhase);
 
 
 //
-// SetDUCFrequency(unsigned int DUC, unsigned int Value, bool IsDeltaPhase)
+// SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)
 // sets a DUC frequency. (Currently only 1 DUC, therefore DUC must be 0)
 // Value: 32 bit phase word or frequency word (1Hz resolution)
 // IsDeltaPhase: true if a delta phase value, false if a frequency value (P1)
 //
-void SetDUCFrequency(unsigned int DUC, unsigned int Value, bool IsDeltaPhase);		// only accepts DUC=0 
+void SetDUCFrequency(unsigned int Value, bool IsDeltaPhase);		// only accepts DUC=0 
 
 
 //
@@ -889,13 +891,6 @@ void SetOperateMode(bool IsRunMode);
 // for protocol 2, sets whether DDC/DUC frequency is phase word or frequency in Hz.
 //
 void SetFreqPhaseWord(bool IsPhase);
-
-
-//
-// SetDDCEnabled(unsigned int DDC, bool Enabled)
-// set whether an DDC is enabled
-//
-void SetDDCEnabled(unsigned int DDC, bool Enabled);
 
 
 //
