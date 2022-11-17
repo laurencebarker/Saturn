@@ -423,7 +423,7 @@ void *OutgoingDDCIQ(void *arg)
                 {
                     if (RateWord != PrevRateWord)
                     {
-                        FrameLength = AnalyseDDCHeader(RateWord, &DDCCounts);           // read new settings
+                        FrameLength = AnalyseDDCHeader(RateWord, &DDCCounts[0]);           // read new settings
                         PrevRateWord = RateWord;                                        // so so we know its analysed
                     }
                     if ((DMAHeadPtr - DMAReadPtr) >= (FrameLength * 8))                 // if enough bytes available

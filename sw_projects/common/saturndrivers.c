@@ -148,7 +148,7 @@ const uint32_t DDCSampleCounts[] =
 // the array of ints is populated with the number of samples to read for each DDC
 // returns the number of words per frame, which helps set the DMA transfer size
 //
-uint32_t AnalyseDDCHeader(uint32_t Header, uint32_t** DDCCounts)
+uint32_t AnalyseDDCHeader(uint32_t Header, uint32_t* DDCCounts)
 {
 	uint32_t DDC;								// DDC counter
 	uint32_t Rate;								// 3 bit value for this DDC
@@ -160,7 +160,7 @@ uint32_t AnalyseDDCHeader(uint32_t Header, uint32_t** DDCCounts)
 		if (Rate != 7)
 		{
 			Count = DDCSampleCounts[Rate];
-			*DDCCounts[DDC] = Count;
+			DDCCounts[DDC] = Count;
 			Total += Count;						// add up samples
 		}
 		else									// interleaved
@@ -168,9 +168,9 @@ uint32_t AnalyseDDCHeader(uint32_t Header, uint32_t** DDCCounts)
 			Header = Header >> 3;
 			Rate = Header & 7;					// next 3 bits
 			Count = 2*DDCSampleCounts[Rate];
-			*DDCCounts[DDC] = Count;
+			DDCCounts[DDC] = Count;
 			Total += Count;
-			*DDCCounts[DDC + 1] = 0;
+			DDCCounts[DDC + 1] = 0;
 			DDC += 1;
 		}
 		Header = Header >> 3;					// ready for next DDC rate
