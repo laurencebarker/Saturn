@@ -18,6 +18,7 @@
 #include "../common/saturntypes.h"
 #include "InSpkrAudio.h"
 #include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <unistd.h>
@@ -25,6 +26,7 @@
 #include <string.h>
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
+#include "../common/hwaccess.h"
 
 
 #define VSPKSAMPLESPERFRAME 64                      // samples per UDP frame
@@ -61,7 +63,6 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
     unsigned char* SpkBasePtr;								// ptr to DMA location in spk memory
     uint32_t Depth = 0;
     int DMAWritefile_fd = -1;								// DMA read file device
-    uint32_t RegisterValue;
     bool FIFOOverflow;
 
     ThreadData = (struct ThreadSocketData *)arg;
@@ -121,7 +122,7 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
                 Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow);    // read the FIFO free locations
             }
             // copy sata from UDP Buffer & DMA write it
-            memcpy(SpkBasePtr, UDPBuffer + 4, VDMATRANSFERSIZE);                // copy out spk samples
+            memcpy(SpkBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);              // copy out spk samples
             DMAWriteToFPGA(DMAWritefile_fd, SpkBasePtr, VDMATRANSFERSIZE, VADDRSPKRSTREAMWRITE);
         }
     }

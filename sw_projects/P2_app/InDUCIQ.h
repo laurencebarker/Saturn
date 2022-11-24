@@ -36,6 +36,6 @@ void *IncomingDUCIQ(void *arg);                 // listener thread
 // NOTE hardware does not properly support this yet!
 // TX FIFO must be empty. Stop multiplexer; set bit; restart
 // 
-void HandlerSetEERMode(EEREnabled);
+void HandlerSetEERMode(bool EEREnabled);
 
 #endif

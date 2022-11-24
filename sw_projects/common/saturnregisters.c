@@ -16,6 +16,7 @@
 
 #include "../common/saturnregisters.h"
 #include "../common/hwaccess.h"                   // low level access
+#include "../common/codecwrite.h"
 #include <stdlib.h>                     // for function min()
 #include <math.h>
 
@@ -274,7 +275,7 @@ void InitialiseDACAttenROMs(void)
         ResidualAtten = DesiredAtten - StepAtten;           // this needs to be achieved through the current setting drive
         DACDrive = (unsigned int)(255.0/pow(10.0,(ResidualAtten/20.0)));
         DACCurrentROM[Level] = DACDrive;
-        DACStepAttenROM[Level] = StepAtten;
+        DACStepAttenROM[Level] = StepValue;
     }
 }
 
@@ -364,13 +365,12 @@ void SetATUTune(bool TuneEnabled)
 //
 void SetP1SampleRate(ESampleRate Rate, unsigned int DDCCount)
 {
-    int Cntr;
-    uint32_t ConfigReg;
+    unsigned int Cntr;
     uint32_t RegisterValue = 0;
     uint32_t RateBits;
 
-    if (Count > VMAXP1DDCS)                             // limit the number of DDC to max allowed
-        Count = VMAXP1DDCS;
+    if (DDCCount > VMAXP1DDCS)                             // limit the number of DDC to max allowed
+        DDCCount = VMAXP1DDCS;
     RateBits = (uint32_t)Rate;                          // bits to go in DDC word
     P1SampleRate = Rate;                                // rate for all DDC
 //
@@ -456,21 +456,6 @@ bool WriteP2DDCRateRegister(void)
 
     RegisterWrite(VADDRDDCRATES, DDCRateReg);        // and write to hardware register
     return Result;
-}
-
-
-//
-// uint32_t GetTotalSampleRate(void)
-// get the total sample rate transferred for all DDCs
-// this is needed to set timings and sizes for DMA transfers
-//
-uint32_t GetTotalSampleRate(void)
-{
-    int i;
-    unit32_t Total = 0;
-    for (i = 0; i < VNUMDDC; i++)
-        Total += P2SamplesRates[i];
-    return Total;
 }
 
 
@@ -602,12 +587,12 @@ void SetDDCFrequency(unsigned int DDC, unsigned int Value, bool IsDeltaPhase)
 
 
 //
-// SetDUCFrequency(unsigned int DDC, unsigned int Value, bool IsDeltaPhase)
+// SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)
 // sets a DUC frequency. (Currently only 1 DUC, therefore DUC must be 0)
 // Value: 32 bit phase word or frequency word (1Hz resolution)
 // IsDeltaPhase: true if a delta phase value, false if a frequency value (P1)
 //
-void SetDUCFrequency(unsigned int DUC, unsigned int Value, bool IsDeltaPhase)		// only accepts DUC=0 
+void SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)		// only accepts DUC=0 
 {
     uint32_t DeltaPhase;                    // calculated deltaphase value
     double fDeltaPhase;
@@ -1099,7 +1084,7 @@ void SetBalancedMicInput(bool Balanced)
     if(Balanced)
         Register |= (1 << VBALANCEDMICSELECT);      // set new bit
     
-    if(GPIORegValue = Register)                     // write back if changed
+    if(GPIORegValue != Register)                    // write back if changed
     {
         GPIORegValue = Register;                        // store it back
 //        RegisterWrite(VADDRRFGPIOREG, Register);      // and write to it
@@ -1274,7 +1259,6 @@ void SetCWKeyerBits(bool Enabled, bool Reversed, bool ModeB, bool Strict, bool B
 //
 void SetDDCADC(int DDC, EADCSelect ADC)
 {
-    uint32_t ConfigReg;
     uint32_t RegisterValue;
     uint32_t ADCSetting;
     uint32_t Mask;
@@ -1321,7 +1305,7 @@ void SetDDCInterleaved(uint32_t DDCNum, bool Interleaved)
     Data &= ~Mask;										// clear current interleaved bit
     if (Interleaved)
         Data |= Mask;									// set new mask bit
-    if(Data != DDCInSelReg)
+   // if(Data != DDCInSelReg)
     //RegisterWrite(Address, Data);						// write back
 }
 
@@ -1343,23 +1327,11 @@ void SetRXDDCEnabled(bool IsEnabled)
     else
         Data &= ~(1 << 30);								// clear new bit
 
-    if (Data != DDCInSelReg)
+    //if (Data != DDCInSelReg)
         //RegisterWrite(Address, Data);					// write back
 }
 
 
-
-
-
-
-
-
-uint32_t GKeyerSidetoneVol;                             // sidetone volume for CW TX
-uint32_t GCWKeyerSetup;                                 // keyer control register
-#define VADDRKEYERCONFIGREG 0x40
-#define VCWKEYERENABLE 31                               // enble bit
-#define VCWKEYERHANG 8                                  // hang time is 17:8
-#define VCWKEYERRAMP 18                                 // ramp time
 
 
 //
@@ -2122,28 +2094,6 @@ void SetFreqPhaseWord(bool IsPhase)
 
 
 
-//
-// SetDDCEnabled(unsigned int DDC, bool Enabled)
-// set whether an DDC is enabled
-// this may need to move!
-//
-void SetDDCEnabled(unsigned int DDC, bool Enabled)
-{
-
-}
-
-
-//
-// SetDDCInterleaved(unsigned int DDC, bool Interleaved)
-// set whether an DDC is interleaved
-//
-void SetDDCInterleaved(unsigned int DDC, bool Interleaved)
-{
-
-}
-
-
-//
 // SetDDCSampleSize(unsigned int DDC, unsgned int Size)
 // set sample resolution for DDC (only 24 bits supported, so ignore)
 //

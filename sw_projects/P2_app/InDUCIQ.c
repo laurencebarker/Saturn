@@ -18,6 +18,7 @@
 #include "../common/saturntypes.h"
 #include "InDUCIQ.h"
 #include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <unistd.h>
@@ -25,6 +26,7 @@
 #include <string.h>
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
+#include "../common/hwaccess.h"
 
 
 #define VIQSAMPLESPERFRAME 240                      // samples per UDP frame
@@ -61,7 +63,6 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     unsigned char* IQBasePtr;								// ptr to DMA location in I/Q memory
     uint32_t Depth = 0;
     int DMAWritefile_fd = -1;								// DMA read file device
-    uint32_t RegisterValue;
     bool FIFOOverflow;
 
     ThreadData = (struct ThreadSocketData *)arg;
@@ -128,7 +129,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
                 Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow);       // read the FIFO free locations
             }
             // copy sata from UDP Buffer & DMA write it
-            memcpy(IQBasePtr, UDPBuffer + 4, VDMATRANSFERSIZE);                // copy out I/Q samples
+            memcpy(IQBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);                // copy out I/Q samples
             DMAWriteToFPGA(DMAWritefile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDUCSTREAMWRITE);
         }
     }
@@ -148,7 +149,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
 // NOTE hardware does not properly support this yet!
 // TX FIFO must be empty. Stop multiplexer; set bit; restart
 // 
-void HandlerSetEERMode(EEREnabled)
+void HandlerSetEERMode(bool EEREnabled)
 {
 
 }

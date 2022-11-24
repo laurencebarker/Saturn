@@ -100,7 +100,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       // DUC frequency & drive level
       //
       LongWord = ntohl(*(uint32_t *)(UDPInBuffer+329));
-      SetDUCFrequency(i, LongWord, true);
+      SetDUCFrequency(LongWord, true);
       Byte = (uint8_t)(UDPInBuffer[345]);
       SetTXDriveLevel(Byte);
       //

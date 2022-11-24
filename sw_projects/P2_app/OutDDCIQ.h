@@ -40,10 +40,8 @@ void *OutgoingDDCIQ(void *arg);
 // HandlerCheckDDCSettings()
 // called when DDC settings have been changed. Check which DDCs are enabled, and sample rate.
 //
-void HandlerCheckDDCSettings(void)
-{
+void HandlerCheckDDCSettings(void);
 
-}
 
 
 

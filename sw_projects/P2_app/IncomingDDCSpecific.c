@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../common/saturnregisters.h"
+#include "OutDDCIQ.h"
 
 
 
@@ -99,7 +100,6 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
         Word2 = *(uint16_t*)(UDPInBuffer+i*6+18);         // get sample rate for this DDC
         Word2 = ntohs(Word2);                             // swap byte order
         Byte2 = *(uint8_t*)(UDPInBuffer+i*6+22);          // get sample size for this DDC
-        HandlerSetP2SampleRate(i, Word);
         SetDDCSampleSize(i, Byte2);
         if(Byte1 == 0)
           ADC = eADC1;
