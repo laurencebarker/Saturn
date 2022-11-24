@@ -16,19 +16,20 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="11.520950 us"></ZoomStartTime>
-      <ZoomEndTime time="24.600951 us"></ZoomEndTime>
-      <Cursor1Time time="9.510950 us"></Cursor1Time>
+      <ZoomStartTime time="7,857.799 ns"></ZoomStartTime>
+      <ZoomEndTime time="15,092.800 ns"></ZoomEndTime>
+      <Cursor1Time time="9,610.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="156"></NameColumnWidth>
-      <ValueColumnWidth column_width="72"></ValueColumnWidth>
+      <ValueColumnWidth column_width="68"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="47" />
    <wave_markers>
       <marker time="15211621" label="" />
       <marker time="710512" label="" />
       <marker time="12460950" label="" />
+      <marker time="9629844" label="" />
    </wave_markers>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/aclk" type="logic">
       <obj_property name="ElementShortName">aclk</obj_property>

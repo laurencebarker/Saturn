@@ -11,7 +11,7 @@ sudo apt install raspberrypi-kernel-headers
 
 2. build the kernel module:
 
-cd ~/github/saturn/linuxdriver/xdma
+cd ~/github/Saturn/linuxdriver/xdma
 make
 sudo make install
 

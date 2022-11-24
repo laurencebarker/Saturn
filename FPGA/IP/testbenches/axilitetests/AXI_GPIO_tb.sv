@@ -356,7 +356,7 @@ $display("testing AXILite SPI shift registers");
 $display("expecting stall on 2nd write until 1st shift completes");
 #100ns
 addr = 32'h00003000;
-data = 32'h01234567;
+data = 32'h00000c00;
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
 #100ns
 addr = 32'h00003004;
