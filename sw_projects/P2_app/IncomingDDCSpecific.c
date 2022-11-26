@@ -175,9 +175,9 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
         Word = Word >> 1;                                 // move onto next DDC enabled bit
       }
       // now set register, and see if any changes made; reuse Dither again
-      Dither = WriteP2DDCRateRegister();
-      if (Dither)
-          HandlerCheckDDCSettings();
+      //Dither = WriteP2DDCRateRegister();
+      //if (Dither)
+        //  HandlerCheckDDCSettings();
     }
   }
 //

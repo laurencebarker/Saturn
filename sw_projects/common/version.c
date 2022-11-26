@@ -41,20 +41,23 @@
 
 
 
-#define VMAXPRODUCTID 1							// product ID index limit
-#define VMAXSWID 2								// software ID index limit
+#define VMAXPRODUCTID 2							// product ID index limit
+#define VMAXSWID 3								// software ID index limit
 
 char* ProductIDStrings[] =
 {
 	"invalid product ID",
-	"Saturn 1st prototype"
+	"Saturn 1st prototype",
+	"Saturn 2nd Prototype"
 };
 
 char* SWIDStrings[] =
 {
 	"invalid software ID",
 	"Saturn 1st prototype, board test code",
-	"Saturn 1st prototype, with DSP"
+	"Saturn 1st prototype, with DSP",
+	"Saturn 2nd prototype, with DSP"
+
 };
 
 char* ClockStrings[] =

@@ -174,6 +174,77 @@
 //       |                                 | <- start of memory buffer
 //                 low address
 // 
+
+
+
+
+
+//
+// code to allocate and free dynamic allocated memory
+// first the memory buffers:
+//
+uint8_t* DMAReadBuffer = NULL;								// data for DMA read from DDC
+uint32_t DMABufferSize = VDMABUFFERSIZE;
+unsigned char* DMAReadPtr;							        // pointer for 1st available location in DMA memory
+unsigned char* DMAHeadPtr;							        // ptr to 1st free location in DMA memory
+unsigned char* DMABasePtr;							        // ptr to target DMA location in DMA memory
+
+uint8_t* UDPBuffer[VNUMDDC];                                // DDC frame buffer
+uint8_t* DDCSampleBuffer[VNUMDDC];                          // buffer per DDC
+unsigned char* IQReadPtr[VNUMDDC];							// pointer for reading out an I or Q sample
+unsigned char* IQHeadPtr[VNUMDDC];							// ptr to 1st free location in I/Q memory
+unsigned char* IQBasePtr[VNUMDDC];							// ptr to DMA location in I/Q memory
+
+
+bool CreateDynamicMemory(void)                              // return true if error
+{
+    uint32_t DDC;
+    bool Result = false;
+//
+// first create the buffer for DMA, and initialise its pointers
+//
+    posix_memalign((void**)&DMAReadBuffer, VALIGNMENT, DMABufferSize);
+    DMAReadPtr = DMAReadBuffer + VBASE;		                    // offset 4096 bytes into buffer
+    DMAHeadPtr = DMAReadBuffer + VBASE;
+    DMABasePtr = DMAReadBuffer + VBASE;
+    if (!DMAReadBuffer)
+    {
+        printf("I/Q read buffer allocation failed\n");
+        Result = true;
+    }
+    memset(DMAReadBuffer, 0, DMABufferSize);
+
+    //
+    // set up per-DDC data structures
+    //
+    for (DDC = 0; DDC < VNUMDDC; DDC++)
+    {
+        UDPBuffer[DDC] = malloc(VDDCPACKETSIZE);
+        DDCSampleBuffer[DDC] = malloc(DMABufferSize);
+        IQReadPtr[DDC] = DDCSampleBuffer[DDC] + VBASE;		// offset 4096 bytes into buffer
+        IQHeadPtr[DDC] = DDCSampleBuffer[DDC] + VBASE;
+        IQBasePtr[DDC] = DDCSampleBuffer[DDC] + VBASE;
+    }
+    return Result;
+}
+
+
+void FreeDynamicMemory(void)
+{
+    uint32_t DDC;
+
+    free(DMAReadBuffer);
+    //
+    // free the per-DDC buffers
+    //
+    for (DDC = 0; DDC < VNUMDDC; DDC++)
+    {
+        free(UDPBuffer[DDC]);
+        free(DDCSampleBuffer[DDC]);
+    }
+}
+
+
 //
 //
 // this runs as its own thread to send outgoing data
@@ -186,18 +257,9 @@ void *OutgoingDDCIQ(void *arg)
 //
 // memory buffers
 //
-    uint8_t* DMAReadBuffer = NULL;								// data for DMA read from DDC
-    uint32_t DMABufferSize = VDMABUFFERSIZE;
-    unsigned char* DMAReadPtr;							        // pointer for 1st available location in DMA memory
-    unsigned char* DMAHeadPtr;							        // ptr to 1st free location in DMA memory
-    unsigned char* DMABasePtr;							        // ptr to target DMA location in DMA memory
     uint32_t DMATransferSize;
     bool InitError = false;                                     // becomes true if we get an initialisation error
     
-    uint8_t* DDCSampleBuffer[VNUMDDC];                          // buffer per DDC
-    unsigned char* IQReadPtr[VNUMDDC];							// pointer for reading out an I or Q sample
-    unsigned char* IQHeadPtr[VNUMDDC];							// ptr to 1st free location in I/Q memory
-    unsigned char* IQBasePtr[VNUMDDC];							// ptr to DMA location in I/Q memory
     uint32_t ResidueBytes;
     uint32_t Depth = 0;
     
@@ -214,7 +276,6 @@ void *OutgoingDDCIQ(void *arg)
     struct sockaddr_in DestAddr[VNUMDDC];                       // destination address for outgoing data
     struct iovec iovecinst[VNUMDDC];                            // instance of iovec
     struct msghdr datagram[VNUMDDC];
-    uint8_t* UDPBuffer[VNUMDDC];                                // DDC frame buffer
     uint32_t SequenceCounter[VNUMDDC];                          // UDP sequence count
 //
 // variables for analysing a DDC frame
@@ -234,19 +295,9 @@ void *OutgoingDDCIQ(void *arg)
 //
     PrevRateWord = 0xFFFFFFFF;                                  // illegal value to forc re-calculation of rates
     DMATransferSize = VDMATRANSFERSIZE;                         // initial size, but can be changed
-    posix_memalign((void**)&DMAReadBuffer, VALIGNMENT, DMABufferSize);
-    DMAReadPtr = DMAReadBuffer + VBASE;		                    // offset 4096 bytes into buffer
-    DMAHeadPtr = DMAReadBuffer + VBASE;
-    DMABasePtr = DMAReadBuffer + VBASE;
-    if (!DMAReadBuffer)
-    {
-        printf("I/Q read buffer allocation failed\n");
-        InitError = true;
-    }
-    memset(DMAReadBuffer, 0, DMABufferSize);
+    InitError = CreateDynamicMemory();
     //
     // open DMA device driver
-    //    this will probably have to move, as there won't be enough of them!
     //
     IQReadfile_fd = open(VDDCDMADEVICE, O_RDWR);
     if (IQReadfile_fd < 0)
@@ -264,11 +315,6 @@ void *OutgoingDDCIQ(void *arg)
     for (DDC = 0; DDC < VNUMDDC; DDC++)
     {
         SequenceCounter[DDC] = 0;                           // clear UDP packet counter
-        UDPBuffer[DDC] = malloc(VDDCPACKETSIZE);
-        DDCSampleBuffer[DDC] = malloc(DMABufferSize);
-        IQReadPtr[DDC] = DDCSampleBuffer[DDC] + VBASE;		// offset 4096 bytes into buffer
-        IQHeadPtr[DDC] = DDCSampleBuffer[DDC] + VBASE;
-        IQBasePtr[DDC] = DDCSampleBuffer[DDC] + VBASE;
         (ThreadData + DDC)->Active = true;                  // set outgoing socket active
     }
 
@@ -326,9 +372,12 @@ void *OutgoingDDCIQ(void *arg)
 
       //
       // enable Saturn DDC to transfer data
-      //
-        SetDDCInterleaved(0, false);
-        SetRXDDCEnabled(true);
+      // temporarily force some registers to the required state
+      // remove later!
+        RegisterWrite(0x100C, 0x01);            // DDC1 set to 48KHz
+        RegisterWrite(0x1010, 0x40000000);      // enable DDC data transfer
+//        SetDDCInterleaved(0, false);
+//        SetRXDDCEnabled(true);
         printf("enabled DDC\n");
         while(!InitError && SDRActive)
         {
@@ -481,18 +530,11 @@ void *OutgoingDDCIQ(void *arg)
     printf("shutting down DDC outgoing thread\n");
     close(ThreadData->Socketid); 
     ThreadData->Active = false;                   // signal closed
-    free(DMAReadBuffer);
-    //
-    // free the per-DDC buffers
-    //
-    for (DDC = 0; DDC < VNUMDDC; DDC++)
-    {
-        free(UDPBuffer[DDC]);
-        free(DDCSampleBuffer[DDC]);
-    }
-
+    FreeDynamicMemory();
     return NULL;
 }
+
+
 
 
 //
