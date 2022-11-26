@@ -352,7 +352,7 @@ void *OutgoingDDCIQ(void *arg)
                 }
             usleep(100);
         }
-        printf("starting outgoing data\n");
+        printf("starting outgoing DDC data\n");
         //
         // initialise outgoing DDC packets - 1 per DDC
         //
@@ -369,16 +369,16 @@ void *OutgoingDDCIQ(void *arg)
             datagram[DDC].msg_name = &DestAddr;                   // MAC addr & port to send to
             datagram[DDC].msg_namelen = sizeof(DestAddr);
         }
-
+        printf("initialised DDC memory");
       //
       // enable Saturn DDC to transfer data
       // temporarily force some registers to the required state
       // remove later!
         RegisterWrite(0x100C, 0x01);            // DDC1 set to 48KHz
-        RegisterWrite(0x1010, 0x40000000);      // enable DDC data transfer
+        RegisterWrite(0x1010, 0x40000002);      // enable DDC data transfer; DDC0=test source
 //        SetDDCInterleaved(0, false);
 //        SetRXDDCEnabled(true);
-        printf("enabled DDC\n");
+        printf("enabled DDC0\n");
         while(!InitError && SDRActive)
         {
 
@@ -391,6 +391,7 @@ void *OutgoingDDCIQ(void *arg)
             {
                 while ((IQHeadPtr[DDC] - IQReadPtr[DDC]) > VIQBYTESPERFRAME)
                 {
+                    printf("enough data for packet: DDC= %d\n", DDC);
                     *(uint32_t*)UDPBuffer[DDC] = htonl(SequenceCounter[DDC]++);     // add sequence count
                     memset(UDPBuffer[DDC] + 4, 0, 8);                               // clear the timestamp data
                     *(uint16_t*)(UDPBuffer[DDC] + 12) = htons(24);                  // bits per sample
@@ -446,7 +447,7 @@ void *OutgoingDDCIQ(void *arg)
                 Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow);				// read the FIFO Depth register
             //			printf("read: depth = %d\n", Depth);
             }
-            //		printf("DMA read %d bytes from destination to base\n", VDMATRANSFERSIZE);
+            printf("DMA read %d bytes from destination to base\n", DMATransferSize);
             DMAReadFromFPGA(IQReadfile_fd, DMAHeadPtr, DMATransferSize, VADDRDDCSTREAMREAD);
             DMAHeadPtr += DMATransferSize;
             EnoughData = true;

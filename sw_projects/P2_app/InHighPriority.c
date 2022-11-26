@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../common/saturnregisters.h"
+#include "../common/hwaccess.h"                   // low level access
 
 
 
@@ -86,8 +87,8 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       // get DDC0 phase word and send to FPGA
       DDCPhaseIncrement = ntohl(*(uint32_t *)(UDPInBuffer+9));
       printf("DDC0 delta phi = %d\n", DDCPhaseIncrement);
-      RegisterWrite(0x0004, DDCPhaseIncrement);                 // short term bodge!
-      SetDDCFrequency(0, DDCPhaseIncrement, true);
+      RegisterWrite(0x0000, DDCPhaseIncrement);                 // short term bodge!
+//      SetDDCFrequency(0, DDCPhaseIncrement, true);
 //
 // now properly decode DDC frequencies
 //
