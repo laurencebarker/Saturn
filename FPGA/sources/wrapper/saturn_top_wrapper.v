@@ -256,6 +256,32 @@ module saturn_top_wrapper
   wire [9:0]status_in;
 
 
+  IOBUF PROM_SPI_io0_iobuf
+       (.I(PROM_SPI_io0_o),
+        .IO(PROM_SPI_io0_io),
+        .O(PROM_SPI_io0_i),
+        .T(PROM_SPI_io0_t));
+  IOBUF PROM_SPI_io1_iobuf
+       (.I(PROM_SPI_io1_o),
+        .IO(PROM_SPI_io1_io),
+        .O(PROM_SPI_io1_i),
+        .T(PROM_SPI_io1_t));
+  IOBUF PROM_SPI_io2_iobuf
+       (.I(PROM_SPI_io2_o),
+        .IO(PROM_SPI_io2_io),
+        .O(PROM_SPI_io2_i),
+        .T(PROM_SPI_io2_t));
+  IOBUF PROM_SPI_io3_iobuf
+       (.I(PROM_SPI_io3_o),
+        .IO(PROM_SPI_io3_io),
+        .O(PROM_SPI_io3_i),
+        .T(PROM_SPI_io3_t));
+  IOBUF PROM_SPI_ss_iobuf_0
+       (.I(PROM_SPI_ss_o_0),
+        .IO(PROM_SPI_ss_io[0]),
+        .O(PROM_SPI_ss_i_0),
+        .T(PROM_SPI_ss_t));
+
   saturn_top saturn_top_i
        (.ADC1Ovr_In_N(ADC1Ovr_In_N),
         .ADC1Ovr_In_P(ADC1Ovr_In_P),
