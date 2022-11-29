@@ -362,11 +362,11 @@ void *OutgoingDDCIQ(void *arg)
             memcpy(&DestAddr[DDC], &reply_addr, sizeof(struct sockaddr_in));           // local copy of PC destination address (reply_addr is global)
             memset(&iovecinst[DDC], 0, sizeof(struct iovec));
             memset(&datagram[DDC], 0, sizeof(datagram));
-            iovecinst[DDC].iov_base = UDPBuffer;
+            iovecinst[DDC].iov_base = UDPBuffer[DDC];
             iovecinst[DDC].iov_len = VDDCPACKETSIZE;
             datagram[DDC].msg_iov = &iovecinst[DDC];
             datagram[DDC].msg_iovlen = 1;
-            datagram[DDC].msg_name = &DestAddr;                   // MAC addr & port to send to
+            datagram[DDC].msg_name = &DestAddr[DDC];                   // MAC addr & port to send to
             datagram[DDC].msg_namelen = sizeof(DestAddr);
         }
         printf("initialised DDC memory");
