@@ -329,7 +329,7 @@ void *OutgoingDDCIQ(void *arg)
     SetupFIFOMonitorChannel(eRXDDCDMA, false);
     ResetDMAStreamFIFO(eRXDDCDMA);
     RegisterValue = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow);				// read the FIFO Depth register
-	printf("FIFO Depth register = %08x (should be 0)\n", RegisterValue);
+	printf("DDC FIFO Depth register = %08x (should be 0)\n", RegisterValue);
 	Depth=0;
 
 
@@ -361,7 +361,7 @@ void *OutgoingDDCIQ(void *arg)
             SequenceCounter[DDC] = 0;
             memcpy(&DestAddr[DDC], &reply_addr, sizeof(struct sockaddr_in));           // local copy of PC destination address (reply_addr is global)
             memset(&iovecinst[DDC], 0, sizeof(struct iovec));
-            memset(&datagram[DDC], 0, sizeof(datagram));
+            memset(&datagram[DDC], 0, sizeof(struct msghdr));
             iovecinst[DDC].iov_base = UDPBuffer[DDC];
             iovecinst[DDC].iov_len = VDDCPACKETSIZE;
             datagram[DDC].msg_iov = &iovecinst[DDC];
