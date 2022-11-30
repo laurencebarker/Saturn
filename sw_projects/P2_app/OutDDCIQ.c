@@ -27,6 +27,7 @@
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
 #include "../common/hwaccess.h"
+#include "../common/debugaids.h"
 
 
 
@@ -466,8 +467,10 @@ void *OutgoingDDCIQ(void *arg)
                 HdrWord = *LongWordPtr++;                                               // read rate flags
                 if ((HdrWord & 0x80000000) == 0)                                        // if rate flag not set
                 {
-                    printf("Rate word not found when expected\n");
+                    printf("Rate word not found when expected. rate= %08x hdr = %08x\n", RateWord, HdrWord);
                     InitError = true;
+                    DumpMemoryBuffer(DMAReadPtr, DMATransferSize);
+                    exit(1);
                 }
                 else                                                                    // analyse word, then process
                 {
