@@ -263,6 +263,7 @@ int main(void)
   // debug code
   //
   RegisterWrite(VADDRRXTESTDDSREG, 66409813);                       // test DDS to 1.9MHz
+  RegisterWrite(VADDRRFGPIOREG, (1<<26));                       // test DDS to 1.9MHz
 
 
   

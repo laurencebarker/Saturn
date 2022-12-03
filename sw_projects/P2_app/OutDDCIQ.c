@@ -290,6 +290,7 @@ void *OutgoingDDCIQ(void *arg)
     uint32_t PrevRateWord;                                      // last used rate word
     bool EnoughData;
     uint32_t Cntr;                                              // sample word counter
+    bool HeaderFound;
 
 //
 // initialise. Create memory buffers and open DMA file devices
@@ -370,12 +371,12 @@ void *OutgoingDDCIQ(void *arg)
             datagram[DDC].msg_name = &DestAddr[DDC];                   // MAC addr & port to send to
             datagram[DDC].msg_namelen = sizeof(DestAddr);
         }
-        printf("initialised DDC memory");
+        printf("initialised DDC memory\n");
       //
       // enable Saturn DDC to transfer data
       // temporarily force some registers to the required state
       // remove later!
-        RegisterWrite(0x100C, 0x01);            // DDC1 set to 48KHz
+        RegisterWrite(0x100C, 0x03);            // DDC1 set to 48KHz
         RegisterWrite(0x1010, 0x40000002);      // enable DDC data transfer; DDC0=test source
 //        SetDDCInterleaved(0, false);
 //        SetRXDDCEnabled(true);
@@ -448,32 +449,54 @@ void *OutgoingDDCIQ(void *arg)
                 Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow);				// read the FIFO Depth register
             //			printf("read: depth = %d\n", Depth);
             }
-            printf("DMA read %d bytes from destination to base\n", DMATransferSize);
+            printf("DDC DMA read %d bytes from destination to base\n", DMATransferSize);
             DMAReadFromFPGA(IQReadfile_fd, DMAHeadPtr, DMATransferSize, VADDRDDCSTREAMREAD);
             DMAHeadPtr += DMATransferSize;
             EnoughData = true;
+            //
+            // find header: may not be the 1st word
+            //
+            DumpMemoryBuffer(DMAReadPtr, DMATransferSize);
+            HeaderFound = false;
+            for(Cntr=0; Cntr < (DMAHeadPtr - DMAReadPtr); Cntr+=8)                  // search for rate word
+            {
+                if(*(DMAReadPtr + Cntr + 7) == 0x80)
+                {
+                    printf("found header at offset=%x\n", Cntr);
+                    HeaderFound = true;
+                    DMAReadPtr += Cntr;                                             // point read buffer where header is 
+                    break;
+                }
+            }
+            if (HeaderFound == false)                                        // if rate flag not set
+            {
+                printf("Rate word not found when expected. rate= %08x\n", RateWord);
+                InitError = true;
+                exit(1);
+            }
+
 
             //
             // finally copy data to DMA buffers according to the embedded DDC rate words
             // the 1st word is pointed by DMAReadPtr and it should point to a DDC rate word
+            // search for it if not!
             // (it should always be left in that state).
             // the top half of the 1st 64 bit word should be 0x8000
             // and that is located in the 2nd 32 bit location.
             // assume that DMA is > 1 frame.
+            printf("headptr = %x readptr = %x\n", DMAHeadPtr, DMAReadPtr);
             while (EnoughData)
             {
-                LongWordPtr = (uint32_t*)DMAReadPtr;                                    // get 32 bit ptr
-                RateWord = *LongWordPtr++;                                              // read rate word
-                HdrWord = *LongWordPtr++;                                               // read rate flags
-                if ((HdrWord & 0x80000000) == 0)                                        // if rate flag not set
+                if(*(DMAReadPtr + 7) != 0x80)
                 {
-                    printf("Rate word not found when expected. rate= %08x hdr = %08x\n", RateWord, HdrWord);
-                    InitError = true;
-                    DumpMemoryBuffer(DMAReadPtr, DMATransferSize);
+                    printf("header not found for rate word at addr %x\n, DMAReadPtr");
                     exit(1);
                 }
                 else                                                                    // analyse word, then process
                 {
+                    LongWordPtr = (uint32_t*)DMAReadPtr;                            // get 32 bit ptr
+                    RateWord = *LongWordPtr;                                      // read rate word
+
                     if (RateWord != PrevRateWord)
                     {
                         FrameLength = AnalyseDDCHeader(RateWord, &DDCCounts[0]);           // read new settings
