@@ -373,12 +373,11 @@ void *OutgoingDDCIQ(void *arg)
             datagram[DDC].msg_name = &DestAddr[DDC];                   // MAC addr & port to send to
             datagram[DDC].msg_namelen = sizeof(DestAddr);
         }
-        printf("initialised DDC memory\n");
       //
       // enable Saturn DDC to transfer data
       // temporarily force some registers to the required state
       // remove later!
-        RegisterWrite(0x100C, 0x03);            // DDC1 set to 48KHz
+        RegisterWrite(0x100C, 0x01);            // DDC1 set to 48KHz
         RegisterWrite(0x1010, 0x40000002);      // enable DDC data transfer; DDC0=test source
 //        SetDDCInterleaved(0, false);
 //        SetRXDDCEnabled(true);
@@ -396,7 +395,7 @@ void *OutgoingDDCIQ(void *arg)
             {
                 while ((IQHeadPtr[DDC] - IQReadPtr[DDC]) > VIQBYTESPERFRAME)
                 {
-                    printf("enough data for packet: DDC= %d\n", DDC);
+//                    printf("enough data for packet: DDC= %d\n", DDC);
                     *(uint32_t*)UDPBuffer[DDC] = htonl(SequenceCounter[DDC]++);     // add sequence count
                     memset(UDPBuffer[DDC] + 4, 0, 8);                               // clear the timestamp data
                     *(uint16_t*)(UDPBuffer[DDC] + 12) = htons(24);                  // bits per sample
@@ -452,19 +451,19 @@ void *OutgoingDDCIQ(void *arg)
                 Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow);				// read the FIFO Depth register
             //			printf("read: depth = %d\n", Depth);
             }
-            printf("DDC DMA read %d bytes from destination to base\n", DMATransferSize);
+//            printf("DDC DMA read %d bytes from destination to base\n", DMATransferSize);
             DMAReadFromFPGA(IQReadfile_fd, DMAHeadPtr, DMATransferSize, VADDRDDCSTREAMREAD);
             DMAHeadPtr += DMATransferSize;
             //
             // find header: may not be the 1st word
             //
-            DumpMemoryBuffer(DMAReadPtr, DMATransferSize);
+//            DumpMemoryBuffer(DMAReadPtr, DMATransferSize);
             if(HeaderFound == false)                                                    // 1st time: look for header
                 for(Cntr=16; Cntr < (DMAHeadPtr - DMAReadPtr); Cntr+=8)                  // search for rate word; ignoring 1st
                 {
                     if(*(DMAReadPtr + Cntr + 7) == 0x80)
                     {
-                        printf("found header at offset=%x\n", Cntr);
+//                        printf("found header at offset=%x\n", Cntr);
                         HeaderFound = true;
                         DMAReadPtr += Cntr;                                             // point read buffer where header is 
                         break;
@@ -472,7 +471,7 @@ void *OutgoingDDCIQ(void *arg)
                 }
             if (HeaderFound == false)                                        // if rate flag not set
             {
-                printf("Rate word not found when expected. rate= %08x\n", RateWord);
+//                printf("Rate word not found when expected. rate= %08x\n", RateWord);
                 InitError = true;
                 exit(1);
             }
@@ -486,7 +485,7 @@ void *OutgoingDDCIQ(void *arg)
             // the top half of the 1st 64 bit word should be 0x8000
             // and that is located in the 2nd 32 bit location.
             // assume that DMA is > 1 frame.
-            printf("headptr = %x readptr = %x\n", DMAHeadPtr, DMAReadPtr);
+//            printf("headptr = %x readptr = %x\n", DMAHeadPtr, DMAReadPtr);
             DecodeByteCount = DMAHeadPtr - DMAReadPtr;
             while (DecodeByteCount >= 16)                       // minimum size to try!
             {
@@ -503,7 +502,7 @@ void *OutgoingDDCIQ(void *arg)
                     if (RateWord != PrevRateWord)
                     {
                         FrameLength = AnalyseDDCHeader(RateWord, &DDCCounts[0]);           // read new settings
-                        printf("new framelength = %d\n", FrameLength);
+//                        printf("new framelength = %d\n", FrameLength);
                         PrevRateWord = RateWord;                                        // so so we know its analysed
                     }
                     if (DecodeByteCount >= ((FrameLength+1) * 8))             // if bytes for header & frame
