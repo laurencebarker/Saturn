@@ -328,7 +328,7 @@ void *OutgoingDDCIQ(void *arg)
 // clear FIFO
 // then read depth
 //
-    RegisterWrite(0x1010, 0x00000002);      // disable DDC data transfer; DDC0=test source
+    RegisterWrite(0x1010, 0x0000002A);      // disable DDC data transfer; DDC2=test source
     usleep(1000);                           // give FIFO time to stop recording 
     SetupFIFOMonitorChannel(eRXDDCDMA, false);
     ResetDMAStreamFIFO(eRXDDCDMA);
@@ -377,8 +377,8 @@ void *OutgoingDDCIQ(void *arg)
       // enable Saturn DDC to transfer data
       // temporarily force some registers to the required state
       // remove later!
-        RegisterWrite(0x100C, 0x01);            // DDC1 set to 48KHz
-        RegisterWrite(0x1010, 0x40000002);      // enable DDC data transfer; DDC0=test source
+        RegisterWrite(0x100C, 0x40);             // DDC2 set to 48KHz
+        RegisterWrite(0x1010, 0x4000002A);      // enable DDC data transfer; DDC2=test source
 //        SetDDCInterleaved(0, false);
 //        SetRXDDCEnabled(true);
         printf("enabled DDC0\n");
