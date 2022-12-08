@@ -91,9 +91,7 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
   EnableTimeStamp((bool)(Byte&1));
   EnableVITA49((bool)(Byte&2));
   SetFreqPhaseWord((bool)(Byte&8));
-  Byte = *(uint8_t*)(PacketBuffer+39);                // data endianness - NOT SUPPORTED
-  SetDataEndian(Byte);
-
+  
   Byte = *(uint8_t*)(PacketBuffer+58);                // flag bits
   SetPAEnabled((bool)(Byte&1));
   SetApolloEnabled((bool)(Byte&2));

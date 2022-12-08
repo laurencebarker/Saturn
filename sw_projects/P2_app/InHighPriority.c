@@ -85,12 +85,12 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       //
       // Saturn current test code - to be removed eventually
       // get DDC0 and DDC2 phase word and send to FPGA
-      DDCPhaseIncrement = ntohl(*(uint32_t *)(UDPInBuffer+9));
-      printf("DDC0 delta phi = %d\n", DDCPhaseIncrement);
-      RegisterWrite(0x0000, DDCPhaseIncrement);                 // short term bodge!
-      DDCPhaseIncrement = ntohl(*(uint32_t *)(UDPInBuffer+17));
-      printf("DDC2 delta phi = %d\n", DDCPhaseIncrement);
-      RegisterWrite(0x0008, DDCPhaseIncrement);                 // short term bodge!
+//      DDCPhaseIncrement = ntohl(*(uint32_t *)(UDPInBuffer+9));
+//      printf("DDC0 delta phi = %d\n", DDCPhaseIncrement);
+//      RegisterWrite(0x0000, DDCPhaseIncrement);                 // short term bodge!
+//      DDCPhaseIncrement = ntohl(*(uint32_t *)(UDPInBuffer+17));
+//      printf("DDC2 delta phi = %d\n", DDCPhaseIncrement);
+//      RegisterWrite(0x0008, DDCPhaseIncrement);                 // short term bodge!
 //      SetDDCFrequency(0, DDCPhaseIncrement, true);
 //
 // now properly decode DDC frequencies
@@ -98,7 +98,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       for (i=0; i<VNUMDDC; i++)
       {
         LongWord = ntohl(*(uint32_t *)(UDPInBuffer+i*4+9));
-//        SetDDCFrequency(i, LongWord, true);                   // temporarily set above
+        SetDDCFrequency(i, LongWord, true);                   // temporarily set above
       }
       //
       // DUC frequency & drive level

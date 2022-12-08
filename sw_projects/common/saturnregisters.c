@@ -36,6 +36,7 @@ unsigned int DACStepAttenROM[256];                  // provides most atten setti
 
 uint32_t DDCDeltaPhase[VNUMDDC];                    // DDC frequency settings
 uint32_t DUCDeltaPhase;                             // DUC frequency setting
+uint32_t TestSourceDeltaPhase;                      // test source DDS delta phase
 uint32_t GStatusRegister;                           // most recent status register setting
 uint32_t GPIORegValue;                              // value stored into GPIO
 uint32_t TXConfigRegValue;                          // value written into TX config register
@@ -125,6 +126,7 @@ unsigned int GCodecAnaloguePath;                    // value written in Codec an
 #define VMICPTTSELECTBIT 1                          // GPIO bit definition
 #define VMICSIGNALSELECTBIT 2                       // GPIO bit definition
 #define VMICBIASSELECTBIT 3                         // GPIO bit definition
+#define VDATAENDIAN 26                              // GPIO bit definition
 
 
 //
@@ -293,7 +295,7 @@ void InitialiseCWKeyerRamp(void)
 
 
 //
-// SetByteSwap(bool)
+// SetByteSwapping(bool)
 // set whether byte swapping is enabled. True if yes, to get data in network byte order.
 //
 void SetByteSwapping(bool IsSwapped)
@@ -302,10 +304,15 @@ void SetByteSwapping(bool IsSwapped)
 
     Register = GPIORegValue;                        // get current settings
     GByteSwapEnabled = IsSwapped;
+    if(IsSwapped)
+        Register |= (1<<VDATAENDIAN);               // set bit for swapped to network order
+    else
+        Register &= ~(1<<VDATAENDIAN);              // clear bit for raspberry pi local order
+
     if (Register != GPIORegValue)                   // write back if different
     {
         GPIORegValue = Register;                    // store it back
-//        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
+        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
     }
 
 }
@@ -553,15 +560,15 @@ void SetADCOptions(EADCSelect ADC, bool PGA, bool Dither, bool Random)
 
 
 //
-// SetDDCFrequency(unsigned int DDC, unsigned int Value, bool IsDeltaPhase)
+// SetDDCFrequency(uint32_t DDC, uint32_t Value, bool IsDeltaPhase)
 // sets a DDC frequency.
-// DDC: DDC number (0-9) of 0xFF to set RX test source frequency
+// DDC: DDC number (0-9)
 // Value: 32 bit phase word or frequency word (1Hz resolution)
 // IsDeltaPhase: true if a delta phase value, false if a frequency value (P1)
 // calculate delta phase if required. Delta=2^32 * (F/Fs)
 // store delta phase; write to FPGA register.
 //
-void SetDDCFrequency(unsigned int DDC, unsigned int Value, bool IsDeltaPhase)
+void SetDDCFrequency(uint32_t DDC, uint32_t Value, bool IsDeltaPhase)
 {
     uint32_t DeltaPhase;                    // calculated deltaphase value
     uint32_t RegAddress;
@@ -582,6 +589,35 @@ void SetDDCFrequency(unsigned int DDC, unsigned int Value, bool IsDeltaPhase)
         DDCDeltaPhase[DDC] = DeltaPhase;        // store this delta phase
         RegAddress =DDCRegisters[DDC];          // get DDC reg address, 
         RegisterWrite(RegAddress, DeltaPhase);  // and write to it
+    }
+}
+
+
+//
+// SetTestDDSFrequency(uint32_t Value, bool IsDeltaPhase)
+// sets a test source frequency.
+// Value: 32 bit phase word or frequency word (1Hz resolution)
+// IsDeltaPhase: true if a delta phase value, false if a frequency value (P1)
+// calculate delta phase if required. Delta=2^32 * (F/Fs)
+// store delta phase; write to FPGA register.
+//
+void SetTestDDSFrequency(uint32_t Value, bool IsDeltaPhase)
+{
+    uint32_t DeltaPhase;                    // calculated deltaphase value
+    double fDeltaPhase;
+
+    if(!IsDeltaPhase)                       // ieif protocol 1
+    {
+        fDeltaPhase = (double)(2^32) * (double)Value / (double) VSAMPLERATE;
+        DeltaPhase = (uint32_t)fDeltaPhase;
+    }
+    else
+        DeltaPhase = (uint32_t)Value;
+
+    if(TestSourceDeltaPhase != DeltaPhase)    // write back if changed
+    {
+        TestSourceDeltaPhase = DeltaPhase;        // store this delta phase
+        RegisterWrite(VADDRRXTESTDDSREG, DeltaPhase);  // and write to it
     }
 }
 
@@ -2063,15 +2099,6 @@ void SetDuplex(bool Enabled)
 
 }
 
-
-//
-// SetDataEndian(unsigned int Bits)
-// sets endianness for transferred data. See P2 specification, and not implemented yet.
-//
-void SetDataEndian(unsigned int Bits)
-{
-
-}
 
 //
 // SetOperateMode(bool IsRunMode)

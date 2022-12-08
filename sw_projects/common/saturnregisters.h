@@ -260,11 +260,22 @@ void SetADCOptions(EADCSelect ADC, bool PGA, bool Dither, bool Random);
 //
 // SetDDCFrequency(unsigned int DDC, unsigned int Value, bool IsDeltaPhase)
 // sets a DDC frequency.
-// DDC: DDC number (0-9) of 0xFF to set RX test source frequency
+// DDC: DDC number (0-9)
 // Value: 32 bit phase word or frequency word (1Hz resolution)
 // IsDeltaPhase: true if a delta phase value, false if a frequency value (P1)
 //
-void SetDDCFrequency(unsigned int DDC, unsigned int Value, bool IsDeltaPhase);
+void SetDDCFrequency(uint32_t DDC, uint32_t Value, bool IsDeltaPhase);
+
+
+//
+// SetTestDDSFrequency(uint32_t Value, bool IsDeltaPhase)
+// sets a test source frequency.
+// Value: 32 bit phase word or frequency word (1Hz resolution)
+// IsDeltaPhase: true if a delta phase value, false if a frequency value (P1)
+// calculate delta phase if required. Delta=2^32 * (F/Fs)
+// store delta phase; write to FPGA register.
+//
+void SetTestDDSFrequency(uint32_t Value, bool IsDeltaPhase);
 
 
 //
@@ -872,12 +883,6 @@ void EnableDUCMux(bool Enabled);
 //
 void SetDuplex(bool Enabled);
 
-
-//
-// SetDataEndian(unsigned int Bits)
-// sets endianness for transferred data. See P2 specification, and not implemented yet.
-//
-void SetDataEndian(unsigned int Bits);
 
 //
 // SetOperateMode(bool IsRunMode)

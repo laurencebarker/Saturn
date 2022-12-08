@@ -249,7 +249,6 @@ int main(void)
 //
 // setup Saturn hardware
 //
-  SetByteSwapping(true);                                            // h/w to generate network byte order
   OpenXDMADriver();
   PrintVersionInfo();
   CodecInitialise();
@@ -259,13 +258,11 @@ int main(void)
   SetTXProtocol(true);                                              // set to protocol 2
   SetTXModulationSource(eIQData);                                   // disable debug options
   HandlerSetEERMode(false);                                         // no EER
+  SetByteSwapping(true);                                            // h/w to generate network byte order
   //
   // debug code
   //
-  RegisterWrite(VADDRRXTESTDDSREG, 66409813);                       // test DDS to 1.9MHz
-  RegisterWrite(VADDRRFGPIOREG, (1<<26));                       // test DDS to 1.9MHz
-
-
+  SetTestDDSFrequency(1900000, false);                              // test =1.9MHz
   
   //
   // create socket for incoming data on the command port
