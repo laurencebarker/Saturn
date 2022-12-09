@@ -60,7 +60,7 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
     if(size < 0 && errno != EAGAIN)
     {
       perror("recvfrom");
-      return EXIT_FAILURE;
+//      return EXIT_FAILURE;
     }
     if(size == VDUCSPECIFICSIZE)
     {

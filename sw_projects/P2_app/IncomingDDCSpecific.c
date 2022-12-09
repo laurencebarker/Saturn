@@ -67,7 +67,7 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
     if(size < 0 && errno != EAGAIN)
     {
       perror("recvfrom");
-      return EXIT_FAILURE;
+//      return EXIT_FAILURE;
     }
     if(size >= 0)
       printf("received port 1025, size = %d\n", size);

@@ -380,7 +380,6 @@ void *OutgoingDDCIQ(void *arg)
       // remove later!
         RegisterWrite(0x100C, 0x40);             // DDC2 set to 48KHz
 //        RegisterWrite(0x1010, 0x4000002A);      // enable DDC data transfer; DDC2=test source
-//        SetDDCInterleaved(0, false);
         SetRXDDCEnabled(true);
         printf("enabled DDC0\n");
         HeaderFound = false;

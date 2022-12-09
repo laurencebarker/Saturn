@@ -1320,36 +1320,6 @@ void SetDDCADC(int DDC, EADCSelect ADC)
 
 
 //
-// void SetDDCInterleaved(uint32_t DDCNum, bool Interleaved)
-//
-// Enable or disable interleaving for a DDC pair.
-// // this should only be called for odd numbered DDC
-// If interleaved, the DDC LO is set to the same as the paired DDC
-// // this doesn't affect the sample data stream generation!
-//
-void SetDDCInterleaved(uint32_t DDCNum, bool Interleaved)
-{
-    uint32_t Address;									// register address
-    uint32_t Data;										// register content
-    uint32_t Mask = 0x0;
-
-    Address = VADDRDDCINSEL;							// DDC config register address
-    if (DDCNum & 1)										// if odd
-    {
-        DDCNum = (DDCNum >> 1) * 5;							// 0,5,10,15,20
-    }
-    Mask = 0x1 << (DDCNum + 4);
-    Data = DDCInSelReg;                                // get current register setting
-    Data &= ~Mask;										// clear current interleaved bit
-    if (Interleaved)
-        Data |= Mask;									// set new mask bit
-   // if(Data != DDCInSelReg)
-    //RegisterWrite(Address, Data);						// write back
-}
-
-
-
-//
 // void SetRXDDCEnabled(bool IsEnabled);
 // sets enable bit so DDC operates normally. Resets input FIFO when starting.
 //

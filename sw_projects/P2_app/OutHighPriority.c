@@ -132,7 +132,7 @@ void *OutgoingHighPriority(void *arg)
       {
         printf("High Priority Send Error, errno=%d\n", errno);
         printf("socket id = %d\n", ThreadData -> Socketid);
-        InitError=true;
+//        InitError=true;
       }
       usleep(50000);                                    // 50ms gap between messages
     }

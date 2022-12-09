@@ -172,7 +172,7 @@ void *OutgoingMicSamples(void *arg)
             {
                 printf("Mic Send Error, errno=%d\n", errno);
                 printf("socket id = %d\n", ThreadData -> Socketid);
-                InitError=true;
+//                InitError=true;
             }
         }
     }

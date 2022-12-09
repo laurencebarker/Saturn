@@ -899,15 +899,6 @@ void SetFreqPhaseWord(bool IsPhase);
 
 
 //
-// SetDDCInterleaved(unsigned int DDC, bool Interleaved)
-// set whether an DDC is interleaved
-// this is called for odd DDCs, and if interleaved synchs to next lower number
-// eg DDC3 can synch to DDC2
-//
-void SetDDCInterleaved(unsigned int DDC, bool Interleaved);
-
-
-//
 // SetDDCSampleSize(unsigned int DDC, unsgned int Size)
 // set sample resolution for DDC (only 24 bits supported)
 //
