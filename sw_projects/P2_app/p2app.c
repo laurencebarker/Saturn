@@ -330,9 +330,10 @@ int main(int argc, char *argv[])
 
 //
 // create outgoing mic data thread
+// note this shares a port with incoming DUC specific, so don't create a new port
+//  MakeSocket(SocketData+VPORTMICAUDIO, 0);
 //
-  MakeSocket(SocketData+VPORTMICAUDIO, 0);
-  if(pthread_create(&MicThread, NULL, OutgoingMicSamples, (void*)&SocketData[VPORTMICAUDIO]) < 0)
+  if(pthread_create(&MicThread, NULL, OutgoingMicSamples, (void*)&SocketData[VPORTDUCSPECIFIC]) < 0)
   {
     perror("pthread_create Mic");
     return EXIT_FAILURE;
@@ -342,9 +343,10 @@ int main(int argc, char *argv[])
 
 //
 // create outgoing high priority data thread
+// note this shares a port with incoming DDC specific, so don't create a new port
+//  MakeSocket(SocketData+VPORTHIGHPRIORITYFROMSDR, 0);
 //
-  MakeSocket(SocketData+VPORTHIGHPRIORITYFROMSDR, 0);
-  if(pthread_create(&HighPriorityFromSDRThread, NULL, OutgoingHighPriority, (void*)&SocketData[VPORTHIGHPRIORITYFROMSDR]) < 0)
+  if(pthread_create(&HighPriorityFromSDRThread, NULL, OutgoingHighPriority, (void*)&SocketData[VPORTDDCSPECIFIC]) < 0)
   {
     perror("pthread_create outgoing hi priority");
     return EXIT_FAILURE;

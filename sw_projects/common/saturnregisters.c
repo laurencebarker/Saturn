@@ -1309,7 +1309,6 @@ void SetDDCADC(int DDC, EADCSelect ADC)
     RegisterValue = DDCInSelReg;                   // get current register setting
     RegisterValue &= ~Mask;                         // strip ADC bits
     RegisterValue |= ADCSetting;
-    printf("setDDCADC: writing %x to DDC Input select reg\n", RegisterValue);
 
     if(RegisterValue != DDCInSelReg)      // write back if changed
     {
@@ -1946,7 +1945,7 @@ void SetTXProtocol (bool Protocol)
     if(Register != TXConfigRegValue)                    // write back if different
     {
         TXConfigRegValue = Register;                    // store it back
-//        RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
+        RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
     }
 }
 
