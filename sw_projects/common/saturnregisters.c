@@ -406,12 +406,14 @@ void SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bo
 {
     uint32_t RegisterValue;
     uint32_t Mask;
-    ESampleRate Rate = eDisabled;
+    ESampleRate Rate;
 
     if (!Enabled)                                   // if not enabled, clear sample rate value & enabled flag
     {
         P2SampleRates[DDC] = 0;
         GDDCEnabled &= ~(1 << DDC);                 // clear enable bit
+        Rate = eDisabled;
+
     }
     else
     {
@@ -1704,7 +1706,7 @@ void SetSpkrMute(bool IsMuted)
     if(Register != GPIORegValue)                    // write back if different
     {
         GPIORegValue = Register;                    // store it back
-//        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
+        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
     }
 }
 

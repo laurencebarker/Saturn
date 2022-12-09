@@ -30,6 +30,7 @@
 
 
 #define VSPKSAMPLESPERFRAME 64                      // samples per UDP frame
+#define VMEMWORDSPERFRAME 32                        // 8 byte writes per UDP msg
 #define VSPKSAMPLESPERMEMWORD 2                     // 2 samples (each 4 bytres) per 8 byte word
 #define VDMABUFFERSIZE 32768						// memory buffer to reserve
 #define VALIGNMENT 4096                             // buffer alignment
@@ -116,8 +117,8 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
         if(size == VSPEAKERAUDIOSIZE)                           // we have received a packet!
         {
             Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow);        // read the FIFO free locations
-            printf("speaker packet received; depth = %d\n", Depth);
-            while (Depth < (VSPKSAMPLESPERFRAME / VSPKSAMPLESPERMEMWORD))       // loop till space available
+            //printf("speaker packet received; depth = %d\n", Depth);
+            while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {
                 usleep(1000);								                    // 1ms wait
                 Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow);    // read the FIFO free locations

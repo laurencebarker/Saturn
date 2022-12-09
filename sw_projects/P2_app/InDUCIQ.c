@@ -30,7 +30,7 @@
 
 
 #define VIQSAMPLESPERFRAME 240                      // samples per UDP frame
-#define VIQSAMPLESPERMEMWORD 180                    // samples per 64 bit memory write
+#define VMEMWORDSPERFRAME 180                       // memory writes per UDP frame
 #define VBYTESPERSAMPLE 6							// 24 bit + 24 bit samples
 #define VDMABUFFERSIZE 32768						// memory buffer to reserve
 #define VALIGNMENT 4096                             // buffer alignment
@@ -123,7 +123,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
         if(size == VDUCIQSIZE)
         {
             Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow);           // read the FIFO free locations
-            while (Depth < (VIQSAMPLESPERMEMWORD))       // loop till space available
+            while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {
                 usleep(500);								                    // 0.5ms wait
                 Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow);       // read the FIFO free locations

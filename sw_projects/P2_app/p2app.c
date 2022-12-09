@@ -264,6 +264,7 @@ int main(int argc, char *argv[])
   SetTXModulationSource(eIQData);                                   // disable debug options
   HandlerSetEERMode(false);                                         // no EER
   SetByteSwapping(true);                                            // h/w to generate network byte order
+  SetSpkrMute(false);
 
   //
   // check if we are using test source DDS
