@@ -42,7 +42,7 @@ uint32_t GPIORegValue;                              // value stored into GPIO
 uint32_t TXConfigRegValue;                          // value written into TX config register
 uint32_t DDCInSelReg;                               // value written into DDC config register
 uint32_t DDCRateReg;                                // value written into DDC rate register
-
+bool GADCOverride;                                  // true if ADCs are to be overridden & use test source instead
 bool GByteSwapEnabled;                              // true if byte swapping enabled for sample readout 
 bool GPTTEnabled;                                   // true if PTT is enabled
 bool GPureSignalEnabled;                            // true if PureSignal is enabled
@@ -557,7 +557,7 @@ void SetADCOptions(EADCSelect ADC, bool PGA, bool Dither, bool Random)
     }
 }
 
-
+#define VTWOEXP32 4294967296.0              // 2^32
 
 //
 // SetDDCFrequency(uint32_t DDC, uint32_t Value, bool IsDeltaPhase)
@@ -578,7 +578,7 @@ void SetDDCFrequency(uint32_t DDC, uint32_t Value, bool IsDeltaPhase)
         DDC = VNUMDDC-1;
     if(!IsDeltaPhase)                       // ieif protocol 1
     {
-        fDeltaPhase = (double)(2^32) * (double)Value / (double) VSAMPLERATE;
+        fDeltaPhase = VTWOEXP32 * (double)Value / (double) VSAMPLERATE;
         DeltaPhase = (uint32_t)fDeltaPhase;
     }
     else
@@ -597,7 +597,7 @@ void SetDDCFrequency(uint32_t DDC, uint32_t Value, bool IsDeltaPhase)
 // SetTestDDSFrequency(uint32_t Value, bool IsDeltaPhase)
 // sets a test source frequency.
 // Value: 32 bit phase word or frequency word (1Hz resolution)
-// IsDeltaPhase: true if a delta phase value, false if a frequency value (P1)
+// IsDeltaPhase: true if a delta phase value, false if a frequency value (P1 or local app)
 // calculate delta phase if required. Delta=2^32 * (F/Fs)
 // store delta phase; write to FPGA register.
 //
@@ -606,9 +606,9 @@ void SetTestDDSFrequency(uint32_t Value, bool IsDeltaPhase)
     uint32_t DeltaPhase;                    // calculated deltaphase value
     double fDeltaPhase;
 
-    if(!IsDeltaPhase)                       // ieif protocol 1
+    if(!IsDeltaPhase)                       // ie if protocol 1
     {
-        fDeltaPhase = (double)(2^32) * (double)Value / (double) VSAMPLERATE;
+        fDeltaPhase = VTWOEXP32 * (double)Value / (double) VSAMPLERATE;
         DeltaPhase = (uint32_t)fDeltaPhase;
     }
     else
@@ -1292,6 +1292,7 @@ void SetCWKeyerBits(bool Enabled, bool Reversed, bool ModeB, bool Strict, bool B
 // SetDDCADC(int DDC, EADCSelect ADC)
 // sets the ADC to be used for each DDC
 // DDC = 0 to 9
+// if GADCOverride is set, set to test source instead
 //
 void SetDDCADC(int DDC, EADCSelect ADC)
 {
@@ -1299,19 +1300,21 @@ void SetDDCADC(int DDC, EADCSelect ADC)
     uint32_t ADCSetting;
     uint32_t Mask;
 
-    ADCSetting = (uint32_t)ADC & 0x3;               // 2 bits with ADC setting
-    RegisterValue = DDCInSelReg;                   // get current register setting
-    Mask = 0x11;
-    Mask = Mask << (DDC*2);                 // 0,5,10,15,20 bit positions
-    ADCSetting = ADCSetting << (DDC * 2);
+    if(GADCOverride)
+        ADC = eTestSource;                          // override setting
 
+    ADCSetting = ((uint32_t)ADC & 0x3) << (DDC*2);  // 2 bits with ADC setting
+    Mask = 0x11 << (DDC*2);                 // 0,5,10,15,20 bit positions
+
+    RegisterValue = DDCInSelReg;                   // get current register setting
     RegisterValue &= ~Mask;                         // strip ADC bits
     RegisterValue |= ADCSetting;
+    printf("setDDCADC: writing %x to DDC Input select reg\n", RegisterValue);
 
     if(RegisterValue != DDCInSelReg)      // write back if changed
     {
         DDCInSelReg = RegisterValue;          // write back
-//        RegisterWrite(VADDRDDCINSEL, RegisterValue);        // and write to it
+        RegisterWrite(VADDRDDCINSEL, RegisterValue);        // and write to it
     }
 }
 
@@ -1363,8 +1366,8 @@ void SetRXDDCEnabled(bool IsEnabled)
     else
         Data &= ~(1 << 30);								// clear new bit
 
-    //if (Data != DDCInSelReg)
-        //RegisterWrite(Address, Data);					// write back
+    if (Data != DDCInSelReg)
+        RegisterWrite(Address, Data);					// write back
 }
 
 
@@ -2127,4 +2130,15 @@ void SetFreqPhaseWord(bool IsPhase)
 void SetDDCSampleSize(unsigned int DDC, unsigned int Size)
 {
 
+}
+
+
+//
+// UseTestDDSSource(void)
+// override ADC1 and ADC2 selection; use test source instead.
+//
+void UseTestDDSSource(void)
+{
+    GADCOverride = true;
+    DDCInSelReg = (DDCInSelReg & 0x40000000) | 0x000AAAAA;      // set all to test
 }

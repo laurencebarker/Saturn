@@ -214,8 +214,11 @@ int MakeSocket(struct ThreadSocketData* Ptr, int DDCid)
 // main program. Initialise, then handle incoming command/general data
 // has a loop that reads & processes incoming command packets
 // see protocol documentation
+// 
+// if invoked "./p2app" - ADCs selected as normal
+// if invoked "./p2app 1900000" - ADC1 and ADC2 inputs set to DDS test source at 1900000Hz
 //
-int main(void)
+int main(int argc, char *argv[])
 {
   int i, size;
 //
@@ -246,6 +249,8 @@ int main(void)
   struct iovec iovecinst;                                           // iovcnt buffer - 1 for each outgoing buffer
   struct msghdr datagram;                                           // multiple incoming message header
 
+  uint32_t TestFrequency;                                           // test source DDS freq
+
 //
 // setup Saturn hardware
 //
@@ -259,11 +264,17 @@ int main(void)
   SetTXModulationSource(eIQData);                                   // disable debug options
   HandlerSetEERMode(false);                                         // no EER
   SetByteSwapping(true);                                            // h/w to generate network byte order
+
   //
-  // debug code
+  // check if we are using test source DDS
   //
-  SetTestDDSFrequency(1900000, false);                              // test =1.9MHz
-  
+  if (argc == 2)
+	{
+    TestFrequency = (atoi(argv[1]));
+    SetTestDDSFrequency(TestFrequency, false);   
+    UseTestDDSSource();                           
+  }	
+
   //
   // create socket for incoming data on the command port
   //

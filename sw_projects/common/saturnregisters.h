@@ -913,8 +913,11 @@ void SetDDCInterleaved(unsigned int DDC, bool Interleaved);
 //
 void SetDDCSampleSize(unsigned int DDC, unsigned int Size);
 
-
-
+//
+// UseTestDDSSource(void)
+// override ADC1 and ADC2 selection; use test source instead.
+//
+void UseTestDDSSource(void);
 
 
 
