@@ -130,7 +130,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
             }
             // copy sata from UDP Buffer & DMA write it
             memcpy(IQBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);                // copy out I/Q samples
-            DMAWriteToFPGA(DMAWritefile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDUCSTREAMWRITE);
+            //DMAWriteToFPGA(DMAWritefile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDUCSTREAMWRITE);
         }
     }
 //

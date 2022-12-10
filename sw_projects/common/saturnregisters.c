@@ -19,6 +19,7 @@
 #include "../common/codecwrite.h"
 #include <stdlib.h>                     // for function min()
 #include <math.h>
+#include <unistd.h>
 
 
 //
@@ -408,6 +409,7 @@ void SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bo
     uint32_t Mask;
     ESampleRate Rate;
 
+    Mask = 7 << (DDC * 3);                      // 3 bits in correct position
     if (!Enabled)                                   // if not enabled, clear sample rate value & enabled flag
     {
         P2SampleRates[DDC] = 0;
@@ -419,7 +421,6 @@ void SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bo
     {
         P2SampleRates[DDC] = SampleRate;
         GDDCEnabled |= (1 << DDC);                  // set enable bit
-        Mask = 7 << (DDC * 3);                      // 3 bits in correct position
         if (InterleaveWithNext)
             Rate = eInterleaveWithNext;
         else
@@ -462,7 +463,6 @@ bool WriteP2DDCRateRegister(void)
     CurrentValue = RegisterRead(VADDRDDCRATES);
     if (CurrentValue != DDCRateReg)
         Result = true;
-
     RegisterWrite(VADDRDDCRATES, DDCRateReg);        // and write to hardware register
     return Result;
 }
@@ -1870,13 +1870,21 @@ void CodecInitialise(void)
     GCodecLineGain = 0;                                     // Codec left line in gain register
     GCodecAnaloguePath = 0x14;                              // Codec analogue path register (mic input, no boost)
     CodecRegisterWrite(VCODECRESETREG, 0x0);          // reset register: reset deveice
+    usleep(100);
     CodecRegisterWrite(VCODECACTIVATIONREG, 0x1);     // digital activation set to ACTIVE
+    usleep(100);
     CodecRegisterWrite(VCODECANALOGUEPATHREG, GCodecAnaloguePath);        // mic input, no boost
+    usleep(100);
     CodecRegisterWrite(VCODECPOWERDOWNREG, 0x0);      // all elements powered on
+    usleep(100);
     CodecRegisterWrite(VCODECDIGITALFORMATREG, 0x2);  // slave; no swap; right when LRC high; 16 bit, I2S
+    usleep(100);
     CodecRegisterWrite(VCODECSAMPLERATEREG, 0x0);     // no clock divide; rate ctrl=0; normal mode, oversample 256Fs
+    usleep(100);
     CodecRegisterWrite(VCODECDIGITALPATHREG, 0x0);    // no soft mute; no deemphasis; ADC high pss filter enabled
+    usleep(100);
     CodecRegisterWrite(VCODECLLINEVOLREG, GCodecLineGain);        // line in gain=0
+    usleep(100);
 
 }
 

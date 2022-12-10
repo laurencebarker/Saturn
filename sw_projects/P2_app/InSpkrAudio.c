@@ -117,7 +117,7 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
         if(size == VSPEAKERAUDIOSIZE)                           // we have received a packet!
         {
             Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow);        // read the FIFO free locations
-            //printf("speaker packet received; depth = %d\n", Depth);
+            printf("speaker packet received; depth = %d\n", Depth);
             while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {
                 usleep(1000);								                    // 1ms wait

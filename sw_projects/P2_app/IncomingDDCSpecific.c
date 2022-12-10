@@ -70,8 +70,6 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
       perror("recvfrom");
 //      return EXIT_FAILURE;
     }
-    if(size >= 0)
-      printf("received port 1025, size = %d\n", size);
     if(size == VDDCSPECIFICSIZE)
     {
       printf("DDC specific packet received\n");
