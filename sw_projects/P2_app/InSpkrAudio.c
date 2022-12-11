@@ -65,6 +65,7 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
     uint32_t Depth = 0;
     int DMAWritefile_fd = -1;								// DMA read file device
     bool FIFOOverflow;
+    uint32_t RegVal;
 
     ThreadData = (struct ThreadSocketData *)arg;
     ThreadData->Active = true;
@@ -84,7 +85,6 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
     SpkBasePtr = SpkWriteBuffer + VBASE;
     memset(SpkWriteBuffer, 0, SpkBufferSize);
 
-
     //
     // open DMA device driver
     //
@@ -94,6 +94,7 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
         printf("XDMA write device open failed for spk data\n");
         InitError = true;
     }
+	ResetDMAStreamFIFO(eSpkCodecDMA);
 
   //
   // main processing loop
@@ -116,8 +117,9 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
         }
         if(size == VSPEAKERAUDIOSIZE)                           // we have received a packet!
         {
+            RegVal += 1;            //debug
             Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow);        // read the FIFO free locations
-            printf("speaker packet received; depth = %d\n", Depth);
+//            printf("speaker packet received; depth = %d\n", Depth);
             while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {
                 usleep(1000);								                    // 1ms wait
@@ -125,6 +127,8 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
             }
             // copy sata from UDP Buffer & DMA write it
             memcpy(SpkBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);              // copy out spk samples
+            if(RegVal == 100)
+                DumpMemoryBuffer(SpkBasePtr, VDMATRANSFERSIZE);
             DMAWriteToFPGA(DMAWritefile_fd, SpkBasePtr, VDMATRANSFERSIZE, VADDRSPKRSTREAMWRITE);
         }
     }

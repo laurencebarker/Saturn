@@ -98,7 +98,7 @@ void ResetDMAStreamFIFO(EDMAStreamSelect DDCNum)
 			break;
 
 		case eSpkCodecDMA:						// selects speaker samples
-			DataBit = (1 << VBITCODECMICFIFORESET);
+			DataBit = (1 << VBITCODECSPKFIFORESET);
 			break;
 	}
 
