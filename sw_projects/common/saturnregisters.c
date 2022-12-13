@@ -310,12 +310,8 @@ void SetByteSwapping(bool IsSwapped)
     else
         Register &= ~(1<<VDATAENDIAN);              // clear bit for raspberry pi local order
 
-    if (Register != GPIORegValue)                   // write back if different
-    {
-        GPIORegValue = Register;                    // store it back
-        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
-    }
-
+    GPIORegValue = Register;                    // store it back
+    RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
 }
 
 
@@ -1703,11 +1699,8 @@ void SetSpkrMute(bool IsMuted)
         Register |= (1<<VSPKRMUTEBIT);
     else
         Register &= ~(1<<VSPKRMUTEBIT);
-    if(Register != GPIORegValue)                    // write back if different
-    {
-        GPIORegValue = Register;                    // store it back
-        RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
-    }
+    GPIORegValue = Register;                    // store it back
+    RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
 }
 
 
