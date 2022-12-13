@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
 	//
 	// do DMA write
 	//
-		RegisterWrite(VADDRRFGPIOREG, 0x04);	// speaker on, mic on tip
+		//RegisterWrite(VADDRRFGPIOREG, 0x04);	// speaker on, mic on tip
 		Length = VTOTALSAMPLES * 4;
 		printf("Copying sample data to Codec via DMA\n");
 		DMAWriteToCodec(WriteBuffer, Length);
