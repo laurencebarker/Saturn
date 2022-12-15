@@ -103,7 +103,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       //
       Byte = (uint8_t)(UDPInBuffer[1400]);
       SetXvtrEnable((bool)(Byte&1));
-      SetSpkrMute((bool)((Byte>>1)&1));
+//      SetSpkrMute((bool)((Byte>>1)&1));
       Byte = (uint8_t)(UDPInBuffer[1401]);
       SetOpenCollectorOutputs(Byte);
       Byte = (uint8_t)(UDPInBuffer[1402]);

@@ -1083,14 +1083,14 @@ void SetOrionMicOptions(bool MicRing, bool EnableBias, bool EnablePTT)
 
     if(!MicRing)                                      // add new bits where set
     {
-        Register |= (1 << VMICSIGNALSELECTBIT);     // mic on tip
+        Register &= ~(1 << VMICSIGNALSELECTBIT);    // mic on tip
         Register |= (1 << VMICBIASSELECTBIT);       // and hence mic bias on tip
         Register &= ~(1 << VMICPTTSELECTBIT);       // PTT on ring
     }
     else
     {
-        Register &= ~(1 << VMICSIGNALSELECTBIT);    // mic on ring
-        Register &= ~(1 << VMICSIGNALSELECTBIT);    // bias on ring
+        Register |= (1 << VMICSIGNALSELECTBIT);     // mic on ring
+        Register &= ~(1 << VMICBIASSELECTBIT);      // bias on ring
         Register |= (1 << VMICPTTSELECTBIT);        // PTT on tip
     }
     if(EnableBias)
