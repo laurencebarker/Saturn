@@ -377,8 +377,8 @@ void *OutgoingDDCIQ(void *arg)
       //
       // enable Saturn DDC to transfer data
       //
+        printf("outDDCIQ: enable data transfer\n");
         SetRXDDCEnabled(true);
-        printf("enabled DDC0\n");
         HeaderFound = false;
         while(!InitError && SDRActive)
         {

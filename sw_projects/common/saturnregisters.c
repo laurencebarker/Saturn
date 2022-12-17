@@ -1308,11 +1308,8 @@ void SetDDCADC(int DDC, EADCSelect ADC)
     RegisterValue &= ~Mask;                         // strip ADC bits
     RegisterValue |= ADCSetting;
 
-    if(RegisterValue != DDCInSelReg)      // write back if changed
-    {
-        DDCInSelReg = RegisterValue;          // write back
-        RegisterWrite(VADDRDDCINSEL, RegisterValue);        // and write to it
-    }
+    DDCInSelReg = RegisterValue;          // write back
+    RegisterWrite(VADDRDDCINSEL, RegisterValue);        // and write to it
 }
 
 
@@ -1333,8 +1330,8 @@ void SetRXDDCEnabled(bool IsEnabled)
     else
         Data &= ~(1 << 30);								// clear new bit
 
-    if (Data != DDCInSelReg)
-        RegisterWrite(Address, Data);					// write back
+    DDCInSelReg = Data;          // write back
+    RegisterWrite(Address, Data);					// write back
 }
 
 
