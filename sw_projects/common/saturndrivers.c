@@ -18,6 +18,9 @@
 #include "../common/saturndrivers.h"
 #include "../common/saturnregisters.h"
 #include "../common/hwaccess.h"                   // low level access
+#include <semaphore.h>
+
+sem_t DDCResetFIFOMutex;
 
 
 
@@ -102,11 +105,13 @@ void ResetDMAStreamFIFO(EDMAStreamSelect DDCNum)
 			break;
 	}
 
-	Data = RegisterRead(VADDRFIFORESET);						// read current content
+	sem_wait(&DDCResetFIFOMutex);                       // get protected access
+	Data = RegisterRead(VADDRFIFORESET);				// read current content
 	Data = Data & ~DataBit;
-	RegisterWrite(VADDRFIFORESET, Data);						// set reset bit to zero
+	RegisterWrite(VADDRFIFORESET, Data);				// set reset bit to zero
 	Data = Data | DataBit;
-	RegisterWrite(VADDRFIFORESET, Data);						// set reset bit to 1
+	RegisterWrite(VADDRFIFORESET, Data);				// set reset bit to 1
+	sem_post(&DDCResetFIFOMutex);                       // release protected access
 }
 
 

@@ -127,8 +127,8 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
             }
             // copy sata from UDP Buffer & DMA write it
             memcpy(SpkBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);              // copy out spk samples
-            if(RegVal == 100)
-                DumpMemoryBuffer(SpkBasePtr, VDMATRANSFERSIZE);
+//            if(RegVal == 100)
+//                DumpMemoryBuffer(SpkBasePtr, VDMATRANSFERSIZE);
             DMAWriteToFPGA(DMAWritefile_fd, SpkBasePtr, VDMATRANSFERSIZE, VADDRSPKRSTREAMWRITE);
         }
     }

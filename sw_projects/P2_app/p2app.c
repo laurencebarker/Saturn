@@ -32,6 +32,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net/if.h>
+#include <semaphore.h>
 
 #include "../common/saturntypes.h"
 #include "../common/hwaccess.h"                     // access to PCIe read & write
@@ -51,6 +52,9 @@
 #include "OutHighPriority.h"
 
 
+extern sem_t DDCInSelMutex;                 // protect access to shared DDC input select register
+extern sem_t DDCResetFIFOMutex;             // protect access to FIFO reset register
+extern sem_t RFGPIOMutex;                   // protect access to RF GPIO register
 
 
 struct sockaddr_in reply_addr;              // destination address for outgoing data
@@ -250,6 +254,14 @@ int main(int argc, char *argv[])
   struct msghdr datagram;                                           // multiple incoming message header
 
   uint32_t TestFrequency;                                           // test source DDS freq
+
+  //
+  // initialise register access semaphores
+  //
+  sem_init(&DDCInSelMutex, 0, 1);                                   // for DDC input select register
+  sem_init(&DDCResetFIFOMutex, 0, 1);                               // for FIFO reset register
+  sem_init(&RFGPIOMutex, 0, 1);                                     // for RF GPIO register
+
 
 //
 // setup Saturn hardware
@@ -458,6 +470,9 @@ int main(int argc, char *argv[])
 //
   } //while(1)
   close(SocketData[0].Socketid);                          // close incoming data socket
+  sem_destroy(&DDCInSelMutex);
+  sem_destroy(&DDCResetFIFOMutex);
+  sem_destroy(&RFGPIOMutex);
 
   return EXIT_SUCCESS;
 }
