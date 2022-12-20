@@ -342,6 +342,29 @@ void SetMOX(bool Mox)
     GPIORegValue = Register;                        // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);        // and write to it
     sem_post(&RFGPIOMutex);                         // clear protected access
+    printf("setmox: GPIO = %08x\n", Register);
+}
+
+
+//
+// SetTXEnable(bool Enabled)
+// sets or clears TX enable bit
+// set or clear the relevant bit in GPIO
+//
+void SetTXEnable(bool Enabled)
+{
+    uint32_t Register;
+
+    sem_wait(&RFGPIOMutex);                         // get protected access
+    Register = GPIORegValue;                        // get current settings
+    if (Enabled)
+        Register |= (1 << VTXENABLEBIT);
+    else
+        Register &= ~(1 << VTXENABLEBIT);
+    GPIORegValue = Register;                        // store it back
+    RegisterWrite(VADDRRFGPIOREG, Register);        // and write to it
+    sem_post(&RFGPIOMutex);                         // clear protected access
+    printf("setmox: GPIO = %08x\n", Register);
 }
 
 

@@ -18,8 +18,12 @@
 #include "../common/hwaccess.h"
 #include "../common/saturnregisters.h"
 #include "stdio.h"
+#include <semaphore.h>
 
-
+//
+// semaphores to protect registers that are accessed from several threads
+//
+sem_t CodecRegMutex;
 
 //
 // 8 bit Codec register write over the AXILite bus via SPI
@@ -31,7 +35,9 @@ void CodecRegisterWrite(uint32_t Address, uint32_t Data)
 	uint32_t WriteData;
 
 	WriteData = (Address << 9) | (Data & 0x01FFUL);
-	RegisterWrite(VADDRCODECSPIREG, WriteData);  // and write to it
-	printf("Codec write: send %03x to Codec register address %02x, written=%04x\n", Data, Address, WriteData);
+    sem_wait(&CodecRegMutex);                       // get protected access
+	RegisterWrite(VADDRCODECSPIREG, WriteData);  	// and write to it
+	//printf("Codec write: send %03x to Codec register address %02x, written=%04x\n", Data, Address, WriteData);
+    sem_post(&CodecRegMutex);                       // clear protected access
 }
 

@@ -186,6 +186,13 @@ void SetMOX(bool Mox);
 
 
 //
+// SetTXEnable(bool Enabled)
+// sets or clears TX enable bit
+// set or clear the relevant bit in GPIO
+//
+void SetTXEnable(bool Enabled);
+
+//
 // SetATUTune(bool TuneEnabled)
 // drives the ATU tune output to selected state.
 //

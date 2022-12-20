@@ -55,7 +55,7 @@
 extern sem_t DDCInSelMutex;                 // protect access to shared DDC input select register
 extern sem_t DDCResetFIFOMutex;             // protect access to FIFO reset register
 extern sem_t RFGPIOMutex;                   // protect access to RF GPIO register
-
+extern sem_t CodecRegMutex;                 // protect writes to codec
 
 struct sockaddr_in reply_addr;              // destination address for outgoing data
 
@@ -115,8 +115,6 @@ pthread_t DUCIQThread;
 pthread_t DDCIQThread[VNUMDDC];               // array, but not sure how many
 pthread_t MicThread;
 pthread_t HighPriorityFromSDRThread;
-
-
 
 
 
@@ -261,7 +259,7 @@ int main(int argc, char *argv[])
   sem_init(&DDCInSelMutex, 0, 1);                                   // for DDC input select register
   sem_init(&DDCResetFIFOMutex, 0, 1);                               // for FIFO reset register
   sem_init(&RFGPIOMutex, 0, 1);                                     // for RF GPIO register
-
+  sem_init(&CodecRegMutex, 0, 1);                                   // for codec writes
 
 //
 // setup Saturn hardware
@@ -277,6 +275,7 @@ int main(int argc, char *argv[])
   HandlerSetEERMode(false);                                         // no EER
   SetByteSwapping(true);                                            // h/w to generate network byte order
   SetSpkrMute(false);
+  SetTXEnable(true);
 
   //
   // check if we are using test source DDS
@@ -408,7 +407,7 @@ int main(int argc, char *argv[])
     datagram.msg_iovlen = 1;
     datagram.msg_name = &addr_from;
     datagram.msg_namelen = sizeof(addr_from);
-    size = recvmsg(SocketData[0].Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
+    size = recvmsg(SocketData[0].Socketid, &datagram, 0);         // get one message. If it times out, gets size=-1
     if(size < 0 && errno != EAGAIN)
     {
       perror("recvfrom");
@@ -469,11 +468,17 @@ int main(int argc, char *argv[])
 // now do any "post packet" processing
 //
   } //while(1)
+
+  //
+  // clean exit
+  //
+  SetMOX(false);
+  SetTXEnable(false);
   close(SocketData[0].Socketid);                          // close incoming data socket
   sem_destroy(&DDCInSelMutex);
   sem_destroy(&DDCResetFIFOMutex);
   sem_destroy(&RFGPIOMutex);
-
+  sem_destroy(&CodecRegMutex);
   return EXIT_SUCCESS;
 }
 
