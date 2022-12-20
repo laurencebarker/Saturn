@@ -61,14 +61,15 @@ struct sockaddr_in reply_addr;              // destination address for outgoing 
 
 bool IsTXMode;                              // true if in TX
 bool SDRActive;                             // true if this SDR is running at the moment
+bool ExitRequested;                         // true if "exit checking" thread requests shutdown
 
 
-#define SDRBOARDID 1                    // Hermes
-#define SDRSWVERSION 1                  // version of this software
-#define VDISCOVERYSIZE 60               // discovery packet
-#define VDISCOVERYREPLYSIZE 60          // reply packet
-#define VWIDEBANDSIZE 1028              // wideband scalar samples
-
+#define SDRBOARDID 1                        // Hermes
+#define SDRSWVERSION 1                      // version of this software
+#define VDISCOVERYSIZE 60                   // discovery packet
+#define VDISCOVERYREPLYSIZE 60              // reply packet
+#define VWIDEBANDSIZE 1028                  // wideband scalar samples
+#define VCONSTTXAMPLSCALEFACTOR 0x0003FFFF  // 18 bit scale value - set to max
 
 struct ThreadSocketData SocketData[VPORTTABLESIZE] =
 {
@@ -115,7 +116,6 @@ pthread_t DUCIQThread;
 pthread_t DDCIQThread[VNUMDDC];               // array, but not sure how many
 pthread_t MicThread;
 pthread_t HighPriorityFromSDRThread;
-
 
 
 //
@@ -211,6 +211,27 @@ int MakeSocket(struct ThreadSocketData* Ptr, int DDCid)
 }
 
 
+//
+// this runs as its own thread to monitor command line activity. A string "exist" exits the application. 
+// thread initiated at the start.
+//
+void *CheckForExitCommand(void *arg)
+{
+  char ch;
+  printf("spinning up Check For Exit thread\n");
+  
+  while (1)
+  {
+    ch = getchar();
+    if((ch == 'x') || (ch == 'X'))
+    {
+      ExitRequested = true;
+      break;
+    }
+  }
+}
+
+
 
 //
 // main program. Initialise, then handle incoming command/general data
@@ -250,6 +271,7 @@ int main(int argc, char *argv[])
   uint8_t UDPInBuffer[VDDCPACKETSIZE];                              // outgoing buffer
   struct iovec iovecinst;                                           // iovcnt buffer - 1 for each outgoing buffer
   struct msghdr datagram;                                           // multiple incoming message header
+  pthread_t CheckForExitThread;
 
   uint32_t TestFrequency;                                           // test source DDS freq
 
@@ -264,6 +286,8 @@ int main(int argc, char *argv[])
 //
 // setup Saturn hardware
 //
+  printf("SATURN Protocol 2 App. press 'x <enter>' in console to close\n");
+
   OpenXDMADriver();
   PrintVersionInfo();
   CodecInitialise();
@@ -275,7 +299,19 @@ int main(int argc, char *argv[])
   HandlerSetEERMode(false);                                         // no EER
   SetByteSwapping(true);                                            // h/w to generate network byte order
   SetSpkrMute(false);
+  SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR);
   SetTXEnable(true);
+//
+// start up thread for exit command checking
+//
+  ExitRequested = false;
+  if(pthread_create(&CheckForExitThread, NULL, CheckForExitCommand, NULL) < 0)
+  {
+    perror("pthread_create check for exit");
+    return EXIT_FAILURE;
+  }
+  pthread_detach(CheckForExitThread);
+
 
   //
   // check if we are using test source DDS
@@ -414,6 +450,9 @@ int main(int argc, char *argv[])
       return EXIT_FAILURE;
     }
 
+    if(ExitRequested)
+      break;
+
 
 //
 // only process packets of length 60 bytes on this port, to exclude protocol 1 discovery for example.
@@ -472,13 +511,14 @@ int main(int argc, char *argv[])
   //
   // clean exit
   //
-  SetMOX(false);
-  SetTXEnable(false);
+  printf("Exiting\n");
   close(SocketData[0].Socketid);                          // close incoming data socket
   sem_destroy(&DDCInSelMutex);
   sem_destroy(&DDCResetFIFOMutex);
   sem_destroy(&RFGPIOMutex);
   sem_destroy(&CodecRegMutex);
+  SetMOX(false);
+  SetTXEnable(false);
   return EXIT_SUCCESS;
 }
 

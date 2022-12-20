@@ -99,6 +99,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     EnableDUCMux(false);                                  // disable temporarily
     SetTXIQDeinterleaved(false);                          // not interleaved (at least for now!)
     ResetDUCMux();                                        // reset 64 to 48 mux
+    ResetDMAStreamFIFO(eTXDUCDMA);
     EnableDUCMux(true);                                   // enable operation
 
   //
@@ -130,7 +131,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
             }
             // copy sata from UDP Buffer & DMA write it
             memcpy(IQBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);                // copy out I/Q samples
-            //DMAWriteToFPGA(DMAWritefile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDUCSTREAMWRITE);
+            DMAWriteToFPGA(DMAWritefile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDUCSTREAMWRITE);
         }
     }
 //

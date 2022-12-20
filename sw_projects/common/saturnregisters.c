@@ -342,7 +342,6 @@ void SetMOX(bool Mox)
     GPIORegValue = Register;                        // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);        // and write to it
     sem_post(&RFGPIOMutex);                         // clear protected access
-    printf("setmox: GPIO = %08x\n", Register);
 }
 
 
@@ -364,7 +363,6 @@ void SetTXEnable(bool Enabled)
     GPIORegValue = Register;                        // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);        // and write to it
     sem_post(&RFGPIOMutex);                         // clear protected access
-    printf("setmox: GPIO = %08x\n", Register);
 }
 
 
@@ -667,11 +665,8 @@ void SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)		// only accepts DUC
     else
         DeltaPhase = (uint32_t)Value;
 
-    if(DUCDeltaPhase != DeltaPhase)         // write back if changed
-    {
-        DUCDeltaPhase = DeltaPhase;             // store this delta phase
-//        RegisterWrite(DUCDeltaPhase, DeltaPhase);  // and write to it
-    }
+    DUCDeltaPhase = DeltaPhase;             // store this delta phase
+    RegisterWrite(VADDRTXDUCREG, DeltaPhase);  // and write to it
 }
 
 
@@ -1041,11 +1036,8 @@ void SetTXDriveLevel(unsigned int Level)
     RegisterValue |= (DACDrive << 8);               // set drive level when TX
     RegisterValue |= (AttenDrive << 16);            // set step atten when RX
     RegisterValue |= (AttenDrive << 24);            // set step atten when TX
-    if(GTXDACCtrl != RegisterValue)                 // write back if changed
-    {
-        GTXDACCtrl = RegisterValue;
-//            RegisterWrite(VADDRDACCTRLREG, RegisterValue);  // and write to it
-    }
+    GTXDACCtrl = RegisterValue;
+    RegisterWrite(VADDRDACCTRLREG, RegisterValue);  // and write to it
 }
 
 
@@ -1923,12 +1915,9 @@ void SetTXAmplitudeScaling (unsigned int Amplitude)
     GTXAmplScaleFactor = Amplitude;                             // save value
     Register = TXConfigRegValue;                                // get current settings
     Register &= 0xFFC0000F;                                     // remove old bits
-    Register |= ((Amplitude & 0x3FFFF << VTXCONFIGSCALEBIT));   // add new bits
-    if(Register != TXConfigRegValue)                            // write back if different
-    {
-        TXConfigRegValue = Register;                            // store it back
-//        RegisterWrite(VADDRTXCONFIGREG, Register);              // and write to it
-    }
+    Register |= ((Amplitude & 0x3FFFF) << VTXCONFIGSCALEBIT);   // add new bits
+    TXConfigRegValue = Register;                                // store it back
+    RegisterWrite(VADDRTXCONFIGREG, Register);                  // and write to it
 }
 
 
@@ -1945,11 +1934,8 @@ void SetTXProtocol (bool Protocol)
     Register = TXConfigRegValue;                        // get current settings
     Register &= 0xFFFFFF7;                              // remove old bit
     Register |= ((((unsigned int)Protocol)&1) << VTXCONFIGPROTOCOLBIT);            // add new bit
-    if(Register != TXConfigRegValue)                    // write back if different
-    {
-        TXConfigRegValue = Register;                    // store it back
-        RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
-    }
+    TXConfigRegValue = Register;                    // store it back
+    RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
 }
 
 
@@ -1966,9 +1952,9 @@ void ResetDUCMux(void)
     BitMask = (1 << 29);
     Register = TXConfigRegValue;                        // get current settings
     Register |= BitMask;                                // set reset bit
-//    RegisterWrite(VADDRTXCONFIGREG, Register);          // and write to it
+    RegisterWrite(VADDRTXCONFIGREG, Register);          // and write to it
     Register &= ~BitMask;                               // remove old bit
-//    RegisterWrite(VADDRTXCONFIGREG, Register);          // and write to it
+    RegisterWrite(VADDRTXCONFIGREG, Register);          // and write to it
 }
 
 
@@ -1990,11 +1976,8 @@ void SetTXOutputGate(bool AlwaysOn)
         Register |= BitMask;                            // set bit if true
         else
         Register &= ~BitMask;                           // clear bit if false
-    if (Register != TXConfigRegValue)                    // write back if different
-    {
-        TXConfigRegValue = Register;                    // store it back
-//        RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
-    }
+    TXConfigRegValue = Register;                    // store it back
+    RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
 }
 
 
@@ -2018,11 +2001,8 @@ void SetTXIQDeinterleaved(bool Interleaved)
         Register |= BitMask;                            // set bit if true
     else
         Register &= ~BitMask;                           // clear bit if false
-    if (Register != TXConfigRegValue)                   // write back if different
-    {
-        TXConfigRegValue = Register;                    // store it back
-//        RegisterWrite(VADDRTXCONFIGREG, Register);    // and write to it
-    }
+    TXConfigRegValue = Register;                    // store it back
+    RegisterWrite(VADDRTXCONFIGREG, Register);    // and write to it
 }
 
 
@@ -2043,11 +2023,8 @@ void EnableDUCMux(bool Enabled)
         Register |= BitMask;                            // set bit if true
     else
         Register &= ~BitMask;                           // clear bit if false
-    if (Register != TXConfigRegValue)                   // write back if different
-    {
-        TXConfigRegValue = Register;                    // store it back
-//        RegisterWrite(VADDRTXCONFIGREG, Register);    // and write to it
-    }
+    TXConfigRegValue = Register;                    // store it back
+    RegisterWrite(VADDRTXCONFIGREG, Register);    // and write to it
 }
 
 
@@ -2083,11 +2060,8 @@ void SetTXModulationSource(ETXModulationSource Source)
     Register = TXConfigRegValue;                        // get current settings
     Register &= 0xFFFFFFFC;                             // remove old bits
     Register |= ((unsigned int)Source);                 // add new bits
-    if(Register != TXConfigRegValue)                    // write back if different
-    {
-        TXConfigRegValue = Register;                    // store it back
-//        RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
-    }
+    TXConfigRegValue = Register;                    // store it back
+    RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
 }
 
 
