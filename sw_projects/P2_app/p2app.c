@@ -69,7 +69,7 @@ bool ExitRequested;                         // true if "exit checking" thread re
 #define VDISCOVERYSIZE 60                   // discovery packet
 #define VDISCOVERYREPLYSIZE 60              // reply packet
 #define VWIDEBANDSIZE 1028                  // wideband scalar samples
-#define VCONSTTXAMPLSCALEFACTOR 0x0003FFFF  // 18 bit scale value - set to max
+#define VCONSTTXAMPLSCALEFACTOR 0x0001FFFF  // 18 bit scale value - set to 1/2 of full scale
 
 struct ThreadSocketData SocketData[VPORTTABLESIZE] =
 {
