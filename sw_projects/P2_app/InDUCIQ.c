@@ -64,6 +64,9 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     uint32_t Depth = 0;
     int DMAWritefile_fd = -1;								// DMA read file device
     bool FIFOOverflow;
+    uint32_t Cntr;                                          // sample counter
+    uint8_t* SrcPtr;                                        // pointer to data from Thetis
+    uint8_t* DestPtr;                                       // pointer to DMA buffer data
 
     ThreadData = (struct ThreadSocketData *)arg;
     ThreadData->Active = true;
@@ -129,8 +132,21 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
                 usleep(500);								                    // 0.5ms wait
                 Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow);       // read the FIFO free locations
             }
-            // copy sata from UDP Buffer & DMA write it
-            memcpy(IQBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);                // copy out I/Q samples
+            // copy data from UDP Buffer & DMA write it
+//            memcpy(IQBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);                // copy out I/Q samples
+            // need to swap I & Q samples on replay
+            SrcPtr = (uint16_t *) (UDPInBuffer + 4);
+            DestPtr = (uint16_t *) IQBasePtr;
+            for (Cntr=0; Cntr < VIQSAMPLESPERFRAME; Cntr++)                     // samplecounter
+            {
+                *DestPtr++ = *(SrcPtr+3);                           // get I sample (3 bytes)
+                *DestPtr++ = *(SrcPtr+4);
+                *DestPtr++ = *(SrcPtr+5);
+                *DestPtr++ = *(SrcPtr+0);                           // get Q sample (3 bytes)
+                *DestPtr++ = *(SrcPtr+1);
+                *DestPtr++ = *(SrcPtr+2);
+                SrcPtr += 6;                                        // point at next source sample
+            }
             DMAWriteToFPGA(DMAWritefile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDUCSTREAMWRITE);
         }
     }
