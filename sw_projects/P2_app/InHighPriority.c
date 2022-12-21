@@ -118,11 +118,12 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1434));
       AlexManualRXFilters(Word, 0);
       //
-      // RX atten during TX
+      // RX atten during TX and RX
       //
-      Byte2 = (uint8_t)(UDPInBuffer[1442]);
-      Byte = (uint8_t)(UDPInBuffer[1443]);
-      SetADCAttenDuringTX(Byte, Byte2);
+      Byte2 = (uint8_t)(UDPInBuffer[1442]);     // RX2 atten
+      Byte = (uint8_t)(UDPInBuffer[1443]);      // RX1 atten
+      SetADCAttenuator(eADC1, Byte, true, true);
+      SetADCAttenuator(eADC2, Byte2, true, true);
     }
   }
 //

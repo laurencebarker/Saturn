@@ -1178,52 +1178,55 @@ void EnablePureSignal(bool Enabled)
 
 
 //
-// SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool Enabled)
+// SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool Enabled, bool RXAtten)
 // sets the  stepped attenuator on the ADC input
 // Atten provides a 5 bit atten value
-// enabled: if false, zero attenuation is driven out
+// RXAtten: if true, sets atten to be used during RX
+// TXAtten: if true, sets atten to be used during TX
+// (it can be both!)
 //
-void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool Enabled)
+void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool RXAtten, bool TXAtten)
 {
     uint32_t Register;                              // local copy
+    uint32_t TXMask;
+    uint32_t RXMask;
+
     Register = GRXADCCtrl;                          // get existing settings
-    if(!Enabled)
-        Atten=0;                                    // no atrenuation if not enabled
+    TXMask = 0b0000001111100000;                    // mask bits for TX, ADC1
+    RXMask = 0b0000000000011111;                    // mask bits for RX, ADC1
     if(ADC == eADC1)
     {
-        Register &= 0xFFFFFFE0;                     // remove existing bits;
-        Register |= (Atten & 0X1F);                 // add in new bits for ADC1
+        if(RXAtten)
+        {
+            Register &= ~RXMask;
+            Register |= (Atten & 0X1F);             // add in new bits for ADC1, RX
+        }
+        if(TXAtten)
+        {
+            Register &= ~TXMask;
+            Register |= (Atten & 0X1F)<<5;          // add in new bits for ADC1, TX
+        }
     }
     else
     {
-        Register &= 0xFFFF83FF;                     // remove existing bits;
-        Register |= (Atten & 0X1F) << 10;           // add in new bits for ADC2
+        TXMask = TXMask << 10;                      // move to ADC2 bit positions
+        RXMask = RXMask << 10;                      // move to ADC2 bit positions
+        if(RXAtten)
+        {
+            Register &= ~RXMask;
+            Register |= (Atten & 0X1F) << 10;       // add in new bits for ADC2, RX
+        }
+        if(TXAtten)
+        {
+            Register &= ~TXMask;
+            Register |= (Atten & 0X1F)<<15;         // add in new bits for ADC2, TX
+        }
     }
-    if (Register != GRXADCCtrl)                     // only write back if changed
-    {
         GRXADCCtrl = Register; 
-//        RegisterWrite(VADDRADCCTRLREG, Register);      // and write to it
-    }
+        RegisterWrite(VADDRADCCTRLREG, Register);      // and write to it
 }
 
 
-//
-// SetADCAttenDuringTX(unsigned int Atten1, unsigned int Atten2)
-// sets the attenuation value to be set on the RX atten during TX.
-//
-void SetADCAttenDuringTX(unsigned int Atten1, unsigned int Atten2)
-{
-    uint32_t Register;                              // local copy
-    Register = GRXADCCtrl;                          // get existing settings
-    Register &= 0xFFF07C1F;                         // remove existing bits for ADC1&2;
-    Register |= (Atten1 & 0X1F) << 5;               // add in new bits for ADC1
-    Register |= (Atten2 & 0X1F) << 15;              // add in new bits for ADC2
-    if (Register != GRXADCCtrl)                     // only write back if changed
-    {
-        GRXADCCtrl = Register; 
-//        RegisterWrite(VADDRADCCTRLREG, Register);      // and write to it
-    }
-}
 
 //
 // SetCWKeyerReversed(bool Reversed)

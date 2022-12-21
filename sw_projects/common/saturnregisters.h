@@ -456,19 +456,14 @@ void EnablePureSignal(bool Enabled);
 
 
 //
-// SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool Enabled)
+// SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool Enabled, bool RXAtten)
 // sets the  stepped attenuator on the ADC input
 // Atten provides a 5 bit atten value
-// enabled: if false, zero attenuation is driven out
+// RXAtten: if true, sets atten to be used during RX
+// TXAtten: if true, sets atten to be used during TX
+// (it can be both!)
 //
-void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool Enabled);
-
-
-//
-// SetADCAttenDuringTX(unsigned int Atten1, unsigned int Atten2)
-// sets the attenuation value to be set on the RX atten during TX.
-//
-void SetADCAttenDuringTX(unsigned int Atten1, unsigned int Atten2);
+void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool RXAtten, bool TXAtten);
 
 
 //
