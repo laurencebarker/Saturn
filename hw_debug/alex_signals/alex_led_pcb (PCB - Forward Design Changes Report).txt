@@ -1,0 +1,16 @@
+Forward Design Changes Report
+-----------------------------
+
+Report Written:     Monday, December 26, 2022
+Project Path:       C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb.prj
+Design Path:        C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb.pcb
+Design Title:       
+Created:            25/12/2022 10:05:52
+Last Saved:         26/12/2022 10:59:51
+Editing Time:       593 min
+Units:              thou (precision 0)
+
+The designs are the same, so no design changes to forward.
+
+
+End Of Report.

@@ -3,94 +3,48 @@
    <wave_state>
    </wave_state>
    <db_ref_list>
-      <db_ref path="tx_duc_tb_behav.wdb" id="1">
+      <db_ref path="rx_ddc_tb_behav.wdb" id="1">
          <top_modules>
             <top_module name="glbl" />
-            <top_module name="tx_duc_tb" />
+            <top_module name="rx_ddc_tb" />
          </top_modules>
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="2.289076000 ms"></ZoomStartTime>
-      <ZoomEndTime time="2.290465001 ms"></ZoomEndTime>
-      <Cursor1Time time="2.289307500 ms"></Cursor1Time>
+      <ZoomStartTime time="592.819943 us"></ZoomStartTime>
+      <ZoomEndTime time="3,008.819944 us"></ZoomEndTime>
+      <Cursor1Time time="2,028.819943 us"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="156"></NameColumnWidth>
-      <ValueColumnWidth column_width="60"></ValueColumnWidth>
+      <NameColumnWidth column_width="228"></NameColumnWidth>
+      <ValueColumnWidth column_width="100"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="13" />
+   <WVObjectSize size="4" />
    <wave_markers>
       <marker time="1751991916" label="" />
-      <marker time="1752252000" label="" />
+      <marker time="1672793433" label="" />
    </wave_markers>
-   <wvobject fp_name="/tx_duc_tb/clk122" type="logic">
-      <obj_property name="ElementShortName">clk122</obj_property>
-      <obj_property name="ObjectShortName">clk122</obj_property>
+   <wvobject fp_name="/rx_ddc_tb/M_AXIS_DATA_tvalid" type="logic">
+      <obj_property name="ElementShortName">M_AXIS_DATA_tvalid</obj_property>
+      <obj_property name="ObjectShortName">M_AXIS_DATA_tvalid</obj_property>
    </wvobject>
-   <wvobject fp_name="/tx_duc_tb/resetn1" type="logic">
-      <obj_property name="ElementShortName">resetn1</obj_property>
-      <obj_property name="ObjectShortName">resetn1</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tx_duc_tb/S_AXIS_tdata" type="array">
-      <obj_property name="ElementShortName">S_AXIS_tdata[47:0]</obj_property>
-      <obj_property name="ObjectShortName">S_AXIS_tdata[47:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tx_duc_tb/S_AXIS_tready" type="logic">
-      <obj_property name="ElementShortName">S_AXIS_tready</obj_property>
-      <obj_property name="ObjectShortName">S_AXIS_tready</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tx_duc_tb/S_AXIS_tvalid" type="logic">
-      <obj_property name="ElementShortName">S_AXIS_tvalid</obj_property>
-      <obj_property name="ObjectShortName">S_AXIS_tvalid</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tx_duc_tb/TXConfig" type="array">
-      <obj_property name="ElementShortName">TXConfig[31:0]</obj_property>
-      <obj_property name="ObjectShortName">TXConfig[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tx_duc_tb/TXDACData" type="array">
-      <obj_property name="ElementShortName">TXDACData[15:0]</obj_property>
-      <obj_property name="ObjectShortName">TXDACData[15:0]</obj_property>
-      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
-      <obj_property name="CellHeight">100</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tx_duc_tb/TXLOTune" type="array">
-      <obj_property name="ElementShortName">TXLOTune[31:0]</obj_property>
-      <obj_property name="ObjectShortName">TXLOTune[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tx_duc_tb/TXSamplesToRX" type="array">
-      <obj_property name="ElementShortName">TXSamplesToRX[15:0]</obj_property>
-      <obj_property name="ObjectShortName">TXSamplesToRX[15:0]</obj_property>
-      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
-      <obj_property name="CellHeight">100</obj_property>
+   <wvobject fp_name="/rx_ddc_tb/UUT/ChanFreq" type="array">
+      <obj_property name="ElementShortName">ChanFreq[31:0]</obj_property>
+      <obj_property name="ObjectShortName">ChanFreq[31:0]</obj_property>
       <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/tx_duc_tb/cic_rate" type="array">
-      <obj_property name="ElementShortName">cic_rate[15:0]</obj_property>
-      <obj_property name="ObjectShortName">cic_rate[15:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tx_duc_tb/sel" type="logic">
-      <obj_property name="ElementShortName">sel</obj_property>
-      <obj_property name="ObjectShortName">sel</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tx_duc_tb/CLK_PERIOD" type="array">
-      <obj_property name="ElementShortName">CLK_PERIOD[31:0]</obj_property>
-      <obj_property name="ObjectShortName">CLK_PERIOD[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tx_duc_tb/UUT/xlslice_0/inst/Dout" type="array">
-      <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="ElementShortName">Dout[23:0]</obj_property>
-      <obj_property name="ObjectShortName">Dout[23:0]</obj_property>
+   <wvobject fp_name="/rx_ddc_tb/IOut" type="array">
+      <obj_property name="ElementShortName">IOut[23:0]</obj_property>
+      <obj_property name="ObjectShortName">IOut[23:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
       <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
       <obj_property name="CellHeight">100</obj_property>
+   </wvobject>
+   <wvobject fp_name="/rx_ddc_tb/QOut" type="array">
+      <obj_property name="ElementShortName">QOut[23:0]</obj_property>
+      <obj_property name="ObjectShortName">QOut[23:0]</obj_property>
       <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
-      <obj_property name="label">Dout[15:0]</obj_property>
-      <obj_property name="AnalogYRangeType">ANALOG_YRANGETYPE_FIXED</obj_property>
-      <obj_property name="AnalogYRangeMin">-32767.000000</obj_property>
-      <obj_property name="AnalogYRRangeMax">32767.000000</obj_property>
-      <obj_property name="AnalogInterpolation">ANALOG_INTERPOLATION_LINEAR</obj_property>
-      <obj_property name="AnalogOffscale">ANALOG_OFFSCALE_HIDE</obj_property>
-      <obj_property name="AnalogHorizLine">0.000000</obj_property>
+      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
+      <obj_property name="CellHeight">100</obj_property>
    </wvobject>
 </wave_config>

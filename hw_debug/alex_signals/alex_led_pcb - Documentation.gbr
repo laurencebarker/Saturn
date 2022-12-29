@@ -1,0 +1,18 @@
+G04 DesignSpark PCB Gerber Version 10.0 Build 5299*
+G04 #@! TF.Part,Single*
+G04 #@! TF.FileFunction,Other,alex_led_pcb - Documentation*
+G04 #@! TF.FilePolarity,Positive*
+%FSLAX35Y35*%
+%MOIN*%
+%ADD11C,0.00394*%
+G04 #@! TD.AperFunction*
+X0Y0D02*
+D02*
+D11*
+X60329Y156726D02*
+Y68774D01*
+X17337D01*
+Y156726D01*
+X60329D01*
+X0Y0D02*
+M02*

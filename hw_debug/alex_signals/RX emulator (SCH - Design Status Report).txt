@@ -1,0 +1,51 @@
+Design Status Report
+--------------------
+
+Report Written:     Saturday, December 24, 2022
+Project Path:       C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb.prj
+Design Path:        C:\xilinxdesigns\Saturn\hw_debug\alex_signals\RX emulator.sch
+Design Title:       
+Created:            
+Last Saved:         24/12/2022 21:10:07
+Editing Time:       268 min
+Units:              thou (precision 0)
+
+
+Component List
+==============
+
+Comp Type               Package           Components Pins Unused Gates
+------------------------------------------------------------------------------
+SCP10GS3_G              SCP10GS3G                  1   10            0
+Capacitor Multipkg      LP                         9   18            0
+CAP ELECTROLYTIC RADIAL RADIAL5MMLP2_5MM           2    4            0
+L78L05ABZ3              TO92B                      1    3            0
+74HC04                  DIL                        2   48            4
+M63M103KB30T607         63M_1                      2    6            0
+DS_A4_Template_r00                                 2    0            2
+4605X-101-102LF         4605X                     13   65            0
+TO                                                 4    4            0
+Vcc                                                7    7            0
+GND                                                3    3            0
+TPIC6B595N              20dil                      6  120            0
+LED 5X2MM               5X2VERT                   48   96            0
+FROM                                               6    6            0
+------------------------------------------------------------------------------
+Total:                                           106  390            6
+------------------------------------------------------------------------------
+Total number of unused gates in the component bin 6.
+
+
+Net List
+========
+
+Net Class Nets
+-----------------
+Signal    115
+Power     1
+Ground    1
+-----------------
+Total:    117
+-----------------
+
+End Of Report.

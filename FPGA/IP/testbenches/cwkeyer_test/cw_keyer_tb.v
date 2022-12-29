@@ -4,7 +4,7 @@
 // Engineer:       Laurence Barker G8NJJ
 // 
 // Create Date:    23.07.2021 16:42:01
-// Design Name:    CW keyer testbench
+// Design Name:    CW keyer IP testbench
 // Module Name:    Keyer_Testbench
 // Project Name:   Saturn
 // Target Devices: Artix 7
@@ -19,7 +19,7 @@
 // 
 
 
-module keyer_tb( );
+module keyer_ip_tb( );
 
 //////////////////////////////////////////////////////////////////////////////////
 // Test Bench Signals
@@ -28,32 +28,65 @@ module keyer_tb( );
 reg aclk = 0;
 reg aresetn = 1;
 
+reg key_down = 0;
 reg [7:0] delay_time;
 reg [9:0] hang_time;
-reg key_down;
+reg [12:0] ramp_length;
 reg keyer_enable;
 reg protocol_2;
-
 wire CW_PTT;
-wire [47:0] m_axis_tdata;
-wire m_axis_tvalid;
+wire [47:0] m0_axis_tdata;   // ramp output axi stream 
+wire m0_axis_tvalid;         // valid signal for stream
+wire m0_axis_tready;          // tready: throttles ramp sample rate to 48KHz or 192KHz
+wire [15:0] m1_axis_tdata;    // codec ampl output output axi stream 
+wire m1_axis_tvalid;          // valid signal for codec ampl stream
+wire bram_rst;               // block RAM active high reset
+wire [31:0] bram_addr;        // address output to synchronous block RAM (byte address)
+wire        bram_enable;      // 1 = memory in use 
+wire [3:0] bram_web;          // byte write enables     
+reg [31:0] bram_data;         // data in from synchronous block RAM
+//
+// clockdivider signals
+//
+wire TCN;
+wire ClockOut;
 
 
 
-
-keyer_block UUT
+cw_key_ramp UUT
 (
     .aclk            (aclk),
     .aresetn         (aresetn),
+    .key_down        (key_down),
     .delay_time      (delay_time),
     .hang_time       (hang_time),
-    .key_down        (key_down),
+    .ramp_length     (ramp_length),
     .keyer_enable    (keyer_enable),
-    .m_axis_tdata    (m_axis_tdata),
-    .m_axis_tvalid   (m_axis_tvalid),
     .protocol_2      (protocol_2),
-    .CW_PTT          (CW_PTT)
+    .CW_PTT          (CW_PTT),
+    .m0_axis_tdata   (m0_axis_tdata),
+    .m0_axis_tvalid  (m0_axis_tvalid),
+    .m0_axis_tready  (m0_axis_tready),
+    .m1_axis_tdata   (m1_axis_tdata),
+    .m1_axis_tvalid  (m1_axis_tvalid),
+    .bram_rst        (bram_rst),
+    .bram_addr       (bram_addr),
+    .bram_enable     (bram_enable),
+    .bram_web        (bram_web),
+    .bram_data       (bram_data)
+);
 
+
+//
+// instantiate a clock divider to generate TReady
+// divide by 640 to get 192KHz for protocol 2 modulation Fs
+ClockDivider #(640) Div 
+(
+    .aclk            (aclk),
+    .resetn          (aresetn),
+    .ClockOut        (ClockOut),
+    .TC              (m0_axis_tready),
+    .TCN             (TCN)
 );
 
 parameter CLK_PERIOD=8.1380208;              // 122.88MHz
@@ -78,12 +111,23 @@ hang_time = 10;
 delay_time=3;
 protocol_2=1;
 keyer_enable=1;
+ramp_length = 3840;         // 960*4
+
 //key down after 1us;
 // key up after 20ms
 #1000
 key_down=1;
 #20000000
 key_down=0;
-
 end
+
+//
+// emulate a RAM, with memory content
+// 
+always @(posedge aclk)
+begin
+    bram_data = bram_addr * 2000;
+end
+
+
 endmodule

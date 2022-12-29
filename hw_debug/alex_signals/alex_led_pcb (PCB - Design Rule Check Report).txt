@@ -1,0 +1,67 @@
+Design Rule Check Report
+------------------------
+
+Report Written:     Monday, December 26, 2022
+Project Path:       C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb.prj
+Design Path:        C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb.pcb
+Design Title:       
+Created:            25/12/2022 10:05:52
+Last Saved:         26/12/2022 12:52:53
+Editing Time:       598 min
+Units:              thou (precision 0)
+
+
+Results
+=======
+
+
+No errors found
+
+
+Settings
+========
+
+
+Spacings
+
+=========
+
+Tracks        Yes
+Pads and Vias Yes
+Shapes        Yes
+Text          Yes
+Board         Yes
+Drills        Yes
+Components    No
+
+
+Manufacturing
+
+==============
+
+Drill Breakout                  No
+Drill Backoff                   No
+Silkscreen Overlap              No
+Copper Text In Board            No
+Min Track Width                 No
+Min Annular Ring                No
+Min Paste Size                  No
+Vias In Pads                    No
+Unplated Vias                   No
+Unplated Pads With Inner Tracks No
+
+
+Nets
+
+=====
+
+Net Completion               Yes
+Dangling Tracks              Yes
+Net Track Length Differences No
+Nets without Components      No
+Nets on No Connect pins      No
+Nets on No Connect pins      No
+
+
+
+End Of Report.

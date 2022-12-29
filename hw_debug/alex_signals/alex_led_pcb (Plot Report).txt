@@ -1,0 +1,259 @@
+Plot Report
+-----------
+
+Report Written:     Monday, December 26, 2022
+Project Path:       C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb.prj
+Design Path:        C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb.pcb
+Design Title:       
+Created:            25/12/2022 10:05:52
+Last Saved:         26/12/2022 12:53:06
+Editing Time:       600 min
+Units:              thou (precision 0)
+
+
+Device Settings
+===============
+
+
+Gerber Settings
+===============
+
+    Leading zero suppression.
+    G01 assumed throughout.
+    Line termination <*> <CR> <LF>.
+    3.5 format absolute inches.
+    Format commands defined in Gerber file.
+    Aperture table defined in Gerber file.
+    Hardware arcs allowed.
+
+
+Drill Settings
+==============
+
+    Excellon Format 2
+    Format 3.5 absolute in mm.
+    Zero suppression Leading
+
+
+
+Plots Output
+============
+
+
+Gerber Output
+=============
+
+C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb - Top Silkscreen.gbr
+
+    Layers:
+    ------------------
+    Top Silkscreen
+
+    D-Code Shape  (thou)
+    -----------------------
+    D10    Round 1.00
+    D11    Round 3.94
+    D12    Round 7.87
+    D13    Round 5.00
+    D14    Round 10.00
+    D15    Round 8.00
+
+Gerber Output
+=============
+
+C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb - Top Copper.gbr
+
+    Layers:
+    ------------------
+    Top Copper
+    Board Outlines
+
+    D-Code Shape  (thou)
+    ------------------------------------------
+    D13    Round 5.00
+    D14    Round 10.00
+    D15    Round 8.00
+    D16    Round 48.00
+    D17    Round 50.00
+    D18    Round 56.00
+    D19    Round 53.74
+    D70    Square 60.00
+    D71    Round 60.00
+    D20    Square 40.00
+    D21    Round 40.00
+    D22    Oval 60.00 X 110.00  Rotation 90
+    D23    Round 54.33
+    D24    Round 52.76
+    D25    Square 55.00
+    D26    Round 55.00
+
+Gerber Output
+=============
+
+C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb - Top Copper (Resist).gbr
+
+    Layers:
+    --------------
+    Top Copper
+
+    D-Code Shape  (thou)
+    ------------------------------------------
+    D27    Round 63.74
+    D28    Square 70.00
+    D29    Round 70.00
+    D72    Square 50.00
+    D73    Round 50.00
+    D74    Oval 70.00 X 120.00  Rotation 90
+    D75    Round 64.33
+    D76    Round 62.76
+    D77    Square 65.00
+    D78    Round 65.00
+
+Gerber Output
+=============
+
+C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb - Bottom Copper.gbr
+
+    Layers:
+    ------------------
+    Bottom Copper
+    Board Outlines
+
+    D-Code Shape  (thou)
+    ------------------------------------------
+    D13    Round 5.00
+    D14    Round 10.00
+    D15    Round 8.00
+    D16    Round 48.00
+    D17    Round 50.00
+    D18    Round 56.00
+    D19    Round 53.74
+    D70    Square 60.00
+    D71    Round 60.00
+    D20    Square 40.00
+    D21    Round 40.00
+    D22    Oval 60.00 X 110.00  Rotation 90
+    D23    Round 54.33
+    D24    Round 52.76
+    D25    Square 55.00
+    D26    Round 55.00
+
+Gerber Output
+=============
+
+C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb - Bottom Resist.gbr
+
+    Layers:
+    -----------------
+    Bottom Resist
+
+    D-Code Shape  (thou)
+    ------------------------------------------
+    D79    Round 54.00
+    D80    Round 62.00
+    D81    Round 59.74
+    D82    Square 66.00
+    D83    Round 66.00
+    D84    Square 46.00
+    D85    Round 46.00
+    D86    Oval 66.00 X 116.00  Rotation 90
+    D87    Round 60.33
+    D88    Round 58.76
+    D89    Square 61.00
+    D90    Round 61.00
+
+Gerber Output
+=============
+
+C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb - Documentation.gbr
+
+    Layers:
+    -----------------
+    Documentation
+
+    D-Code Shape  (thou)
+    -----------------------
+    D11    Round 3.94
+
+Gerber Output
+=============
+
+C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb - Gerber Drill Data - [Through Hole].gbr
+
+    Layers:
+    ------------------
+    [Through Hole]
+
+    D-Code Shape  (thou)
+    -----------------------
+    D91    Round 24.00
+    D92    Round 32.00
+    D93    Round 33.07
+    D94    Round 22.00
+    D95    Round 34.65
+    D96    Round 31.00
+
+NC Drill Output
+===============
+
+C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb - NC Drill Data - [Through Hole].drl
+
+    Output:
+    ---------------------------
+    Plated Round Drill Holes
+    Plated Slots
+
+    Tool  Size           Count   ID
+    --------------------------------------
+    T001  0.02200 inches 3     S
+    T002  0.02400 inches 61    B
+    T003  0.03100 inches 96    D
+    T004  0.03200 inches 171   A
+    T005  0.03307 inches 75    R
+    T006  0.03465 inches 6     T
+    --------------------------------------
+    Total                412
+    --------------------------------------
+
+C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb - NC Drill Data - [Through Hole] (Unplated).drl
+
+    Output:
+    -----------------------------
+    Unplated Round Drill Holes
+    Unplated Slots
+
+    Tool  Size Count   ID
+    ----------------------------
+    ----------------------------
+    Total      0
+    ----------------------------
+
+
+Gerber Output
+=============
+
+C:\xilinxdesigns\Saturn\hw_debug\alex_signals\alex_led_pcb - Drill Ident Drawing - [Through Hole].gbr
+
+    Layers:
+    ------------------
+    [Through Hole]
+
+
+Drill Ident Drawing
+===================
+
+    Drill Plated Size Shape ID
+    -----------------------------------
+    32    Y      100  Round A
+    24    Y      100  Round B
+    31    Y      100  Round D
+    33    Y      100  Round R
+    22    Y      100  Round S
+    35    Y      100  Round T
+
+    D-Code Shape  (thou)
+    -----------------------
+    D13    Round 5.00
+    D97    Round 100.00
+
+End Of Report.
