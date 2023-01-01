@@ -64,15 +64,15 @@ reg CWKeyerEnable;
 
 
 wire [47:0] m_axis_TXMod_tdata;
-wire [47:0] m_axis_TXMod_tvalid;
+wire m_axis_TXMod_tvalid;
 wire m_axis_TXMod_tready;
 
 wire [47:0] m_axis_envelope_tdata;
-wire [47:0] m_axis_envelope_tvalid;
+wire m_axis_envelope_tvalid;
 reg m_axis_envelope_tready;
-
-wire [47:0] m_axis_sidetoneampl_tdata;
-wire [47:0] m_axis_sidetoneampl_tvalid;
+            
+wire [15:0] m_axis_sidetoneampl_tdata;
+wire m_axis_sidetoneampl_tvalid;
 
 wire CWSampleSelect;
 wire cw_ptt;
@@ -95,40 +95,43 @@ xil_axi_resp_t 	resp;
 // instantiate block design. Note name can't be too long 
 // or we get pathnames too long for windows.
 //
-IQBLKTB UUT
-(
-    .aclk            (aclk),
-    .aresetn         (aresetn),
-    .cw_key_down     (cw_key_down),
-    .TX_ENABLE       (TX_ENABLE),
-    .protocol_2      (protocol_2),
-    .TXIQIn_tvalid   (TXIQIn_tvalid),
-    .TXIQIn_tdata    (TXIQIn_tdata),
-    .TXIQIn_tready   (TXIQIn_tready),
-    .Deinterleave    (Deinterleave),
-    .Byteswap        (Byteswap),
-    .Modulation_Setup (Modulation_Setup),
-    .IQEnable        (IQEnable),
-    .Mux_Reset       (Mux_Reset),
-    .TXTestFreq      (TXTestFreq),
-    .TX_Strobe       (TX_Strobe),
-    .CWPttDelay      (CWPttDelay),
-    .CWHangTime      (CWHangTime),
-    .CWRampLength    (CWRampLength),
-    .CWKeyerEnable   (CWKeyerEnable),
 
-    .cw_ptt          (cw_ptt),
-    .CWSampleSelect  (CWSampleSelect),
-    .m_axis_TXMod_tvalid   (m_axis_TXMod_tvalid),
-    .m_axis_TXMod_tdata    (m_axis_TXMod_tdata),
-    .m_axis_TXMod_tready   (m_axis_TXMod_tready),
-    .m_axis_envelope_tvalid   (m_axis_envelope_tvalid),
-    .m_axis_envelope_tdata    (m_axis_envelope_tdata),
-    .m_axis_envelope_tready   (m_axis_envelope_tready),
-    .m_axis_sidetoneampl_tvalid   (m_axis_sidetoneampl_tvalid),
-    .m_axis_sidetoneampl_tdata    (m_axis_sidetoneampl_tdata),
-    .TX_OUTPUTENABLE (TX_OUTPUTENABLE)
-);
+IQBLKTB_wrapper UUT
+   (
+    .Byteswap            (Byteswap),
+    .CWHangTime          (CWHangTime),
+    .CWKeyerEnable       (CWKeyerEnable),
+    .CWPttDelay          (CWPttDelay),
+    .CWRampLength        (CWRampLength),
+    .CWSampleSelect     (CWSampleSelect),
+    .Deinterleave        (Deinterleave),
+    .IQEnable            (IQEnable),
+    .Modulation_Setup    (Modulation_Setup),
+    .Mux_Reset           (Mux_Reset),
+    .TXIQIn_tdata        (TXIQIn_tdata),
+    .TXIQIn_tready       (TXIQIn_tready),
+    .TXIQIn_tvalid       (TXIQIn_tdata),
+    .TXTestFreq          (TXTestFreq),
+    .TX_ENABLE           (TX_ENABLE),
+    .TX_OUTPUTENABLE     (TX_OUTPUTENABLE),
+    .TX_Strobe           (TX_Strobe),
+    .aclk                (aclk),
+    .aresetn             (aresetn),
+    .cw_key_down         (cw_key_down),
+    .cw_ptt              (cw_ptt),
+    .m_axis_TXMod_tdata         (m_axis_TXMod_tdata),
+    .m_axis_TXMod_tvalid        (m_axis_TXMod_tvalid),
+    .m_axis_TXMod_tready        (m_axis_TXMod_tready),
+    .m_axis_envelope_tdata      (m_axis_envelope_tdata),
+    .m_axis_envelope_tready     (m_axis_envelope_tready),
+    .m_axis_envelope_tvalid     (m_axis_envelope_tvalid),
+    .m_axis_sidetoneampl_tdata  (m_axis_sidetoneampl_tdata),
+    .m_axis_sidetoneampl_tvalid (m_axis_sidetoneampl_tvalid),
+    .protocol_2                 (protocol_2)
+    );
+
+
+
 
 
 //
@@ -176,13 +179,14 @@ initial begin
 CWRampLength=3840;
 CWHangTime = 10;
 CWPttDelay=3;
-protocol_2=0;
+protocol_2=1;
 CWKeyerEnable=1;
+Modulation_Setup = 3;
 //key down after 1us;
 // key up after 20ms
 
 // Step 4 - Create a new agent
-master_agent = new("master vip agent",UUT.IQBLKTB_axi_vip_0_0.axi_vip_0.inst.IF);
+master_agent = new("master vip agent",UUT.IQBLKTB_i.axi_vip_0.inst.IF);
 
 // Step 5 - Start the agent
 master_agent.start_master();
@@ -194,9 +198,10 @@ master_agent.start_master();
 // the block RAM can't be initialised in block RAM controller mode
 // so write it with a simple RAM. This will show up in the simulation plot
 //
-for(addr=0; addr < 3840; addr=addr+4)
+for(addr=0; addr < 4096; addr=addr+4)
 begin
-    data=addr * 2048;
+    if(addr <= 3840)
+        data=addr * 2048;
     master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
 end
 for(addr=4096; addr < 8192; addr=addr+4)

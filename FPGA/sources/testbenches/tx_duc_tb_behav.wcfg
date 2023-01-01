@@ -3,48 +3,73 @@
    <wave_state>
    </wave_state>
    <db_ref_list>
-      <db_ref path="rx_ddc_tb_behav.wdb" id="1">
+      <db_ref path="IQModn_tb_behav.wdb" id="1">
          <top_modules>
+            <top_module name="IQModn_tb" />
+            <top_module name="axi_bram_ctrl_funcs" />
+            <top_module name="axi_vip_pkg" />
             <top_module name="glbl" />
-            <top_module name="rx_ddc_tb" />
+            <top_module name="std" />
+            <top_module name="vcomponents" />
+            <top_module name="xil_common_vip_pkg" />
          </top_modules>
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="592.819943 us"></ZoomStartTime>
-      <ZoomEndTime time="3,008.819944 us"></ZoomEndTime>
-      <Cursor1Time time="2,028.819943 us"></Cursor1Time>
+      <ZoomStartTime time="25,087.739183 us"></ZoomStartTime>
+      <ZoomEndTime time="25,287.194935 us"></ZoomEndTime>
+      <Cursor1Time time="25,143.690407 us"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="228"></NameColumnWidth>
-      <ValueColumnWidth column_width="100"></ValueColumnWidth>
+      <NameColumnWidth column_width="257"></NameColumnWidth>
+      <ValueColumnWidth column_width="124"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="4" />
+   <WVObjectSize size="10" />
    <wave_markers>
       <marker time="1751991916" label="" />
       <marker time="1672793433" label="" />
+      <marker time="4870152950" label="" />
    </wave_markers>
-   <wvobject fp_name="/rx_ddc_tb/M_AXIS_DATA_tvalid" type="logic">
-      <obj_property name="ElementShortName">M_AXIS_DATA_tvalid</obj_property>
-      <obj_property name="ObjectShortName">M_AXIS_DATA_tvalid</obj_property>
+   <wvobject fp_name="/IQModn_tb/aclk" type="logic">
+      <obj_property name="ElementShortName">aclk</obj_property>
+      <obj_property name="ObjectShortName">aclk</obj_property>
    </wvobject>
-   <wvobject fp_name="/rx_ddc_tb/UUT/ChanFreq" type="array">
-      <obj_property name="ElementShortName">ChanFreq[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ChanFreq[31:0]</obj_property>
-      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+   <wvobject fp_name="/IQModn_tb/cw_key_down" type="logic">
+      <obj_property name="ElementShortName">cw_key_down</obj_property>
+      <obj_property name="ObjectShortName">cw_key_down</obj_property>
    </wvobject>
-   <wvobject fp_name="/rx_ddc_tb/IOut" type="array">
-      <obj_property name="ElementShortName">IOut[23:0]</obj_property>
-      <obj_property name="ObjectShortName">IOut[23:0]</obj_property>
-      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+   <wvobject fp_name="/IQModn_tb/cw_ptt" type="logic">
+      <obj_property name="ElementShortName">cw_ptt</obj_property>
+      <obj_property name="ObjectShortName">cw_ptt</obj_property>
+   </wvobject>
+   <wvobject fp_name="/IQModn_tb/protocol_2" type="logic">
+      <obj_property name="ElementShortName">protocol_2</obj_property>
+      <obj_property name="ObjectShortName">protocol_2</obj_property>
+   </wvobject>
+   <wvobject fp_name="/IQModn_tb/m_axis_envelope_tdata" type="array">
+      <obj_property name="ElementShortName">m_axis_envelope_tdata[47:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axis_envelope_tdata[47:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/IQModn_tb/m_axis_envelope_tvalid" type="logic">
+      <obj_property name="ElementShortName">m_axis_envelope_tvalid</obj_property>
+      <obj_property name="ObjectShortName">m_axis_envelope_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/IQModn_tb/m_axis_sidetoneampl_tdata" type="array">
+      <obj_property name="ElementShortName">m_axis_sidetoneampl_tdata[15:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axis_sidetoneampl_tdata[15:0]</obj_property>
       <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
       <obj_property name="CellHeight">100</obj_property>
    </wvobject>
-   <wvobject fp_name="/rx_ddc_tb/QOut" type="array">
-      <obj_property name="ElementShortName">QOut[23:0]</obj_property>
-      <obj_property name="ObjectShortName">QOut[23:0]</obj_property>
-      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
-      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
-      <obj_property name="CellHeight">100</obj_property>
+   <wvobject fp_name="/IQModn_tb/m_axis_sidetoneampl_tvalid" type="logic">
+      <obj_property name="ElementShortName">m_axis_sidetoneampl_tvalid</obj_property>
+      <obj_property name="ObjectShortName">m_axis_sidetoneampl_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/IQModn_tb/m_axis_TXMod_tdata" type="array">
+      <obj_property name="ElementShortName">m_axis_TXMod_tdata[47:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axis_TXMod_tdata[47:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/IQModn_tb/m_axis_TXMod_tready" type="logic">
+      <obj_property name="ElementShortName">m_axis_TXMod_tready</obj_property>
+      <obj_property name="ObjectShortName">m_axis_TXMod_tready</obj_property>
    </wvobject>
 </wave_config>
