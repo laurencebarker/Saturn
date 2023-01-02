@@ -1,0 +1,25 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"1.0",
+   "Default View_TopLeft":"-453,-484",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
+#  -string -flagsOSRD
+preplace port port-id_aresetn -pg 1 -lvl 0 -x -20 -y -30 -defaultsOSRD
+preplace port port-id_aclk -pg 1 -lvl 0 -x -20 -y -190 -defaultsOSRD
+preplace portBus DAC_Out_N -pg 1 -lvl 3 -x 1020 -y 90 -defaultsOSRD
+preplace portBus DAC_Out_P -pg 1 -lvl 3 -x 1020 -y 70 -defaultsOSRD
+preplace portBus DAC_SingleEnded -pg 1 -lvl 0 -x -20 -y -110 -defaultsOSRD
+preplace inst selectio_wiz_0 -pg 1 -lvl 2 -x 510 -y -170 -defaultsOSRD
+preplace inst util_vector_logic_0 -pg 1 -lvl 1 -x 150 -y -30 -defaultsOSRD
+preplace netloc DAC_SingleEnded_1 1 0 2 NJ -110 300
+preplace netloc aclk_1 1 0 2 NJ -190 N
+preplace netloc aresetn_1 1 0 1 N -30
+preplace netloc selectio_wiz_0_data_out_to_pins_n 1 2 1 710 -160n
+preplace netloc selectio_wiz_0_data_out_to_pins_p 1 2 1 720 -180n
+preplace netloc util_vector_logic_0_Res 1 1 1 310 -150n
+levelinfo -pg 1 -20 150 510 1020
+pagesize -pg 1 -db -bbox -sgen -220 -350 1180 290
+"
+}
+0

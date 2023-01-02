@@ -1,0 +1,55 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"1.0",
+   "Default View_TopLeft":"-381,-573",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
+#  -string -flagsOSRD
+preplace port port-id_aclk -pg 1 -lvl 0 -x -70 -y -110 -defaultsOSRD
+preplace port port-id_rstn -pg 1 -lvl 0 -x -70 -y -80 -defaultsOSRD
+preplace port port-id_LOIQIn_tvalid -pg 1 -lvl 0 -x -70 -y -250 -defaultsOSRD
+preplace port port-id_LOIQIn_tready -pg 1 -lvl 3 -x 1130 -y -210 -defaultsOSRD
+preplace port port-id_LOIQSel -pg 1 -lvl 0 -x -70 -y 50 -defaultsOSRD
+preplace port port-id_Byteswap -pg 1 -lvl 0 -x -70 -y 130 -defaultsOSRD
+preplace port port-id_LOIQOut_tvalid -pg 1 -lvl 3 -x 1130 -y -410 -defaultsOSRD
+preplace port port-id_M_AXIS_DATA_tvalid -pg 1 -lvl 3 -x 1130 -y -320 -defaultsOSRD
+preplace port port-id_M_AXIS_DATA_tready -pg 1 -lvl 0 -x -70 -y -390 -defaultsOSRD
+preplace portBus ChanFreq -pg 1 -lvl 0 -x -70 -y -510 -defaultsOSRD
+preplace portBus ChanConfig -pg 1 -lvl 0 -x -70 -y -460 -defaultsOSRD
+preplace portBus CicInterp -pg 1 -lvl 0 -x -70 -y -410 -defaultsOSRD
+preplace portBus adc1 -pg 1 -lvl 0 -x -70 -y -320 -defaultsOSRD
+preplace portBus adc2 -pg 1 -lvl 0 -x -70 -y -270 -defaultsOSRD
+preplace portBus tx_samples -pg 1 -lvl 0 -x -70 -y -230 -defaultsOSRD
+preplace portBus LOIQIn_tdata -pg 1 -lvl 0 -x -70 -y -540 -defaultsOSRD
+preplace portBus M_AXIS_DATA_tdata -pg 1 -lvl 3 -x 1130 -y -460 -defaultsOSRD
+preplace portBus LOIQOut_tdata -pg 1 -lvl 3 -x 1130 -y 60 -defaultsOSRD
+preplace inst dds_compiler_0 -pg 1 -lvl 1 -x 330 -y 20 -defaultsOSRD
+preplace inst DDC_Block_0 -pg 1 -lvl 2 -x 830 -y 20 -defaultsOSRD
+preplace inst xlconstant_0 -pg 1 -lvl 1 -x 330 -y -200 -defaultsOSRD
+preplace inst xlconstant_1 -pg 1 -lvl 1 -x 330 -y -100 -defaultsOSRD
+preplace netloc Byteswap_1 1 0 2 NJ 130 480
+preplace netloc ChanConfig_1 1 0 2 NJ -460 590
+preplace netloc ChanFreq_1 1 0 2 NJ -510 600
+preplace netloc CicInterp_1 1 0 2 NJ -410 570
+preplace netloc DDC_Block_0_LOIQIn_tready 1 1 2 620 -230 1050J
+preplace netloc DDC_Block_0_LOIQOut_tvalid 1 2 1 1060 -410n
+preplace netloc DDC_Block_0_M_AXIS_DATA_tdata 1 2 1 1040 -460n
+preplace netloc DDC_Block_0_M_AXIS_DATA_tvalid 1 2 1 1070 -320n
+preplace netloc LOIQIn_tdata_1 1 0 2 NJ -540 610
+preplace netloc LOIQIn_tvalid_1 1 0 2 -30J -260 560
+preplace netloc LOIQSel_1 1 0 2 -50J 100 490
+preplace netloc M_AXIS_DATA_tready_1 1 0 3 NJ -390 NJ -390 1030
+preplace netloc aclk_1 1 0 2 -30 90 540
+preplace netloc adc1_1 1 0 2 NJ -320 550
+preplace netloc adc2_1 1 0 2 NJ -270 530
+preplace netloc dds_compiler_0_m_axis_data_tdata 1 1 1 510 30n
+preplace netloc rstn_1 1 0 2 -40 120 500
+preplace netloc tx_samples_1 1 0 2 -50J -280 520
+preplace netloc xlconstant_0_dout 1 1 1 580 -200n
+preplace netloc xlconstant_1_dout 1 1 1 540 -100n
+preplace netloc DDC_Block_0_LOIQOut_tdata 1 2 1 N 60
+levelinfo -pg 1 -70 330 830 1130
+pagesize -pg 1 -db -bbox -sgen -270 -660 1360 400
+"
+}
+0

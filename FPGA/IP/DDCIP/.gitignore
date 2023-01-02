@@ -1,0 +1,9 @@
+# GIT should ignore:
+DDCIP.cache
+DDCIP.gen
+DDCIP.hw
+DDCIP.ip_user_files
+DDCIP.runs
+DDCIP.sim
+.Xil
+vivado.*

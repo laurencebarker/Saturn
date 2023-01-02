@@ -1,5 +1,5 @@
 # GIT should ignore:
-saturn_project
+# saturn_project (now should include the .srcs folder and .xpr file only)
 bdtest
 .Xil
 vivado.*

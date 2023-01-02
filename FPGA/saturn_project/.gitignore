@@ -1,0 +1,9 @@
+# GIT should ignore:
+saturn_project.cache
+saturn_project.gen
+saturn_project.hw
+saturn_project.ip_user_files
+saturn_project.runs
+saturn_project.sim
+.Xil
+vivado.*

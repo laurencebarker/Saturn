@@ -1,0 +1,632 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0x27038646EC091E66",
+      "device": "xc7a200tfbg676-2",
+      "gen_directory": "../../../../saturn_project.gen/sources_1/bd/RX_TBBLK",
+      "name": "RX_TBBLK",
+      "rev_ctrl_bd_flag": "RevCtrlBdOff",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2021.2",
+      "validated": "true"
+    },
+    "design_tree": {
+      "dds_compiler_0": "",
+      "DDC_Block_0": "",
+      "xlconstant_0": "",
+      "xlconstant_1": ""
+    },
+    "ports": {
+      "aclk": {
+        "type": "clk",
+        "direction": "I",
+        "parameters": {
+          "ASSOCIATED_RESET": {
+            "value": "rstn",
+            "value_src": "default"
+          },
+          "CLK_DOMAIN": {
+            "value": "RX_TBBLK_aclk",
+            "value_src": "default"
+          },
+          "FREQ_HZ": {
+            "value": "122880000"
+          },
+          "FREQ_TOLERANCE_HZ": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.0",
+            "value_src": "default"
+          }
+        }
+      },
+      "rstn": {
+        "direction": "I"
+      },
+      "ChanFreq": {
+        "direction": "I",
+        "left": "31",
+        "right": "0"
+      },
+      "ChanConfig": {
+        "direction": "I",
+        "left": "1",
+        "right": "0"
+      },
+      "CicInterp": {
+        "direction": "I",
+        "left": "2",
+        "right": "0"
+      },
+      "adc1": {
+        "direction": "I",
+        "left": "15",
+        "right": "0"
+      },
+      "adc2": {
+        "direction": "I",
+        "left": "15",
+        "right": "0"
+      },
+      "tx_samples": {
+        "direction": "I",
+        "left": "15",
+        "right": "0"
+      },
+      "LOIQIn_tdata": {
+        "direction": "I",
+        "left": "31",
+        "right": "0"
+      },
+      "LOIQIn_tvalid": {
+        "direction": "I"
+      },
+      "LOIQIn_tready": {
+        "direction": "O"
+      },
+      "LOIQSel": {
+        "direction": "I"
+      },
+      "Byteswap": {
+        "direction": "I"
+      },
+      "LOIQOut_tvalid": {
+        "direction": "O"
+      },
+      "M_AXIS_DATA_tdata": {
+        "direction": "O",
+        "left": "47",
+        "right": "0"
+      },
+      "M_AXIS_DATA_tvalid": {
+        "direction": "O"
+      },
+      "M_AXIS_DATA_tready": {
+        "direction": "I"
+      },
+      "LOIQOut_tdata": {
+        "direction": "O",
+        "left": "31",
+        "right": "0"
+      }
+    },
+    "components": {
+      "dds_compiler_0": {
+        "vlnv": "xilinx.com:ip:dds_compiler:6.0",
+        "xci_name": "RX_TBBLK_dds_compiler_0_0",
+        "xci_path": "ip\\RX_TBBLK_dds_compiler_0_0\\RX_TBBLK_dds_compiler_0_0.xci",
+        "inst_hier_path": "dds_compiler_0",
+        "parameters": {
+          "DDS_Clock_Rate": {
+            "value": "122.88"
+          },
+          "Frequency_Resolution": {
+            "value": "0.05"
+          },
+          "Has_ARESETn": {
+            "value": "true"
+          },
+          "Has_Phase_Out": {
+            "value": "false"
+          },
+          "Latency": {
+            "value": "8"
+          },
+          "M_DATA_Has_TUSER": {
+            "value": "Not_Required"
+          },
+          "Noise_Shaping": {
+            "value": "Auto"
+          },
+          "Output_Frequency1": {
+            "value": "2.0"
+          },
+          "Output_Selection": {
+            "value": "Sine"
+          },
+          "Output_Width": {
+            "value": "16"
+          },
+          "PINC1": {
+            "value": "100001010101010101010101010"
+          },
+          "Phase_Width": {
+            "value": "32"
+          },
+          "Spurious_Free_Dynamic_Range": {
+            "value": "96"
+          }
+        }
+      },
+      "DDC_Block_0": {
+        "parameters": {
+          "ACTIVE_SIM_BD": {
+            "value": "DDC_Block.bd"
+          },
+          "ACTIVE_SYNTH_BD": {
+            "value": "DDC_Block.bd"
+          },
+          "ENABLE_DFX": {
+            "value": "0"
+          },
+          "LIST_SIM_BD": {
+            "value": "DDC_Block.bd"
+          },
+          "LIST_SYNTH_BD": {
+            "value": "DDC_Block.bd"
+          },
+          "LOCK_PROPAGATE": {
+            "value": "0"
+          }
+        },
+        "interface_ports": {
+          "M_AXIS_DATA": {
+            "mode": "Master",
+            "vlnv_bus_definition": "xilinx.com:interface:axis:1.0",
+            "vlnv": "xilinx.com:interface:axis_rtl:1.0",
+            "parameters": {
+              "CLK_DOMAIN": {
+                "value": "RX_TBBLK_aclk",
+                "value_src": "default_prop"
+              },
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "user_prop"
+              },
+              "HAS_TKEEP": {
+                "value": "0",
+                "value_src": "const_prop"
+              },
+              "HAS_TLAST": {
+                "value": "0",
+                "value_src": "const_prop"
+              },
+              "HAS_TREADY": {
+                "value": "1",
+                "value_src": "const_prop"
+              },
+              "HAS_TSTRB": {
+                "value": "0",
+                "value_src": "const_prop"
+              },
+              "INSERT_VIP": {
+                "value": "0",
+                "value_src": "default"
+              },
+              "LAYERED_METADATA": {
+                "value": "undef",
+                "value_src": "default"
+              },
+              "PHASE": {
+                "value": "0.0",
+                "value_src": "default_prop"
+              },
+              "TDATA_NUM_BYTES": {
+                "value": "6",
+                "value_src": "const_prop"
+              },
+              "TDEST_WIDTH": {
+                "value": "0",
+                "value_src": "const_prop"
+              },
+              "TID_WIDTH": {
+                "value": "0",
+                "value_src": "const_prop"
+              },
+              "TUSER_WIDTH": {
+                "value": "0",
+                "value_src": "const_prop"
+              }
+            }
+          },
+          "LOIQOut": {
+            "mode": "Master",
+            "vlnv_bus_definition": "xilinx.com:interface:axis:1.0",
+            "vlnv": "xilinx.com:interface:axis_rtl:1.0",
+            "parameters": {
+              "CLK_DOMAIN": {
+                "value": "RX_TBBLK_aclk",
+                "value_src": "default_prop"
+              },
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "user_prop"
+              },
+              "HAS_TKEEP": {
+                "value": "0",
+                "value_src": "default"
+              },
+              "HAS_TLAST": {
+                "value": "0",
+                "value_src": "default"
+              },
+              "HAS_TREADY": {
+                "value": "0",
+                "value_src": "default"
+              },
+              "HAS_TSTRB": {
+                "value": "0",
+                "value_src": "default"
+              },
+              "INSERT_VIP": {
+                "value": "0",
+                "value_src": "default"
+              },
+              "LAYERED_METADATA": {
+                "value": "undef",
+                "value_src": "default"
+              },
+              "PHASE": {
+                "value": "0.0",
+                "value_src": "default_prop"
+              },
+              "TDATA_NUM_BYTES": {
+                "value": "4",
+                "value_src": "default"
+              },
+              "TDEST_WIDTH": {
+                "value": "0",
+                "value_src": "default"
+              },
+              "TID_WIDTH": {
+                "value": "0",
+                "value_src": "default"
+              },
+              "TUSER_WIDTH": {
+                "value": "0",
+                "value_src": "default"
+              }
+            }
+          },
+          "LOIQIn": {
+            "mode": "Slave",
+            "vlnv_bus_definition": "xilinx.com:interface:axis:1.0",
+            "vlnv": "xilinx.com:interface:axis_rtl:1.0",
+            "parameters": {
+              "CLK_DOMAIN": {
+                "value": "RX_TBBLK_aclk",
+                "value_src": "default_prop"
+              },
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "user_prop"
+              },
+              "HAS_TKEEP": {
+                "value": "0",
+                "value_src": "strong"
+              },
+              "HAS_TLAST": {
+                "value": "0",
+                "value_src": "strong"
+              },
+              "HAS_TREADY": {
+                "value": "1",
+                "value_src": "strong"
+              },
+              "HAS_TSTRB": {
+                "value": "0",
+                "value_src": "strong"
+              },
+              "INSERT_VIP": {
+                "value": "0",
+                "value_src": "strong"
+              },
+              "LAYERED_METADATA": {
+                "value": "undef",
+                "value_src": "strong"
+              },
+              "PHASE": {
+                "value": "0.0",
+                "value_src": "default_prop"
+              },
+              "TDATA_NUM_BYTES": {
+                "value": "4",
+                "value_src": "strong"
+              },
+              "TDEST_WIDTH": {
+                "value": "0",
+                "value_src": "strong"
+              },
+              "TID_WIDTH": {
+                "value": "0",
+                "value_src": "strong"
+              },
+              "TUSER_WIDTH": {
+                "value": "0",
+                "value_src": "strong"
+              }
+            }
+          }
+        },
+        "ports": {
+          "ChanConfig": {
+            "direction": "I",
+            "left": "1",
+            "right": "0"
+          },
+          "ChanFreq": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "CicInterp": {
+            "direction": "I",
+            "left": "2",
+            "right": "0"
+          },
+          "aclk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_BUSIF": {
+                "value": "M_AXIS_DATA:LOIQOut:LOIQIn",
+                "value_src": "strong"
+              },
+              "ASSOCIATED_RESET": {
+                "value": "rstn",
+                "value_src": "strong"
+              },
+              "CLK_DOMAIN": {
+                "value": "RX_TBBLK_aclk",
+                "value_src": "default_prop"
+              },
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "user_prop"
+              },
+              "FREQ_TOLERANCE_HZ": {
+                "value": "0",
+                "value_src": "strong"
+              },
+              "INSERT_VIP": {
+                "value": "0",
+                "value_src": "strong"
+              },
+              "PHASE": {
+                "value": "0.0",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "adc1": {
+            "direction": "I",
+            "left": "15",
+            "right": "0"
+          },
+          "adc2": {
+            "direction": "I",
+            "left": "15",
+            "right": "0"
+          },
+          "rstn": {
+            "type": "rst",
+            "direction": "I",
+            "parameters": {
+              "INSERT_VIP": {
+                "value": "0",
+                "value_src": "strong"
+              },
+              "POLARITY": {
+                "value": "ACTIVE_LOW",
+                "value_src": "strong"
+              }
+            }
+          },
+          "test_source": {
+            "direction": "I",
+            "left": "15",
+            "right": "0"
+          },
+          "tx_samples": {
+            "direction": "I",
+            "left": "15",
+            "right": "0"
+          },
+          "LOIQSel": {
+            "direction": "I"
+          },
+          "Byteswap": {
+            "direction": "I"
+          }
+        },
+        "post_compiled_compname": "DDC_Block_inst_10",
+        "architecture": "artix7",
+        "variant_info": {
+          "DDC_Block.bd": {
+            "scoped_diagram": "DDC_Block_inst_10.bd",
+            "design_checksum": "0x41A5947A",
+            "ref_name": "DDC_Block",
+            "ref_subinst_path": "RX_TBBLK_DDC_Block_0",
+            "ref_type": "Block Design",
+            "source_type": "all",
+            "active": "all"
+          }
+        }
+      },
+      "xlconstant_0": {
+        "vlnv": "xilinx.com:ip:xlconstant:1.1",
+        "xci_name": "RX_TBBLK_xlconstant_0_0",
+        "xci_path": "ip\\RX_TBBLK_xlconstant_0_0\\RX_TBBLK_xlconstant_0_0.xci",
+        "inst_hier_path": "xlconstant_0",
+        "parameters": {
+          "CONST_VAL": {
+            "value": "0"
+          },
+          "CONST_WIDTH": {
+            "value": "8"
+          }
+        }
+      },
+      "xlconstant_1": {
+        "vlnv": "xilinx.com:ip:xlconstant:1.1",
+        "xci_name": "RX_TBBLK_xlconstant_1_0",
+        "xci_path": "ip\\RX_TBBLK_xlconstant_1_0\\RX_TBBLK_xlconstant_1_0.xci",
+        "inst_hier_path": "xlconstant_1",
+        "parameters": {
+          "CONST_VAL": {
+            "value": "0"
+          }
+        }
+      }
+    },
+    "nets": {
+      "Byteswap_1": {
+        "ports": [
+          "Byteswap",
+          "DDC_Block_0/Byteswap"
+        ]
+      },
+      "ChanConfig_1": {
+        "ports": [
+          "ChanConfig",
+          "DDC_Block_0/ChanConfig"
+        ]
+      },
+      "ChanFreq_1": {
+        "ports": [
+          "ChanFreq",
+          "DDC_Block_0/ChanFreq"
+        ]
+      },
+      "CicInterp_1": {
+        "ports": [
+          "CicInterp",
+          "DDC_Block_0/CicInterp"
+        ]
+      },
+      "DDC_Block_0_LOIQIn_tready": {
+        "ports": [
+          "DDC_Block_0/LOIQIn_tready",
+          "LOIQIn_tready"
+        ]
+      },
+      "DDC_Block_0_LOIQOut_tdata": {
+        "ports": [
+          "DDC_Block_0/LOIQOut_tdata",
+          "LOIQOut_tdata"
+        ]
+      },
+      "DDC_Block_0_LOIQOut_tvalid": {
+        "ports": [
+          "DDC_Block_0/LOIQOut_tvalid",
+          "LOIQOut_tvalid"
+        ]
+      },
+      "DDC_Block_0_M_AXIS_DATA_tdata": {
+        "ports": [
+          "DDC_Block_0/M_AXIS_DATA_tdata",
+          "M_AXIS_DATA_tdata"
+        ]
+      },
+      "DDC_Block_0_M_AXIS_DATA_tvalid": {
+        "ports": [
+          "DDC_Block_0/M_AXIS_DATA_tvalid",
+          "M_AXIS_DATA_tvalid"
+        ]
+      },
+      "LOIQIn_tdata_1": {
+        "ports": [
+          "LOIQIn_tdata",
+          "DDC_Block_0/LOIQIn_tdata"
+        ]
+      },
+      "LOIQIn_tvalid_1": {
+        "ports": [
+          "LOIQIn_tvalid",
+          "DDC_Block_0/LOIQIn_tvalid"
+        ]
+      },
+      "LOIQSel_1": {
+        "ports": [
+          "LOIQSel",
+          "DDC_Block_0/LOIQSel"
+        ]
+      },
+      "M_AXIS_DATA_tready_1": {
+        "ports": [
+          "M_AXIS_DATA_tready",
+          "DDC_Block_0/M_AXIS_DATA_tready"
+        ]
+      },
+      "aclk_1": {
+        "ports": [
+          "aclk",
+          "dds_compiler_0/aclk",
+          "DDC_Block_0/aclk"
+        ]
+      },
+      "adc1_1": {
+        "ports": [
+          "adc1",
+          "DDC_Block_0/adc1"
+        ]
+      },
+      "adc2_1": {
+        "ports": [
+          "adc2",
+          "DDC_Block_0/adc2"
+        ]
+      },
+      "dds_compiler_0_m_axis_data_tdata": {
+        "ports": [
+          "dds_compiler_0/m_axis_data_tdata",
+          "DDC_Block_0/test_source"
+        ]
+      },
+      "rstn_1": {
+        "ports": [
+          "rstn",
+          "dds_compiler_0/aresetn",
+          "DDC_Block_0/rstn"
+        ]
+      },
+      "tx_samples_1": {
+        "ports": [
+          "tx_samples",
+          "DDC_Block_0/tx_samples"
+        ]
+      },
+      "xlconstant_0_dout": {
+        "ports": [
+          "xlconstant_0/dout",
+          "DDC_Block_0/LOIQIn_tdest",
+          "DDC_Block_0/LOIQIn_tid"
+        ]
+      },
+      "xlconstant_1_dout": {
+        "ports": [
+          "xlconstant_1/dout",
+          "DDC_Block_0/LOIQIn_tkeep",
+          "DDC_Block_0/LOIQIn_tlast",
+          "DDC_Block_0/LOIQIn_tuser"
+        ]
+      }
+    }
+  }
+}
