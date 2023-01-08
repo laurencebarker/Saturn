@@ -59,7 +59,7 @@ module rx_ddc_tb( );
   wire test_source_tvalid;
 
 
-  wire [47:0]debug_tdata;
+  wire [95:0]debug_tdata;
   wire debug_tvalid;
 
 //
@@ -67,14 +67,13 @@ module rx_ddc_tb( );
 //
   reg[23:0] IOut;
   reg[23:0] QOut;
-  reg[23:0] IDebOut;
-  reg[23:0] QDebOut;
+  reg[47:0] IDebOut;
+  reg[47:0] QDebOut;
 
   reg [31:0] fd_w;                   // file handle
   reg [31:0] SampleCount = 0; // sample counter for file write
   reg [31:0] RequiredSampleCount = 0;
   reg [31:0] DiscardSampleCount = 0;
-  reg [31:0] DebugSampleCount = 0;
 
   DDC_Block UUT
   (
@@ -133,19 +132,17 @@ initial begin
 //
     DiscardSampleCount = 100;          // samples to be discarded before starting to record (filter initiailising)
     RequiredSampleCount = 1024;
+//    RequiredSampleCount = 4096;
     fd_w = $fopen("./ddcdata.txt", "w");
     if(fd_w) $display("file opened successfully");
     else $display("file open FAIL");
-//    fd_debw = $fopen("./ddcdebdata.txt", "w");
-//    if(fd_debw) $display("debug file opened successfully");
-//    else $display("debug file open FAIL");
     
-    //Assert the reset
+//Assert the reset
     Byteswap = 0;
     ChanConfig = 2;                 // select test DDS in (2MHz)
 //    ChanConfig = 0;                 // select ADC1
     ChanFreq = 32'h03F55555;      // 1.9MHz
-//    ChanFreq = 32'h00355555;      // 0.1MHz
+    ChanFreq = 32'h038AAAAA;      // 1.7MHz
     CicInterp = 6;				  // 1536KHz
     LOIQIn_tdata = 0;
     LOIQIn_tvalid = 0;
@@ -173,11 +170,12 @@ begin
     begin
         IOut = M_AXIS_DATA_tdata[23:0];
         QOut = M_AXIS_DATA_tdata[47:24];
-//        IDebOut = debug_tdata[23:0];
-//        QDebOut = debug_tdata[47:24];
+//        IDebOut = debug_tdata[47:0];
+//        QDebOut = debug_tdata[95:48];
         SampleCount = SampleCount + 1;
         if(SampleCount > DiscardSampleCount)
             $fwrite(fd_w, "%d,%d\n", $signed(IOut), $signed(QOut));
+//            $fwrite(fd_w, "%d,%d\n", $signed(IDebOut), $signed(QDebOut));
         $display("Samples collected = %d\n",SampleCount);
         if(SampleCount == (RequiredSampleCount + DiscardSampleCount))
         begin

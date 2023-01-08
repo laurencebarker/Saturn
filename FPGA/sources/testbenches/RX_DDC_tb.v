@@ -32,7 +32,6 @@ reg [31:0] ChanFreq;
 reg[1:0] ChanConfig;
 reg [15:0] adc1;
 reg [15:0] adc2;
-reg [15:0] test_source;
 reg [15:0] tx_samples;
 
 reg [31:0] LOIQIn_tdata;
@@ -56,19 +55,17 @@ reg[23:0] QOut;
 reg [31:0] fd_w;                   // file handle
 reg [31:0] SampleCount = 0; // sample counter for file write
 reg [31:0] RequiredSampleCount = 0;
+reg [31:0] DiscardSampleCount = 0;
+reg [31:0] DebugSampleCount = 0;
+reg [31:0] fd_debw;                   // file handle
 
-  DDC_Block UUT
+  RX_TBBLK_wrapper UUT
  	(
 	  .Byteswap(Byteswap),
         .ChanConfig(ChanConfig),
         .ChanFreq(ChanFreq),
         .CicInterp(CicInterp),
         .LOIQIn_tdata(LOIQIn_tdata),
-        .LOIQIn_tdest({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0}),
-        .LOIQIn_tid({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0}),
-        .LOIQIn_tkeep(1'b1),
-        .LOIQIn_tlast(1'b0),
-        .LOIQIn_tuser(1'b0),
         .LOIQIn_tvalid(LOIQIn_tvalid),
         .LOIQOut_tdata(LOIQOut_tdata),
         .LOIQOut_tvalid(LOIQOut_tvalid),
@@ -80,7 +77,6 @@ reg [31:0] RequiredSampleCount = 0;
         .adc1(adc1),
         .adc2(adc2),
         .rstn(rstn),
-        .test_source(test_source),
         .tx_samples(tx_samples)
 	);
 
@@ -101,15 +97,19 @@ initial begin
 //
 // open file for I/Q samples to be written to:
 //
-    RequiredSampleCount = 8300;
+    DiscardSampleCount = 100;          // samples to be discarded before starting to record (filter initiailising)
+    RequiredSampleCount = 4096;
     fd_w = $fopen("./ddcdata.txt", "w");
     if(fd_w) $display("file opened successfully");
     else $display("file open FAIL");
+//    fd_debw = $fopen("./ddcdebdata.txt", "w");
+//    if(fd_debw) $display("debug file opened successfully");
+//    else $display("debug file open FAIL");
     
     //Assert the reset
     Byteswap = 0;
-    ChanConfig = 0;
-    ChanFreq = 32'h00355555;      // 100KHz
+    ChanConfig = 2;                 // select test DDS in (2MHz)
+    ChanFreq = 32'h03F55555;      // 1.9MHz
     CicInterp = 6;				  // 1536KHz
     LOIQIn_tdata = 0;
     LOIQIn_tvalid = 0;
@@ -119,7 +119,6 @@ initial begin
     adc1 = 16'h7FFF;
     adc2= 0;
     tx_samples = 0;
-    test_source = 0;
 
     #1000
     // Release the reset
@@ -127,20 +126,25 @@ initial begin
 end
 
 
+
+//
+// collect I/Q output to a file, when valid data presented
+//
 always @(posedge aclk)
 begin
     if(M_AXIS_DATA_tvalid == 1)
     begin
-    IOut = M_AXIS_DATA_tdata[23:0];
-    QOut = M_AXIS_DATA_tdata[47:24];
-    $fwrite(fd_w, "%d,%d\n", $signed(IOut), $signed(QOut));
-    SampleCount = SampleCount + 1;
-    $display("Samples collected = %d\n",SampleCount);
-    if(SampleCount == RequiredSampleCount)
-    begin
-        $fclose(fd_w);
-        $finish;
-    end
+        IOut = M_AXIS_DATA_tdata[23:0];
+        QOut = M_AXIS_DATA_tdata[47:24];
+        SampleCount = SampleCount + 1;
+        if(SampleCount > DiscardSampleCount)
+            $fwrite(fd_w, "%d,%d\n", $signed(IOut), $signed(QOut));
+        $display("Samples collected = %d\n",SampleCount);
+        if(SampleCount == (RequiredSampleCount + DiscardSampleCount))
+        begin
+            $fclose(fd_w);
+            $finish;
+        end
     end
 end
 

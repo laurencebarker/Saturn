@@ -1,7 +1,7 @@
 {
   "design": {
     "design_info": {
-      "boundary_crc": "0x1CDD495BC17B81FE",
+      "boundary_crc": "0x47D95D24642B8F8F",
       "device": "xc7a200tfbg676-2",
       "gen_directory": "../../../../DDCIP.gen/sources_1/bd/DDC_Block",
       "name": "DDC_Block",
@@ -41,7 +41,9 @@
       "regmux_8_1_0": "",
       "axis_mux_2_0": "",
       "byteswap_48_0": "",
-      "xlconstant_0": ""
+      "axis_subset_converter_1": "",
+      "axis_subset_converter_2": "",
+      "HalfLSBAdder_0": ""
     },
     "interface_ports": {
       "M_AXIS_DATA": {
@@ -298,14 +300,6 @@
       },
       "Byteswap": {
         "direction": "I"
-      },
-      "debug_tdata": {
-        "direction": "O",
-        "left": "47",
-        "right": "0"
-      },
-      "debug_tvalid": {
-        "direction": "O"
       }
     },
     "components": {
@@ -367,10 +361,7 @@
             "value": "0"
           },
           "M_TDATA_NUM_BYTES": {
-            "value": "8"
-          },
-          "S_TDATA_NUM_BYTES": {
-            "value": "4"
+            "value": "6"
           }
         }
       },
@@ -381,13 +372,13 @@
         "inst_hier_path": "axis_subset_converter_0",
         "parameters": {
           "M_TDATA_NUM_BYTES": {
-            "value": "6"
+            "value": "3"
           },
           "S_TDATA_NUM_BYTES": {
-            "value": "8"
+            "value": "4"
           },
           "TDATA_REMAP": {
-            "value": "tdata[55:32],tdata[23:0]"
+            "value": "tdata[23:0]"
           }
         }
       },
@@ -401,7 +392,7 @@
             "value": "122.88"
           },
           "Differential_Delay": {
-            "value": "2"
+            "value": "1"
           },
           "Filter_Type": {
             "value": "Decimation"
@@ -413,7 +404,7 @@
             "value": "true"
           },
           "Input_Data_Width": {
-            "value": "18"
+            "value": "19"
           },
           "Input_Sample_Frequency": {
             "value": "122.88"
@@ -428,7 +419,7 @@
             "value": "6"
           },
           "Output_Data_Width": {
-            "value": "20"
+            "value": "48"
           },
           "Quantization": {
             "value": "Truncation"
@@ -457,7 +448,7 @@
             "value": "122.88"
           },
           "Differential_Delay": {
-            "value": "2"
+            "value": "1"
           },
           "Filter_Type": {
             "value": "Decimation"
@@ -469,7 +460,7 @@
             "value": "true"
           },
           "Input_Data_Width": {
-            "value": "18"
+            "value": "19"
           },
           "Input_Sample_Frequency": {
             "value": "122.88"
@@ -484,7 +475,7 @@
             "value": "6"
           },
           "Output_Data_Width": {
-            "value": "20"
+            "value": "48"
           },
           "Quantization": {
             "value": "Truncation"
@@ -509,6 +500,9 @@
         "xci_path": "ip\\DDC_Block_cmpy_0_0\\DDC_Block_cmpy_0_0.xci",
         "inst_hier_path": "cmpy_0",
         "parameters": {
+          "APortWidth": {
+            "value": "17"
+          },
           "MinimumLatency": {
             "value": "6"
           },
@@ -516,7 +510,7 @@
             "value": "Resources"
           },
           "OutputWidth": {
-            "value": "18"
+            "value": "19"
           },
           "RoundMode": {
             "value": "Truncate"
@@ -604,7 +598,7 @@
             "value": "../../../../../../../../sources/coefficientfiles/tx1024cfirImpulse.coe"
           },
           "Coefficient_Fractional_Bits": {
-            "value": "22"
+            "value": "27"
           },
           "Coefficient_Sets": {
             "value": "1"
@@ -616,7 +610,7 @@
             "value": "Inferred"
           },
           "Coefficient_Width": {
-            "value": "20"
+            "value": "25"
           },
           "ColumnConfig": {
             "value": "13"
@@ -738,7 +732,12 @@
         "vlnv": "xilinx.com:ip:xlconcat:2.1",
         "xci_name": "DDC_Block_xlconcat_2_0",
         "xci_path": "ip\\DDC_Block_xlconcat_2_0\\DDC_Block_xlconcat_2_0.xci",
-        "inst_hier_path": "xlconcat_2"
+        "inst_hier_path": "xlconcat_2",
+        "parameters": {
+          "NUM_PORTS": {
+            "value": "2"
+          }
+        }
       },
       "xlconstant_10": {
         "vlnv": "xilinx.com:ip:xlconstant:1.1",
@@ -778,7 +777,7 @@
             "value": "0"
           },
           "CONST_WIDTH": {
-            "value": "16"
+            "value": "31"
           }
         }
       },
@@ -1261,7 +1260,7 @@
         "inst_hier_path": "reg_to_axis_1",
         "parameters": {
           "DIN_WIDTH": {
-            "value": "32"
+            "value": "48"
           }
         },
         "reference_info": {
@@ -1276,7 +1275,7 @@
             "vlnv": "xilinx.com:interface:axis_rtl:1.0",
             "parameters": {
               "TDATA_NUM_BYTES": {
-                "value": "4",
+                "value": "6",
                 "value_src": "auto"
               },
               "TDEST_WIDTH": {
@@ -1320,7 +1319,7 @@
               "TDATA": {
                 "physical_name": "m_axis_tdata",
                 "direction": "O",
-                "left": "31",
+                "left": "47",
                 "right": "0"
               },
               "TVALID": {
@@ -1333,11 +1332,11 @@
         "ports": {
           "data_in": {
             "direction": "I",
-            "left": "31",
+            "left": "47",
             "right": "0",
             "parameters": {
               "PortWidth": {
-                "value": "32",
+                "value": "48",
                 "value_src": "ip_prop"
               }
             }
@@ -2046,11 +2045,76 @@
           }
         }
       },
-      "xlconstant_0": {
-        "vlnv": "xilinx.com:ip:xlconstant:1.1",
-        "xci_name": "DDC_Block_xlconstant_0_0",
-        "xci_path": "ip\\DDC_Block_xlconstant_0_0\\DDC_Block_xlconstant_0_0.xci",
-        "inst_hier_path": "xlconstant_0"
+      "axis_subset_converter_1": {
+        "vlnv": "xilinx.com:ip:axis_subset_converter:1.1",
+        "xci_name": "DDC_Block_axis_subset_converter_1_0",
+        "xci_path": "ip\\DDC_Block_axis_subset_converter_1_0\\DDC_Block_axis_subset_converter_1_0.xci",
+        "inst_hier_path": "axis_subset_converter_1",
+        "parameters": {
+          "M_TDATA_NUM_BYTES": {
+            "value": "3"
+          },
+          "S_TDATA_NUM_BYTES": {
+            "value": "6"
+          },
+          "TDATA_REMAP": {
+            "value": "tdata[45], tdata[45],tdata[45], tdata[45],tdata[45], tdata[45],tdata[45:28]"
+          }
+        }
+      },
+      "axis_subset_converter_2": {
+        "vlnv": "xilinx.com:ip:axis_subset_converter:1.1",
+        "xci_name": "DDC_Block_axis_subset_converter_1_1",
+        "xci_path": "ip\\DDC_Block_axis_subset_converter_1_1\\DDC_Block_axis_subset_converter_1_1.xci",
+        "inst_hier_path": "axis_subset_converter_2",
+        "parameters": {
+          "M_TDATA_NUM_BYTES": {
+            "value": "3"
+          },
+          "S_TDATA_NUM_BYTES": {
+            "value": "6"
+          },
+          "TDATA_REMAP": {
+            "value": "tdata[45], tdata[45],tdata[45], tdata[45],tdata[45], tdata[45],tdata[45:28]"
+          }
+        }
+      },
+      "HalfLSBAdder_0": {
+        "vlnv": "xilinx.com:module_ref:HalfLSBAdder:1.0",
+        "xci_name": "DDC_Block_HalfLSBAdder_0_0",
+        "xci_path": "ip\\DDC_Block_HalfLSBAdder_0_0\\DDC_Block_HalfLSBAdder_0_0.xci",
+        "inst_hier_path": "HalfLSBAdder_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "HalfLSBAdder",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "aclk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "user_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "DDC_Block_aclk",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "input_data": {
+            "direction": "I",
+            "left": "15",
+            "right": "0"
+          },
+          "output_data": {
+            "direction": "O",
+            "left": "16",
+            "right": "0"
+          }
+        }
       }
     },
     "interface_nets": {
@@ -2099,7 +2163,7 @@
       "axis_dwidth_converter_1_M_AXIS": {
         "interface_ports": [
           "axis_dwidth_converter_1/M_AXIS",
-          "axis_subset_converter_0/S_AXIS"
+          "byteswap_48_0/s_axis"
         ]
       },
       "axis_mux_2_0_output_axis": {
@@ -2111,7 +2175,19 @@
       "axis_subset_converter_0_M_AXIS": {
         "interface_ports": [
           "axis_subset_converter_0/M_AXIS",
-          "byteswap_48_0/s_axis"
+          "axis_dwidth_converter_1/S_AXIS"
+        ]
+      },
+      "axis_subset_converter_1_M_AXIS": {
+        "interface_ports": [
+          "axis_subset_converter_1/M_AXIS",
+          "axis_combiner_0/S00_AXIS"
+        ]
+      },
+      "axis_subset_converter_2_M_AXIS": {
+        "interface_ports": [
+          "axis_subset_converter_2/M_AXIS",
+          "axis_combiner_0/S01_AXIS"
         ]
       },
       "axis_variable_0_m_axis": {
@@ -2134,14 +2210,14 @@
       },
       "cic_compiler_0_M_AXIS_DATA": {
         "interface_ports": [
-          "axis_combiner_0/S01_AXIS",
-          "cic_compiler_0/M_AXIS_DATA"
+          "cic_compiler_0/M_AXIS_DATA",
+          "axis_subset_converter_2/S_AXIS"
         ]
       },
       "cic_compiler_1_M_AXIS_DATA": {
         "interface_ports": [
-          "axis_combiner_0/S00_AXIS",
-          "cic_compiler_1/M_AXIS_DATA"
+          "cic_compiler_1/M_AXIS_DATA",
+          "axis_subset_converter_1/S_AXIS"
         ]
       },
       "cmpy_0_M_AXIS_DOUT": {
@@ -2158,8 +2234,8 @@
       },
       "fir_compiler_0_M_AXIS_DATA": {
         "interface_ports": [
-          "axis_dwidth_converter_1/S_AXIS",
-          "fir_compiler_0/M_AXIS_DATA"
+          "fir_compiler_0/M_AXIS_DATA",
+          "axis_subset_converter_0/S_AXIS"
         ]
       },
       "reg_to_axis_0_m_axis": {
@@ -2200,6 +2276,12 @@
           "xlconcat_1/In0"
         ]
       },
+      "HalfLSBAdder_0_output_data": {
+        "ports": [
+          "HalfLSBAdder_0/output_data",
+          "xlconcat_2/In0"
+        ]
+      },
       "LOIQSel_1": {
         "ports": [
           "LOIQSel",
@@ -2228,7 +2310,10 @@
           "regmux_4_1_0/aclk",
           "regmux_8_1_0/aclk",
           "axis_mux_2_0/clk",
-          "byteswap_48_0/aclk"
+          "byteswap_48_0/aclk",
+          "axis_subset_converter_1/aclk",
+          "axis_subset_converter_2/aclk",
+          "HalfLSBAdder_0/aclk"
         ]
       },
       "adc1_1": {
@@ -2246,7 +2331,7 @@
       "regmux_4_1_0_dout": {
         "ports": [
           "regmux_4_1_0/dout",
-          "xlconcat_2/In0"
+          "HalfLSBAdder_0/input_data"
         ]
       },
       "regmux_8_1_0_dout": {
@@ -2273,7 +2358,9 @@
           "regmux_4_1_0/resetn",
           "regmux_8_1_0/resetn",
           "axis_mux_2_0/rstn",
-          "byteswap_48_0/aresetn"
+          "byteswap_48_0/aresetn",
+          "axis_subset_converter_1/aresetn",
+          "axis_subset_converter_2/aresetn"
         ]
       },
       "sel_0_1": {
