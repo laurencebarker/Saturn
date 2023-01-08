@@ -917,6 +917,7 @@ void EnableAlexManualFilterSelect(bool IsManual)
 // P2: provides a 16 bit word with all of the Alex settings for a single RX
 // must be formatted according to the Alex specification
 // RX=0 or 1: RX1; RX=2: RX2
+// must be enabled by calling EnableAlexManualFilterSelect(true) first!
 //
 void AlexManualRXFilters(unsigned int Bits, int RX)
 {
@@ -934,11 +935,10 @@ void AlexManualRXFilters(unsigned int Bits, int RX)
             Register &= 0x0000FFFF;                             // turn off all affected bits
             Register |= (Bits<<16);                             // add back all new bits
         }
-
         if(Register != GAlexRXRegister)                     // write back if changed
         {
             GAlexRXRegister = Register;
-    //        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXRXREG, Register);  // and write to it
+            RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXRXREG, Register);  // and write to it
         }
     }
 }
@@ -958,6 +958,7 @@ void DisableAlexTRRelay(bool IsDisabled)
 // AlexManualTXFilters(unsigned int Bits)
 // P2: provides a 16 bit word with all of the Alex settings for TX
 // must be formatted according to the Alex specification
+// must be enabled by calling EnableAlexManualFilterSelect(true) first!
 //
 void AlexManualTXFilters(unsigned int Bits)
 {
@@ -968,7 +969,7 @@ void AlexManualTXFilters(unsigned int Bits)
         if(Register != GAlexTXRegister)                     // write back if changed
         {
             GAlexTXRegister = Register;
-    //        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXREG, Register);  // and write to it
+            RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXREG, Register);  // and write to it
         }
     }
 }

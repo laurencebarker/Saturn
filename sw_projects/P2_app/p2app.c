@@ -301,6 +301,7 @@ int main(int argc, char *argv[])
   SetSpkrMute(false);
   SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR);
   SetTXEnable(true);
+  EnableAlexManualFilterSelect(true);
 //
 // start up thread for exit command checking
 //
