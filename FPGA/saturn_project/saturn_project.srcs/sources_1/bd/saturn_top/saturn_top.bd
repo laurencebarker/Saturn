@@ -50,7 +50,10 @@
         "xlconstant_val0": "",
         "AXI_Stream_Reader_Wr_0": "",
         "AXI_Stream_Reader_Wr_codec": "",
-        "FIFO_Monitor_0": ""
+        "FIFO_Monitor_0": "",
+        "axis_dwidth_converter_64to32bit": "",
+        "axis_dwidth_converter_1": "",
+        "AXIS_Sizer_64to48_0": ""
       },
       "PCIe": {
         "axi_interconnect_122": {
@@ -1777,6 +1780,12 @@
           },
           "CodecSpkResetn": {
             "direction": "I"
+          },
+          "aresetn_122": {
+            "direction": "I"
+          },
+          "txmux_reset": {
+            "direction": "I"
           }
         },
         "components": {
@@ -3461,9 +3470,232 @@
                 "direction": "O"
               }
             }
+          },
+          "axis_dwidth_converter_64to32bit": {
+            "vlnv": "xilinx.com:ip:axis_dwidth_converter:1.1",
+            "xci_name": "saturn_top_axis_dwidth_converter_64to32bit_0",
+            "xci_path": "ip\\saturn_top_axis_dwidth_converter_64to32bit_0\\saturn_top_axis_dwidth_converter_64to32bit_0.xci",
+            "inst_hier_path": "FIFO_Interfaces/axis_dwidth_converter_64to32bit",
+            "parameters": {
+              "M_TDATA_NUM_BYTES": {
+                "value": "4"
+              },
+              "S_TDATA_NUM_BYTES": {
+                "value": "8"
+              }
+            }
+          },
+          "axis_dwidth_converter_1": {
+            "vlnv": "xilinx.com:ip:axis_dwidth_converter:1.1",
+            "xci_name": "saturn_top_axis_dwidth_converter_1_0",
+            "xci_path": "ip\\saturn_top_axis_dwidth_converter_1_0\\saturn_top_axis_dwidth_converter_1_0.xci",
+            "inst_hier_path": "FIFO_Interfaces/axis_dwidth_converter_1",
+            "parameters": {
+              "M_TDATA_NUM_BYTES": {
+                "value": "8"
+              },
+              "S_TDATA_NUM_BYTES": {
+                "value": "2"
+              }
+            }
+          },
+          "AXIS_Sizer_64to48_0": {
+            "vlnv": "xilinx.com:module_ref:AXIS_Sizer_64to48:1.0",
+            "xci_name": "saturn_top_AXIS_Sizer_64to48_0_0",
+            "xci_path": "ip\\saturn_top_AXIS_Sizer_64to48_0_0\\saturn_top_AXIS_Sizer_64to48_0_0.xci",
+            "inst_hier_path": "FIFO_Interfaces/AXIS_Sizer_64to48_0",
+            "reference_info": {
+              "ref_type": "hdl",
+              "ref_name": "AXIS_Sizer_64to48",
+              "boundary_crc": "0x0"
+            },
+            "interface_ports": {
+              "m_axis": {
+                "mode": "Master",
+                "vlnv_bus_definition": "xilinx.com:interface:axis:1.0",
+                "vlnv": "xilinx.com:interface:axis_rtl:1.0",
+                "parameters": {
+                  "TDATA_NUM_BYTES": {
+                    "value": "6",
+                    "value_src": "constant"
+                  },
+                  "TDEST_WIDTH": {
+                    "value": "0",
+                    "value_src": "constant"
+                  },
+                  "TID_WIDTH": {
+                    "value": "0",
+                    "value_src": "constant"
+                  },
+                  "TUSER_WIDTH": {
+                    "value": "0",
+                    "value_src": "constant"
+                  },
+                  "HAS_TREADY": {
+                    "value": "1",
+                    "value_src": "constant"
+                  },
+                  "HAS_TSTRB": {
+                    "value": "0",
+                    "value_src": "constant"
+                  },
+                  "HAS_TKEEP": {
+                    "value": "0",
+                    "value_src": "constant"
+                  },
+                  "HAS_TLAST": {
+                    "value": "0",
+                    "value_src": "constant"
+                  },
+                  "FREQ_HZ": {
+                    "value": "122880000",
+                    "value_src": "ip_prop"
+                  },
+                  "PHASE": {
+                    "value": "0.0",
+                    "value_src": "ip_prop"
+                  },
+                  "CLK_DOMAIN": {
+                    "value": "saturn_top_clk_wiz_0_0_clk_out1",
+                    "value_src": "default_prop"
+                  }
+                },
+                "port_maps": {
+                  "TDATA": {
+                    "physical_name": "m_axis_tdata",
+                    "direction": "O",
+                    "left": "47",
+                    "right": "0"
+                  },
+                  "TVALID": {
+                    "physical_name": "m_axis_tvalid",
+                    "direction": "O"
+                  },
+                  "TREADY": {
+                    "physical_name": "m_axis_tready",
+                    "direction": "I"
+                  }
+                }
+              },
+              "s_axis": {
+                "mode": "Slave",
+                "vlnv_bus_definition": "xilinx.com:interface:axis:1.0",
+                "vlnv": "xilinx.com:interface:axis_rtl:1.0",
+                "parameters": {
+                  "TDATA_NUM_BYTES": {
+                    "value": "8",
+                    "value_src": "constant"
+                  },
+                  "TDEST_WIDTH": {
+                    "value": "0",
+                    "value_src": "constant"
+                  },
+                  "TID_WIDTH": {
+                    "value": "0",
+                    "value_src": "constant"
+                  },
+                  "TUSER_WIDTH": {
+                    "value": "0",
+                    "value_src": "constant"
+                  },
+                  "HAS_TREADY": {
+                    "value": "1",
+                    "value_src": "constant"
+                  },
+                  "HAS_TSTRB": {
+                    "value": "0",
+                    "value_src": "constant"
+                  },
+                  "HAS_TKEEP": {
+                    "value": "0",
+                    "value_src": "constant"
+                  },
+                  "HAS_TLAST": {
+                    "value": "0",
+                    "value_src": "constant"
+                  },
+                  "FREQ_HZ": {
+                    "value": "122880000",
+                    "value_src": "ip_prop"
+                  },
+                  "PHASE": {
+                    "value": "0.0",
+                    "value_src": "ip_prop"
+                  },
+                  "CLK_DOMAIN": {
+                    "value": "saturn_top_clk_wiz_0_0_clk_out1",
+                    "value_src": "default_prop"
+                  }
+                },
+                "port_maps": {
+                  "TDATA": {
+                    "physical_name": "s_axis_tdata",
+                    "direction": "I",
+                    "left": "63",
+                    "right": "0"
+                  },
+                  "TVALID": {
+                    "physical_name": "s_axis_tvalid",
+                    "direction": "I"
+                  },
+                  "TREADY": {
+                    "physical_name": "s_axis_tready",
+                    "direction": "O"
+                  }
+                }
+              }
+            },
+            "ports": {
+              "aclk": {
+                "type": "clk",
+                "direction": "I",
+                "parameters": {
+                  "ASSOCIATED_BUSIF": {
+                    "value": "m_axis:s_axis",
+                    "value_src": "constant"
+                  },
+                  "ASSOCIATED_RESET": {
+                    "value": "aresetn",
+                    "value_src": "constant"
+                  },
+                  "FREQ_HZ": {
+                    "value": "122880000",
+                    "value_src": "ip_prop"
+                  },
+                  "PHASE": {
+                    "value": "0.0",
+                    "value_src": "ip_prop"
+                  },
+                  "CLK_DOMAIN": {
+                    "value": "saturn_top_clk_wiz_0_0_clk_out1",
+                    "value_src": "default_prop"
+                  }
+                }
+              },
+              "aresetn": {
+                "type": "rst",
+                "direction": "I",
+                "parameters": {
+                  "POLARITY": {
+                    "value": "ACTIVE_LOW",
+                    "value_src": "constant"
+                  }
+                }
+              },
+              "mux_reset": {
+                "type": "rst",
+                "direction": "I"
+              }
+            }
           }
         },
         "interface_nets": {
+          "AXIS_Sizer_64to48_0_m_axis": {
+            "interface_ports": [
+              "M_AXIS_TX",
+              "AXIS_Sizer_64to48_0/m_axis"
+            ]
+          },
           "AXI_Stream_Reader_Wr_0_m_axis": {
             "interface_ports": [
               "AXI_Stream_Reader_Wr_0/m_axis",
@@ -3482,24 +3714,6 @@
               "axis_data_fifo_DDC0/S_AXIS"
             ]
           },
-          "Conn11": {
-            "interface_ports": [
-              "S_AXIS_codec",
-              "axis_data_fifo_codecmic/S_AXIS"
-            ]
-          },
-          "Conn12": {
-            "interface_ports": [
-              "M_AXIS_codec",
-              "axis_data_fifo_codecspk/M_AXIS"
-            ]
-          },
-          "Conn13": {
-            "interface_ports": [
-              "M_AXIS_TX",
-              "axis_data_fifo_DUC/M_AXIS"
-            ]
-          },
           "Conn14": {
             "interface_ports": [
               "S00_AXI_0",
@@ -3510,6 +3724,12 @@
             "interface_ports": [
               "s_axi_lite_0",
               "FIFO_Monitor_0/s_axi"
+            ]
+          },
+          "S_AXIS_codec_1": {
+            "interface_ports": [
+              "S_AXIS_codec",
+              "axis_dwidth_converter_1/S_AXIS"
             ]
           },
           "axi_interconnect_0_M00_AXI": {
@@ -3530,10 +3750,34 @@
               "axis_data_fifo_DDC0/M_AXIS"
             ]
           },
+          "axis_data_fifo_DUC_M_AXIS": {
+            "interface_ports": [
+              "axis_data_fifo_DUC/M_AXIS",
+              "AXIS_Sizer_64to48_0/s_axis"
+            ]
+          },
           "axis_data_fifo_codecmic_M_AXIS": {
             "interface_ports": [
               "AXI_Stream_Reader_Wr_codec/s_axis",
               "axis_data_fifo_codecmic/M_AXIS"
+            ]
+          },
+          "axis_data_fifo_codecspk_M_AXIS": {
+            "interface_ports": [
+              "axis_data_fifo_codecspk/M_AXIS",
+              "axis_dwidth_converter_64to32bit/S_AXIS"
+            ]
+          },
+          "axis_dwidth_converter_1_M_AXIS": {
+            "interface_ports": [
+              "axis_dwidth_converter_1/M_AXIS",
+              "axis_data_fifo_codecmic/S_AXIS"
+            ]
+          },
+          "axis_dwidth_converter_64to32bit_M_AXIS": {
+            "interface_ports": [
+              "M_AXIS_codec",
+              "axis_dwidth_converter_64to32bit/M_AXIS"
             ]
           }
         },
@@ -3558,7 +3802,9 @@
             "ports": [
               "CLK12",
               "axis_data_fifo_codecmic/s_axis_aclk",
-              "axis_data_fifo_codecspk/m_axis_aclk"
+              "axis_data_fifo_codecspk/m_axis_aclk",
+              "axis_dwidth_converter_64to32bit/aclk",
+              "axis_dwidth_converter_1/aclk"
             ]
           },
           "CodecMicResetn_1": {
@@ -3589,7 +3835,8 @@
             "ports": [
               "CLK122",
               "axis_data_fifo_DDC0/s_axis_aclk",
-              "axis_data_fifo_DUC/m_axis_aclk"
+              "axis_data_fifo_DUC/m_axis_aclk",
+              "AXIS_Sizer_64to48_0/aclk"
             ]
           },
           "Net2": {
@@ -3602,6 +3849,19 @@
             "ports": [
               "TX_FIFO_aresetn",
               "axis_data_fifo_DUC/s_axis_aresetn"
+            ]
+          },
+          "aresetn_122_1": {
+            "ports": [
+              "aresetn_122",
+              "AXIS_Sizer_64to48_0/aresetn"
+            ]
+          },
+          "aresetn_12_1": {
+            "ports": [
+              "aresetn_12",
+              "axis_dwidth_converter_64to32bit/aresetn",
+              "axis_dwidth_converter_1/aresetn"
             ]
           },
           "axis_data_fifo_DDC0_axis_rd_data_count": {
@@ -3626,6 +3886,12 @@
             "ports": [
               "axis_data_fifo_codecspk/axis_wr_data_count",
               "FIFO_Monitor_0/fifo4_count"
+            ]
+          },
+          "txmux_reset_1": {
+            "ports": [
+              "txmux_reset",
+              "AXIS_Sizer_64to48_0/mux_reset"
             ]
           },
           "xlconstant_val0_dout": {
@@ -22241,6 +22507,11 @@
           },
           "Byteswap": {
             "direction": "I"
+          },
+          "txmux_reset": {
+            "direction": "O",
+            "left": "0",
+            "right": "0"
           }
         },
         "components": {
@@ -22412,19 +22683,19 @@
                   },
                   "HAS_TKEEP": {
                     "value": "0",
-                    "value_src": "default_prop"
+                    "value_src": "const_prop"
                   },
                   "HAS_TLAST": {
                     "value": "0",
-                    "value_src": "default_prop"
+                    "value_src": "const_prop"
                   },
                   "HAS_TREADY": {
                     "value": "1",
-                    "value_src": "default_prop"
+                    "value_src": "const_prop"
                   },
                   "HAS_TSTRB": {
                     "value": "0",
-                    "value_src": "default_prop"
+                    "value_src": "const_prop"
                   },
                   "INSERT_VIP": {
                     "value": "0",
@@ -22439,20 +22710,20 @@
                     "value_src": "ip_prop"
                   },
                   "TDATA_NUM_BYTES": {
-                    "value": "8",
-                    "value_src": "user_prop"
+                    "value": "6",
+                    "value_src": "const_prop"
                   },
                   "TDEST_WIDTH": {
                     "value": "0",
-                    "value_src": "default_prop"
+                    "value_src": "const_prop"
                   },
                   "TID_WIDTH": {
                     "value": "0",
-                    "value_src": "default_prop"
+                    "value_src": "const_prop"
                   },
                   "TUSER_WIDTH": {
                     "value": "0",
-                    "value_src": "default_prop"
+                    "value_src": "const_prop"
                   }
                 }
               },
@@ -22649,9 +22920,6 @@
                 "left": "2",
                 "right": "0"
               },
-              "Mux_Reset": {
-                "direction": "I"
-              },
               "TXTestFreq": {
                 "direction": "I",
                 "left": "31",
@@ -22694,45 +22962,6 @@
                   },
                   "PortType.PROP_SRC": {
                     "value": "false",
-                    "value_src": "ip_prop"
-                  }
-                }
-              },
-              "aresetn_12": {
-                "direction": "I",
-                "parameters": {
-                  "PortType": {
-                    "value": "undef",
-                    "value_src": "ip_prop"
-                  },
-                  "PortType.PROP_SRC": {
-                    "value": "false",
-                    "value_src": "ip_prop"
-                  }
-                }
-              },
-              "clk12": {
-                "type": "clk",
-                "direction": "I",
-                "parameters": {
-                  "CLK_DOMAIN": {
-                    "value": "saturn_top_clk_wiz_0_0_clk_out1",
-                    "value_src": "ip_prop"
-                  },
-                  "FREQ_HZ": {
-                    "value": "12288000",
-                    "value_src": "ip_prop"
-                  },
-                  "FREQ_TOLERANCE_HZ": {
-                    "value": "0",
-                    "value_src": "strong"
-                  },
-                  "INSERT_VIP": {
-                    "value": "0",
-                    "value_src": "strong"
-                  },
-                  "PHASE": {
-                    "value": "0.0",
                     "value_src": "ip_prop"
                   }
                 }
@@ -22808,7 +23037,7 @@
             "variant_info": {
               "IQ_Modulation_Select.bd": {
                 "scoped_diagram": "IQ_Modulation_Select_inst_0.bd",
-                "design_checksum": "0xBCA2DD90",
+                "design_checksum": "0xBB96501E",
                 "ref_name": "IQ_Modulation_Select",
                 "ref_subinst_path": "saturn_top_IQ_Modulation_Select_0",
                 "ref_type": "Block Design",
@@ -24067,8 +24296,7 @@
           },
           "clk12_1": {
             "ports": [
-              "clk12",
-              "IQ_Modulation_Select/clk12"
+              "clk12"
             ]
           },
           "cw_key_down_1": {
@@ -24098,8 +24326,7 @@
           },
           "resetn_12_1": {
             "ports": [
-              "resetn_12",
-              "IQ_Modulation_Select/aresetn_12"
+              "resetn_12"
             ]
           },
           "resetn_2": {
@@ -24157,7 +24384,7 @@
           "xlslice_reset_Dout": {
             "ports": [
               "xlslice_reset/Dout",
-              "IQ_Modulation_Select/Mux_Reset"
+              "txmux_reset"
             ]
           }
         }
@@ -24226,8 +24453,8 @@
                 "value_src": "ip_prop"
               },
               "TDATA_NUM_BYTES": {
-                "value": "8",
-                "value_src": "user_prop"
+                "value": "4",
+                "value_src": "default_prop"
               },
               "TDEST_WIDTH": {
                 "value": "0",
@@ -24285,7 +24512,7 @@
                 "value_src": "ip_prop"
               },
               "TDATA_NUM_BYTES": {
-                "value": "8",
+                "value": "2",
                 "value_src": "default"
               },
               "TDEST_WIDTH": {
@@ -24500,7 +24727,7 @@
         "variant_info": {
           "audio_codec.bd": {
             "scoped_diagram": "audio_codec_inst_0.bd",
-            "design_checksum": "0x676816CE",
+            "design_checksum": "0x80ECB7C1",
             "ref_name": "audio_codec",
             "ref_subinst_path": "saturn_top_audio_codec_0",
             "ref_type": "Block Design",
@@ -25663,6 +25890,12 @@
           "RF_interfaces/keyer_PTT"
         ]
       },
+      "Transmitter_txmux_reset": {
+        "ports": [
+          "Transmitter/txmux_reset",
+          "FIFO_Interfaces/txmux_reset"
+        ]
+      },
       "aclk_1": {
         "ports": [
           "clock_generator/clock_122_out_DAC",
@@ -25864,7 +26097,8 @@
         "ports": [
           "xlslice_1/Dout",
           "Transmitter/resetn1",
-          "axis_clock_cvt_sidetone_122_to_12/s_axis_aresetn"
+          "axis_clock_cvt_sidetone_122_to_12/s_axis_aresetn",
+          "FIFO_Interfaces/aresetn_122"
         ]
       },
       "xlslice_2_Dout": {

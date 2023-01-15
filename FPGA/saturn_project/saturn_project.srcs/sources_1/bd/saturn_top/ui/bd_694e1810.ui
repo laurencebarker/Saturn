@@ -1,28 +1,29 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"1.46524",
-   "Default View_TopLeft":"-264,-40",
+   "Default View_TopLeft":"-35,-40",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
 #  -string -flagsOSRD
 preplace port S_AXI_keyerBRAM -pg 1 -lvl 0 -x -90 -y 50 -defaultsOSRD
 preplace port TX_IQ_In -pg 1 -lvl 0 -x -90 -y 70 -defaultsOSRD
-preplace port m_axis_sidetoneampl -pg 1 -lvl 4 -x 1580 -y 190 -defaultsOSRD
-preplace port port-id_CWSampleSelect -pg 1 -lvl 4 -x 1580 -y 570 -defaultsOSRD
+preplace port m_axis_sidetoneampl -pg 1 -lvl 4 -x 1590 -y 190 -defaultsOSRD
+preplace port port-id_CWSampleSelect -pg 1 -lvl 4 -x 1590 -y 570 -defaultsOSRD
 preplace port port-id_TXStrobe -pg 1 -lvl 0 -x -90 -y 500 -defaultsOSRD
 preplace port port-id_TX_ENABLE -pg 1 -lvl 0 -x -90 -y 480 -defaultsOSRD
 preplace port port-id_clk12 -pg 1 -lvl 0 -x -90 -y 540 -defaultsOSRD
 preplace port port-id_clk122 -pg 1 -lvl 0 -x -90 -y 560 -defaultsOSRD
 preplace port port-id_cw_key_down -pg 1 -lvl 0 -x -90 -y 580 -defaultsOSRD
-preplace port port-id_cw_ptt1 -pg 1 -lvl 4 -x 1580 -y 250 -defaultsOSRD
+preplace port port-id_cw_ptt1 -pg 1 -lvl 4 -x 1590 -y 250 -defaultsOSRD
 preplace port port-id_resetn1 -pg 1 -lvl 0 -x -90 -y 700 -defaultsOSRD
 preplace port port-id_resetn_12 -pg 1 -lvl 0 -x -90 -y 520 -defaultsOSRD
 preplace port port-id_Byteswap -pg 1 -lvl 0 -x -90 -y 800 -defaultsOSRD
+preplace port port-id_txmux_reset -pg 1 -lvl 4 -x 1590 -y 350 -defaultsOSRD
 preplace portBus TXConfig -pg 1 -lvl 0 -x -90 -y 720 -defaultsOSRD
-preplace portBus TXDACData -pg 1 -lvl 4 -x 1580 -y 440 -defaultsOSRD
+preplace portBus TXDACData -pg 1 -lvl 4 -x 1590 -y 440 -defaultsOSRD
 preplace portBus TXLOTune -pg 1 -lvl 0 -x -90 -y 740 -defaultsOSRD
-preplace portBus TXMagnitude -pg 1 -lvl 4 -x 1580 -y 110 -defaultsOSRD
-preplace portBus TXSamplesToRX -pg 1 -lvl 4 -x 1580 -y 460 -defaultsOSRD
+preplace portBus TXMagnitude -pg 1 -lvl 4 -x 1590 -y 110 -defaultsOSRD
+preplace portBus TXSamplesToRX -pg 1 -lvl 4 -x 1590 -y 460 -defaultsOSRD
 preplace portBus TXTestFreq -pg 1 -lvl 0 -x -90 -y 460 -defaultsOSRD
 preplace portBus keyer_config -pg 1 -lvl 0 -x -90 -y 600 -defaultsOSRD
 preplace inst IQ_Modulation_Select -pg 1 -lvl 2 -x 960 -y 200 -defaultsOSRD
@@ -36,39 +37,39 @@ preplace inst xlslice_enable -pg 1 -lvl 1 -x 160 -y 230 -defaultsOSRD
 preplace inst xlslice_rate -pg 1 -lvl 1 -x 160 -y 610 -defaultsOSRD
 preplace inst xlslice_reset -pg 1 -lvl 1 -x 160 -y 430 -defaultsOSRD
 preplace inst regmux_2_1_1 -pg 1 -lvl 2 -x 960 -y 780 -defaultsOSRD
-preplace netloc Byteswap_1 1 0 2 20J 30 300J
+preplace netloc Byteswap_1 1 0 2 20J 30 290J
 preplace netloc D_register_1_dout 1 3 1 NJ 110
-preplace netloc IQ_Modulation_Select_TX_OPENABLE 1 2 1 1150 230n
-preplace netloc Net5 1 0 3 30J 550 360 -30 1200
-preplace netloc TXConfig_1 1 0 3 40 490 380J 420 1190J
-preplace netloc TXStrobe_1 1 0 2 -10J 50 350J
+preplace netloc IQ_Modulation_Select_TX_OPENABLE 1 2 1 1160 230n
+preplace netloc Net5 1 0 3 30J 550 370 -30 1210
+preplace netloc TXConfig_1 1 0 3 40 490 390J 420 1200J
+preplace netloc TXStrobe_1 1 0 2 -10J 50 340J
 preplace netloc TX_DUC_0_TXDACData 1 3 1 N 440
 preplace netloc TX_DUC_0_TXSamplesToRX 1 3 1 N 460
-preplace netloc TX_ENABLE_1 1 0 2 10J 70 340J
-preplace netloc TX_LO_Tune_1 1 0 3 50J 540 390J 430 NJ
-preplace netloc TX_Test_Freq_1 1 0 2 -70J -20 280J
-preplace netloc clk12_1 1 0 2 -50J -10 400J
-preplace netloc cw_key_down_1 1 0 2 -20J 0 390J
+preplace netloc TX_ENABLE_1 1 0 2 10J 70 330J
+preplace netloc TX_LO_Tune_1 1 0 3 50J 540 400J 430 NJ
+preplace netloc TX_Test_Freq_1 1 0 2 -70J -20 270J
+preplace netloc clk12_1 1 0 2 -50J -10 410J
+preplace netloc cw_key_down_1 1 0 2 -20J 0 360J
 preplace netloc cw_key_ramp_0_CW_PTT1 1 2 2 NJ 250 NJ
 preplace netloc keyer_config_1 1 0 2 0J 10 320J
-preplace netloc regmux_2_1_1_dout1 1 2 1 1180 100n
-preplace netloc resetn_12_1 1 0 2 -40J 20 380J
-preplace netloc resetn_2 1 0 3 NJ 700 370 -20 1160
+preplace netloc regmux_2_1_1_dout1 1 2 1 1190 100n
+preplace netloc resetn_12_1 1 0 2 -40J 20 350J
+preplace netloc resetn_2 1 0 3 NJ 700 380 -20 1170
 preplace netloc util_reduced_logic_0_Res1 1 2 2 NJ 210 1560J
 preplace netloc xlconstant_proto1_dout 1 1 1 340J 800n
 preplace netloc xlconstant_proto2_dout 1 1 1 340J 820n
 preplace netloc xlslice_0_Dout 1 1 1 310J 120n
-preplace netloc xlslice_deinterleave_Dout 1 1 1 270J 80n
-preplace netloc xlslice_enable_Dout 1 1 1 290J 100n
-preplace netloc xlslice_rate_Dout 1 1 1 400 320n
-preplace netloc xlslice_reset_Dout 1 1 1 330J 140n
+preplace netloc xlslice_deinterleave_Dout 1 1 1 280J 80n
+preplace netloc xlslice_enable_Dout 1 1 1 300J 100n
+preplace netloc xlslice_rate_Dout 1 1 1 410 320n
+preplace netloc xlslice_reset_Dout 1 1 3 260J -40 N -40 1570
 preplace netloc Conn1 1 0 2 -60J 40 NJ
 preplace netloc Conn2 1 2 2 NJ 190 NJ
-preplace netloc IQ_Modulation_Select_m_axis_envelope 1 2 1 1150 80n
-preplace netloc IQ_Modulation_Select_output_axis 1 2 1 1170 150n
+preplace netloc IQ_Modulation_Select_m_axis_envelope 1 2 1 1160 80n
+preplace netloc IQ_Modulation_Select_output_axis 1 2 1 1180 150n
 preplace netloc TX_IQ_In_1 1 0 2 -30J 60 NJ
-levelinfo -pg 1 -90 160 960 1390 1580
-pagesize -pg 1 -db -bbox -sgen -270 -100 1770 1870
+levelinfo -pg 1 -90 160 960 1390 1590
+pagesize -pg 1 -db -bbox -sgen -270 -100 1790 1870
 "
 }
 0

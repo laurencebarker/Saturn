@@ -1,7 +1,7 @@
 {
   "design": {
     "design_info": {
-      "boundary_crc": "0x668C3638B9C0A7AA",
+      "boundary_crc": "0x16136C63DAFD14BF",
       "device": "xc7a200tfbg676-2",
       "gen_directory": "../../../../saturn_project.gen/sources_1/bd/audio_codec",
       "name": "audio_codec",
@@ -14,8 +14,6 @@
       "axis_broadcaster_0": "",
       "axis_broadcaster_1": "",
       "axis_combiner_0": "",
-      "axis_dwidth_converter_1": "",
-      "axis_dwidth_converter_64to32bit": "",
       "dds_compiler_0": "",
       "xlslice_sidetonefreq": "",
       "xlslice_sidetonevol": "",
@@ -123,8 +121,8 @@
             "value_src": "default"
           },
           "TDATA_NUM_BYTES": {
-            "value": "8",
-            "value_src": "default_prop"
+            "value": "2",
+            "value_src": "auto_prop"
           },
           "TDEST_WIDTH": {
             "value": "0",
@@ -372,34 +370,6 @@
         "xci_name": "audio_codec_axis_combiner_0_0",
         "xci_path": "ip\\audio_codec_axis_combiner_0_0\\audio_codec_axis_combiner_0_0.xci",
         "inst_hier_path": "axis_combiner_0"
-      },
-      "axis_dwidth_converter_1": {
-        "vlnv": "xilinx.com:ip:axis_dwidth_converter:1.1",
-        "xci_name": "audio_codec_axis_dwidth_converter_1_0",
-        "xci_path": "ip\\audio_codec_axis_dwidth_converter_1_0\\audio_codec_axis_dwidth_converter_1_0.xci",
-        "inst_hier_path": "axis_dwidth_converter_1",
-        "parameters": {
-          "M_TDATA_NUM_BYTES": {
-            "value": "8"
-          },
-          "S_TDATA_NUM_BYTES": {
-            "value": "2"
-          }
-        }
-      },
-      "axis_dwidth_converter_64to32bit": {
-        "vlnv": "xilinx.com:ip:axis_dwidth_converter:1.1",
-        "xci_name": "audio_codec_axis_dwidth_converter_64to32bit_0",
-        "xci_path": "ip\\audio_codec_axis_dwidth_converter_64to32bit_0\\audio_codec_axis_dwidth_converter_64to32bit_0.xci",
-        "inst_hier_path": "axis_dwidth_converter_64to32bit",
-        "parameters": {
-          "M_TDATA_NUM_BYTES": {
-            "value": "4"
-          },
-          "S_TDATA_NUM_BYTES": {
-            "value": "8"
-          }
-        }
       },
       "dds_compiler_0": {
         "vlnv": "xilinx.com:ip:dds_compiler:6.0",
@@ -2131,6 +2101,10 @@
               "CLK_DOMAIN": {
                 "value": "audio_codec_clk12",
                 "value_src": "default_prop"
+              },
+              "LAYERED_METADATA": {
+                "value": "undef",
+                "value_src": "user_prop"
               }
             },
             "port_maps": {
@@ -2376,7 +2350,7 @@
       "LR_Spkr_data_1": {
         "interface_ports": [
           "LR_Spkr_data",
-          "axis_dwidth_converter_64to32bit/S_AXIS"
+          "byteswap_32_0/s_axis"
         ]
       },
       "S_AXIS_KeyerAmpl_1": {
@@ -2433,18 +2407,6 @@
           "axis_multiplier_vol_star_sine/s01_axis"
         ]
       },
-      "axis_dwidth_converter_1_M_AXIS": {
-        "interface_ports": [
-          "RX_Audio_Data",
-          "axis_dwidth_converter_1/M_AXIS"
-        ]
-      },
-      "axis_dwidth_converter_64to32bit_M_AXIS": {
-        "interface_ports": [
-          "axis_dwidth_converter_64to32bit/M_AXIS",
-          "byteswap_32_0/s_axis"
-        ]
-      },
       "axis_multiplier_vol_star_sine_m_axis": {
         "interface_ports": [
           "axis_multiplier_vol_star_sine/m_axis",
@@ -2459,8 +2421,8 @@
       },
       "axis_subset_converter_0_M_AXIS": {
         "interface_ports": [
-          "axis_subset_converter_0/M_AXIS",
-          "axis_dwidth_converter_1/S_AXIS"
+          "RX_Audio_Data",
+          "axis_subset_converter_0/M_AXIS"
         ]
       },
       "byteswap_32_0_m_axis": {
@@ -2510,8 +2472,6 @@
           "axis_broadcaster_0/aclk",
           "axis_broadcaster_1/aclk",
           "axis_combiner_0/aclk",
-          "axis_dwidth_converter_1/aclk",
-          "axis_dwidth_converter_64to32bit/aclk",
           "dds_compiler_0/aclk",
           "axis_subset_converter_0/aclk",
           "axis_adder_0/aclk",
@@ -2533,8 +2493,6 @@
           "axis_broadcaster_0/aresetn",
           "axis_broadcaster_1/aresetn",
           "axis_combiner_0/aresetn",
-          "axis_dwidth_converter_1/aresetn",
-          "axis_dwidth_converter_64to32bit/aresetn",
           "axis_subset_converter_0/aresetn",
           "axis_multiplier_vol_star_sine/aresetn",
           "axis_multiplier_vol_star_sine_star_ramp/aresetn",
