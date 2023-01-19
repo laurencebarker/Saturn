@@ -1,0 +1,9 @@
+# GIT should ignore:
+CODECIP.cache
+CODECIP.gen
+CODECIP.hw
+CODECIP.ip_user_files
+CODECIP.runs
+CODECIP.sim
+.Xil
+vivado.*

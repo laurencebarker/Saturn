@@ -118,6 +118,13 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/axi_stream_resizer_64to48.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../sources/verilogmodules/axil_read64_reg.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -251,123 +258,89 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/axi_stream_resizer_64to48.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
       <File Path="$PSRCDIR/sources_1/bd/saturn_top/saturn_top.bd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_2_0/saturn_top_selectio_wiz_2_0.xci">
-          <Proxy FileSetName="saturn_top_selectio_wiz_2_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_0_0/saturn_top_selectio_wiz_0_0.xci">
-          <Proxy FileSetName="saturn_top_selectio_wiz_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_0_1/saturn_top_selectio_wiz_0_1.xci">
-          <Proxy FileSetName="saturn_top_selectio_wiz_0_1"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_0_2/saturn_top_selectio_wiz_0_2.xci">
-          <Proxy FileSetName="saturn_top_selectio_wiz_0_2"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_clock_cvt_sidetone_122_to_12_0/saturn_top_axis_clock_cvt_sidetone_122_to_12_0.xci">
-          <Proxy FileSetName="saturn_top_axis_clock_cvt_sidetone_122_to_12_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_2/saturn_top_util_reduced_logic_0_2.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_0_2"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_clk_wiz_0_0/saturn_top_clk_wiz_0_0.xci">
-          <Proxy FileSetName="saturn_top_clk_wiz_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_ds_buf_4_0/saturn_top_util_ds_buf_4_0.xci">
-          <Proxy FileSetName="saturn_top_util_ds_buf_4_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_ds_buf_5_0/saturn_top_util_ds_buf_5_0.xci">
-          <Proxy FileSetName="saturn_top_util_ds_buf_5_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xbar_2/saturn_top_xbar_2.xci">
-          <Proxy FileSetName="saturn_top_xbar_2"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_codecspk_0/saturn_top_axis_data_fifo_codecspk_0.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_codecspk_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_DDC0_0/saturn_top_axis_data_fifo_DDC0_0.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_DDC0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_DUC_0/saturn_top_axis_data_fifo_DUC_0.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_DUC_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_codecmic_0/saturn_top_axis_data_fifo_codecmic_0.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_codecmic_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_2/saturn_top_D_register_norst_0_2.xci">
-          <Proxy FileSetName="saturn_top_D_register_norst_0_2"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_1/saturn_top_axis_data_fifo_0_1.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_0_1"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_3/saturn_top_util_reduced_logic_0_3.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_0_3"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_0/saturn_top_axis_data_fifo_0_0.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_3/saturn_top_axis_data_fifo_1_3.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_1_3"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_5/saturn_top_axis_data_fifo_0_5.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_0_5"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_2_0/saturn_top_util_reduced_logic_2_0.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_2_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_1_0/saturn_top_util_reduced_logic_1_0.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_1_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_3_0/saturn_top_util_reduced_logic_3_0.xci">
           <Proxy FileSetName="saturn_top_util_reduced_logic_3_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_vector_logic_0_1/saturn_top_util_vector_logic_0_1.xci">
-          <Proxy FileSetName="saturn_top_util_vector_logic_0_1"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_2_0/saturn_top_util_reduced_logic_2_0.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_2_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_0/saturn_top_util_reduced_logic_0_0.xci">
           <Proxy FileSetName="saturn_top_util_reduced_logic_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_1_0/saturn_top_util_reduced_logic_1_0.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_1_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_vector_logic_0_1/saturn_top_util_vector_logic_0_1.xci">
+          <Proxy FileSetName="saturn_top_util_vector_logic_0_1"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_0_3/saturn_top_selectio_wiz_0_3.xci">
-          <Proxy FileSetName="saturn_top_selectio_wiz_0_3"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xbar_0/saturn_top_xbar_0.xci">
-          <Proxy FileSetName="saturn_top_xbar_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_6/saturn_top_util_reduced_logic_0_6.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_0_6"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_broadcaster_cic_path_split_0/saturn_top_axis_broadcaster_cic_path_split_0.xci">
+          <Proxy FileSetName="saturn_top_axis_broadcaster_cic_path_split_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_5/saturn_top_D_register_norst_0_5.xci">
           <Proxy FileSetName="saturn_top_D_register_norst_0_5"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_4/saturn_top_regmux_2_1_0_4.xci">
-          <Proxy FileSetName="saturn_top_regmux_2_1_0_4"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_dwidth_converter_0_0/saturn_top_axis_dwidth_converter_0_0.xci">
+          <Proxy FileSetName="saturn_top_axis_dwidth_converter_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_dwidth_converter_fir_to_IQ_0/saturn_top_axis_dwidth_converter_fir_to_IQ_0.xci">
+          <Proxy FileSetName="saturn_top_axis_dwidth_converter_fir_to_IQ_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_cic_compiler_0_0/saturn_top_cic_compiler_0_0.xci">
+          <Proxy FileSetName="saturn_top_cic_compiler_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_cordic_0_0/saturn_top_cordic_0_0.xci">
+          <Proxy FileSetName="saturn_top_cordic_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_5/saturn_top_util_reduced_logic_0_5.xci">
           <Proxy FileSetName="saturn_top_util_reduced_logic_0_5"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_4/saturn_top_axis_data_fifo_0_4.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_0_4"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_fir_compiler_0_0/saturn_top_fir_compiler_0_0.xci">
+          <Proxy FileSetName="saturn_top_fir_compiler_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_4/saturn_top_D_register_norst_0_4.xci">
-          <Proxy FileSetName="saturn_top_D_register_norst_0_4"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_clock_cvt_sidetone_122_to_12_0/saturn_top_axis_clock_cvt_sidetone_122_to_12_0.xci">
+          <Proxy FileSetName="saturn_top_axis_clock_cvt_sidetone_122_to_12_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_2/saturn_top_axis_data_fifo_1_2.xci">
           <Proxy FileSetName="saturn_top_axis_data_fifo_1_2"/>
         </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_4/saturn_top_D_register_norst_0_4.xci">
+          <Proxy FileSetName="saturn_top_D_register_norst_0_4"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_clk_wiz_0_0/saturn_top_clk_wiz_0_0.xci">
+          <Proxy FileSetName="saturn_top_clk_wiz_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_2/saturn_top_util_reduced_logic_0_2.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_0_2"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIS_DDC_Multiplexer_0_0/saturn_top_AXIS_DDC_Multiplexer_0_0.xci">
+          <Proxy FileSetName="saturn_top_AXIS_DDC_Multiplexer_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_combiner_0_0/saturn_top_axis_combiner_0_0.xci">
+          <Proxy FileSetName="saturn_top_axis_combiner_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_cic_compiler_1_0/saturn_top_cic_compiler_1_0.xci">
+          <Proxy FileSetName="saturn_top_cic_compiler_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_6/saturn_top_util_reduced_logic_0_6.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_0_6"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_4/saturn_top_axis_data_fifo_0_4.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_0_4"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_4/saturn_top_regmux_2_1_0_4.xci">
+          <Proxy FileSetName="saturn_top_regmux_2_1_0_4"/>
+        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_3/saturn_top_regmux_2_1_0_3.xci">
           <Proxy FileSetName="saturn_top_regmux_2_1_0_3"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_1/saturn_top_util_reduced_logic_0_1.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_0_1"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXI_FIFO_overflow_re_0_0/saturn_top_AXI_FIFO_overflow_re_0_0.xci">
           <Proxy FileSetName="saturn_top_AXI_FIFO_overflow_re_0_0"/>
@@ -378,11 +351,53 @@
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xbar_3/saturn_top_xbar_3.xci">
           <Proxy FileSetName="saturn_top_xbar_3"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_pci_clk_buf_0/saturn_top_pci_clk_buf_0.xci">
-          <Proxy FileSetName="saturn_top_pci_clk_buf_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xbar_1/saturn_top_xbar_1.xci">
+          <Proxy FileSetName="saturn_top_xbar_1"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axi_quad_spi_0_0/saturn_top_axi_quad_spi_0_0.xci">
           <Proxy FileSetName="saturn_top_axi_quad_spi_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xbar_2/saturn_top_xbar_2.xci">
+          <Proxy FileSetName="saturn_top_xbar_2"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_pci_clk_buf_0/saturn_top_pci_clk_buf_0.xci">
+          <Proxy FileSetName="saturn_top_pci_clk_buf_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_0_0/saturn_top_selectio_wiz_0_0.xci">
+          <Proxy FileSetName="saturn_top_selectio_wiz_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_0_3/saturn_top_selectio_wiz_0_3.xci">
+          <Proxy FileSetName="saturn_top_selectio_wiz_0_3"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_DDC0_0/saturn_top_axis_data_fifo_DDC0_0.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_DDC0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_DUC_0/saturn_top_axis_data_fifo_DUC_0.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_DUC_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_ds_buf_5_0/saturn_top_util_ds_buf_5_0.xci">
+          <Proxy FileSetName="saturn_top_util_ds_buf_5_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_2_0/saturn_top_selectio_wiz_2_0.xci">
+          <Proxy FileSetName="saturn_top_selectio_wiz_2_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xbar_0/saturn_top_xbar_0.xci">
+          <Proxy FileSetName="saturn_top_xbar_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_codecspk_0/saturn_top_axis_data_fifo_codecspk_0.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_codecspk_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_codecmic_0/saturn_top_axis_data_fifo_codecmic_0.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_codecmic_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_0_2/saturn_top_selectio_wiz_0_2.xci">
+          <Proxy FileSetName="saturn_top_selectio_wiz_0_2"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_ds_buf_4_0/saturn_top_util_ds_buf_4_0.xci">
+          <Proxy FileSetName="saturn_top_util_ds_buf_4_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_0_1/saturn_top_selectio_wiz_0_1.xci">
+          <Proxy FileSetName="saturn_top_selectio_wiz_0_1"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_vector_logic_0_0/saturn_top_util_vector_logic_0_0.xci">
           <Proxy FileSetName="saturn_top_util_vector_logic_0_0"/>
@@ -390,86 +405,71 @@
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xadc_wiz_0_0/saturn_top_xadc_wiz_0_0.xci">
           <Proxy FileSetName="saturn_top_xadc_wiz_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_dds_compiler_0_0/saturn_top_dds_compiler_0_0.xci">
-          <Proxy FileSetName="saturn_top_dds_compiler_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_1/saturn_top_axis_data_fifo_1_1.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_1_1"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_0/saturn_top_axis_data_fifo_1_0.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_1_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_4/saturn_top_util_reduced_logic_0_4.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_0_4"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_3/saturn_top_D_register_norst_0_3.xci">
-          <Proxy FileSetName="saturn_top_D_register_norst_0_3"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_3/saturn_top_axis_data_fifo_0_3.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_0_3"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_2/saturn_top_regmux_2_1_0_2.xci">
-          <Proxy FileSetName="saturn_top_regmux_2_1_0_2"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_vector_logic_0_2/saturn_top_util_vector_logic_0_2.xci">
-          <Proxy FileSetName="saturn_top_util_vector_logic_0_2"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_5/saturn_top_regmux_2_1_0_5.xci">
-          <Proxy FileSetName="saturn_top_regmux_2_1_0_5"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_2/saturn_top_axis_data_fifo_0_2.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_0_2"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_vector_logic_1_0/saturn_top_util_vector_logic_1_0.xci">
+          <Proxy FileSetName="saturn_top_util_vector_logic_1_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_7/saturn_top_util_reduced_logic_0_7.xci">
           <Proxy FileSetName="saturn_top_util_reduced_logic_0_7"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_6/saturn_top_D_register_norst_0_6.xci">
-          <Proxy FileSetName="saturn_top_D_register_norst_0_6"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_5/saturn_top_regmux_2_1_0_5.xci">
+          <Proxy FileSetName="saturn_top_regmux_2_1_0_5"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_vector_logic_1_0/saturn_top_util_vector_logic_1_0.xci">
-          <Proxy FileSetName="saturn_top_util_vector_logic_1_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_3/saturn_top_axis_data_fifo_1_3.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_1_3"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xbar_1/saturn_top_xbar_1.xci">
-          <Proxy FileSetName="saturn_top_xbar_1"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_3/saturn_top_D_register_norst_0_3.xci">
+          <Proxy FileSetName="saturn_top_D_register_norst_0_3"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_fir_compiler_0_0/saturn_top_fir_compiler_0_0.xci">
-          <Proxy FileSetName="saturn_top_fir_compiler_0_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_2/saturn_top_regmux_2_1_0_2.xci">
+          <Proxy FileSetName="saturn_top_regmux_2_1_0_2"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_dwidth_converter_0_0/saturn_top_axis_dwidth_converter_0_0.xci">
-          <Proxy FileSetName="saturn_top_axis_dwidth_converter_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_cic_compiler_1_0/saturn_top_cic_compiler_1_0.xci">
-          <Proxy FileSetName="saturn_top_cic_compiler_1_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_cordic_0_0/saturn_top_cordic_0_0.xci">
-          <Proxy FileSetName="saturn_top_cordic_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIS_DDC_Multiplexer_0_0/saturn_top_AXIS_DDC_Multiplexer_0_0.xci">
-          <Proxy FileSetName="saturn_top_AXIS_DDC_Multiplexer_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_dwidth_converter_fir_to_IQ_0/saturn_top_axis_dwidth_converter_fir_to_IQ_0.xci">
-          <Proxy FileSetName="saturn_top_axis_dwidth_converter_fir_to_IQ_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_broadcaster_cic_path_split_0/saturn_top_axis_broadcaster_cic_path_split_0.xci">
-          <Proxy FileSetName="saturn_top_axis_broadcaster_cic_path_split_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_cic_compiler_0_0/saturn_top_cic_compiler_0_0.xci">
-          <Proxy FileSetName="saturn_top_cic_compiler_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_combiner_0_0/saturn_top_axis_combiner_0_0.xci">
-          <Proxy FileSetName="saturn_top_axis_combiner_0_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_1/saturn_top_axis_data_fifo_0_1.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_0_1"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIL_ConfigReg_256_RX_0_0/saturn_top_AXIL_ConfigReg_256_RX_0_0.xci">
           <Proxy FileSetName="saturn_top_AXIL_ConfigReg_256_RX_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIL_ConfigReg_256_RX_1_0/saturn_top_AXIL_ConfigReg_256_RX_1_0.xci">
-          <Proxy FileSetName="saturn_top_AXIL_ConfigReg_256_RX_1_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_3/saturn_top_util_reduced_logic_0_3.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_0_3"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_1/saturn_top_regmux_2_1_0_1.xci">
           <Proxy FileSetName="saturn_top_regmux_2_1_0_1"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_1/saturn_top_util_reduced_logic_0_1.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_0_1"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_0/saturn_top_axis_data_fifo_0_0.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_5/saturn_top_axis_data_fifo_0_5.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_0_5"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_0/saturn_top_axis_data_fifo_1_0.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_vector_logic_0_2/saturn_top_util_vector_logic_0_2.xci">
+          <Proxy FileSetName="saturn_top_util_vector_logic_0_2"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_dds_compiler_0_0/saturn_top_dds_compiler_0_0.xci">
+          <Proxy FileSetName="saturn_top_dds_compiler_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_6/saturn_top_D_register_norst_0_6.xci">
+          <Proxy FileSetName="saturn_top_D_register_norst_0_6"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIL_ConfigReg_256_RX_1_0/saturn_top_AXIL_ConfigReg_256_RX_1_0.xci">
+          <Proxy FileSetName="saturn_top_AXIL_ConfigReg_256_RX_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_2/saturn_top_D_register_norst_0_2.xci">
+          <Proxy FileSetName="saturn_top_D_register_norst_0_2"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_2/saturn_top_axis_data_fifo_0_2.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_0_2"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_4/saturn_top_util_reduced_logic_0_4.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_0_4"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_1/saturn_top_axis_data_fifo_1_1.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_1_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_3/saturn_top_axis_data_fifo_0_3.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_0_3"/>
         </CompFileExtendedInfo>
       </File>
       <File Path="$PPRDIR/../sources/wrapper/saturn_top_wrapper.v">
@@ -633,11 +633,11 @@
         <CompFileExtendedInfo CompFileName="audio_codec.bd" FileRelPathName="ip/audio_codec_axis_subset_converter_0_0/audio_codec_axis_subset_converter_0_0.xci">
           <Proxy FileSetName="audio_codec_axis_subset_converter_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="audio_codec.bd" FileRelPathName="ip/audio_codec_axis_broadcaster_0_0/audio_codec_axis_broadcaster_0_0.xci">
-          <Proxy FileSetName="audio_codec_axis_broadcaster_0_0"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="audio_codec.bd" FileRelPathName="ip/audio_codec_axis_broadcaster_1_0/audio_codec_axis_broadcaster_1_0.xci">
           <Proxy FileSetName="audio_codec_axis_broadcaster_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="audio_codec.bd" FileRelPathName="ip/audio_codec_axis_broadcaster_0_0/audio_codec_axis_broadcaster_0_0.xci">
+          <Proxy FileSetName="audio_codec_axis_broadcaster_0_0"/>
         </CompFileExtendedInfo>
       </File>
       <File Path="$PSRCDIR/sources_1/bd/TX_DUC/TX_DUC.bd">
@@ -650,11 +650,11 @@
         <CompFileExtendedInfo CompFileName="TX_DUC.bd" FileRelPathName="ip/TX_DUC_axis_broadcaster_cic_path_split_0/TX_DUC_axis_broadcaster_cic_path_split_0.xci">
           <Proxy FileSetName="TX_DUC_axis_broadcaster_cic_path_split_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="TX_DUC.bd" FileRelPathName="ip/TX_DUC_axis_variable_0_0/TX_DUC_axis_variable_0_0.xci">
-          <Proxy FileSetName="TX_DUC_axis_variable_0_0"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="TX_DUC.bd" FileRelPathName="ip/TX_DUC_axis_variable_1_0/TX_DUC_axis_variable_1_0.xci">
           <Proxy FileSetName="TX_DUC_axis_variable_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="TX_DUC.bd" FileRelPathName="ip/TX_DUC_axis_variable_0_0/TX_DUC_axis_variable_0_0.xci">
+          <Proxy FileSetName="TX_DUC_axis_variable_0_0"/>
         </CompFileExtendedInfo>
       </File>
       <File Path="$PSRCDIR/sources_1/bd/IQ_Modulation_Select/IQ_Modulation_Select.bd">
@@ -664,11 +664,11 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="IQ_Modulation_Select.bd" FileRelPathName="ip/IQ_Modulation_Select_byteswap_48_0_0/IQ_Modulation_Select_byteswap_48_0_0.xci">
-          <Proxy FileSetName="IQ_Modulation_Select_byteswap_48_0_0"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="IQ_Modulation_Select.bd" FileRelPathName="ip/IQ_Modulation_Select_axis_subset_converter_32to48bit_0/IQ_Modulation_Select_axis_subset_converter_32to48bit_0.xci">
           <Proxy FileSetName="IQ_Modulation_Select_axis_subset_converter_32to48bit_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="IQ_Modulation_Select.bd" FileRelPathName="ip/IQ_Modulation_Select_byteswap_48_0_0/IQ_Modulation_Select_byteswap_48_0_0.xci">
+          <Proxy FileSetName="IQ_Modulation_Select_byteswap_48_0_0"/>
         </CompFileExtendedInfo>
       </File>
       <File Path="$PSRCDIR/sources_1/bd/DDC_Block/DDC_Block.bd">
@@ -678,44 +678,44 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_subset_converter_0_0/DDC_Block_axis_subset_converter_0_0.xci">
-          <Proxy FileSetName="DDC_Block_axis_subset_converter_0_0"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_fir_compiler_0_0/DDC_Block_fir_compiler_0_0.xci">
           <Proxy FileSetName="DDC_Block_fir_compiler_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_broadcaster_0_0/DDC_Block_axis_broadcaster_0_0.xci">
-          <Proxy FileSetName="DDC_Block_axis_broadcaster_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_variable_0_0/DDC_Block_axis_variable_0_0.xci">
-          <Proxy FileSetName="DDC_Block_axis_variable_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_variable_1_0/DDC_Block_axis_variable_1_0.xci">
           <Proxy FileSetName="DDC_Block_axis_variable_1_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_broadcaster_1_0/DDC_Block_axis_broadcaster_1_0.xci">
-          <Proxy FileSetName="DDC_Block_axis_broadcaster_1_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_Double_D_register_0_0/DDC_Block_Double_D_register_0_0.xci">
-          <Proxy FileSetName="DDC_Block_Double_D_register_0_0"/>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_reg_to_axis_1_0/DDC_Block_reg_to_axis_1_0.xci">
+          <Proxy FileSetName="DDC_Block_reg_to_axis_1_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_reg_to_axis_0_0/DDC_Block_reg_to_axis_0_0.xci">
           <Proxy FileSetName="DDC_Block_reg_to_axis_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_byteswap_48_0_0/DDC_Block_byteswap_48_0_0.xci">
-          <Proxy FileSetName="DDC_Block_byteswap_48_0_0"/>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_broadcaster_0_0/DDC_Block_axis_broadcaster_0_0.xci">
+          <Proxy FileSetName="DDC_Block_axis_broadcaster_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_subset_converter_0_0/DDC_Block_axis_subset_converter_0_0.xci">
+          <Proxy FileSetName="DDC_Block_axis_subset_converter_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_broadcaster_1_0/DDC_Block_axis_broadcaster_1_0.xci">
+          <Proxy FileSetName="DDC_Block_axis_broadcaster_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_variable_0_0/DDC_Block_axis_variable_0_0.xci">
+          <Proxy FileSetName="DDC_Block_axis_variable_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_Double_D_register_0_0/DDC_Block_Double_D_register_0_0.xci">
+          <Proxy FileSetName="DDC_Block_Double_D_register_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_regmux_8_1_0_0/DDC_Block_regmux_8_1_0_0.xci">
+          <Proxy FileSetName="DDC_Block_regmux_8_1_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_mux_2_0_0/DDC_Block_axis_mux_2_0_0.xci">
           <Proxy FileSetName="DDC_Block_axis_mux_2_0_0"/>
         </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_byteswap_48_0_0/DDC_Block_byteswap_48_0_0.xci">
+          <Proxy FileSetName="DDC_Block_byteswap_48_0_0"/>
+        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_regmux_4_1_0_0/DDC_Block_regmux_4_1_0_0.xci">
           <Proxy FileSetName="DDC_Block_regmux_4_1_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_reg_to_axis_1_0/DDC_Block_reg_to_axis_1_0.xci">
-          <Proxy FileSetName="DDC_Block_reg_to_axis_1_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_regmux_8_1_0_0/DDC_Block_regmux_8_1_0_0.xci">
-          <Proxy FileSetName="DDC_Block_regmux_8_1_0_0"/>
         </CompFileExtendedInfo>
       </File>
       <File Path="$PPRDIR/../sources/verilogmodules/axis_mux_2.v">
@@ -1012,11 +1012,11 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="TX_DUC_inst_0.bd" FileRelPathName="ip/TX_DUC_inst_0_mult_gen_0_0/TX_DUC_inst_0_mult_gen_0_0.xci">
-          <Proxy FileSetName="TX_DUC_inst_0_mult_gen_0_0"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="TX_DUC_inst_0.bd" FileRelPathName="ip/TX_DUC_inst_0_fir_compiler_0_0/TX_DUC_inst_0_fir_compiler_0_0.xci">
           <Proxy FileSetName="TX_DUC_inst_0_fir_compiler_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="TX_DUC_inst_0.bd" FileRelPathName="ip/TX_DUC_inst_0_mult_gen_0_0/TX_DUC_inst_0_mult_gen_0_0.xci">
+          <Proxy FileSetName="TX_DUC_inst_0_mult_gen_0_0"/>
         </CompFileExtendedInfo>
       </File>
       <Config>
@@ -2350,11 +2350,11 @@
         <StratHandle Name="Flow_PerfOptimized_high" Flow="Vivado Synthesis 2021"/>
         <Step Id="synth_design">
           <Option Id="ResourceSharing">2</Option>
+          <Option Id="ShregMinSize">5</Option>
+          <Option Id="KeepEquivalentRegisters">1</Option>
           <Option Id="NoCombineLuts">1</Option>
           <Option Id="Directive">7</Option>
           <Option Id="FsmExtraction">1</Option>
-          <Option Id="ShregMinSize">5</Option>
-          <Option Id="KeepEquivalentRegisters">1</Option>
         </Step>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -2707,9 +2707,7 @@
     </Run>
     <Run Id="IQ_Modulation_Select_inst_0_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="IQ_Modulation_Select_inst_0_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="IQ_Modulation_Select_inst_0_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/IQ_Modulation_Select_inst_0_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/IQ_Modulation_Select_inst_0_byteswap_48_0_0_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -4619,9 +4617,7 @@
     </Run>
     <Run Id="IQ_Modulation_Select_inst_0_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="IQ_Modulation_Select_inst_0_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="IQ_Modulation_Select_inst_0_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/IQ_Modulation_Select_inst_0_byteswap_48_0_0_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>

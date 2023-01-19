@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="codec_ip_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="codec_ip_tb" />
+            <top_module name="glbl" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="226.630311347 ms"></ZoomStartTime>
+      <ZoomEndTime time="236.287658706 ms"></ZoomEndTime>
+      <Cursor1Time time="229.682883690 ms"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="257"></NameColumnWidth>
+      <ValueColumnWidth column_width="92"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="36" />
+   <wvobject fp_name="/codec_ip_tb/clk12" type="logic">
+      <obj_property name="ElementShortName">clk12</obj_property>
+      <obj_property name="ObjectShortName">clk12</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/arstn" type="logic">
+      <obj_property name="ElementShortName">arstn</obj_property>
+      <obj_property name="ObjectShortName">arstn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/BCLK" type="logic">
+      <obj_property name="ElementShortName">BCLK</obj_property>
+      <obj_property name="ObjectShortName">BCLK</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/LRCLK" type="logic">
+      <obj_property name="ElementShortName">LRCLK</obj_property>
+      <obj_property name="ObjectShortName">LRCLK</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/MCLK" type="logic">
+      <obj_property name="ElementShortName">MCLK</obj_property>
+      <obj_property name="ObjectShortName">MCLK</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/i2stxd" type="logic">
+      <obj_property name="ElementShortName">i2stxd</obj_property>
+      <obj_property name="ObjectShortName">i2stxd</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/i2srxd" type="logic">
+      <obj_property name="ElementShortName">i2srxd</obj_property>
+      <obj_property name="ObjectShortName">i2srxd</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/Byteswap" type="logic">
+      <obj_property name="ElementShortName">Byteswap</obj_property>
+      <obj_property name="ObjectShortName">Byteswap</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/CodecConfig" type="array">
+      <obj_property name="ElementShortName">CodecConfig[31:0]</obj_property>
+      <obj_property name="ObjectShortName">CodecConfig[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/RX_Audio_data_tdata" type="array">
+      <obj_property name="ElementShortName">RX_Audio_data_tdata[15:0]</obj_property>
+      <obj_property name="ObjectShortName">RX_Audio_data_tdata[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/RX_Audio_data_tvalid" type="logic">
+      <obj_property name="ElementShortName">RX_Audio_data_tvalid</obj_property>
+      <obj_property name="ObjectShortName">RX_Audio_data_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/RX_Audio_data_tready" type="logic">
+      <obj_property name="ElementShortName">RX_Audio_data_tready</obj_property>
+      <obj_property name="ObjectShortName">RX_Audio_data_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/LR_Spkr_data_tdata" type="array">
+      <obj_property name="ElementShortName">LR_Spkr_data_tdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">LR_Spkr_data_tdata[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/LR_Spkr_data_tvalid" type="logic">
+      <obj_property name="ElementShortName">LR_Spkr_data_tvalid</obj_property>
+      <obj_property name="ObjectShortName">LR_Spkr_data_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/LR_Spkr_data_tready" type="logic">
+      <obj_property name="ElementShortName">LR_Spkr_data_tready</obj_property>
+      <obj_property name="ObjectShortName">LR_Spkr_data_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/S_AXIS_KeyerAmpl_tdata" type="array">
+      <obj_property name="ElementShortName">S_AXIS_KeyerAmpl_tdata[15:0]</obj_property>
+      <obj_property name="ObjectShortName">S_AXIS_KeyerAmpl_tdata[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/S_AXIS_KeyerAmpl_tvalid" type="logic">
+      <obj_property name="ElementShortName">S_AXIS_KeyerAmpl_tvalid</obj_property>
+      <obj_property name="ObjectShortName">S_AXIS_KeyerAmpl_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/S_AXIS_KeyerAmpl_tready" type="logic">
+      <obj_property name="ElementShortName">S_AXIS_KeyerAmpl_tready</obj_property>
+      <obj_property name="ObjectShortName">S_AXIS_KeyerAmpl_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/DDS_tdata" type="array">
+      <obj_property name="ElementShortName">DDS_tdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">DDS_tdata[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/DDS_tvalid" type="logic">
+      <obj_property name="ElementShortName">DDS_tvalid</obj_property>
+      <obj_property name="ObjectShortName">DDS_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/DDS_tready" type="logic">
+      <obj_property name="ElementShortName">DDS_tready</obj_property>
+      <obj_property name="ObjectShortName">DDS_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/SidetoneFreq" type="array">
+      <obj_property name="ElementShortName">SidetoneFreq[15:0]</obj_property>
+      <obj_property name="ObjectShortName">SidetoneFreq[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/SidetoneVol" type="array">
+      <obj_property name="ElementShortName">SidetoneVol[15:0]</obj_property>
+      <obj_property name="ObjectShortName">SidetoneVol[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/SampleCount" type="array">
+      <obj_property name="ElementShortName">SampleCount[31:0]</obj_property>
+      <obj_property name="ObjectShortName">SampleCount[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/Ramp" type="array">
+      <obj_property name="ElementShortName">Ramp[15:0]</obj_property>
+      <obj_property name="ObjectShortName">Ramp[15:0]</obj_property>
+      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
+      <obj_property name="CellHeight">100</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/RX_Audio_Data_tdata" type="logic">
+      <obj_property name="ElementShortName">RX_Audio_Data_tdata</obj_property>
+      <obj_property name="ObjectShortName">RX_Audio_Data_tdata</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/RX_Audio_Data_tready" type="logic">
+      <obj_property name="ElementShortName">RX_Audio_Data_tready</obj_property>
+      <obj_property name="ObjectShortName">RX_Audio_Data_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/RX_Audio_Data_tvalid" type="logic">
+      <obj_property name="ElementShortName">RX_Audio_Data_tvalid</obj_property>
+      <obj_property name="ObjectShortName">RX_Audio_Data_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/CLK_PERIOD" type="other">
+      <obj_property name="ElementShortName">CLK_PERIOD</obj_property>
+      <obj_property name="ObjectShortName">CLK_PERIOD</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/UUT/dds_compiler_0/m_axis_data_tdata" type="array">
+      <obj_property name="ElementShortName">m_axis_data_tdata[15:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axis_data_tdata[15:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
+      <obj_property name="CellHeight">100</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/UUT/axis_multiplier_vol_star_sine_star_ramp/m_axis_tdata" type="array">
+      <obj_property name="ElementShortName">m_axis_tdata[15:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axis_tdata[15:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
+      <obj_property name="CellHeight">100</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/UUT/dds_compiler_0/s_axis_phase_tready" type="logic">
+      <obj_property name="ElementShortName">s_axis_phase_tready</obj_property>
+      <obj_property name="ObjectShortName">s_axis_phase_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tready" type="logic">
+      <obj_property name="ElementShortName">sxmit_axis_tready</obj_property>
+      <obj_property name="ObjectShortName">sxmit_axis_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata" type="array">
+      <obj_property name="ElementShortName">sxmit_axis_tdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">sxmit_axis_tdata[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="vbus300" type="vbus">
+      <obj_property name="label">Spkr_L</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
+      <obj_property name="CellHeight">100</obj_property>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[15]" type="logic">
+         <obj_property name="ElementShortName">[15]</obj_property>
+         <obj_property name="ObjectShortName">[15]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[14]" type="logic">
+         <obj_property name="ElementShortName">[14]</obj_property>
+         <obj_property name="ObjectShortName">[14]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[13]" type="logic">
+         <obj_property name="ElementShortName">[13]</obj_property>
+         <obj_property name="ObjectShortName">[13]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[12]" type="logic">
+         <obj_property name="ElementShortName">[12]</obj_property>
+         <obj_property name="ObjectShortName">[12]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[11]" type="logic">
+         <obj_property name="ElementShortName">[11]</obj_property>
+         <obj_property name="ObjectShortName">[11]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[10]" type="logic">
+         <obj_property name="ElementShortName">[10]</obj_property>
+         <obj_property name="ObjectShortName">[10]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[9]" type="logic">
+         <obj_property name="ElementShortName">[9]</obj_property>
+         <obj_property name="ObjectShortName">[9]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[8]" type="logic">
+         <obj_property name="ElementShortName">[8]</obj_property>
+         <obj_property name="ObjectShortName">[8]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[7]" type="logic">
+         <obj_property name="ElementShortName">[7]</obj_property>
+         <obj_property name="ObjectShortName">[7]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[6]" type="logic">
+         <obj_property name="ElementShortName">[6]</obj_property>
+         <obj_property name="ObjectShortName">[6]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[5]" type="logic">
+         <obj_property name="ElementShortName">[5]</obj_property>
+         <obj_property name="ObjectShortName">[5]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[4]" type="logic">
+         <obj_property name="ElementShortName">[4]</obj_property>
+         <obj_property name="ObjectShortName">[4]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[3]" type="logic">
+         <obj_property name="ElementShortName">[3]</obj_property>
+         <obj_property name="ObjectShortName">[3]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[2]" type="logic">
+         <obj_property name="ElementShortName">[2]</obj_property>
+         <obj_property name="ObjectShortName">[2]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[1]" type="logic">
+         <obj_property name="ElementShortName">[1]</obj_property>
+         <obj_property name="ObjectShortName">[1]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[0]" type="logic">
+         <obj_property name="ElementShortName">[0]</obj_property>
+         <obj_property name="ObjectShortName">[0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="vbus283" type="vbus">
+      <obj_property name="label">Spkr_R</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
+      <obj_property name="CellHeight">100</obj_property>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[31]" type="logic">
+         <obj_property name="ElementShortName">[31]</obj_property>
+         <obj_property name="ObjectShortName">[31]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[30]" type="logic">
+         <obj_property name="ElementShortName">[30]</obj_property>
+         <obj_property name="ObjectShortName">[30]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[29]" type="logic">
+         <obj_property name="ElementShortName">[29]</obj_property>
+         <obj_property name="ObjectShortName">[29]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[28]" type="logic">
+         <obj_property name="ElementShortName">[28]</obj_property>
+         <obj_property name="ObjectShortName">[28]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[27]" type="logic">
+         <obj_property name="ElementShortName">[27]</obj_property>
+         <obj_property name="ObjectShortName">[27]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[26]" type="logic">
+         <obj_property name="ElementShortName">[26]</obj_property>
+         <obj_property name="ObjectShortName">[26]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[25]" type="logic">
+         <obj_property name="ElementShortName">[25]</obj_property>
+         <obj_property name="ObjectShortName">[25]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[24]" type="logic">
+         <obj_property name="ElementShortName">[24]</obj_property>
+         <obj_property name="ObjectShortName">[24]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[23]" type="logic">
+         <obj_property name="ElementShortName">[23]</obj_property>
+         <obj_property name="ObjectShortName">[23]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[22]" type="logic">
+         <obj_property name="ElementShortName">[22]</obj_property>
+         <obj_property name="ObjectShortName">[22]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[21]" type="logic">
+         <obj_property name="ElementShortName">[21]</obj_property>
+         <obj_property name="ObjectShortName">[21]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[20]" type="logic">
+         <obj_property name="ElementShortName">[20]</obj_property>
+         <obj_property name="ObjectShortName">[20]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[19]" type="logic">
+         <obj_property name="ElementShortName">[19]</obj_property>
+         <obj_property name="ObjectShortName">[19]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[18]" type="logic">
+         <obj_property name="ElementShortName">[18]</obj_property>
+         <obj_property name="ObjectShortName">[18]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[17]" type="logic">
+         <obj_property name="ElementShortName">[17]</obj_property>
+         <obj_property name="ObjectShortName">[17]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/codec_ip_tb/UUT/I2S_xmit_0/sxmit_axis_tdata[16]" type="logic">
+         <obj_property name="ElementShortName">[16]</obj_property>
+         <obj_property name="ObjectShortName">[16]</obj_property>
+      </wvobject>
+   </wvobject>
+</wave_config>

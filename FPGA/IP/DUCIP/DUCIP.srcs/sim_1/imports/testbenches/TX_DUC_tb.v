@@ -25,18 +25,26 @@ module tx_duc_tb( );
 // Test Bench Signals
 //////////////////////////////////////////////////////////////////////////////////
 // Clock and Reset
-reg clk122 = 0;
-reg resetn1;
-reg [47:0]S_AXIS_tdata;
-wire S_AXIS_tready;
-reg S_AXIS_tvalid;
-reg[31:0]TXConfig;
-wire [15:0]TXDACData;
-reg [31:0]TXLOTune;
-wire [15:0]TXSamplesToRX;
-reg [15:0]cic_rate;
-reg sel;
+  reg clk122 = 0;
+  reg resetn1;
+  reg [47:0]S_AXIS_tdata;
+  wire S_AXIS_tready;
+  reg S_AXIS_tvalid;
+  reg[31:0]TXConfig;
+  wire [15:0]TXDACData;
+  reg [31:0]TXLOTune;
+  wire [15:0]TXSamplesToRX;
+  reg [15:0]cic_rate;
+  reg sel;
 
+//
+// debug data write variables
+//
+  reg RecordDiskFile = 0;
+  reg [31:0] fd_w;                   // file handle
+  reg [31:0] SampleCount = 0; // sample counter for file write
+  reg [31:0] RequiredSampleCount = 0;
+  reg [31:0] DiscardSampleCount = 0;
 
 
 TX_DUC UUT
@@ -54,8 +62,8 @@ TX_DUC UUT
     .sel(sel)
 );
 
-parameter CLK_PERIOD=8;              // 125MHz
-// Generate the clock : 125 MHz    
+parameter CLK_PERIOD=8.1380208;              // 122.88MHz
+// Generate the clock : 122.88 MHz    
 always #(CLK_PERIOD/2) clk122 = ~clk122;
 
 
@@ -66,18 +74,65 @@ always #(CLK_PERIOD/2) clk122 = ~clk122;
 //////////////////////////////////////////////////////////////////////////////////
 //
 initial begin
-    //Assert the reset
+//
+// setup debug data recording parameters
+//
+    RecordDiskFile = 1;                 // enable file write
+    DiscardSampleCount = 100000;        // samples to be discarded before starting to record (filter initialising)
+    RequiredSampleCount = 4096;
+    if(RecordDiskFile == 1)
+    begin
+        fd_w = $fopen("./ducdata.txt", "w");
+        if(fd_w) $display("file opened successfully");
+        else $display("file open FAIL");
+    end
+
+
+
+
+//
+// Assert the reset
+//
     resetn1 = 0;
     S_AXIS_tdata = 47'h0000007FFFFF;                // 1, 0
     S_AXIS_tvalid = 1;
     TXConfig = 32'h801FFFF8;                        // half of full scale amplitude
-    TXLOTune = 32'h03F55555;                        // 1.9MHz
+//    TXConfig = 32'h802AFFF8;                        // half of full scale amplitude
     cic_rate = 16'h80;
     sel = 1;                                        // select data out
+//
+// select DDS frequency
+//
+//    TXLOTune = 32'h03F55555;                        // 1.9MHz
+//    TXLOTune = 32'h07EAAAAA;                        // 3.8MHz
+//    TXLOTune = 32'h0ECAAAAA;                        // 7.1MHz
+//    TXLOTune = 32'h1D600000;                        // 14.1MHz
+//    TXLOTune = 32'h2BF55555;                        // 21.1MHz
+    TXLOTune = 32'h3A8AAAAA;                        // 28.1MHz
+//    TXLOTune = 32'h68600000;                        // 50.1MHz
     #1000
     // Release the reset
     resetn1 = 1;
 end
+
+
+//
+// collect I/Q output to a file, when valid data presented
+// data available on every clock
+//
+always @(posedge clk122)
+    if(RecordDiskFile == 1)
+    begin
+        SampleCount = SampleCount + 1;
+        if(SampleCount > DiscardSampleCount)
+            $fwrite(fd_w, "%d\n", $signed(TXSamplesToRX));
+        $display("Samples collected = %d\n",SampleCount);
+        if(SampleCount == (RequiredSampleCount + DiscardSampleCount))
+        begin
+            $fclose(fd_w);
+            $finish;
+        end
+    end
 
 
 
