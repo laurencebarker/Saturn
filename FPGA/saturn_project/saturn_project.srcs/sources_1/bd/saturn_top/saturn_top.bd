@@ -358,7 +358,8 @@
       "xlslice_3": "",
       "xlslice_4": "",
       "util_vector_logic_0": "",
-      "clock_monitor_0": ""
+      "clock_monitor_0": "",
+      "axis_data_fifo_0": ""
     },
     "interface_ports": {
       "PROM_SPI": {
@@ -24552,7 +24553,7 @@
               },
               "HAS_TREADY": {
                 "value": "1",
-                "value_src": "const_prop"
+                "value_src": "default_prop"
               },
               "HAS_TSTRB": {
                 "value": "0",
@@ -24727,7 +24728,7 @@
         "variant_info": {
           "audio_codec.bd": {
             "scoped_diagram": "audio_codec_inst_0.bd",
-            "design_checksum": "0x80ECB7C1",
+            "design_checksum": "0xB6061C8B",
             "ref_name": "audio_codec",
             "ref_subinst_path": "saturn_top_audio_codec_0",
             "ref_type": "Block Design",
@@ -25365,6 +25366,20 @@
             }
           }
         }
+      },
+      "axis_data_fifo_0": {
+        "vlnv": "xilinx.com:ip:axis_data_fifo:2.0",
+        "xci_name": "saturn_top_axis_data_fifo_0_6",
+        "xci_path": "ip\\saturn_top_axis_data_fifo_0_6\\saturn_top_axis_data_fifo_0_6.xci",
+        "inst_hier_path": "axis_data_fifo_0",
+        "parameters": {
+          "FIFO_DEPTH": {
+            "value": "16"
+          },
+          "IS_ACLK_ASYNC": {
+            "value": "1"
+          }
+        }
       }
     },
     "interface_nets": {
@@ -25422,12 +25437,6 @@
           "FIFO_Interfaces/S_AXIS_RX"
         ]
       },
-      "S_AXIS_KeyerAmpl_1": {
-        "interface_ports": [
-          "audio_codec_0/S_AXIS_KeyerAmpl",
-          "axis_clock_cvt_sidetone_122_to_12/M_AXIS"
-        ]
-      },
       "S_AXIS_codec_1": {
         "interface_ports": [
           "FIFO_Interfaces/S_AXIS_codec",
@@ -25443,7 +25452,13 @@
       "Transmitter_m_axis_sidetoneampl": {
         "interface_ports": [
           "Transmitter/m_axis_sidetoneampl",
-          "axis_clock_cvt_sidetone_122_to_12/S_AXIS"
+          "axis_data_fifo_0/S_AXIS"
+        ]
+      },
+      "axis_data_fifo_0_M_AXIS": {
+        "interface_ports": [
+          "axis_data_fifo_0/M_AXIS",
+          "audio_codec_0/S_AXIS_KeyerAmpl"
         ]
       },
       "diff_clock_rtl_0_1": {
@@ -25947,7 +25962,8 @@
           "RF_interfaces/codec_clk",
           "Transmitter/clk12",
           "audio_codec_0/clk12",
-          "axis_clock_cvt_sidetone_122_to_12/m_axis_aclk"
+          "axis_clock_cvt_sidetone_122_to_12/m_axis_aclk",
+          "axis_data_fifo_0/m_axis_aclk"
         ]
       },
       "clock_122_1": {
@@ -25973,7 +25989,8 @@
           "axis_clock_cvt_sidetone_122_to_12/s_axis_aclk",
           "ADC_LVDS_Pins/aclk",
           "clock_monitor_0/ck0",
-          "clock_monitor_0/ck3"
+          "clock_monitor_0/ck3",
+          "axis_data_fifo_0/s_axis_aclk"
         ]
       },
       "clock_generator_clock_122_out_ADC": {
@@ -26098,7 +26115,8 @@
           "xlslice_1/Dout",
           "Transmitter/resetn1",
           "axis_clock_cvt_sidetone_122_to_12/s_axis_aresetn",
-          "FIFO_Interfaces/aresetn_122"
+          "FIFO_Interfaces/aresetn_122",
+          "axis_data_fifo_0/s_axis_aresetn"
         ]
       },
       "xlslice_2_Dout": {

@@ -9,6 +9,8 @@
 // Target Devices: Artix 7
 // Tool Versions:  Vivado
 // Description:    Module to multiply two signed values
+// the result propagated is selected from the MSB of the product
+// and the product is assumed to ne N+M-1 bits.
 
 //
 // in the planned use, this will be throttled mostly by tready
@@ -65,21 +67,22 @@ module axis_multiplier #
 //
   reg signed [S00Size-1:0] s00_axis_tdata_reg;
   reg signed [S01Size-1:0] s01_axis_tdata_reg;
-  reg s00_axis_tready_reg;
-  reg s01_axis_tready_reg;
-  reg int00_axis_tvalid_reg;                // tvalid from stage 1 to stage 2
-  reg int01_axis_tvalid_reg;                // tvalid from stage 1 to stage 2
+  reg s00_axis_tready_reg = 1;
+  reg s01_axis_tready_reg = 1;
+  reg int00_axis_tvalid_reg = 0;                // tvalid from stage 1 to stage 2
+  reg int01_axis_tvalid_reg = 0;                // tvalid from stage 1 to stage 2
 
+localparam ProductSize = S00Size + S01Size - 1;
 //
 // axi stream output registers
 //
-  reg signed [MSize-1:0] m_axis_tdata_reg;
+  reg signed [ProductSize-1:0] m_axis_tdata_reg;
   reg m_axis_tvalid_reg;
   reg int_axis_tready_reg;                  // tready from stage 2 to stage 1
 
   assign s00_axis_tready = s00_axis_tready_reg;
   assign s01_axis_tready = s01_axis_tready_reg;
-  assign m_axis_tdata = m_axis_tdata_reg;
+  assign m_axis_tdata = m_axis_tdata_reg[ProductSize-1:ProductSize-MSize];
   assign m_axis_tvalid = m_axis_tvalid_reg;
 
 //
