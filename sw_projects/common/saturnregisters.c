@@ -1391,8 +1391,16 @@ void EnableCW (bool Enabled)
     if(Register != GCWKeyerSetup)                    // write back if different
     {
         GCWKeyerSetup = Register;                    // store it back
-//        RegisterWrite(VADDRKEYERCONFIGREG, Register);  // and write to it
+        RegisterWrite(VADDRKEYERCONFIGREG, Register);  // and write to it
     }
+    //
+    // now set I/Q modulation source
+    //
+    if(Enabled)
+        SetTXModulationSource(eCWKeyer);                                  // CW source
+    else
+        SetTXModulationSource(eIQData);                                   // else IQ source
+
 }
 
 
@@ -1406,21 +1414,22 @@ void SetCWSidetoneEnabled(bool Enabled)
     uint32_t Register;
     if(GSidetoneEnabled != Enabled)                     // only act if bit changed
     {
+        GSidetoneEnabled = Enabled;
         Register = GCodecConfigReg;                     // get current settings
         Register &= 0x0000FFFF;                         // remove old volume bits
         if(Enabled)
             Register |= (GSidetoneVolume & 0xFF) << 8;  // add back new bits; resize to 16 bits
         GCodecConfigReg = Register;                     // store it back
-//        RegisterWrite(VADDRCODECCONFIGREG, Register); // and write to it
+        RegisterWrite(VADDRCODECCONFIGREG, Register); // and write to it
     }
 }
 
 
 //
-// SetCWSidetoneVol(unsigned int Volume)
+// SetCWSidetoneVol(uint8_t Volume)
 // sets the sidetone volume level (7 bits, unsigned)
 //
-void SetCWSidetoneVol(unsigned int Volume)
+void SetCWSidetoneVol(uint8_t Volume)
 {
     uint32_t Register;
 
@@ -1432,7 +1441,7 @@ void SetCWSidetoneVol(unsigned int Volume)
         if(GSidetoneEnabled)
             Register |= (GSidetoneVolume & 0xFF) << 8;  // add back new bits; resize to 16 bits
         GCodecConfigReg = Register;                     // store it back
-//        RegisterWrite(VADDRCODECCONFIGREG, Register);  // and write to it
+        RegisterWrite(VADDRCODECCONFIGREG, Register);  // and write to it
     }
 }
 
@@ -1451,7 +1460,7 @@ void SetCWPTTDelay(unsigned int Delay)
     if(Register != GCWKeyerSetup)                       // write back if different
     {
         GCWKeyerSetup = Register;                       // store it back
-//        RegisterWrite(VADDRKEYERCONFIGREG, Register);  // and write to it
+        RegisterWrite(VADDRKEYERCONFIGREG, Register);   // and write to it
     }
 }
 
@@ -1465,13 +1474,13 @@ void SetCWHangTime(unsigned int HangTime)
 {
     uint32_t Register;
 
-    Register = GCWKeyerSetup;                        // get current settings
-    Register &= 0xFFFC00FF;                          // remove old bits
-    Register |= (HangTime &0x3FF) << VCWKEYERHANG;   // add back new bits
-    if(Register != GCWKeyerSetup)                    // write back if different
+    Register = GCWKeyerSetup;                           // get current settings
+    Register &= 0xFFFC00FF;                             // remove old bits
+    Register |= (HangTime &0x3FF) << VCWKEYERHANG;      // add back new bits
+    if(Register != GCWKeyerSetup)                       // write back if different
     {
-        GCWKeyerSetup = Register;                    // store it back
-//        RegisterWrite(VADDRKEYERCONFIGREG, Register);  // and write to it
+        GCWKeyerSetup = Register;                       // store it back
+        RegisterWrite(VADDRKEYERCONFIGREG, Register);   // and write to it
     }
 }
 
@@ -1485,19 +1494,19 @@ void SetCWHangTime(unsigned int HangTime)
 void SetCWSidetoneFrequency(unsigned int Frequency)
 {
     uint32_t Register;
-    uint32_t DeltaPhase;                            // DDS delta phase value
-    double fDeltaPhase;                             // delta phase as a float
+    uint32_t DeltaPhase;                                // DDS delta phase value
+    double fDeltaPhase;                                 // delta phase as a float
 
     fDeltaPhase = (double)(2^16) * (double)Frequency / (double) VCODECSAMPLERATE;
     DeltaPhase = ((uint32_t)fDeltaPhase) & 0xFFFF;
 
-    Register = GCodecConfigReg;                     // get current settings
-    Register &= 0x0000FFFF;                         // remove old bits
-    Register |= DeltaPhase << 16;                   // add back new bits
-    if(Register != GCodecConfigReg)                 // write back if different
+    Register = GCodecConfigReg;                         // get current settings
+    Register &= 0xFFFF0000;                             // remove old bits
+    Register |= DeltaPhase;                             // add back new bits
+    if(Register != GCodecConfigReg)                     // write back if different
     {
-        GCodecConfigReg = Register;                 // store it back
-//        RegisterWrite(VADDRCODECCONFIGREG, Register);  // and write to it
+        GCodecConfigReg = Register;                     // store it back
+        RegisterWrite(VADDRCODECCONFIGREG, Register);   // and write to it
     }
 }
 

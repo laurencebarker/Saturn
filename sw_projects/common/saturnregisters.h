@@ -524,10 +524,10 @@ void EnableCW (bool Enabled);
 
 
 //
-// SetCWSidetoneVol(unsigned int Volume)
+// SetCWSidetoneVol(uint8_t Volume)
 // sets the sidetone volume level (7 bits, unsigned)
 //
-void SetCWSidetoneVol(unsigned int Volume);
+void SetCWSidetoneVol(uint8_t Volume);
 
 
 //

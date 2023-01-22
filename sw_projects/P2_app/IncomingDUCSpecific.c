@@ -32,48 +32,72 @@
 // listener thread for incoming DUC specific packets
 //
 void *IncomingDUCSpecific(void *arg)                    // listener thread
-{
-  struct ThreadSocketData *ThreadData;                  // socket etc data for this thread
-  struct sockaddr_in addr_from;                         // holds MAC address of source of incoming messages
-  uint8_t UDPInBuffer[VDUCSPECIFICSIZE];                // incoming buffer
-  struct iovec iovecinst;                               // iovcnt buffer - 1 for each outgoing buffer
-  struct msghdr datagram;                               // multiple incoming message header
-  int size;                                             // UDP datagram length
+{ 
+    struct ThreadSocketData *ThreadData;                  // socket etc data for this thread
+    struct sockaddr_in addr_from;                         // holds MAC address of source of incoming messages
+    uint8_t UDPInBuffer[VDUCSPECIFICSIZE];                // incoming buffer
+    struct iovec iovecinst;                               // iovcnt buffer - 1 for each outgoing buffer
+    struct msghdr datagram;                               // multiple incoming message header
+    int size;                                             // UDP datagram length
+    uint8_t Byte;
+    uint16_t SidetoneFreq;                                // freq for audio sidetone
+    uint8_t IambicSpeed;                                  // WPM
+    uint8_t IambicWeight;                                 //
+    uint8_t SidetoneVolume;
+    uint8_t CWRFDelay;
+    uint16_t CWHangDelay;
 
-  ThreadData = (struct ThreadSocketData *)arg;
-  ThreadData->Active = true;
-  printf("spinning up DUC specific thread with port %d\n", ThreadData->Portid);
-  //
-  // main processing loop
-  //
-  while(1)
-  {
-    memset(&iovecinst, 0, sizeof(struct iovec));
-    memset(&datagram, 0, sizeof(datagram));
-    iovecinst.iov_base = &UDPInBuffer;                  // set buffer for incoming message number i
-    iovecinst.iov_len = VDUCSPECIFICSIZE;
-    datagram.msg_iov = &iovecinst;
-    datagram.msg_iovlen = 1;
-    datagram.msg_name = &addr_from;
-    datagram.msg_namelen = sizeof(addr_from);
-    size = recvmsg(ThreadData->Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
-    if(size < 0 && errno != EAGAIN)
+    ThreadData = (struct ThreadSocketData *)arg;
+    ThreadData->Active = true;
+    printf("spinning up DUC specific thread with port %d\n", ThreadData->Portid);
+    //
+    // main processing loop
+    //
+    while(1)
     {
-      perror("recvfrom");
-//      return EXIT_FAILURE;
+      memset(&iovecinst, 0, sizeof(struct iovec));
+      memset(&datagram, 0, sizeof(datagram));
+      iovecinst.iov_base = &UDPInBuffer;                  // set buffer for incoming message number i
+      iovecinst.iov_len = VDUCSPECIFICSIZE;
+      datagram.msg_iov = &iovecinst;
+      datagram.msg_iovlen = 1;
+      datagram.msg_name = &addr_from;
+      datagram.msg_namelen = sizeof(addr_from);
+      size = recvmsg(ThreadData->Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
+      if(size < 0 && errno != EAGAIN)
+      {
+          perror("recvfrom");
+  //      return EXIT_FAILURE;
+      }
+      if(size == VDUCSPECIFICSIZE)
+      {
+          printf("DUC packet received\n");
+// iambic settings
+          IambicSpeed = *(uint8_t*)(UDPInBuffer+9);               // keyer speed
+          IambicWeight = *(uint8_t*)(UDPInBuffer+10);             // keyer weight
+          Byte = *(uint8_t*)(UDPInBuffer+5);                      // keyer bool bits
+          SetCWIambicKeyer(IambicSpeed, IambicWeight, (bool)((Byte >> 2)&1), (bool)((Byte >> 5)&1), 
+                          (bool)((Byte >> 6)&1), (bool)((Byte >> 3)&1));
+// general CW settings
+          SetCWSidetoneEnabled((bool)((Byte >> 4)&1));
+          EnableCW((bool)((Byte >> 7)&1));                        // breakin bit used
+          SidetoneVolume = *(uint8_t*)(UDPInBuffer+6);            // keyer speed
+          SidetoneFreq = *(uint16_t*)(UDPInBuffer+7);             // get frequency
+          SetCWSidetoneVol(SidetoneVolume);
+          SetCWSidetoneFrequency(SidetoneFreq);
+          CWRFDelay = *(uint8_t*)(UDPInBuffer+13);                // delay before CW on
+          CWHangDelay = *(uint16_t*)(UDPInBuffer+11);             // delay before CW off
+          SetCWPTTDelay(CWRFDelay);
+          SetCWHangTime(CWHangDelay);
+      }
     }
-    if(size == VDUCSPECIFICSIZE)
-    {
-      printf("DUC packet received\n");
-    }
-  }
 //
 // close down thread
 //
-  close(ThreadData->Socketid);                  // close incoming data socket
-  ThreadData->Socketid = 0;
-  ThreadData->Active = false;                   // indicate it is closed
-  return NULL;
+    close(ThreadData->Socketid);                  // close incoming data socket
+    ThreadData->Socketid = 0;
+    ThreadData->Active = false;                   // indicate it is closed
+    return NULL;
 }
 
 

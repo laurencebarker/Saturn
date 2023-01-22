@@ -124,6 +124,11 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       Byte = (uint8_t)(UDPInBuffer[1443]);      // RX1 atten
       SetADCAttenuator(eADC1, Byte, true, true);
       SetADCAttenuator(eADC2, Byte2, true, true);
+      //
+      // CWX bits
+      //
+      Byte = (uint8_t)(UDPInBuffer[5]);      // CWX
+      SetCWXBits((bool)(Byte & 1), (bool)((Byte>>2) & 1), (bool)((Byte>>1) & 1));    // enabled, dash, dot
     }
   }
 //
