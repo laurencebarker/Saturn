@@ -73,15 +73,13 @@ uint32_t GAlexCoarseAttenuatorBits;                 // Alex coarse atten NOT USE
 bool GAlexManualFilterSelect;                       // true if manual (remote CPU) filter setting
 bool GEnableAlexTXRXRelay;                          // true if TX allowed
 bool GCWKeysReversed;                               // true if keys reversed. Not yet used but will be
-bool GCWKeyerBreakIn;                               // true if full break-in
 unsigned int GCWKeyerSpeed;                         // Keyer speed in WPM. Not yet used
 unsigned int GCWKeyerMode;                          // Keyer Mode. True if mode B. Not yet used
 unsigned int GCWKeyerWeight;                        // Keyer Weight. Not yet used
 bool GCWKeyerSpacing;                               // Keyer spacing
-bool GCWKeyerEnabled;                               // true if iambic keyer is enabled
+bool GCWIambicKeyerEnabled;                         // true if iambic keyer is enabled
+uint32_t GIambicConfigReg;                          // copy of iambic comfig register
 uint32_t GCWKeyerSetup;                             // keyer control register
-uint32_t GKeyerSidetoneVol;                         // sidetone volume for CW TX
-bool GCWBreakInEnabled;                             // true if full break-in enabled
 uint32_t GClassEPWMMin;                             // min class E PWM. NOT USED at present.
 uint32_t GClassEPWMMax;                             // max class E PWM. NOT USED at present.
 uint32_t GCodecConfigReg;                           // codec configuration
@@ -100,7 +98,9 @@ ESampleRate GDUCSampleRate;                         // P2. TX sample rate. NOT U
 unsigned int GDUCSampleSize;                        // P2. DUC # sample bits. NOT USED YET
 unsigned int GDUCPhaseShift;                        // P2. DUC phase shift. NOT USED YET.
 bool GSpeakerMuted;                                 // P2. True if speaker muted.
-bool GCWXMode;                                      // P2. Not yet used. 
+bool GCWXMode;                                      // True if in computer generated CWX mode
+bool GCWXDot;                                       // True if computer generated CW Dot.
+bool GCWXDash;                                      // True if computer generated CW Dash.
 bool GDashPressed;                                  // P2. True if dash input pressed.
 bool GDotPressed;                                   // P2. true if dot input pressed.
 unsigned int GUserOutputBits;                       // P2. Not yet implermented.
@@ -238,9 +238,26 @@ uint32_t DDCRegisters[VNUMDDC] =
 //
 // Keyer setup register defines
 //
-#define VCWKEYERENABLE 31                               // enble bit
+#define VCWKEYERENABLE 31                               // enable bit
+#define VCWKEYERDELAY 0                                 // delay bits 7:0
 #define VCWKEYERHANG 8                                  // hang time is 17:8
 #define VCWKEYERRAMP 18                                 // ramp time
+
+
+//
+// Iambic config register defines
+//
+#define VIAMBICSPEED 0                                  // speed bits 7:0
+#define VIAMBICWEIGHT 8                                 // weight bits 15:8
+#define VIAMBICREVERSED 16                              // keys reversed bit 16
+#define VIAMBICENABLE 17                                // keyer enabled bit 17
+#define VIAMBICMODE 18                                  // mode bit 18
+#define VIAMBICSTRICT 19                                // strict spacing bit 19
+#define VIAMBICCWX 20                                   // CWX enable bit 20
+#define VIAMBICCWXDOT 21                                // CWX dox bit 21
+#define VIAMBICCWXDASH 22                               // CWX dash bit 22
+#define VIAMBICCWXBITS 0x00700000                       // all CWX bits
+#define VIAMBICBITS 0x000FFFFF                          // all non CWX bits
 
 
 //
@@ -288,18 +305,6 @@ void InitialiseDACAttenROMs(void)
         DACStepAttenROM[Level] = StepValue;
     }
 }
-
-
-//
-// InitialiseCWKeyerRamp(void)
-// calculates an "S" shape ramp curve and loads into RAM
-// needs to be called before keyer enabled!
-//
-void InitialiseCWKeyerRamp(void)
-{
-
-}
-
 
 
 //
@@ -1230,83 +1235,73 @@ void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool RXAtten, bool TXA
 
 
 //
-// SetCWKeyerReversed(bool Reversed)
-// if set, swaps the paddle inputs
-// not yet used, but will be
+//void SetCWIambicKeyer(...)
+// setup CW iambic keyer parameters
+// Speed: keyer speed in WPM
+// weight: typically 50
+// ReverseKeys: swaps dot and dash
+// mode: true if mode B
+// strictSpacing: true if it enforces character spacing
+// IambicEnabled: if false, reverts to straight CW key
 //
-void SetCWKeyerReversed(bool Reversed)
+void SetCWIambicKeyer(uint8_t Speed, uint8_t Weight, bool ReverseKeys, bool Mode, 
+                      bool StrictSpacing, bool IambicEnabled)
 {
-    GCWKeysReversed = Reversed;                     // just save it for now
-}
+    uint32_t Register;
+    Register =GIambicConfigReg;                     // copy of H/W register
+    Register &= ~VIAMBICBITS;                       // strip off old iambic bits
 
-
-//
-// SetCWKeyerSpeed(unsigned int Speed)
-// sets the CW keyer speed, in WPM
-// not yet used, but will be
-//
-void SetCWKeyerSpeed(unsigned int Speed)
-{
     GCWKeyerSpeed = Speed;                          // just save it for now
-}
-
-
-//
-// SetCWKeyerMode(unsigned int Mode)
-// sets the CW keyer mode
-// not yet used, but will be
-//
-void SetCWKeyerMode(unsigned int Mode)
-{
-    GCWKeyerMode = Mode;                            // just save it for now
-}
-
-
-//
-// SetCWKeyerWeight(unsigned int Weight)
-// sets the CW keyer weight value (7 bits)
-// not yet used, but will be
-//
-void SetCWKeyerWeight(unsigned int Weight)
-{
     GCWKeyerWeight = Weight;                        // just save it for now
+    GCWKeysReversed = ReverseKeys;                  // just save it for now
+    GCWKeyerMode = Mode;                            // just save it for now
+    GCWKeyerSpacing = StrictSpacing;
+    GCWIambicKeyerEnabled = IambicEnabled;
+// set new data
+    Register |= Speed;
+    Register |= (Weight << VIAMBICWEIGHT);
+    if(ReverseKeys)
+        Register |= (1<<VIAMBICREVERSED);           // set bit if enabled
+    if(Mode)
+        Register |= (1<<VIAMBICMODE);               // set bit if enabled
+    if(StrictSpacing)
+        Register |= (1<<VIAMBICSTRICT);             // set bit if enabled
+    if(IambicEnabled)
+        Register |= (1<<VIAMBICENABLE);             // set bit if enabled
+    
+    if (Register != GIambicConfigReg)               // save if changed
+    {
+        GIambicConfigReg = Register;
+        RegisterWrite(VADDRIAMBICCONFIG, Register);
+    }
 }
 
 
 //
-// SetCWKeyerEnabled(bool Enabled)
-// sets CW keyer spacing bit
+// void SetCWXBits(bool CWXEnabled, bool CWXDash, bool CWXDot)
+// setup CWX (host generated dot and dash)
 //
-void SetCWKeyerSpacing(bool Spacing)
+void SetCWXBits(bool CWXEnabled, bool CWXDash, bool CWXDot)
 {
-    GCWKeyerSpacing = Spacing;
+    uint32_t Register;
+    Register =GIambicConfigReg;                     // copy of H/W register
+    Register &= ~VIAMBICCWXBITS;                    // strip off old CWX bits
+    GCWXMode =CWXEnabled;                           // computer generated CWX mode
+    GCWXDot = CWXDot;                               // computer generated CW Dot.
+    GCWXDash = CWXDash;                             // computer generated CW Dash.
+    if(GCWXMode)
+        Register |= (1<<VIAMBICCWX);                // set bit if enabled
+    if(GCWXDot)
+        Register |= (1<<VIAMBICCWXDOT);             // set bit if enabled
+    if(GCWXDash)
+        Register |= (1<<VIAMBICCWXDASH);            // set bit if enabled
+    
+    if (Register != GIambicConfigReg)               // save if changed
+    {
+        GIambicConfigReg = Register;
+        RegisterWrite(VADDRIAMBICCONFIG, Register);
+    }
 }
-
-
-//
-// SetCWKeyerEnabled(bool Enabled)
-// enables or disables the CW keyer
-// not yet used, but will be
-//
-void SetCWKeyerEnabled(bool Enabled)
-{
-    GCWKeyerEnabled = Enabled;
-}
-
-
-//
-// SetCWKeyerBits(bool Enabled, bool Reversed, bool ModeB, bool Strict, bool BreakIn)
-// set several bits associated with the CW iambic keyer
-//
-void SetCWKeyerBits(bool Enabled, bool Reversed, bool ModeB, bool Strict, bool BreakIn)
-{
-    GCWKeyerEnabled = Enabled;
-    GCWKeysReversed = Reversed;                     // just save it for now
-    GCWKeyerMode = ModeB;                            // just save it for now
-    GCWKeyerSpacing = Strict;
-    GCWKeyerBreakIn = BreakIn;
-}
-
 
 
 
@@ -1363,6 +1358,19 @@ void SetRXDDCEnabled(bool IsEnabled)
     sem_post(&DDCInSelMutex);
 }
 
+
+
+//
+// InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
+// calculates an "S" shape ramp curve and loads into RAM
+// needs to be called before keyer enabled!
+// parameter is length in microseconds; typically 1000-5000
+// setup ramp memory and rampl length fields
+//
+void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
+{
+
+}
 
 
 
@@ -1491,17 +1499,6 @@ void SetCWSidetoneFrequency(unsigned int Frequency)
         GCodecConfigReg = Register;                 // store it back
 //        RegisterWrite(VADDRCODECCONFIGREG, Register);  // and write to it
     }
-}
-
-
-//
-// SetCWBreakInEnabled(bool Enabled)
-// enables or disables full CW break-in
-// I don't think this has any effect
-//
-void SetCWBreakInEnabled(bool Enabled)
-{
-    GCWBreakInEnabled = Enabled;
 }
 
 
@@ -1695,17 +1692,6 @@ void SetDUCPhaseShift(unsigned int Value)
     GDUCPhaseShift = Value;                                 // just save for now. 
 }
 
-
-//
-// SetCWKeys(bool CWXMode, bool Dash, bool Dot)
-// sets the CW key state from SDR application 
-//
-void SetCWKeys(bool CWXMode, bool Dash, bool Dot)
-{
-    GCWXMode = CWXMode;                                     // just save these 3 for now
-    GDashPressed =Dash;
-    GDotPressed = Dot;
-}
 
 
 //

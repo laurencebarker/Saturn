@@ -234,6 +234,23 @@ void *CheckForExitCommand(void *arg)
 
 
 //
+// Shutdown()
+// perform ordely shutdown of the program
+//
+void Shutdown()
+{
+  close(SocketData[0].Socketid);                          // close incoming data socket
+  sem_destroy(&DDCInSelMutex);
+  sem_destroy(&DDCResetFIFOMutex);
+  sem_destroy(&RFGPIOMutex);
+  sem_destroy(&CodecRegMutex);
+  SetMOX(false);
+  SetTXEnable(false);
+}
+
+
+
+//
 // main program. Initialise, then handle incoming command/general data
 // has a loop that reads & processes incoming command packets
 // see protocol documentation
@@ -292,7 +309,7 @@ int main(int argc, char *argv[])
   PrintVersionInfo();
   CodecInitialise();
   InitialiseDACAttenROMs();
-  InitialiseCWKeyerRamp();
+  InitialiseCWKeyerRamp(true, 5000);
   SetCWSidetoneEnabled(true);
   SetTXProtocol(true);                                              // set to protocol 2
   SetTXModulationSource(eIQData);                                   // disable debug options
@@ -513,13 +530,7 @@ int main(int argc, char *argv[])
   // clean exit
   //
   printf("Exiting\n");
-  close(SocketData[0].Socketid);                          // close incoming data socket
-  sem_destroy(&DDCInSelMutex);
-  sem_destroy(&DDCResetFIFOMutex);
-  sem_destroy(&RFGPIOMutex);
-  sem_destroy(&CodecRegMutex);
-  SetMOX(false);
-  SetTXEnable(false);
+  Shutdown();
   return EXIT_SUCCESS;
 }
 

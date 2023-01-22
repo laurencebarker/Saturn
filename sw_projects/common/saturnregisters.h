@@ -107,6 +107,7 @@ typedef enum
 #define VADDRADCCTRLREG 0x2018
 #define VADDRDACCTRLREG 0x201C
 #define VADDRDEBUGLEDREG 0x3000
+#define VADDRIAMBICCONFIG 0X3004
 #define VADDRSTATUSREG 0x4000
 #define VADDRDATECODE 0x4004
 #define VADDRADCOVERFLOWBASE 0x5000
@@ -155,11 +156,12 @@ extern bool GEEREnabled;                                   // P2. true if EER is
 
 
 //
-// InitialiseCWKeyerRamp(void)
+// InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
 // calculates an "S" shape ramp curve and loads into RAM
 // needs to be called before keyer enabled!
+// parameter is length in microseconds; typically 1000-5000
 //
-void InitialiseCWKeyerRamp(void);
+void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us);
 
 
 
@@ -467,53 +469,24 @@ void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool RXAtten, bool TXA
 
 
 //
-// SetCWKeyerReversed(bool Reversed)
-// if set, swaps the paddle inputs
+//void SetCWIambicKeyer(...)
+// setup CW iambic keyer parameters
+// Speed: keyer speed in WPM
+// weight: typically 50
+// ReverseKeys: swaps dot and dash
+// mode: true if mode B
+// strictSpacing: true if it enforces character spacing
+// IambicEnabled: if false, reverts to straight CW key
 //
-void SetCWKeyerReversed(bool Reversed);
+void SetCWIambicKeyer(uint8_t Speed, uint8_t Weight, bool ReverseKeys, bool Mode, 
+                      bool StrictSpacing, bool IambicEnabled);
 
 
 //
-// SetCWKeyerSpeed(unsigned int Speed)
-// sets the CW keyer speed, in WPM
+// void SetCWXBits(bool CWXEnabled, bool CWXDash, bool CWXDot)
+// setup CWX (host generated dot and dash)
 //
-void SetCWKeyerSpeed(unsigned int Speed);
-
-
-//
-// SetCWKeyerMode(unsigned int Mode)
-// sets the CW keyer mode, True if mode B
-//
-void SetCWKeyerMode(unsigned int Mode);
-
-
-//
-// SetCWKeyerWeight(unsigned int Weight)
-// sets the CW keyer weight value (7 bits)
-//
-void SetCWKeyerWeight(unsigned int Weight);
-
-
-//
-// SetCWKeyerSpacing(bool Spacing)
-// sets CW keyer spacing bit
-//
-void SetCWKeyerSpacing(bool Spacing);
-
-
-//
-// SetCWKeyerEnabled(bool Enabled)
-// enables or disables the CW keyer
-//
-void SetCWKeyerEnabled(bool Enabled);
-
-
-//
-// SetCWKeyerBits(bool Enabled, bool Reversed, bool ModeB, bool Strict, bool BreakIn)
-// set several bits associated with the CW iambic keyer
-//
-void SetCWKeyerBits(bool Enabled, bool Reversed, bool ModeB, bool Strict, bool BreakIn);
-
+void SetCWXBits(bool CWXEnabled, bool CWXDash, bool CWXDot);
 
 
 //
@@ -585,13 +558,6 @@ void SetCWSidetoneFrequency(unsigned int Frequency);
 // enables or disables sidetone. If disabled, the volume is set to zero
 //
 void SetCWSidetoneEnabled(bool Enabled);
-
-
-//
-// SetCWBreakInEnabled(bool Enabled)
-// enables or disables full CW break-in
-//
-void SetCWBreakInEnabled(bool Enabled);
 
 
 //
@@ -707,13 +673,6 @@ void SetDUCSampleSize(unsigned int Bits);
 // sets a phase shift onto the TX output. Currently unimplemented. 
 //
 void SetDUCPhaseShift(unsigned int Value);
-
-
-//
-// SetCWKeys(bool CWXMode, bool Dash, bool Dot)
-// sets the CW key state from SDR application 
-//
-void SetCWKeys(bool CWXMode, bool Dash, bool Dot);
 
 
 //
