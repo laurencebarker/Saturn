@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="IQModnCodec_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="IQModnCodec_tb" />
+            <top_module name="axi_bram_ctrl_funcs" />
+            <top_module name="axi_vip_pkg" />
+            <top_module name="glbl" />
+            <top_module name="std" />
+            <top_module name="vcomponents" />
+            <top_module name="xil_common_vip_pkg" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="23.036244905 ms"></ZoomStartTime>
+      <ZoomEndTime time="31.139720054 ms"></ZoomEndTime>
+      <Cursor1Time time="29.789140862 ms"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="224"></NameColumnWidth>
+      <ValueColumnWidth column_width="58"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="11" />
+   <wvobject fp_name="/IQModnCodec_tb/cw_key_down" type="logic">
+      <obj_property name="ElementShortName">cw_key_down</obj_property>
+      <obj_property name="ObjectShortName">cw_key_down</obj_property>
+   </wvobject>
+   <wvobject fp_name="vbus299" type="vbus">
+      <obj_property name="label">Modn_I</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[23]" type="logic">
+         <obj_property name="ElementShortName">[23]</obj_property>
+         <obj_property name="ObjectShortName">[23]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[22]" type="logic">
+         <obj_property name="ElementShortName">[22]</obj_property>
+         <obj_property name="ObjectShortName">[22]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[21]" type="logic">
+         <obj_property name="ElementShortName">[21]</obj_property>
+         <obj_property name="ObjectShortName">[21]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[20]" type="logic">
+         <obj_property name="ElementShortName">[20]</obj_property>
+         <obj_property name="ObjectShortName">[20]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[19]" type="logic">
+         <obj_property name="ElementShortName">[19]</obj_property>
+         <obj_property name="ObjectShortName">[19]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[18]" type="logic">
+         <obj_property name="ElementShortName">[18]</obj_property>
+         <obj_property name="ObjectShortName">[18]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[17]" type="logic">
+         <obj_property name="ElementShortName">[17]</obj_property>
+         <obj_property name="ObjectShortName">[17]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[16]" type="logic">
+         <obj_property name="ElementShortName">[16]</obj_property>
+         <obj_property name="ObjectShortName">[16]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[15]" type="logic">
+         <obj_property name="ElementShortName">[15]</obj_property>
+         <obj_property name="ObjectShortName">[15]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[14]" type="logic">
+         <obj_property name="ElementShortName">[14]</obj_property>
+         <obj_property name="ObjectShortName">[14]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[13]" type="logic">
+         <obj_property name="ElementShortName">[13]</obj_property>
+         <obj_property name="ObjectShortName">[13]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[12]" type="logic">
+         <obj_property name="ElementShortName">[12]</obj_property>
+         <obj_property name="ObjectShortName">[12]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[11]" type="logic">
+         <obj_property name="ElementShortName">[11]</obj_property>
+         <obj_property name="ObjectShortName">[11]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[10]" type="logic">
+         <obj_property name="ElementShortName">[10]</obj_property>
+         <obj_property name="ObjectShortName">[10]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[9]" type="logic">
+         <obj_property name="ElementShortName">[9]</obj_property>
+         <obj_property name="ObjectShortName">[9]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[8]" type="logic">
+         <obj_property name="ElementShortName">[8]</obj_property>
+         <obj_property name="ObjectShortName">[8]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[7]" type="logic">
+         <obj_property name="ElementShortName">[7]</obj_property>
+         <obj_property name="ObjectShortName">[7]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[6]" type="logic">
+         <obj_property name="ElementShortName">[6]</obj_property>
+         <obj_property name="ObjectShortName">[6]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[5]" type="logic">
+         <obj_property name="ElementShortName">[5]</obj_property>
+         <obj_property name="ObjectShortName">[5]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[4]" type="logic">
+         <obj_property name="ElementShortName">[4]</obj_property>
+         <obj_property name="ObjectShortName">[4]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[3]" type="logic">
+         <obj_property name="ElementShortName">[3]</obj_property>
+         <obj_property name="ObjectShortName">[3]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[2]" type="logic">
+         <obj_property name="ElementShortName">[2]</obj_property>
+         <obj_property name="ObjectShortName">[2]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[1]" type="logic">
+         <obj_property name="ElementShortName">[1]</obj_property>
+         <obj_property name="ObjectShortName">[1]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[0]" type="logic">
+         <obj_property name="ElementShortName">[0]</obj_property>
+         <obj_property name="ObjectShortName">[0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="vbus274" type="vbus">
+      <obj_property name="label">modn_Q</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[47]" type="logic">
+         <obj_property name="ElementShortName">[47]</obj_property>
+         <obj_property name="ObjectShortName">[47]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[46]" type="logic">
+         <obj_property name="ElementShortName">[46]</obj_property>
+         <obj_property name="ObjectShortName">[46]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[45]" type="logic">
+         <obj_property name="ElementShortName">[45]</obj_property>
+         <obj_property name="ObjectShortName">[45]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[44]" type="logic">
+         <obj_property name="ElementShortName">[44]</obj_property>
+         <obj_property name="ObjectShortName">[44]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[43]" type="logic">
+         <obj_property name="ElementShortName">[43]</obj_property>
+         <obj_property name="ObjectShortName">[43]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[42]" type="logic">
+         <obj_property name="ElementShortName">[42]</obj_property>
+         <obj_property name="ObjectShortName">[42]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[41]" type="logic">
+         <obj_property name="ElementShortName">[41]</obj_property>
+         <obj_property name="ObjectShortName">[41]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[40]" type="logic">
+         <obj_property name="ElementShortName">[40]</obj_property>
+         <obj_property name="ObjectShortName">[40]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[39]" type="logic">
+         <obj_property name="ElementShortName">[39]</obj_property>
+         <obj_property name="ObjectShortName">[39]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[38]" type="logic">
+         <obj_property name="ElementShortName">[38]</obj_property>
+         <obj_property name="ObjectShortName">[38]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[37]" type="logic">
+         <obj_property name="ElementShortName">[37]</obj_property>
+         <obj_property name="ObjectShortName">[37]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[36]" type="logic">
+         <obj_property name="ElementShortName">[36]</obj_property>
+         <obj_property name="ObjectShortName">[36]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[35]" type="logic">
+         <obj_property name="ElementShortName">[35]</obj_property>
+         <obj_property name="ObjectShortName">[35]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[34]" type="logic">
+         <obj_property name="ElementShortName">[34]</obj_property>
+         <obj_property name="ObjectShortName">[34]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[33]" type="logic">
+         <obj_property name="ElementShortName">[33]</obj_property>
+         <obj_property name="ObjectShortName">[33]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[32]" type="logic">
+         <obj_property name="ElementShortName">[32]</obj_property>
+         <obj_property name="ObjectShortName">[32]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[31]" type="logic">
+         <obj_property name="ElementShortName">[31]</obj_property>
+         <obj_property name="ObjectShortName">[31]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[30]" type="logic">
+         <obj_property name="ElementShortName">[30]</obj_property>
+         <obj_property name="ObjectShortName">[30]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[29]" type="logic">
+         <obj_property name="ElementShortName">[29]</obj_property>
+         <obj_property name="ObjectShortName">[29]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[28]" type="logic">
+         <obj_property name="ElementShortName">[28]</obj_property>
+         <obj_property name="ObjectShortName">[28]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[27]" type="logic">
+         <obj_property name="ElementShortName">[27]</obj_property>
+         <obj_property name="ObjectShortName">[27]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[26]" type="logic">
+         <obj_property name="ElementShortName">[26]</obj_property>
+         <obj_property name="ObjectShortName">[26]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[25]" type="logic">
+         <obj_property name="ElementShortName">[25]</obj_property>
+         <obj_property name="ObjectShortName">[25]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tdata[24]" type="logic">
+         <obj_property name="ElementShortName">[24]</obj_property>
+         <obj_property name="ObjectShortName">[24]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tready" type="logic">
+      <obj_property name="ElementShortName">m_axis_TXMod_tready</obj_property>
+      <obj_property name="ObjectShortName">m_axis_TXMod_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/IQModnCodec_tb/m_axis_TXMod_tvalid" type="logic">
+      <obj_property name="ElementShortName">m_axis_TXMod_tvalid</obj_property>
+      <obj_property name="ObjectShortName">m_axis_TXMod_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="vbus448" type="vbus">
+      <obj_property name="label">spk_L</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
+      <obj_property name="CellHeight">100</obj_property>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[15]" type="logic">
+         <obj_property name="ElementShortName">[15]</obj_property>
+         <obj_property name="ObjectShortName">[15]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[14]" type="logic">
+         <obj_property name="ElementShortName">[14]</obj_property>
+         <obj_property name="ObjectShortName">[14]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[13]" type="logic">
+         <obj_property name="ElementShortName">[13]</obj_property>
+         <obj_property name="ObjectShortName">[13]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[12]" type="logic">
+         <obj_property name="ElementShortName">[12]</obj_property>
+         <obj_property name="ObjectShortName">[12]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[11]" type="logic">
+         <obj_property name="ElementShortName">[11]</obj_property>
+         <obj_property name="ObjectShortName">[11]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[10]" type="logic">
+         <obj_property name="ElementShortName">[10]</obj_property>
+         <obj_property name="ObjectShortName">[10]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[9]" type="logic">
+         <obj_property name="ElementShortName">[9]</obj_property>
+         <obj_property name="ObjectShortName">[9]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[8]" type="logic">
+         <obj_property name="ElementShortName">[8]</obj_property>
+         <obj_property name="ObjectShortName">[8]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[7]" type="logic">
+         <obj_property name="ElementShortName">[7]</obj_property>
+         <obj_property name="ObjectShortName">[7]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[6]" type="logic">
+         <obj_property name="ElementShortName">[6]</obj_property>
+         <obj_property name="ObjectShortName">[6]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[5]" type="logic">
+         <obj_property name="ElementShortName">[5]</obj_property>
+         <obj_property name="ObjectShortName">[5]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[4]" type="logic">
+         <obj_property name="ElementShortName">[4]</obj_property>
+         <obj_property name="ObjectShortName">[4]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[3]" type="logic">
+         <obj_property name="ElementShortName">[3]</obj_property>
+         <obj_property name="ObjectShortName">[3]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[2]" type="logic">
+         <obj_property name="ElementShortName">[2]</obj_property>
+         <obj_property name="ObjectShortName">[2]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[1]" type="logic">
+         <obj_property name="ElementShortName">[1]</obj_property>
+         <obj_property name="ObjectShortName">[1]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[0]" type="logic">
+         <obj_property name="ElementShortName">[0]</obj_property>
+         <obj_property name="ObjectShortName">[0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="vbus431" type="vbus">
+      <obj_property name="label">spk_R</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
+      <obj_property name="CellHeight">100</obj_property>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[31]" type="logic">
+         <obj_property name="ElementShortName">[31]</obj_property>
+         <obj_property name="ObjectShortName">[31]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[30]" type="logic">
+         <obj_property name="ElementShortName">[30]</obj_property>
+         <obj_property name="ObjectShortName">[30]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[29]" type="logic">
+         <obj_property name="ElementShortName">[29]</obj_property>
+         <obj_property name="ObjectShortName">[29]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[28]" type="logic">
+         <obj_property name="ElementShortName">[28]</obj_property>
+         <obj_property name="ObjectShortName">[28]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[27]" type="logic">
+         <obj_property name="ElementShortName">[27]</obj_property>
+         <obj_property name="ObjectShortName">[27]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[26]" type="logic">
+         <obj_property name="ElementShortName">[26]</obj_property>
+         <obj_property name="ObjectShortName">[26]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[25]" type="logic">
+         <obj_property name="ElementShortName">[25]</obj_property>
+         <obj_property name="ObjectShortName">[25]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[24]" type="logic">
+         <obj_property name="ElementShortName">[24]</obj_property>
+         <obj_property name="ObjectShortName">[24]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[23]" type="logic">
+         <obj_property name="ElementShortName">[23]</obj_property>
+         <obj_property name="ObjectShortName">[23]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[22]" type="logic">
+         <obj_property name="ElementShortName">[22]</obj_property>
+         <obj_property name="ObjectShortName">[22]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[21]" type="logic">
+         <obj_property name="ElementShortName">[21]</obj_property>
+         <obj_property name="ObjectShortName">[21]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[20]" type="logic">
+         <obj_property name="ElementShortName">[20]</obj_property>
+         <obj_property name="ObjectShortName">[20]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[19]" type="logic">
+         <obj_property name="ElementShortName">[19]</obj_property>
+         <obj_property name="ObjectShortName">[19]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[18]" type="logic">
+         <obj_property name="ElementShortName">[18]</obj_property>
+         <obj_property name="ObjectShortName">[18]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[17]" type="logic">
+         <obj_property name="ElementShortName">[17]</obj_property>
+         <obj_property name="ObjectShortName">[17]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tdata[16]" type="logic">
+         <obj_property name="ElementShortName">[16]</obj_property>
+         <obj_property name="ObjectShortName">[16]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tready" type="logic">
+      <obj_property name="ElementShortName">sxmit_axis_tready</obj_property>
+      <obj_property name="ObjectShortName">sxmit_axis_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/I2S_xmit_0/sxmit_axis_tvalid" type="logic">
+      <obj_property name="ElementShortName">sxmit_axis_tvalid</obj_property>
+      <obj_property name="ObjectShortName">sxmit_axis_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/axis_multiplier_vol_star_sine_star_ramp/s01_axis_tvalid" type="logic">
+      <obj_property name="ElementShortName">s01_axis_tvalid</obj_property>
+      <obj_property name="ObjectShortName">s01_axis_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/IQModnCodec_tb/UUT/IQCODECBLK_i/audio_codec_0/axis_multiplier_vol_star_sine_star_ramp/s01_axis_tready" type="logic">
+      <obj_property name="ElementShortName">s01_axis_tready</obj_property>
+      <obj_property name="ObjectShortName">s01_axis_tready</obj_property>
+   </wvobject>
+</wave_config>

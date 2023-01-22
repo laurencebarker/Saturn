@@ -1,0 +1,9 @@
+# GIT should ignore:
+DUCIP.cache
+DUCIP.gen
+DUCIP.hw
+DUCIP.ip_user_files
+DUCIP.runs
+DUCIP.sim
+.Xil
+vivado.*

@@ -67,13 +67,13 @@
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="15"/>
-    <Option Name="WTModelSimExportSim" Val="15"/>
-    <Option Name="WTQuestaExportSim" Val="15"/>
+    <Option Name="WTXSimExportSim" Val="17"/>
+    <Option Name="WTModelSimExportSim" Val="17"/>
+    <Option Name="WTQuestaExportSim" Val="17"/>
     <Option Name="WTIesExportSim" Val="3"/>
-    <Option Name="WTVcsExportSim" Val="15"/>
-    <Option Name="WTRivieraExportSim" Val="15"/>
-    <Option Name="WTActivehdlExportSim" Val="15"/>
+    <Option Name="WTVcsExportSim" Val="17"/>
+    <Option Name="WTRivieraExportSim" Val="17"/>
+    <Option Name="WTActivehdlExportSim" Val="17"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>
@@ -112,6 +112,13 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../sources/verilogmodules/FIFO_Monitor.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/axi_stream_resizer_64to48.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -257,158 +264,17 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_dwidth_converter_fir_to_IQ_0/saturn_top_axis_dwidth_converter_fir_to_IQ_0.xci">
-          <Proxy FileSetName="saturn_top_axis_dwidth_converter_fir_to_IQ_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_clock_cvt_sidetone_122_to_12_0/saturn_top_axis_clock_cvt_sidetone_122_to_12_0.xci">
-          <Proxy FileSetName="saturn_top_axis_clock_cvt_sidetone_122_to_12_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_cic_compiler_1_0/saturn_top_cic_compiler_1_0.xci">
-          <Proxy FileSetName="saturn_top_cic_compiler_1_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_2/saturn_top_util_reduced_logic_0_2.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_0_2"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_fir_compiler_0_0/saturn_top_fir_compiler_0_0.xci">
-          <Proxy FileSetName="saturn_top_fir_compiler_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_clk_wiz_0_0/saturn_top_clk_wiz_0_0.xci">
-          <Proxy FileSetName="saturn_top_clk_wiz_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_cic_compiler_0_0/saturn_top_cic_compiler_0_0.xci">
-          <Proxy FileSetName="saturn_top_cic_compiler_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_cordic_0_0/saturn_top_cordic_0_0.xci">
-          <Proxy FileSetName="saturn_top_cordic_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_broadcaster_cic_path_split_0/saturn_top_axis_broadcaster_cic_path_split_0.xci">
-          <Proxy FileSetName="saturn_top_axis_broadcaster_cic_path_split_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_combiner_0_0/saturn_top_axis_combiner_0_0.xci">
-          <Proxy FileSetName="saturn_top_axis_combiner_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_dwidth_converter_0_0/saturn_top_axis_dwidth_converter_0_0.xci">
-          <Proxy FileSetName="saturn_top_axis_dwidth_converter_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIS_DDC_Multiplexer_0_0/saturn_top_AXIS_DDC_Multiplexer_0_0.xci">
-          <Proxy FileSetName="saturn_top_AXIS_DDC_Multiplexer_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIL_ConfigReg_64_1_0/saturn_top_AXIL_ConfigReg_64_1_0.xci">
-          <Proxy FileSetName="saturn_top_AXIL_ConfigReg_64_1_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXI_FIFO_overflow_re_0_0/saturn_top_AXI_FIFO_overflow_re_0_0.xci">
-          <Proxy FileSetName="saturn_top_AXI_FIFO_overflow_re_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_vector_logic_0_2/saturn_top_util_vector_logic_0_2.xci">
-          <Proxy FileSetName="saturn_top_util_vector_logic_0_2"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_0/saturn_top_axis_data_fifo_0_0.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_1/saturn_top_axis_data_fifo_0_1.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_0_1"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_2/saturn_top_D_register_norst_0_2.xci">
-          <Proxy FileSetName="saturn_top_D_register_norst_0_2"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_1/saturn_top_regmux_2_1_0_1.xci">
-          <Proxy FileSetName="saturn_top_regmux_2_1_0_1"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIL_ConfigReg_256_RX_0_0/saturn_top_AXIL_ConfigReg_256_RX_0_0.xci">
-          <Proxy FileSetName="saturn_top_AXIL_ConfigReg_256_RX_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_dds_compiler_0_0/saturn_top_dds_compiler_0_0.xci">
-          <Proxy FileSetName="saturn_top_dds_compiler_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_3/saturn_top_util_reduced_logic_0_3.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_0_3"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIL_ConfigReg_256_RX_1_0/saturn_top_AXIL_ConfigReg_256_RX_1_0.xci">
-          <Proxy FileSetName="saturn_top_AXIL_ConfigReg_256_RX_1_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_3_0/saturn_top_util_reduced_logic_3_0.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_3_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_1/saturn_top_util_reduced_logic_0_1.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_0_1"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_0/saturn_top_util_reduced_logic_0_0.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_1_0/saturn_top_util_reduced_logic_1_0.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_1_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_2_0/saturn_top_util_reduced_logic_2_0.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_2_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_vector_logic_0_1/saturn_top_util_vector_logic_0_1.xci">
-          <Proxy FileSetName="saturn_top_util_vector_logic_0_1"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_4/saturn_top_regmux_2_1_0_4.xci">
-          <Proxy FileSetName="saturn_top_regmux_2_1_0_4"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_5/saturn_top_axis_data_fifo_0_5.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_0_5"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_3/saturn_top_regmux_2_1_0_3.xci">
-          <Proxy FileSetName="saturn_top_regmux_2_1_0_3"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_6/saturn_top_util_reduced_logic_0_6.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_0_6"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_2/saturn_top_axis_data_fifo_0_2.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_0_2"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_4/saturn_top_axis_data_fifo_0_4.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_0_4"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_2/saturn_top_axis_data_fifo_1_2.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_1_2"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_3/saturn_top_D_register_norst_0_3.xci">
-          <Proxy FileSetName="saturn_top_D_register_norst_0_3"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_2/saturn_top_regmux_2_1_0_2.xci">
-          <Proxy FileSetName="saturn_top_regmux_2_1_0_2"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_7/saturn_top_util_reduced_logic_0_7.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_0_7"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_3/saturn_top_axis_data_fifo_0_3.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_0_3"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_5/saturn_top_util_reduced_logic_0_5.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_0_5"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_3/saturn_top_axis_data_fifo_1_3.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_1_3"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_1/saturn_top_axis_data_fifo_1_1.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_1_1"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_5/saturn_top_regmux_2_1_0_5.xci">
-          <Proxy FileSetName="saturn_top_regmux_2_1_0_5"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_4/saturn_top_util_reduced_logic_0_4.xci">
-          <Proxy FileSetName="saturn_top_util_reduced_logic_0_4"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_4/saturn_top_D_register_norst_0_4.xci">
-          <Proxy FileSetName="saturn_top_D_register_norst_0_4"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_0/saturn_top_axis_data_fifo_1_0.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_1_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_5/saturn_top_D_register_norst_0_5.xci">
-          <Proxy FileSetName="saturn_top_D_register_norst_0_5"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_6/saturn_top_D_register_norst_0_6.xci">
-          <Proxy FileSetName="saturn_top_D_register_norst_0_6"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_ds_buf_4_0/saturn_top_util_ds_buf_4_0.xci">
-          <Proxy FileSetName="saturn_top_util_ds_buf_4_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_2_0/saturn_top_selectio_wiz_2_0.xci">
+          <Proxy FileSetName="saturn_top_selectio_wiz_2_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_ds_buf_5_0/saturn_top_util_ds_buf_5_0.xci">
           <Proxy FileSetName="saturn_top_util_ds_buf_5_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_0_1/saturn_top_selectio_wiz_0_1.xci">
+          <Proxy FileSetName="saturn_top_selectio_wiz_0_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_ds_buf_4_0/saturn_top_util_ds_buf_4_0.xci">
+          <Proxy FileSetName="saturn_top_util_ds_buf_4_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_0_0/saturn_top_selectio_wiz_0_0.xci">
           <Proxy FileSetName="saturn_top_selectio_wiz_0_0"/>
@@ -416,53 +282,197 @@
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_0_2/saturn_top_selectio_wiz_0_2.xci">
           <Proxy FileSetName="saturn_top_selectio_wiz_0_2"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_0_3/saturn_top_selectio_wiz_0_3.xci">
-          <Proxy FileSetName="saturn_top_selectio_wiz_0_3"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_clock_cvt_sidetone_122_to_12_0/saturn_top_axis_clock_cvt_sidetone_122_to_12_0.xci">
+          <Proxy FileSetName="saturn_top_axis_clock_cvt_sidetone_122_to_12_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_0_1/saturn_top_selectio_wiz_0_1.xci">
-          <Proxy FileSetName="saturn_top_selectio_wiz_0_1"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_cic_compiler_1_0/saturn_top_cic_compiler_1_0.xci">
+          <Proxy FileSetName="saturn_top_cic_compiler_1_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_2_0/saturn_top_selectio_wiz_2_0.xci">
-          <Proxy FileSetName="saturn_top_selectio_wiz_2_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_cic_compiler_0_0/saturn_top_cic_compiler_0_0.xci">
+          <Proxy FileSetName="saturn_top_cic_compiler_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xbar_0/saturn_top_xbar_0.xci">
-          <Proxy FileSetName="saturn_top_xbar_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_combiner_0_0/saturn_top_axis_combiner_0_0.xci">
+          <Proxy FileSetName="saturn_top_axis_combiner_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_pci_clk_buf_0/saturn_top_pci_clk_buf_0.xci">
-          <Proxy FileSetName="saturn_top_pci_clk_buf_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_dwidth_converter_0_0/saturn_top_axis_dwidth_converter_0_0.xci">
+          <Proxy FileSetName="saturn_top_axis_dwidth_converter_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_DDC0_0/saturn_top_axis_data_fifo_DDC0_0.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_DDC0_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_dwidth_converter_fir_to_IQ_0/saturn_top_axis_dwidth_converter_fir_to_IQ_0.xci">
+          <Proxy FileSetName="saturn_top_axis_dwidth_converter_fir_to_IQ_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xbar_1/saturn_top_xbar_1.xci">
-          <Proxy FileSetName="saturn_top_xbar_1"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_cordic_0_0/saturn_top_cordic_0_0.xci">
+          <Proxy FileSetName="saturn_top_cordic_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_fir_compiler_0_0/saturn_top_fir_compiler_0_0.xci">
+          <Proxy FileSetName="saturn_top_fir_compiler_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_2/saturn_top_util_reduced_logic_0_2.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_0_2"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_clk_wiz_0_0/saturn_top_clk_wiz_0_0.xci">
+          <Proxy FileSetName="saturn_top_clk_wiz_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_broadcaster_cic_path_split_0/saturn_top_axis_broadcaster_cic_path_split_0.xci">
+          <Proxy FileSetName="saturn_top_axis_broadcaster_cic_path_split_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIS_DDC_Multiplexer_0_0/saturn_top_AXIS_DDC_Multiplexer_0_0.xci">
+          <Proxy FileSetName="saturn_top_AXIS_DDC_Multiplexer_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXI_FIFO_overflow_re_0_0/saturn_top_AXI_FIFO_overflow_re_0_0.xci">
+          <Proxy FileSetName="saturn_top_AXI_FIFO_overflow_re_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIL_ConfigReg_64_1_0/saturn_top_AXIL_ConfigReg_64_1_0.xci">
+          <Proxy FileSetName="saturn_top_AXIL_ConfigReg_64_1_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_vector_logic_1_0/saturn_top_util_vector_logic_1_0.xci">
           <Proxy FileSetName="saturn_top_util_vector_logic_1_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axi_quad_spi_0_0/saturn_top_axi_quad_spi_0_0.xci">
-          <Proxy FileSetName="saturn_top_axi_quad_spi_0_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_6/saturn_top_axis_data_fifo_0_6.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_0_6"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xadc_wiz_0_0/saturn_top_xadc_wiz_0_0.xci">
-          <Proxy FileSetName="saturn_top_xadc_wiz_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_codecmic_0/saturn_top_axis_data_fifo_codecmic_0.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_codecmic_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_codecspk_0/saturn_top_axis_data_fifo_codecspk_0.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_codecspk_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_DUC_0/saturn_top_axis_data_fifo_DUC_0.xci">
-          <Proxy FileSetName="saturn_top_axis_data_fifo_DUC_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_vector_logic_0_0/saturn_top_util_vector_logic_0_0.xci">
+          <Proxy FileSetName="saturn_top_util_vector_logic_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xbar_2/saturn_top_xbar_2.xci">
           <Proxy FileSetName="saturn_top_xbar_2"/>
         </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xadc_wiz_0_0/saturn_top_xadc_wiz_0_0.xci">
+          <Proxy FileSetName="saturn_top_xadc_wiz_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xbar_0/saturn_top_xbar_0.xci">
+          <Proxy FileSetName="saturn_top_xbar_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_codecspk_0/saturn_top_axis_data_fifo_codecspk_0.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_codecspk_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_codecmic_0/saturn_top_axis_data_fifo_codecmic_0.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_codecmic_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xbar_1/saturn_top_xbar_1.xci">
+          <Proxy FileSetName="saturn_top_xbar_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_DDC0_0/saturn_top_axis_data_fifo_DDC0_0.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_DDC0_0"/>
+        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_xbar_3/saturn_top_xbar_3.xci">
           <Proxy FileSetName="saturn_top_xbar_3"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_vector_logic_0_0/saturn_top_util_vector_logic_0_0.xci">
-          <Proxy FileSetName="saturn_top_util_vector_logic_0_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axi_quad_spi_0_0/saturn_top_axi_quad_spi_0_0.xci">
+          <Proxy FileSetName="saturn_top_axi_quad_spi_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_selectio_wiz_0_3/saturn_top_selectio_wiz_0_3.xci">
+          <Proxy FileSetName="saturn_top_selectio_wiz_0_3"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_pci_clk_buf_0/saturn_top_pci_clk_buf_0.xci">
+          <Proxy FileSetName="saturn_top_pci_clk_buf_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_DUC_0/saturn_top_axis_data_fifo_DUC_0.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_DUC_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_4/saturn_top_util_reduced_logic_0_4.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_0_4"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_6/saturn_top_D_register_norst_0_6.xci">
+          <Proxy FileSetName="saturn_top_D_register_norst_0_6"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_2/saturn_top_regmux_2_1_0_2.xci">
+          <Proxy FileSetName="saturn_top_regmux_2_1_0_2"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_3/saturn_top_util_reduced_logic_0_3.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_0_3"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_2/saturn_top_D_register_norst_0_2.xci">
+          <Proxy FileSetName="saturn_top_D_register_norst_0_2"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_3/saturn_top_D_register_norst_0_3.xci">
+          <Proxy FileSetName="saturn_top_D_register_norst_0_3"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_1/saturn_top_axis_data_fifo_1_1.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_1_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_5/saturn_top_util_reduced_logic_0_5.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_0_5"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_3/saturn_top_regmux_2_1_0_3.xci">
+          <Proxy FileSetName="saturn_top_regmux_2_1_0_3"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_4/saturn_top_D_register_norst_0_4.xci">
+          <Proxy FileSetName="saturn_top_D_register_norst_0_4"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_7/saturn_top_util_reduced_logic_0_7.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_0_7"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_5/saturn_top_axis_data_fifo_0_5.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_0_5"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_3/saturn_top_axis_data_fifo_1_3.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_1_3"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_0/saturn_top_axis_data_fifo_0_0.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_2/saturn_top_axis_data_fifo_0_2.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_0_2"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_5/saturn_top_regmux_2_1_0_5.xci">
+          <Proxy FileSetName="saturn_top_regmux_2_1_0_5"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_0/saturn_top_axis_data_fifo_1_0.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIL_ConfigReg_256_RX_0_0/saturn_top_AXIL_ConfigReg_256_RX_0_0.xci">
+          <Proxy FileSetName="saturn_top_AXIL_ConfigReg_256_RX_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_1/saturn_top_regmux_2_1_0_1.xci">
+          <Proxy FileSetName="saturn_top_regmux_2_1_0_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_3/saturn_top_axis_data_fifo_0_3.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_0_3"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_4/saturn_top_axis_data_fifo_0_4.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_0_4"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_1_2/saturn_top_axis_data_fifo_1_2.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_1_2"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_axis_data_fifo_0_1/saturn_top_axis_data_fifo_0_1.xci">
+          <Proxy FileSetName="saturn_top_axis_data_fifo_0_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIL_ConfigReg_256_RX_1_0/saturn_top_AXIL_ConfigReg_256_RX_1_0.xci">
+          <Proxy FileSetName="saturn_top_AXIL_ConfigReg_256_RX_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_regmux_2_1_0_4/saturn_top_regmux_2_1_0_4.xci">
+          <Proxy FileSetName="saturn_top_regmux_2_1_0_4"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_6/saturn_top_util_reduced_logic_0_6.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_0_6"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_D_register_norst_0_5/saturn_top_D_register_norst_0_5.xci">
+          <Proxy FileSetName="saturn_top_D_register_norst_0_5"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_3_0/saturn_top_util_reduced_logic_3_0.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_3_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_1_0/saturn_top_util_reduced_logic_1_0.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_vector_logic_0_1/saturn_top_util_vector_logic_0_1.xci">
+          <Proxy FileSetName="saturn_top_util_vector_logic_0_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_1/saturn_top_util_reduced_logic_0_1.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_0_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_0_0/saturn_top_util_reduced_logic_0_0.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_reduced_logic_2_0/saturn_top_util_reduced_logic_2_0.xci">
+          <Proxy FileSetName="saturn_top_util_reduced_logic_2_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_dds_compiler_0_0/saturn_top_dds_compiler_0_0.xci">
+          <Proxy FileSetName="saturn_top_dds_compiler_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_util_vector_logic_0_2/saturn_top_util_vector_logic_0_2.xci">
+          <Proxy FileSetName="saturn_top_util_vector_logic_0_2"/>
         </CompFileExtendedInfo>
       </File>
       <File Path="$PPRDIR/../sources/wrapper/saturn_top_wrapper.v">
@@ -568,14 +578,6 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/axi_stream_resizer_64to48.v">
-        <FileInfo>
-          <Attr Name="AutoDisabled" Val="1"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
       <File Path="$PPRDIR/../sources/verilogmodules/axis_adder.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
@@ -631,6 +633,15 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
+        <CompFileExtendedInfo CompFileName="audio_codec.bd" FileRelPathName="ip/audio_codec_axis_broadcaster_1_0/audio_codec_axis_broadcaster_1_0.xci">
+          <Proxy FileSetName="audio_codec_axis_broadcaster_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="audio_codec.bd" FileRelPathName="ip/audio_codec_axis_subset_converter_0_0/audio_codec_axis_subset_converter_0_0.xci">
+          <Proxy FileSetName="audio_codec_axis_subset_converter_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="audio_codec.bd" FileRelPathName="ip/audio_codec_axis_broadcaster_0_0/audio_codec_axis_broadcaster_0_0.xci">
+          <Proxy FileSetName="audio_codec_axis_broadcaster_0_0"/>
+        </CompFileExtendedInfo>
       </File>
       <File Path="$PSRCDIR/sources_1/bd/TX_DUC/TX_DUC.bd">
         <FileInfo>
@@ -639,6 +650,15 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
+        <CompFileExtendedInfo CompFileName="TX_DUC.bd" FileRelPathName="ip/TX_DUC_axis_broadcaster_cic_path_split_0/TX_DUC_axis_broadcaster_cic_path_split_0.xci">
+          <Proxy FileSetName="TX_DUC_axis_broadcaster_cic_path_split_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="TX_DUC.bd" FileRelPathName="ip/TX_DUC_axis_variable_1_0/TX_DUC_axis_variable_1_0.xci">
+          <Proxy FileSetName="TX_DUC_axis_variable_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="TX_DUC.bd" FileRelPathName="ip/TX_DUC_axis_variable_0_0/TX_DUC_axis_variable_0_0.xci">
+          <Proxy FileSetName="TX_DUC_axis_variable_0_0"/>
+        </CompFileExtendedInfo>
       </File>
       <File Path="$PSRCDIR/sources_1/bd/IQ_Modulation_Select/IQ_Modulation_Select.bd">
         <FileInfo>
@@ -647,6 +667,12 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
+        <CompFileExtendedInfo CompFileName="IQ_Modulation_Select.bd" FileRelPathName="ip/IQ_Modulation_Select_axis_subset_converter_32to48bit_0/IQ_Modulation_Select_axis_subset_converter_32to48bit_0.xci">
+          <Proxy FileSetName="IQ_Modulation_Select_axis_subset_converter_32to48bit_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="IQ_Modulation_Select.bd" FileRelPathName="ip/IQ_Modulation_Select_byteswap_48_0_0/IQ_Modulation_Select_byteswap_48_0_0.xci">
+          <Proxy FileSetName="IQ_Modulation_Select_byteswap_48_0_0"/>
+        </CompFileExtendedInfo>
       </File>
       <File Path="$PSRCDIR/sources_1/bd/DDC_Block/DDC_Block.bd">
         <FileInfo>
@@ -655,6 +681,45 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_variable_0_0/DDC_Block_axis_variable_0_0.xci">
+          <Proxy FileSetName="DDC_Block_axis_variable_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_subset_converter_0_0/DDC_Block_axis_subset_converter_0_0.xci">
+          <Proxy FileSetName="DDC_Block_axis_subset_converter_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_mux_2_0_0/DDC_Block_axis_mux_2_0_0.xci">
+          <Proxy FileSetName="DDC_Block_axis_mux_2_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_Double_D_register_0_0/DDC_Block_Double_D_register_0_0.xci">
+          <Proxy FileSetName="DDC_Block_Double_D_register_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_variable_1_0/DDC_Block_axis_variable_1_0.xci">
+          <Proxy FileSetName="DDC_Block_axis_variable_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_regmux_4_1_0_0/DDC_Block_regmux_4_1_0_0.xci">
+          <Proxy FileSetName="DDC_Block_regmux_4_1_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_regmux_8_1_0_0/DDC_Block_regmux_8_1_0_0.xci">
+          <Proxy FileSetName="DDC_Block_regmux_8_1_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_reg_to_axis_1_0/DDC_Block_reg_to_axis_1_0.xci">
+          <Proxy FileSetName="DDC_Block_reg_to_axis_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_broadcaster_0_0/DDC_Block_axis_broadcaster_0_0.xci">
+          <Proxy FileSetName="DDC_Block_axis_broadcaster_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_reg_to_axis_0_0/DDC_Block_reg_to_axis_0_0.xci">
+          <Proxy FileSetName="DDC_Block_reg_to_axis_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_byteswap_48_0_0/DDC_Block_byteswap_48_0_0.xci">
+          <Proxy FileSetName="DDC_Block_byteswap_48_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_broadcaster_1_0/DDC_Block_axis_broadcaster_1_0.xci">
+          <Proxy FileSetName="DDC_Block_axis_broadcaster_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_fir_compiler_0_0/DDC_Block_fir_compiler_0_0.xci">
+          <Proxy FileSetName="DDC_Block_fir_compiler_0_0"/>
+        </CompFileExtendedInfo>
       </File>
       <File Path="$PPRDIR/../sources/verilogmodules/axis_mux_2.v">
         <FileInfo>
@@ -694,17 +759,11 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PSRCDIR/sources_1/bd/RX_TBBLK/RX_TBBLK.bd">
+      <File Path="$PSRCDIR/sources_1/imports/verilogmodules/iambic.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PGENDIR/sources_1/bd/RX_TBBLK/hdl/RX_TBBLK_wrapper.v">
-        <FileInfo>
-          <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/../sources/verilogmodules/iambic.v"/>
+          <Attr Name="ImportTime" Val="1521922540"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -742,16 +801,8 @@
     </FileSet>
     <FileSet Name="sim_1" Type="SimulationSrcs" RelSrcDir="$PSRCDIR/sim_1" RelGenDir="$PGENDIR/sim_1">
       <Filter Type="Srcs"/>
-      <File Path="$PPRDIR/../sources/testbenches/RX_DDC_tb.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
       <File Path="$PPRDIR/../sources/testbenches/TX_DUC_tb.v">
         <FileInfo>
-          <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -764,7 +815,7 @@
       </File>
       <Config>
         <Option Name="DesignMode" Val="RTL"/>
-        <Option Name="TopModule" Val="rx_ddc_tb"/>
+        <Option Name="TopModule" Val="tx_duc_tb"/>
         <Option Name="TopLib" Val="xil_defaultlib"/>
         <Option Name="TransportPathDelay" Val="0"/>
         <Option Name="TransportIntDelay" Val="0"/>
@@ -993,8 +1044,14 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="audio_codec_inst_0.bd" FileRelPathName="ip/audio_codec_inst_0_axis_subset_converter_0_0/audio_codec_inst_0_axis_subset_converter_0_0.xci">
-          <Proxy FileSetName="audio_codec_inst_0_axis_subset_converter_0_0"/>
+        <CompFileExtendedInfo CompFileName="audio_codec_inst_0.bd" FileRelPathName="ip/audio_codec_inst_0_dds_compiler_0_0/audio_codec_inst_0_dds_compiler_0_0.xci">
+          <Proxy FileSetName="audio_codec_inst_0_dds_compiler_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="audio_codec_inst_0.bd" FileRelPathName="ip/audio_codec_inst_0_axis_multiplier_vol_star_sine_0/audio_codec_inst_0_axis_multiplier_vol_star_sine_0.xci">
+          <Proxy FileSetName="audio_codec_inst_0_axis_multiplier_vol_star_sine_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="audio_codec_inst_0.bd" FileRelPathName="ip/audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0/audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0.xci">
+          <Proxy FileSetName="audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0"/>
         </CompFileExtendedInfo>
       </File>
       <Config>
@@ -1410,21 +1467,9 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="IQ_Modulation_Select_inst_0_byteswap_48_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/IQ_Modulation_Select_inst_0_byteswap_48_0_0" RelGenDir="$PGENDIR/IQ_Modulation_Select_inst_0_byteswap_48_0_0">
-      <Config>
-        <Option Name="TopModule" Val="IQ_Modulation_Select_inst_0_byteswap_48_0_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
     <FileSet Name="saturn_top_AXIL_ConfigReg_64_1_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/saturn_top_AXIL_ConfigReg_64_1_0" RelGenDir="$PGENDIR/saturn_top_AXIL_ConfigReg_64_1_0">
       <Config>
         <Option Name="TopModule" Val="saturn_top_AXIL_ConfigReg_64_1_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
-    <FileSet Name="audio_codec_inst_0_axis_subset_converter_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/audio_codec_inst_0_axis_subset_converter_0_0" RelGenDir="$PGENDIR/audio_codec_inst_0_axis_subset_converter_0_0">
-      <Config>
-        <Option Name="TopModule" Val="audio_codec_inst_0_axis_subset_converter_0_0"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -1437,20 +1482,6 @@
     <FileSet Name="TX_DUC_inst_0_mult_gen_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/TX_DUC_inst_0_mult_gen_0_0" RelGenDir="$PGENDIR/TX_DUC_inst_0_mult_gen_0_0">
       <Config>
         <Option Name="TopModule" Val="TX_DUC_inst_0_mult_gen_0_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
-    <FileSet Name="DDC_Block_inst_10" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_inst_10" RelGenDir="$PGENDIR/DDC_Block_inst_10">
-      <File Path="$PGENDIR/sources_1/bd/RX_TBBLK/bd/DDC_Block_inst_10/DDC_Block_inst_10.bd">
-        <FileInfo>
-          <Attr Name="AutoDisabled" Val="1"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <Config>
-        <Option Name="TopModule" Val="DDC_Block_inst_10"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -1511,6 +1542,162 @@
     <FileSet Name="DDC_Block_inst_7_byteswap_48_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_inst_7_byteswap_48_0_0" RelGenDir="$PGENDIR/DDC_Block_inst_7_byteswap_48_0_0">
       <Config>
         <Option Name="TopModule" Val="DDC_Block_inst_7_byteswap_48_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="audio_codec_axis_subset_converter_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/audio_codec_axis_subset_converter_0_0" RelGenDir="$PGENDIR/audio_codec_axis_subset_converter_0_0">
+      <Config>
+        <Option Name="TopModule" Val="audio_codec_axis_subset_converter_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="TX_DUC_axis_broadcaster_cic_path_split_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/TX_DUC_axis_broadcaster_cic_path_split_0" RelGenDir="$PGENDIR/TX_DUC_axis_broadcaster_cic_path_split_0">
+      <Config>
+        <Option Name="TopModule" Val="TX_DUC_axis_broadcaster_cic_path_split_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="audio_codec_axis_broadcaster_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/audio_codec_axis_broadcaster_0_0" RelGenDir="$PGENDIR/audio_codec_axis_broadcaster_0_0">
+      <Config>
+        <Option Name="TopModule" Val="audio_codec_axis_broadcaster_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="audio_codec_axis_broadcaster_1_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/audio_codec_axis_broadcaster_1_0" RelGenDir="$PGENDIR/audio_codec_axis_broadcaster_1_0">
+      <Config>
+        <Option Name="TopModule" Val="audio_codec_axis_broadcaster_1_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="IQ_Modulation_Select_byteswap_48_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/IQ_Modulation_Select_byteswap_48_0_0" RelGenDir="$PGENDIR/IQ_Modulation_Select_byteswap_48_0_0">
+      <Config>
+        <Option Name="TopModule" Val="IQ_Modulation_Select_byteswap_48_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="TX_DUC_axis_variable_1_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/TX_DUC_axis_variable_1_0" RelGenDir="$PGENDIR/TX_DUC_axis_variable_1_0">
+      <Config>
+        <Option Name="TopModule" Val="TX_DUC_axis_variable_1_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="IQ_Modulation_Select_axis_subset_converter_32to48bit_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/IQ_Modulation_Select_axis_subset_converter_32to48bit_0" RelGenDir="$PGENDIR/IQ_Modulation_Select_axis_subset_converter_32to48bit_0">
+      <Config>
+        <Option Name="TopModule" Val="IQ_Modulation_Select_axis_subset_converter_32to48bit_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="TX_DUC_axis_variable_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/TX_DUC_axis_variable_0_0" RelGenDir="$PGENDIR/TX_DUC_axis_variable_0_0">
+      <Config>
+        <Option Name="TopModule" Val="TX_DUC_axis_variable_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="DDC_Block_axis_broadcaster_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_axis_broadcaster_0_0" RelGenDir="$PGENDIR/DDC_Block_axis_broadcaster_0_0">
+      <Config>
+        <Option Name="TopModule" Val="DDC_Block_axis_broadcaster_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="DDC_Block_reg_to_axis_1_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_reg_to_axis_1_0" RelGenDir="$PGENDIR/DDC_Block_reg_to_axis_1_0">
+      <Config>
+        <Option Name="TopModule" Val="DDC_Block_reg_to_axis_1_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="DDC_Block_axis_broadcaster_1_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_axis_broadcaster_1_0" RelGenDir="$PGENDIR/DDC_Block_axis_broadcaster_1_0">
+      <Config>
+        <Option Name="TopModule" Val="DDC_Block_axis_broadcaster_1_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="DDC_Block_axis_variable_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_axis_variable_0_0" RelGenDir="$PGENDIR/DDC_Block_axis_variable_0_0">
+      <Config>
+        <Option Name="TopModule" Val="DDC_Block_axis_variable_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="DDC_Block_axis_variable_1_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_axis_variable_1_0" RelGenDir="$PGENDIR/DDC_Block_axis_variable_1_0">
+      <Config>
+        <Option Name="TopModule" Val="DDC_Block_axis_variable_1_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="DDC_Block_Double_D_register_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_Double_D_register_0_0" RelGenDir="$PGENDIR/DDC_Block_Double_D_register_0_0">
+      <Config>
+        <Option Name="TopModule" Val="DDC_Block_Double_D_register_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="DDC_Block_regmux_4_1_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_regmux_4_1_0_0" RelGenDir="$PGENDIR/DDC_Block_regmux_4_1_0_0">
+      <Config>
+        <Option Name="TopModule" Val="DDC_Block_regmux_4_1_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="DDC_Block_axis_subset_converter_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_axis_subset_converter_0_0" RelGenDir="$PGENDIR/DDC_Block_axis_subset_converter_0_0">
+      <Config>
+        <Option Name="TopModule" Val="DDC_Block_axis_subset_converter_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="DDC_Block_regmux_8_1_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_regmux_8_1_0_0" RelGenDir="$PGENDIR/DDC_Block_regmux_8_1_0_0">
+      <Config>
+        <Option Name="TopModule" Val="DDC_Block_regmux_8_1_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="DDC_Block_reg_to_axis_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_reg_to_axis_0_0" RelGenDir="$PGENDIR/DDC_Block_reg_to_axis_0_0">
+      <Config>
+        <Option Name="TopModule" Val="DDC_Block_reg_to_axis_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="DDC_Block_fir_compiler_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_fir_compiler_0_0" RelGenDir="$PGENDIR/DDC_Block_fir_compiler_0_0">
+      <Config>
+        <Option Name="TopModule" Val="DDC_Block_fir_compiler_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="DDC_Block_axis_mux_2_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_axis_mux_2_0_0" RelGenDir="$PGENDIR/DDC_Block_axis_mux_2_0_0">
+      <Config>
+        <Option Name="TopModule" Val="DDC_Block_axis_mux_2_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="DDC_Block_byteswap_48_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_byteswap_48_0_0" RelGenDir="$PGENDIR/DDC_Block_byteswap_48_0_0">
+      <Config>
+        <Option Name="TopModule" Val="DDC_Block_byteswap_48_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="IQ_Modulation_Select_inst_0_byteswap_48_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/IQ_Modulation_Select_inst_0_byteswap_48_0_0" RelGenDir="$PGENDIR/IQ_Modulation_Select_inst_0_byteswap_48_0_0">
+      <Config>
+        <Option Name="TopModule" Val="IQ_Modulation_Select_inst_0_byteswap_48_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="audio_codec_inst_0_dds_compiler_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/audio_codec_inst_0_dds_compiler_0_0" RelGenDir="$PGENDIR/audio_codec_inst_0_dds_compiler_0_0">
+      <Config>
+        <Option Name="TopModule" Val="audio_codec_inst_0_dds_compiler_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="audio_codec_inst_0_axis_multiplier_vol_star_sine_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/audio_codec_inst_0_axis_multiplier_vol_star_sine_0" RelGenDir="$PGENDIR/audio_codec_inst_0_axis_multiplier_vol_star_sine_0">
+      <Config>
+        <Option Name="TopModule" Val="audio_codec_inst_0_axis_multiplier_vol_star_sine_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0" RelGenDir="$PGENDIR/audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0">
+      <Config>
+        <Option Name="TopModule" Val="audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="saturn_top_axis_data_fifo_0_6" Type="BlockSrcs" RelSrcDir="$PSRCDIR/saturn_top_axis_data_fifo_0_6" RelGenDir="$PGENDIR/saturn_top_axis_data_fifo_0_6">
+      <Config>
+        <Option Name="TopModule" Val="saturn_top_axis_data_fifo_0_6"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -2209,10 +2396,10 @@
         <StratHandle Name="Flow_PerfOptimized_high" Flow="Vivado Synthesis 2021"/>
         <Step Id="synth_design">
           <Option Id="ResourceSharing">2</Option>
-          <Option Id="KeepEquivalentRegisters">1</Option>
-          <Option Id="FsmExtraction">1</Option>
-          <Option Id="NoCombineLuts">1</Option>
           <Option Id="ShregMinSize">5</Option>
+          <Option Id="KeepEquivalentRegisters">1</Option>
+          <Option Id="NoCombineLuts">1</Option>
+          <Option Id="FsmExtraction">1</Option>
           <Option Id="Directive">7</Option>
         </Step>
       </Strategy>
@@ -2239,27 +2426,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="IQ_Modulation_Select_inst_0_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="IQ_Modulation_Select_inst_0_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="IQ_Modulation_Select_inst_0_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/IQ_Modulation_Select_inst_0_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/IQ_Modulation_Select_inst_0_byteswap_48_0_0_synth_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
     <Run Id="saturn_top_AXIL_ConfigReg_64_1_0_synth_1" Type="Ft3:Synth" SrcSet="saturn_top_AXIL_ConfigReg_64_1_0" Part="xc7a200tfbg676-2" ConstrsSet="saturn_top_AXIL_ConfigReg_64_1_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/saturn_top_AXIL_ConfigReg_64_1_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/saturn_top_AXIL_ConfigReg_64_1_0_synth_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="audio_codec_inst_0_axis_subset_converter_0_0_synth_1" Type="Ft3:Synth" SrcSet="audio_codec_inst_0_axis_subset_converter_0_0" Part="xc7a200tfbg676-2" ConstrsSet="audio_codec_inst_0_axis_subset_converter_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/audio_codec_inst_0_axis_subset_converter_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/audio_codec_inst_0_axis_subset_converter_0_0_synth_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
         <Step Id="synth_design"/>
@@ -2291,9 +2458,7 @@
     </Run>
     <Run Id="DDC_Block_inst_6_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_inst_6_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_6_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/DDC_Block_inst_6_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_6_byteswap_48_0_0_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -2303,9 +2468,7 @@
     </Run>
     <Run Id="DDC_Block_inst_0_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_inst_0_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_0_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/DDC_Block_inst_0_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_0_byteswap_48_0_0_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -2315,9 +2478,7 @@
     </Run>
     <Run Id="DDC_Block_inst_8_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_inst_8_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_8_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/DDC_Block_inst_8_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_8_byteswap_48_0_0_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -2327,9 +2488,7 @@
     </Run>
     <Run Id="DDC_Block_inst_1_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_inst_1_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_1_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/DDC_Block_inst_1_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_1_byteswap_48_0_0_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -2339,9 +2498,7 @@
     </Run>
     <Run Id="DDC_Block_inst_9_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_inst_9_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_9_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/DDC_Block_inst_9_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_9_byteswap_48_0_0_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -2351,9 +2508,7 @@
     </Run>
     <Run Id="DDC_Block_inst_2_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_inst_2_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_2_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/DDC_Block_inst_2_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_2_byteswap_48_0_0_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -2363,9 +2518,7 @@
     </Run>
     <Run Id="DDC_Block_inst_3_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_inst_3_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_3_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/DDC_Block_inst_3_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_3_byteswap_48_0_0_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -2375,9 +2528,7 @@
     </Run>
     <Run Id="DDC_Block_inst_4_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_inst_4_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_4_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/DDC_Block_inst_4_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_4_byteswap_48_0_0_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -2386,6 +2537,231 @@
       <RQSFiles/>
     </Run>
     <Run Id="DDC_Block_inst_5_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_inst_5_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_5_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/DDC_Block_inst_5_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_5_byteswap_48_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_inst_7_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_inst_7_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_7_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/DDC_Block_inst_7_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_7_byteswap_48_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="audio_codec_axis_subset_converter_0_0_synth_1" Type="Ft3:Synth" SrcSet="audio_codec_axis_subset_converter_0_0" Part="xc7a200tfbg676-2" ConstrsSet="audio_codec_axis_subset_converter_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/audio_codec_axis_subset_converter_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/audio_codec_axis_subset_converter_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="TX_DUC_axis_broadcaster_cic_path_split_0_synth_1" Type="Ft3:Synth" SrcSet="TX_DUC_axis_broadcaster_cic_path_split_0" Part="xc7a200tfbg676-2" ConstrsSet="TX_DUC_axis_broadcaster_cic_path_split_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/TX_DUC_axis_broadcaster_cic_path_split_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/TX_DUC_axis_broadcaster_cic_path_split_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="audio_codec_axis_broadcaster_0_0_synth_1" Type="Ft3:Synth" SrcSet="audio_codec_axis_broadcaster_0_0" Part="xc7a200tfbg676-2" ConstrsSet="audio_codec_axis_broadcaster_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/audio_codec_axis_broadcaster_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/audio_codec_axis_broadcaster_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="audio_codec_axis_broadcaster_1_0_synth_1" Type="Ft3:Synth" SrcSet="audio_codec_axis_broadcaster_1_0" Part="xc7a200tfbg676-2" ConstrsSet="audio_codec_axis_broadcaster_1_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/audio_codec_axis_broadcaster_1_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/audio_codec_axis_broadcaster_1_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="IQ_Modulation_Select_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="IQ_Modulation_Select_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="IQ_Modulation_Select_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/IQ_Modulation_Select_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/IQ_Modulation_Select_byteswap_48_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="TX_DUC_axis_variable_1_0_synth_1" Type="Ft3:Synth" SrcSet="TX_DUC_axis_variable_1_0" Part="xc7a200tfbg676-2" ConstrsSet="TX_DUC_axis_variable_1_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/TX_DUC_axis_variable_1_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="IQ_Modulation_Select_axis_subset_converter_32to48bit_0_synth_1" Type="Ft3:Synth" SrcSet="IQ_Modulation_Select_axis_subset_converter_32to48bit_0" Part="xc7a200tfbg676-2" ConstrsSet="IQ_Modulation_Select_axis_subset_converter_32to48bit_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/IQ_Modulation_Select_axis_subset_converter_32to48bit_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/IQ_Modulation_Select_axis_subset_converter_32to48bit_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="TX_DUC_axis_variable_0_0_synth_1" Type="Ft3:Synth" SrcSet="TX_DUC_axis_variable_0_0" Part="xc7a200tfbg676-2" ConstrsSet="TX_DUC_axis_variable_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/TX_DUC_axis_variable_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_axis_broadcaster_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_axis_broadcaster_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_axis_broadcaster_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_axis_broadcaster_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_reg_to_axis_1_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_reg_to_axis_1_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_reg_to_axis_1_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_reg_to_axis_1_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_axis_broadcaster_1_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_axis_broadcaster_1_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_axis_broadcaster_1_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_axis_broadcaster_1_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_axis_variable_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_axis_variable_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_axis_variable_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_axis_variable_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_axis_variable_1_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_axis_variable_1_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_axis_variable_1_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_axis_variable_1_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_Double_D_register_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_Double_D_register_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_Double_D_register_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_Double_D_register_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_regmux_4_1_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_regmux_4_1_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_regmux_4_1_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_regmux_4_1_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_axis_subset_converter_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_axis_subset_converter_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_axis_subset_converter_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_axis_subset_converter_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_regmux_8_1_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_regmux_8_1_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_regmux_8_1_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_regmux_8_1_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_reg_to_axis_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_reg_to_axis_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_reg_to_axis_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_reg_to_axis_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_fir_compiler_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_fir_compiler_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_fir_compiler_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_fir_compiler_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_axis_mux_2_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_axis_mux_2_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_axis_mux_2_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_axis_mux_2_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_byteswap_48_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="IQ_Modulation_Select_inst_0_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="IQ_Modulation_Select_inst_0_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="IQ_Modulation_Select_inst_0_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/IQ_Modulation_Select_inst_0_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/IQ_Modulation_Select_inst_0_byteswap_48_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="audio_codec_inst_0_dds_compiler_0_0_synth_1" Type="Ft3:Synth" SrcSet="audio_codec_inst_0_dds_compiler_0_0" Part="xc7a200tfbg676-2" ConstrsSet="audio_codec_inst_0_dds_compiler_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/audio_codec_inst_0_dds_compiler_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/audio_codec_inst_0_dds_compiler_0_0_synth_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021">
           <Desc>Vivado Synthesis Defaults</Desc>
@@ -2397,7 +2773,31 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="DDC_Block_inst_7_byteswap_48_0_0_synth_1" Type="Ft3:Synth" SrcSet="DDC_Block_inst_7_byteswap_48_0_0" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_7_byteswap_48_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/DDC_Block_inst_7_byteswap_48_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_7_byteswap_48_0_0_synth_1">
+    <Run Id="audio_codec_inst_0_axis_multiplier_vol_star_sine_0_synth_1" Type="Ft3:Synth" SrcSet="audio_codec_inst_0_axis_multiplier_vol_star_sine_0" Part="xc7a200tfbg676-2" ConstrsSet="audio_codec_inst_0_axis_multiplier_vol_star_sine_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/audio_codec_inst_0_axis_multiplier_vol_star_sine_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/audio_codec_inst_0_axis_multiplier_vol_star_sine_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021">
+          <Desc>Vivado Synthesis Defaults</Desc>
+        </StratHandle>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0_synth_1" Type="Ft3:Synth" SrcSet="audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0" Part="xc7a200tfbg676-2" ConstrsSet="audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021">
+          <Desc>Vivado Synthesis Defaults</Desc>
+        </StratHandle>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="saturn_top_axis_data_fifo_0_6_synth_1" Type="Ft3:Synth" SrcSet="saturn_top_axis_data_fifo_0_6" Part="xc7a200tfbg676-2" ConstrsSet="saturn_top_axis_data_fifo_0_6" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/saturn_top_axis_data_fifo_0_6_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/saturn_top_axis_data_fifo_0_6_synth_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2021">
           <Desc>Vivado Synthesis Defaults</Desc>
@@ -3565,23 +3965,6 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="IQ_Modulation_Select_inst_0_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="IQ_Modulation_Select_inst_0_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="IQ_Modulation_Select_inst_0_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/IQ_Modulation_Select_inst_0_byteswap_48_0_0_impl_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
     <Run Id="saturn_top_AXIL_ConfigReg_64_1_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="saturn_top_AXIL_ConfigReg_64_1_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="saturn_top_AXIL_ConfigReg_64_1_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/saturn_top_AXIL_ConfigReg_64_1_0_impl_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
@@ -3765,23 +4148,6 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="audio_codec_inst_0_axis_subset_converter_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="audio_codec_inst_0_axis_subset_converter_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="audio_codec_inst_0_axis_subset_converter_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/audio_codec_inst_0_axis_subset_converter_0_0_impl_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
     <Run Id="TX_DUC_inst_0_fir_compiler_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="TX_DUC_inst_0_fir_compiler_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="TX_DUC_inst_0_fir_compiler_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/TX_DUC_inst_0_fir_compiler_0_0_impl_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
@@ -3818,9 +4184,7 @@
     </Run>
     <Run Id="DDC_Block_inst_6_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_6_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_inst_6_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_6_byteswap_48_0_0_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -3837,9 +4201,7 @@
     </Run>
     <Run Id="DDC_Block_inst_0_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_0_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_inst_0_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_0_byteswap_48_0_0_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -3856,9 +4218,7 @@
     </Run>
     <Run Id="DDC_Block_inst_8_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_8_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_inst_8_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_8_byteswap_48_0_0_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -3875,9 +4235,7 @@
     </Run>
     <Run Id="DDC_Block_inst_1_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_1_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_inst_1_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_1_byteswap_48_0_0_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -3894,9 +4252,7 @@
     </Run>
     <Run Id="DDC_Block_inst_9_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_9_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_inst_9_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_9_byteswap_48_0_0_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -3913,9 +4269,7 @@
     </Run>
     <Run Id="DDC_Block_inst_2_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_2_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_inst_2_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_2_byteswap_48_0_0_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -3932,9 +4286,7 @@
     </Run>
     <Run Id="DDC_Block_inst_3_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_3_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_inst_3_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_3_byteswap_48_0_0_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -3951,9 +4303,7 @@
     </Run>
     <Run Id="DDC_Block_inst_4_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_4_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_inst_4_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_4_byteswap_48_0_0_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -3969,6 +4319,414 @@
       <RQSFiles/>
     </Run>
     <Run Id="DDC_Block_inst_5_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_5_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_inst_5_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_5_byteswap_48_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_inst_7_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_7_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_inst_7_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_7_byteswap_48_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="audio_codec_axis_subset_converter_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="audio_codec_axis_subset_converter_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="audio_codec_axis_subset_converter_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/audio_codec_axis_subset_converter_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="TX_DUC_axis_broadcaster_cic_path_split_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="TX_DUC_axis_broadcaster_cic_path_split_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="TX_DUC_axis_broadcaster_cic_path_split_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/TX_DUC_axis_broadcaster_cic_path_split_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="audio_codec_axis_broadcaster_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="audio_codec_axis_broadcaster_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="audio_codec_axis_broadcaster_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/audio_codec_axis_broadcaster_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="audio_codec_axis_broadcaster_1_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="audio_codec_axis_broadcaster_1_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="audio_codec_axis_broadcaster_1_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/audio_codec_axis_broadcaster_1_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="IQ_Modulation_Select_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="IQ_Modulation_Select_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="IQ_Modulation_Select_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/IQ_Modulation_Select_byteswap_48_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="TX_DUC_axis_variable_1_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="TX_DUC_axis_variable_1_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="TX_DUC_axis_variable_1_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/TX_DUC_axis_variable_1_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="IQ_Modulation_Select_axis_subset_converter_32to48bit_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="IQ_Modulation_Select_axis_subset_converter_32to48bit_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="IQ_Modulation_Select_axis_subset_converter_32to48bit_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/IQ_Modulation_Select_axis_subset_converter_32to48bit_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="TX_DUC_axis_variable_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="TX_DUC_axis_variable_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="TX_DUC_axis_variable_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/TX_DUC_axis_variable_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_axis_broadcaster_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_axis_broadcaster_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_axis_broadcaster_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_axis_broadcaster_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_reg_to_axis_1_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_reg_to_axis_1_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_reg_to_axis_1_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_reg_to_axis_1_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_axis_broadcaster_1_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_axis_broadcaster_1_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_axis_broadcaster_1_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_axis_broadcaster_1_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_axis_variable_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_axis_variable_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_axis_variable_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_axis_variable_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_axis_variable_1_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_axis_variable_1_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_axis_variable_1_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_axis_variable_1_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_Double_D_register_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_Double_D_register_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_Double_D_register_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_Double_D_register_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_regmux_4_1_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_regmux_4_1_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_regmux_4_1_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_regmux_4_1_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_axis_subset_converter_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_axis_subset_converter_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_axis_subset_converter_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_axis_subset_converter_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_regmux_8_1_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_regmux_8_1_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_regmux_8_1_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_regmux_8_1_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_reg_to_axis_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_reg_to_axis_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_reg_to_axis_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_reg_to_axis_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_fir_compiler_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_fir_compiler_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_fir_compiler_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_fir_compiler_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_axis_mux_2_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_axis_mux_2_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_axis_mux_2_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_axis_mux_2_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="DDC_Block_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_byteswap_48_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="IQ_Modulation_Select_inst_0_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="IQ_Modulation_Select_inst_0_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="IQ_Modulation_Select_inst_0_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/IQ_Modulation_Select_inst_0_byteswap_48_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="audio_codec_inst_0_dds_compiler_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="audio_codec_inst_0_dds_compiler_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="audio_codec_inst_0_dds_compiler_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/audio_codec_inst_0_dds_compiler_0_0_impl_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021">
           <Desc>Default settings for Implementation.</Desc>
@@ -3987,7 +4745,45 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="DDC_Block_inst_7_byteswap_48_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="DDC_Block_inst_7_byteswap_48_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="DDC_Block_inst_7_byteswap_48_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/DDC_Block_inst_7_byteswap_48_0_0_impl_1">
+    <Run Id="audio_codec_inst_0_axis_multiplier_vol_star_sine_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="audio_codec_inst_0_axis_multiplier_vol_star_sine_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="audio_codec_inst_0_axis_multiplier_vol_star_sine_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/audio_codec_inst_0_axis_multiplier_vol_star_sine_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021">
+          <Desc>Default settings for Implementation.</Desc>
+        </StratHandle>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/audio_codec_inst_0_axis_multiplier_vol_star_sine_star_ramp_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021">
+          <Desc>Default settings for Implementation.</Desc>
+        </StratHandle>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="saturn_top_axis_data_fifo_0_6_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="saturn_top_axis_data_fifo_0_6" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="saturn_top_axis_data_fifo_0_6_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/saturn_top_axis_data_fifo_0_6_impl_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2021">
           <Desc>Default settings for Implementation.</Desc>

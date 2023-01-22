@@ -1,0 +1,9 @@
+# GIT should ignore:
+CODEC_IQMOD_IP.cache
+CODEC_IQMOD_IP.gen
+CODEC_IQMOD_IP.hw
+CODEC_IQMOD_IP.ip_user_files
+CODEC_IQMOD_IP.runs
+CODEC_IQMOD_IP.sim
+.Xil
+vivado.*

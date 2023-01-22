@@ -1,7 +1,7 @@
 {
   "design": {
     "design_info": {
-      "boundary_crc": "0xC4F7DC06E82649CC",
+      "boundary_crc": "0xCECC35A91E4C36F2",
       "device": "xc7a200tfbg676-2",
       "gen_directory": "../../../../saturn_project.gen/sources_1/bd/IQ_Modulation_Select",
       "name": "IQ_Modulation_Select",
@@ -26,7 +26,6 @@
       "xlslice_keyerhang": "",
       "xlslice_opgate": "",
       "AXIS_Deinterleaver_0": "",
-      "AXIS_Sizer_64to48_0": "",
       "axis_constant_1": "",
       "axis_mux_4_0": "",
       "cw_key_ramp_0": "",
@@ -382,9 +381,6 @@
         "left": "2",
         "right": "0"
       },
-      "Mux_Reset": {
-        "direction": "I"
-      },
       "TXTestFreq": {
         "direction": "I",
         "left": "31",
@@ -428,34 +424,6 @@
           "PortType.PROP_SRC": {
             "value": "false",
             "value_src": "ip_prop"
-          }
-        }
-      },
-      "aresetn_12": {
-        "direction": "I"
-      },
-      "clk12": {
-        "type": "clk",
-        "direction": "I",
-        "parameters": {
-          "CLK_DOMAIN": {
-            "value": "IQ_Modulation_Select_clk12",
-            "value_src": "default"
-          },
-          "FREQ_HZ": {
-            "value": "12288000"
-          },
-          "FREQ_TOLERANCE_HZ": {
-            "value": "0",
-            "value_src": "default"
-          },
-          "INSERT_VIP": {
-            "value": "0",
-            "value_src": "default"
-          },
-          "PHASE": {
-            "value": "0.0",
-            "value_src": "default"
           }
         }
       },
@@ -1081,187 +1049,6 @@
             "direction": "I"
           },
           "enabled": {
-            "direction": "I"
-          }
-        }
-      },
-      "AXIS_Sizer_64to48_0": {
-        "vlnv": "xilinx.com:module_ref:AXIS_Sizer_64to48:1.0",
-        "xci_name": "IQ_Modulation_Select_AXIS_Sizer_64to48_0_0",
-        "xci_path": "ip\\IQ_Modulation_Select_AXIS_Sizer_64to48_0_0\\IQ_Modulation_Select_AXIS_Sizer_64to48_0_0.xci",
-        "inst_hier_path": "AXIS_Sizer_64to48_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "AXIS_Sizer_64to48",
-          "boundary_crc": "0x0"
-        },
-        "interface_ports": {
-          "m_axis": {
-            "mode": "Master",
-            "vlnv_bus_definition": "xilinx.com:interface:axis:1.0",
-            "vlnv": "xilinx.com:interface:axis_rtl:1.0",
-            "parameters": {
-              "TDATA_NUM_BYTES": {
-                "value": "6",
-                "value_src": "constant"
-              },
-              "TDEST_WIDTH": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "TID_WIDTH": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "TUSER_WIDTH": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "HAS_TREADY": {
-                "value": "1",
-                "value_src": "constant"
-              },
-              "HAS_TSTRB": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "HAS_TKEEP": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "HAS_TLAST": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "FREQ_HZ": {
-                "value": "122880000",
-                "value_src": "user_prop"
-              },
-              "CLK_DOMAIN": {
-                "value": "IQ_Modulation_Select_clk122",
-                "value_src": "default_prop"
-              }
-            },
-            "port_maps": {
-              "TDATA": {
-                "physical_name": "m_axis_tdata",
-                "direction": "O",
-                "left": "47",
-                "right": "0"
-              },
-              "TVALID": {
-                "physical_name": "m_axis_tvalid",
-                "direction": "O"
-              },
-              "TREADY": {
-                "physical_name": "m_axis_tready",
-                "direction": "I"
-              }
-            }
-          },
-          "s_axis": {
-            "mode": "Slave",
-            "vlnv_bus_definition": "xilinx.com:interface:axis:1.0",
-            "vlnv": "xilinx.com:interface:axis_rtl:1.0",
-            "parameters": {
-              "TDATA_NUM_BYTES": {
-                "value": "8",
-                "value_src": "constant"
-              },
-              "TDEST_WIDTH": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "TID_WIDTH": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "TUSER_WIDTH": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "HAS_TREADY": {
-                "value": "1",
-                "value_src": "constant"
-              },
-              "HAS_TSTRB": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "HAS_TKEEP": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "HAS_TLAST": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "FREQ_HZ": {
-                "value": "122880000",
-                "value_src": "user_prop"
-              },
-              "CLK_DOMAIN": {
-                "value": "IQ_Modulation_Select_clk122",
-                "value_src": "default_prop"
-              },
-              "LAYERED_METADATA": {
-                "value": "undef",
-                "value_src": "user_prop"
-              }
-            },
-            "port_maps": {
-              "TDATA": {
-                "physical_name": "s_axis_tdata",
-                "direction": "I",
-                "left": "63",
-                "right": "0"
-              },
-              "TVALID": {
-                "physical_name": "s_axis_tvalid",
-                "direction": "I"
-              },
-              "TREADY": {
-                "physical_name": "s_axis_tready",
-                "direction": "O"
-              }
-            }
-          }
-        },
-        "ports": {
-          "aclk": {
-            "type": "clk",
-            "direction": "I",
-            "parameters": {
-              "ASSOCIATED_BUSIF": {
-                "value": "m_axis:s_axis",
-                "value_src": "constant"
-              },
-              "ASSOCIATED_RESET": {
-                "value": "aresetn",
-                "value_src": "constant"
-              },
-              "FREQ_HZ": {
-                "value": "122880000",
-                "value_src": "user_prop"
-              },
-              "CLK_DOMAIN": {
-                "value": "IQ_Modulation_Select_clk122",
-                "value_src": "default_prop"
-              }
-            }
-          },
-          "aresetn": {
-            "type": "rst",
-            "direction": "I",
-            "parameters": {
-              "POLARITY": {
-                "value": "ACTIVE_LOW",
-                "value_src": "constant"
-              }
-            }
-          },
-          "mux_reset": {
-            "type": "rst",
             "direction": "I"
           }
         }
@@ -2339,6 +2126,10 @@
               "CLK_DOMAIN": {
                 "value": "IQ_Modulation_Select_clk122",
                 "value_src": "default_prop"
+              },
+              "LAYERED_METADATA": {
+                "value": "undef",
+                "value_src": "user_prop"
               }
             },
             "port_maps": {
@@ -2405,12 +2196,6 @@
           "axis_mux_4_0/input_0_axis"
         ]
       },
-      "AXIS_Sizer_64to48_0_m_axis": {
-        "interface_ports": [
-          "AXIS_Sizer_64to48_0/m_axis",
-          "byteswap_48_0/s_axis"
-        ]
-      },
       "Conn1": {
         "interface_ports": [
           "S_AXI_keyerBRAM",
@@ -2426,7 +2211,7 @@
       "TX_IQ_in_1": {
         "interface_ports": [
           "TX_IQ_in",
-          "AXIS_Sizer_64to48_0/s_axis"
+          "byteswap_48_0/s_axis"
         ]
       },
       "axi_bram_ctrl_0_BRAM_PORTA": {
@@ -2503,12 +2288,6 @@
           "AXIS_Deinterleaver_0/enabled"
         ]
       },
-      "Mux_Reset_1": {
-        "ports": [
-          "Mux_Reset",
-          "AXIS_Sizer_64to48_0/mux_reset"
-        ]
-      },
       "Net": {
         "ports": [
           "Modulation_Setup",
@@ -2524,7 +2303,6 @@
           "blk_mem_gen_0/clka",
           "dds_compiler_testsource/aclk",
           "AXIS_Deinterleaver_0/aclk",
-          "AXIS_Sizer_64to48_0/aclk",
           "axis_constant_1/aclk",
           "axis_mux_4_0/clk",
           "cw_key_ramp_0/aclk",
@@ -2602,7 +2380,6 @@
           "axis_subset_converter_32to48bit/aresetn",
           "dds_compiler_testsource/aresetn",
           "AXIS_Deinterleaver_0/aresetn",
-          "AXIS_Sizer_64to48_0/aresetn",
           "axis_mux_4_0/rstn",
           "cw_key_ramp_0/aresetn",
           "byteswap_48_0/aresetn"

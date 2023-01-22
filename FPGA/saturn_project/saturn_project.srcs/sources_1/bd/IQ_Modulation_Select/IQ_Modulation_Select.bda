@@ -21,20 +21,11 @@
   <key id="VT" for="node" attr.name="vert_type" attr.type="string"/>
   <graph id="G" edgedefault="undirected" parse.nodeids="canonical" parse.edgeids="canonical" parse.order="nodesfirst">
     <node id="n0">
-      <data key="VM">IQ_Modulation_Select</data>
-      <data key="VT">BC</data>
-    </node>
-    <node id="n1">
-      <data key="VH">2</data>
-      <data key="VM">IQ_Modulation_Select</data>
-      <data key="VT">VR</data>
-    </node>
-    <node id="n2">
       <data key="TU">active</data>
       <data key="VH">2</data>
       <data key="VT">PM</data>
     </node>
-    <node id="n3">
+    <node id="n1">
       <data key="BA">0x5000</data>
       <data key="BP">C_S_AXI_BASEADDR</data>
       <data key="HA">0x5FFF</data>
@@ -52,9 +43,18 @@
       <data key="TU">memory</data>
       <data key="VT">AC</data>
     </node>
-    <edge id="e0" source="n0" target="n1"/>
-    <edge id="e1" source="n1" target="n2"/>
-    <edge id="e2" source="n3" target="n2">
+    <node id="n2">
+      <data key="VM">IQ_Modulation_Select</data>
+      <data key="VT">BC</data>
+    </node>
+    <node id="n3">
+      <data key="VH">2</data>
+      <data key="VM">IQ_Modulation_Select</data>
+      <data key="VT">VR</data>
+    </node>
+    <edge id="e0" source="n2" target="n3"/>
+    <edge id="e1" source="n3" target="n0"/>
+    <edge id="e2" source="n1" target="n0">
       <data key="EH">2</data>
     </edge>
   </graph>

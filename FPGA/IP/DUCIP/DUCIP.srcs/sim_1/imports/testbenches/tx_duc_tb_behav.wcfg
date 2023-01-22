@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tx_duc_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="tx_duc_tb" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="670,955.297 ns"></ZoomStartTime>
+      <ZoomEndTime time="672,405.741 ns"></ZoomEndTime>
+      <Cursor1Time time="671,956.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="257"></NameColumnWidth>
+      <ValueColumnWidth column_width="116"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="4" />
+   <wave_markers>
+      <marker time="1751991916" label="" />
+      <marker time="1672793433" label="" />
+      <marker time="4870152950" label="" />
+   </wave_markers>
+   <wvobject fp_name="/tx_duc_tb/TXSamplesToRX" type="array">
+      <obj_property name="ElementShortName">TXSamplesToRX[15:0]</obj_property>
+      <obj_property name="ObjectShortName">TXSamplesToRX[15:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
+      <obj_property name="CellHeight">100</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tx_duc_tb/TXConfig" type="array">
+      <obj_property name="ElementShortName">TXConfig[31:0]</obj_property>
+      <obj_property name="ObjectShortName">TXConfig[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tx_duc_tb/UUT/TX_LO_Tune_1" type="array">
+      <obj_property name="ElementShortName">TX_LO_Tune_1[31:0]</obj_property>
+      <obj_property name="ObjectShortName">TX_LO_Tune_1[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tx_duc_tb/TXDACData" type="array">
+      <obj_property name="ElementShortName">TXDACData[15:0]</obj_property>
+      <obj_property name="ObjectShortName">TXDACData[15:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
+      <obj_property name="CellHeight">100</obj_property>
+   </wvobject>
+</wave_config>

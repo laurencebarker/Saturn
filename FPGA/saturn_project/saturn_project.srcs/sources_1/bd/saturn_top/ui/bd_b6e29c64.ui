@@ -81,7 +81,7 @@ preplace netloc xlslice_0_Dout 1 2 2 NJ 110 NJ
 preplace netloc xlslice_5_Dout 1 2 2 NJ 70 NJ
 preplace netloc Conn1 1 0 3 NJ 520 NJ 520 N
 levelinfo -pg 1 0 140 420 750 920
-pagesize -pg 1 -db -bbox -sgen -150 -10 1110 970
+pagesize -pg 1 -db -bbox -sgen -160 -10 1110 970
 "
 }
 0

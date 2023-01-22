@@ -1,0 +1,77 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"1.0",
+   "Default View_TopLeft":"-455,-720",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
+#  -string -flagsOSRD
+preplace port port-id_TXIQIn_tvalid -pg 1 -lvl 0 -x 0 -y -410 -defaultsOSRD
+preplace port port-id_Byteswap -pg 1 -lvl 0 -x 0 -y -290 -defaultsOSRD
+preplace port port-id_Deinterleave -pg 1 -lvl 0 -x 0 -y -320 -defaultsOSRD
+preplace port port-id_IQEnable -pg 1 -lvl 0 -x 0 -y -200 -defaultsOSRD
+preplace port port-id_Mux_Reset -pg 1 -lvl 0 -x 0 -y -140 -defaultsOSRD
+preplace port port-id_TX_Strobe -pg 1 -lvl 0 -x 0 -y -40 -defaultsOSRD
+preplace port port-id_TX_ENABLE -pg 1 -lvl 0 -x 0 -y -480 -defaultsOSRD
+preplace port port-id_cw_key_down -pg 1 -lvl 0 -x 0 -y -510 -defaultsOSRD
+preplace port port-id_protocol_2 -pg 1 -lvl 0 -x 0 -y -450 -defaultsOSRD
+preplace port port-id_CWSampleSelect -pg 1 -lvl 2 -x 900 -y -140 -defaultsOSRD
+preplace port port-id_cw_ptt -pg 1 -lvl 2 -x 900 -y -80 -defaultsOSRD
+preplace port port-id_TXIQIn_tready -pg 1 -lvl 2 -x 900 -y -30 -defaultsOSRD
+preplace port port-id_aclk -pg 1 -lvl 0 -x 0 -y -260 -defaultsOSRD
+preplace port port-id_aresetn -pg 1 -lvl 0 -x 0 -y -350 -defaultsOSRD
+preplace port port-id_CWKeyerEnable -pg 1 -lvl 0 -x 0 -y -70 -defaultsOSRD
+preplace port port-id_m_axis_TXMod_tvalid -pg 1 -lvl 2 -x 900 -y -590 -defaultsOSRD
+preplace port port-id_m_axis_TXMod_tready -pg 1 -lvl 0 -x 0 -y -550 -defaultsOSRD
+preplace port port-id_m_axis_envelope_tvalid -pg 1 -lvl 2 -x 900 -y -430 -defaultsOSRD
+preplace port port-id_m_axis_envelope_tready -pg 1 -lvl 0 -x 0 -y -700 -defaultsOSRD
+preplace port port-id_m_axis_sidetoneampl_tvalid -pg 1 -lvl 2 -x 900 -y -290 -defaultsOSRD
+preplace portBus TXIQIn_tdata -pg 1 -lvl 0 -x 0 -y -380 -defaultsOSRD
+preplace portBus Modulation_Setup -pg 1 -lvl 0 -x 0 -y -230 -defaultsOSRD
+preplace portBus TXTestFreq -pg 1 -lvl 0 -x 0 -y -100 -defaultsOSRD
+preplace portBus TX_OUTPUTENABLE -pg 1 -lvl 2 -x 900 -y -110 -defaultsOSRD
+preplace portBus CWPttDelay -pg 1 -lvl 0 -x 0 -y 50 -defaultsOSRD
+preplace portBus CWHangTime -pg 1 -lvl 0 -x 0 -y 100 -defaultsOSRD
+preplace portBus CWRampLength -pg 1 -lvl 0 -x 0 -y -10 -defaultsOSRD
+preplace portBus m_axis_TXMod_tdata -pg 1 -lvl 2 -x 900 -y -470 -defaultsOSRD
+preplace portBus m_axis_envelope_tdata -pg 1 -lvl 2 -x 900 -y -390 -defaultsOSRD
+preplace portBus m_axis_sidetoneampl_tdata -pg 1 -lvl 2 -x 900 -y -330 -defaultsOSRD
+preplace inst axi_vip_0 -pg 1 -lvl 1 -x 570 -y -10 -defaultsOSRD
+preplace inst xlconcat_0 -pg 1 -lvl 1 -x 570 -y 240 -defaultsOSRD
+preplace inst IQ_Modulation_Select_0 -pg 1 -lvl 1 -x 570 -y -350 -defaultsOSRD
+preplace netloc Byteswap_1 1 0 1 70 -290n
+preplace netloc CWHangTime_1 1 0 1 20 100n
+preplace netloc CWKeyerEnable_1 1 0 1 40 -70n
+preplace netloc CWPttDelay_1 1 0 1 100 50n
+preplace netloc CWRampLength_1 1 0 1 30 -10n
+preplace netloc Deinterleave_1 1 0 1 50 -410n
+preplace netloc IQEnable_1 1 0 1 80 -390n
+preplace netloc IQ_Modulation_Select_0_CWSampleSelect 1 1 1 870 -260n
+preplace netloc IQ_Modulation_Select_0_TX_IQ_in_tready 1 0 2 140 -80 840J
+preplace netloc IQ_Modulation_Select_0_TX_OUTPUTENABLE 1 1 1 860 -240n
+preplace netloc IQ_Modulation_Select_0_cw_ptt 1 1 1 850 -220n
+preplace netloc IQ_Modulation_Select_0_m_axis_TXMod_tdata 1 1 1 870 -470n
+preplace netloc IQ_Modulation_Select_0_m_axis_TXMod_tvalid 1 1 1 860 -590n
+preplace netloc IQ_Modulation_Select_0_m_axis_envelope_tdata 1 1 1 870 -390n
+preplace netloc IQ_Modulation_Select_0_m_axis_envelope_tvalid 1 1 1 860 -430n
+preplace netloc IQ_Modulation_Select_0_m_axis_sidetoneampl_tdata 1 1 1 860 -330n
+preplace netloc IQ_Modulation_Select_0_m_axis_sidetoneampl_tvalid 1 1 1 860 -290n
+preplace netloc Modulation_Setup_1 1 0 1 20 -370n
+preplace netloc Mux_Reset_1 1 0 1 N -140
+preplace netloc TXIQIn_tdata_1 1 0 1 20 -470n
+preplace netloc TXIQIn_tvalid_1 1 0 1 40 -450n
+preplace netloc TXTestFreq_1 1 0 1 90 -350n
+preplace netloc TX_ENABLE_1 1 0 1 100 -480n
+preplace netloc TX_Strobe_1 1 0 1 100 -310n
+preplace netloc clk122_1 1 0 1 120 -290n
+preplace netloc cw_key_down_1 1 0 1 110 -510n
+preplace netloc m_axis_TXMod_tready_1 1 0 2 110J -610 820
+preplace netloc m_axis_envelope_tready_1 1 0 2 NJ -700 850
+preplace netloc protocol_2_1 1 0 1 30 -450n
+preplace netloc resetn_1 1 0 1 60 -350n
+preplace netloc xlconcat_0_dout 1 0 2 130 -600 830
+preplace netloc axi_vip_0_M_AXI 1 0 2 140 -590 810
+levelinfo -pg 1 0 570 900
+pagesize -pg 1 -db -bbox -sgen -210 -840 1180 590
+"
+}
+0
