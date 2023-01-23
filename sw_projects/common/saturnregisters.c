@@ -242,6 +242,7 @@ uint32_t DDCRegisters[VNUMDDC] =
 #define VCWKEYERDELAY 0                                 // delay bits 7:0
 #define VCWKEYERHANG 8                                  // hang time is 17:8
 #define VCWKEYERRAMP 18                                 // ramp time
+#define VRAMPSIZE 2048                                  // max ramp length in words
 
 
 //
@@ -1064,7 +1065,7 @@ void SetMicBoost(bool EnableBoost)
     if(Register != GCodecAnaloguePath)                  // only write back if changed
     {
         GCodecAnaloguePath = Register;
-//        CodecRegisterWrite(VCODECANALOGUEPATHREG, Register);
+        CodecRegisterWrite(VCODECANALOGUEPATHREG, Register);
     }
 }
 
@@ -1086,7 +1087,7 @@ void SetMicLineInput(bool IsLineIn)
     if(Register != GCodecAnaloguePath)                  // only write back if changed
     {
         GCodecAnaloguePath = Register;
-//        CodecRegisterWrite(VCODECANALOGUEPATHREG, Register);
+        CodecRegisterWrite(VCODECANALOGUEPATHREG, Register);
     }
 }
 
@@ -1168,7 +1169,7 @@ void SetCodecLineInGain(unsigned int Gain)
     if(Register != GCodecLineGain)                      // only write back if changed
     {
         GCodecLineGain = Register;
-//        CodecRegisterWrite(VCODECLLINEVOLREG, Register);
+        CodecRegisterWrite(VCODECLLINEVOLREG, Register);
     }
 }
 
@@ -1369,6 +1370,59 @@ void SetRXDDCEnabled(bool IsEnabled)
 //
 void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
 {
+    const double a0 = 0.35875;
+    const double a1 = -0.48829;
+    const double a2 = 0.14128;
+    const double a3 = -0.01168;
+    double LargestSample;
+    double Fraction;                         // fractional position in ramp
+    double SamplePeriod;                     // sample period in us
+    double Length;                           // length required in us
+    uint32_t RampLength;                    // integer length in WORDS not bytes!
+    double RampSample[VRAMPSIZE];            // array samples
+    uint32_t Cntr;
+    uint32_t Sample;                        // ramp sample value
+    uint32_t Register;
+
+// work out required length    
+    if(Protocol2)
+        SamplePeriod = 1000.0/192.0;
+    else
+        SamplePeriod = 1000.0/48.0;
+    RampLength = (uint32_t)(((double)Length_us / SamplePeriod) + 1);
+//
+// calculate basic ramp shape
+// see "CW shaping in DSP software" by Alex Shovkoplyas VE3NEA)
+//
+    RampSample[0] = 0.0;
+    for(Cntr=1; Cntr < RampLength; Cntr++)
+    {
+        Fraction = (double)Cntr / (double)RampLength;
+        RampSample[Cntr] = RampSample[Cntr-1] +a0 +a1*cos(2.0*M_PI*Fraction) 
+                           +a2*cos(4.0*M_PI*Fraction) +a3*cos(6.0*M_PI*Fraction);
+    }
+    LargestSample = RampSample[RampLength-1];
+//
+// now go through and rescale to 2^23-1 max
+// that's the peak amplitude for I/Q in Saturn, either protocol
+//
+    for(Cntr=0; Cntr < RampLength; Cntr++)
+    {
+        Sample = (uint32_t)((RampSample[Cntr]/LargestSample) * 8388607.0);
+        RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, Sample);
+        printf("sample: %d = %d\n", Cntr, Sample);
+    }
+    for(Cntr = RampLength; Cntr < VRAMPSIZE; Cntr++)
+        RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, 8388607);
+
+//
+// finally write the ramp length
+//
+    Register = GCWKeyerSetup;                    // get current settings
+    Register &= 0x8003FFFF;                      // strip out ramp bits
+    Register |= ((RampLength << 2) << VCWKEYERRAMP);        // byte end address
+    GCWKeyerSetup = Register;                    // store it back
+    RegisterWrite(VADDRKEYERCONFIGREG, Register);  // and write to it
 
 }
 

@@ -309,7 +309,7 @@ int main(int argc, char *argv[])
   PrintVersionInfo();
   CodecInitialise();
   InitialiseDACAttenROMs();
-  InitialiseCWKeyerRamp(true, 5000);
+  InitialiseCWKeyerRamp(true, 5000);                                // 5 ms ramp, P2
   SetCWSidetoneEnabled(true);
   SetTXProtocol(true);                                              // set to protocol 2
   SetTXModulationSource(eIQData);                                   // disable debug options
