@@ -284,7 +284,6 @@ void InitialiseDACAttenROMs(void)
 {
     unsigned int Level;                         // input demand value
     double DesiredAtten;                        // desired attenuation in dB
-    double StepAtten;                           // step attenuation in 0.5dB steps
     unsigned int StepValue;                     // integer step atten drive value
     double ResidualAtten;                       // atten to go in the current setting DAC
     unsigned int DACDrive;                      // int value to go to DAC ROM
@@ -295,12 +294,13 @@ void InitialiseDACAttenROMs(void)
     DACCurrentROM[0] = 0;                       // min level
     DACStepAttenROM[0] = 63;                    // max atten
 
-    for (Level = 1; Level < 255; Level++)
+    for (Level = 1; Level < 256; Level++)
     {
-        DesiredAtten = 20.0*log10(255/Level);   // this is the atten value we want after the high speed DAC
-        StepAtten = (unsigned int)(fmin((int)(DesiredAtten/0.5), 63)*0.5);     // what step atten should be set to
-        StepValue = (unsigned int)(StepAtten * 2.0);        // 6 bit drive setting to achieve that atten
-        ResidualAtten = DesiredAtten - StepAtten;           // this needs to be achieved through the current setting drive
+        DesiredAtten = 20.0*log10(255.0/(double)Level);     // this is the atten value we want after the high speed DAC
+        StepValue = (int)(2.0*DesiredAtten);                // 6 bit step atten should be set to
+        if(StepValue > 63)                                  // clip to 6 bits
+            StepValue = 63;
+        ResidualAtten = DesiredAtten - ((double)StepValue * 0.5);        // this needs to be achieved through the current setting drive
         DACDrive = (unsigned int)(255.0/pow(10.0,(ResidualAtten/20.0)));
         DACCurrentROM[Level] = DACDrive;
         DACStepAttenROM[Level] = StepValue;
@@ -1410,7 +1410,7 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
     {
         Sample = (uint32_t)((RampSample[Cntr]/LargestSample) * 8388607.0);
         RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, Sample);
-        printf("sample: %d = %d\n", Cntr, Sample);
+//        printf("sample: %d = %d\n", Cntr, Sample);
     }
     for(Cntr = RampLength; Cntr < VRAMPSIZE; Cntr++)
         RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, 8388607);
@@ -1472,10 +1472,11 @@ void SetCWSidetoneEnabled(bool Enabled)
         Register = GCodecConfigReg;                     // get current settings
         Register &= 0x0000FFFF;                         // remove old volume bits
         if(Enabled)
-            Register |= (GSidetoneVolume & 0xFF) << 8;  // add back new bits; resize to 16 bits
+            Register |= (GSidetoneVolume & 0xFF) << 24; // add back new bits; resize to 16 bits
         GCodecConfigReg = Register;                     // store it back
-        RegisterWrite(VADDRCODECCONFIGREG, Register); // and write to it
+        RegisterWrite(VADDRCODECCONFIGREG, Register);   // and write to it
     }
+    printf("sidetone enable. Demand = %x new reg = %08x\n", (int)Enabled, Register);
 }
 
 
@@ -1493,10 +1494,11 @@ void SetCWSidetoneVol(uint8_t Volume)
         Register = GCodecConfigReg;                     // get current settings
         Register &= 0x0000FFFF;                         // remove old volume bits
         if(GSidetoneEnabled)
-            Register |= (GSidetoneVolume & 0xFF) << 8;  // add back new bits; resize to 16 bits
+            Register |= (GSidetoneVolume & 0xFF) << 24; // add back new bits; resize to 16 bits
         GCodecConfigReg = Register;                     // store it back
-        RegisterWrite(VADDRCODECCONFIGREG, Register);  // and write to it
+        RegisterWrite(VADDRCODECCONFIGREG, Register);   // and write to it
     }
+    printf("sidetone vol. Demand = %x new reg = %08x\n", Volume, Register);
 }
 
 
@@ -1551,12 +1553,14 @@ void SetCWSidetoneFrequency(unsigned int Frequency)
     uint32_t DeltaPhase;                                // DDS delta phase value
     double fDeltaPhase;                                 // delta phase as a float
 
-    fDeltaPhase = (double)(2^16) * (double)Frequency / (double) VCODECSAMPLERATE;
+    fDeltaPhase = 65536.0 * (double)Frequency / (double) VCODECSAMPLERATE;
     DeltaPhase = ((uint32_t)fDeltaPhase) & 0xFFFF;
 
     Register = GCodecConfigReg;                         // get current settings
     Register &= 0xFFFF0000;                             // remove old bits
     Register |= DeltaPhase;                             // add back new bits
+    printf("sidetone freq Demand = %d fdf=%f new reg = %08x\n", Frequency, fDeltaPhase, Register);
+
     if(Register != GCodecConfigReg)                     // write back if different
     {
         GCodecConfigReg = Register;                     // store it back

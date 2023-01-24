@@ -84,10 +84,12 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
           EnableCW((bool)((Byte >> 7)&1));                        // breakin bit used
           SidetoneVolume = *(uint8_t*)(UDPInBuffer+6);            // keyer speed
           SidetoneFreq = *(uint16_t*)(UDPInBuffer+7);             // get frequency
+          SidetoneFreq = ntohs(SidetoneFreq);                     // convert from big endian
           SetCWSidetoneVol(SidetoneVolume);
           SetCWSidetoneFrequency(SidetoneFreq);
           CWRFDelay = *(uint8_t*)(UDPInBuffer+13);                // delay before CW on
           CWHangDelay = *(uint16_t*)(UDPInBuffer+11);             // delay before CW off
+          CWHangDelay = ntohs(CWHangDelay);                       // convert from big endian
           SetCWPTTDelay(CWRFDelay);
           SetCWHangTime(CWHangDelay);
 // mic and line in options
