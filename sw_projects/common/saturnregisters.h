@@ -479,7 +479,7 @@ void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool RXAtten, bool TXA
 // IambicEnabled: if false, reverts to straight CW key
 //
 void SetCWIambicKeyer(uint8_t Speed, uint8_t Weight, bool ReverseKeys, bool Mode, 
-                      bool StrictSpacing, bool IambicEnabled);
+                      bool StrictSpacing, bool IambicEnabled, bool Breakin);
 
 
 //

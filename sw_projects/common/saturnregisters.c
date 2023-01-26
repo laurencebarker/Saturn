@@ -257,6 +257,7 @@ uint32_t DDCRegisters[VNUMDDC] =
 #define VIAMBICCWX 20                                   // CWX enable bit 20
 #define VIAMBICCWXDOT 21                                // CWX dox bit 21
 #define VIAMBICCWXDASH 22                               // CWX dash bit 22
+#define VCWBREAKIN 23                                   // breakin bit (CW not Iambic strictly!)
 #define VIAMBICCWXBITS 0x00700000                       // all CWX bits
 #define VIAMBICBITS 0x000FFFFF                          // all non CWX bits
 
@@ -1246,7 +1247,7 @@ void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool RXAtten, bool TXA
 // IambicEnabled: if false, reverts to straight CW key
 //
 void SetCWIambicKeyer(uint8_t Speed, uint8_t Weight, bool ReverseKeys, bool Mode, 
-                      bool StrictSpacing, bool IambicEnabled)
+                      bool StrictSpacing, bool IambicEnabled, bool Breakin)
 {
     uint32_t Register;
     Register =GIambicConfigReg;                     // copy of H/W register
@@ -1269,6 +1270,8 @@ void SetCWIambicKeyer(uint8_t Speed, uint8_t Weight, bool ReverseKeys, bool Mode
         Register |= (1<<VIAMBICSTRICT);             // set bit if enabled
     if(IambicEnabled)
         Register |= (1<<VIAMBICENABLE);             // set bit if enabled
+    if(Breakin)
+        Register |= (1<<VCWBREAKIN);             // set bit if enabled
     
     if (Register != GIambicConfigReg)               // save if changed
     {

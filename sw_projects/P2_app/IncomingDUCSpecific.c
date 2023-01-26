@@ -78,10 +78,10 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
           IambicWeight = *(uint8_t*)(UDPInBuffer+10);             // keyer weight
           Byte = *(uint8_t*)(UDPInBuffer+5);                      // keyer bool bits
           SetCWIambicKeyer(IambicSpeed, IambicWeight, (bool)((Byte >> 2)&1), (bool)((Byte >> 5)&1), 
-                          (bool)((Byte >> 6)&1), (bool)((Byte >> 3)&1));
+                          (bool)((Byte >> 6)&1), (bool)((Byte >> 3)&1), (bool)((Byte >> 7)&1));
 // general CW settings
           SetCWSidetoneEnabled((bool)((Byte >> 4)&1));
-          EnableCW((bool)((Byte >> 7)&1));                        // breakin bit used
+          EnableCW((bool)((Byte >> 1)&1));                        // CW enabled bit
           SidetoneVolume = *(uint8_t*)(UDPInBuffer+6);            // keyer speed
           SidetoneFreq = *(uint16_t*)(UDPInBuffer+7);             // get frequency
           SidetoneFreq = ntohs(SidetoneFreq);                     // convert from big endian
