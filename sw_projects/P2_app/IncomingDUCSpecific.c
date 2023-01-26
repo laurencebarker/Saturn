@@ -96,7 +96,7 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
           Byte = *(uint8_t*)(UDPInBuffer+50);                     // mic/line options
           SetMicBoost((bool)((Byte >> 1)&1));
           SetMicLineInput((bool)(Byte&1));
-          SetOrionMicOptions((bool)((Byte >> 3)&1), (bool)((Byte >> 4)&1), (bool)((~Byte >> 2)&1));
+          SetOrionMicOptions((bool)((Byte >> 3)&1), (bool)((Byte >> 4)&1), (bool)((~Byte >> 2)&1));          
           Byte = *(uint8_t*)(UDPInBuffer+51);                     // line in gain
           SetCodecLineInGain(Byte);
       }

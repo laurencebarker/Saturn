@@ -33,12 +33,22 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net/if.h>
+#include <semaphore.h>
+
 
 #include "../common/saturntypes.h"
 #include "../common/hwaccess.h"                     // access to PCIe read & write
 #include "../common/saturnregisters.h"              // register I/O for Saturn
+#include "../common/saturndrivers.h"              	// register I/O for Saturn
 #include "../common/codecwrite.h"                   // codec register I/O for Saturn
 #include "../common/version.h"                      // version I/O for Saturn
+#include "../common/debugaids.h"
+#include "../common/codecwrite.h"
+
+extern sem_t DDCInSelMutex;                 // protect access to shared DDC input select register
+extern sem_t DDCResetFIFOMutex;             // protect access to FIFO reset register
+extern sem_t RFGPIOMutex;                   // protect access to RF GPIO register
+extern sem_t CodecRegMutex;                 // protect writes to codec
 
 
 
@@ -55,7 +65,7 @@
 #define VDMAWORDSPERDMA 128							// 8 byte memory words
 #define VDMATRANSFERS (VTOTALSAMPLES * 4) / VDMATRANSFERSIZE
 
-#define VAMPLITUDE 0.1F
+#define VAMPLITUDE 0.2F
 
 
 int DMAWritefile_fd = -1;											// DMA write file device
@@ -65,7 +75,7 @@ int DMAReadfile_fd = -1;											// DMA read file device
 ///
 // not really needed!
 //
-void HandlerSetEERMode(void)
+void HandlerSetEERMode(bool Unused)
 {
 
 }
@@ -212,15 +222,19 @@ int main(int argc, char *argv[])
 		Frequency = (atoi(argv[1]));
 	if(Frequency > 0)
 	{
-	//
-	// initialise. Create memory buffers and open DMA file devices
-	//
+  //
+  // initialise register access semaphores
+  //
+  		sem_init(&DDCInSelMutex, 0, 1);                                   // for DDC input select register
+  		sem_init(&DDCResetFIFOMutex, 0, 1);                               // for FIFO reset register
+  		sem_init(&RFGPIOMutex, 0, 1);                                     // for RF GPIO register
+  		sem_init(&CodecRegMutex, 0, 1);                                   // for codec writes
+
 		OpenXDMADriver();
 		PrintVersionInfo();
 		CodecInitialise();
 		SetByteSwapping(false);                                            // h/w to generate normalbyte order
 		SetSpkrMute(false);
-
 		posix_memalign((void **)&WriteBuffer, VALIGNMENT, BufferSize);
 		if(!WriteBuffer)
 		{
@@ -286,6 +300,10 @@ out:
 		close(DMAWritefile_fd);
 		close(DMAReadfile_fd);
 		free(WriteBuffer);
+  		sem_destroy(&DDCInSelMutex);
+  		sem_destroy(&DDCResetFIFOMutex);
+  		sem_destroy(&RFGPIOMutex);
+  		sem_destroy(&CodecRegMutex);
 	}
 }
 
