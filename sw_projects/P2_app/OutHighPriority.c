@@ -105,6 +105,7 @@ void *OutgoingHighPriority(void *arg)
     {
       // create the packet
       *(uint32_t *)UDPBuffer = htonl(SequenceCounter++);        // add sequence count
+      ReadStatusRegister();
       Byte = (uint8_t)GetP2PTTKeyInputs();
       *(uint8_t *)(UDPBuffer+4) = Byte;
       Byte = (uint8_t)GetADCOverflow();
@@ -125,7 +126,6 @@ void *OutgoingHighPriority(void *arg)
 
       Byte = (uint8_t)GetUserIOBits();                  // user I/O bits
       *(uint8_t *)(UDPBuffer+59) = Byte;
-
       Error = sendmsg(ThreadData -> Socketid, &datagram, 0);
 
       if(Error == -1)

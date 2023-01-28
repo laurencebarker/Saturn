@@ -1479,7 +1479,6 @@ void SetCWSidetoneEnabled(bool Enabled)
         GCodecConfigReg = Register;                     // store it back
         RegisterWrite(VADDRCODECCONFIGREG, Register);   // and write to it
     }
-    printf("sidetone enable. Demand = %x new reg = %08x\n", (int)Enabled, Register);
 }
 
 
@@ -1501,7 +1500,6 @@ void SetCWSidetoneVol(uint8_t Volume)
         GCodecConfigReg = Register;                     // store it back
         RegisterWrite(VADDRCODECCONFIGREG, Register);   // and write to it
     }
-    printf("sidetone vol. Demand = %x new reg = %08x\n", Volume, Register);
 }
 
 
@@ -1562,7 +1560,6 @@ void SetCWSidetoneFrequency(unsigned int Frequency)
     Register = GCodecConfigReg;                         // get current settings
     Register &= 0xFFFF0000;                             // remove old bits
     Register |= DeltaPhase;                             // add back new bits
-    printf("sidetone freq Demand = %d fdf=%f new reg = %08x\n", Frequency, fDeltaPhase, Register);
 
     if(Register != GCodecConfigReg)                     // write back if different
     {
@@ -1810,7 +1807,7 @@ void ReadStatusRegister(void)
 {
     uint32_t StatusRegisterValue = 0;
 
-//    StatusRegisterValue = RegisterRead(VADDRSTATUSREG);
+    StatusRegisterValue = RegisterRead(VADDRSTATUSREG);
     GStatusRegister = StatusRegisterValue;                        // save to global
 }
 
@@ -1892,7 +1889,7 @@ unsigned int GetADCOverflow(void)
 {
     unsigned int Result = 0;
 
-//  Result = RegisterRead(VADDRADCOVERFLOWBASE);
+    Result = RegisterRead(VADDRADCOVERFLOWBASE);
     return (Result & 0x3);
 }
 
@@ -1922,7 +1919,7 @@ unsigned int GetAnalogueIn(unsigned int AnalogueSelect)
 {
     unsigned int Result = 0;
     AnalogueSelect &= 7;                                        // limit to 3 bits
-//  Result = RegisterRead(VADDRALEXADCBASE + AnalogueSelect);
+    Result = RegisterRead(VADDRALEXADCBASE + 4*AnalogueSelect);
     return Result;
 }
 
@@ -2102,7 +2099,7 @@ void SetTXModulationTestSourceFrequency (unsigned int Freq)
     if(Register != TXModulationTestReg)                    // write back if different
     {
         TXModulationTestReg = Register;                    // store it back
-//        RegisterWrite(VADDRTXMODTESTREG, Register);  // and write to it
+        RegisterWrite(VADDRTXMODTESTREG, Register);  // and write to it
     }
 }
 
