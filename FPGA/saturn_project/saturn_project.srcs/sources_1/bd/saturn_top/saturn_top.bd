@@ -174,9 +174,7 @@
           "xlslice_9": ""
         },
         "debounce": {
-          "util_reduced_logic_0": "",
           "xlconcat_0": "",
-          "xlconcat_1": "",
           "xlslice_0": "",
           "xlslice_1": "",
           "xlslice_2": "",
@@ -343,7 +341,6 @@
         "regmux_2_1_1": ""
       },
       "audio_codec_0": "",
-      "axis_clock_cvt_sidetone_122_to_12": "",
       "clock_generator": {
         "clk_wiz_0": "",
         "util_reduced_logic_0": "",
@@ -359,7 +356,24 @@
       "xlslice_4": "",
       "util_vector_logic_0": "",
       "clock_monitor_0": "",
-      "axis_data_fifo_0": ""
+      "axis_data_fifo_0": "",
+      "IambicKeyer": {
+        "xlslice_speed": "",
+        "xlslice_weight": "",
+        "xlslice_reversed": "",
+        "xlslice_strict": "",
+        "xlslice_modeB": "",
+        "xlslice_iambicenable": "",
+        "xlslice_CWXDash": "",
+        "xlslice_CWXDot": "",
+        "xlslice_CWX": "",
+        "ClockDivider_0": "",
+        "util_vector_logic_0": "",
+        "util_vector_logic_1": "",
+        "xlslice_CWXDash1": "",
+        "iambic_0": "",
+        "D_register_0": ""
+      }
     },
     "interface_ports": {
       "PROM_SPI": {
@@ -4124,6 +4138,11 @@
           "DUCFIFORstn": {
             "direction": "O",
             "left": "0",
+            "right": "0"
+          },
+          "IambicConfig": {
+            "direction": "O",
+            "left": "31",
             "right": "0"
           }
         },
@@ -9625,6 +9644,12 @@
               "xlslice_15/Din"
             ]
           },
+          "AXIL_ConfigReg_64_1_config_reg1": {
+            "ports": [
+              "AXIL_ConfigReg_64_1/config_reg1",
+              "IambicConfig"
+            ]
+          },
           "AXIL_SPIWriter_0_SPICk": {
             "ports": [
               "AXIL_SPIWriter_0/SPICk",
@@ -10028,9 +10053,6 @@
           "CTRL_TRSW": {
             "direction": "O"
           },
-          "CW_Key_Down": {
-            "direction": "O"
-          },
           "DAC_Ctrl": {
             "direction": "I",
             "left": "31",
@@ -10122,6 +10144,15 @@
             "direction": "O",
             "left": "9",
             "right": "0"
+          },
+          "Dbounced_Key_Dash": {
+            "direction": "O"
+          },
+          "Debounced_Key_Dot": {
+            "direction": "O"
+          },
+          "IO8": {
+            "direction": "O"
           }
         },
         "components": {
@@ -11432,9 +11463,6 @@
           },
           "debounce": {
             "ports": {
-              "CW_Key_Down": {
-                "direction": "O"
-              },
               "clk": {
                 "type": "clk",
                 "direction": "I"
@@ -11452,23 +11480,18 @@
                 "direction": "O",
                 "left": "9",
                 "right": "0"
+              },
+              "Debounced_Key_Dot": {
+                "direction": "O"
+              },
+              "Debounced_Key_Dash": {
+                "direction": "O"
+              },
+              "IO8": {
+                "direction": "O"
               }
             },
             "components": {
-              "util_reduced_logic_0": {
-                "vlnv": "xilinx.com:ip:util_reduced_logic:2.0",
-                "xci_name": "saturn_top_util_reduced_logic_0_1",
-                "xci_path": "ip\\saturn_top_util_reduced_logic_0_1\\saturn_top_util_reduced_logic_0_1.xci",
-                "inst_hier_path": "RF_interfaces/debounce/util_reduced_logic_0",
-                "parameters": {
-                  "C_OPERATION": {
-                    "value": "or"
-                  },
-                  "C_SIZE": {
-                    "value": "2"
-                  }
-                }
-              },
               "xlconcat_0": {
                 "vlnv": "xilinx.com:ip:xlconcat:2.1",
                 "xci_name": "saturn_top_xlconcat_0_2",
@@ -11482,12 +11505,6 @@
                     "value": "9"
                   }
                 }
-              },
-              "xlconcat_1": {
-                "vlnv": "xilinx.com:ip:xlconcat:2.1",
-                "xci_name": "saturn_top_xlconcat_1_1",
-                "xci_path": "ip\\saturn_top_xlconcat_1_1\\saturn_top_xlconcat_1_1.xci",
-                "inst_hier_path": "RF_interfaces/debounce/xlconcat_1"
               },
               "xlslice_0": {
                 "vlnv": "xilinx.com:ip:xlslice:1.0",
@@ -11872,7 +11889,17 @@
                     "direction": "O"
                   },
                   "clean_pbn": {
-                    "direction": "O"
+                    "direction": "O",
+                    "parameters": {
+                      "PortType": {
+                        "value": "undef",
+                        "value_src": "ip_prop"
+                      },
+                      "PortType.PROP_SRC": {
+                        "value": "false",
+                        "value_src": "ip_prop"
+                      }
+                    }
                   }
                 }
               },
@@ -11920,7 +11947,17 @@
                     "direction": "O"
                   },
                   "clean_pbn": {
-                    "direction": "O"
+                    "direction": "O",
+                    "parameters": {
+                      "PortType": {
+                        "value": "undef",
+                        "value_src": "ip_prop"
+                      },
+                      "PortType.PROP_SRC": {
+                        "value": "false",
+                        "value_src": "ip_prop"
+                      }
+                    }
                   }
                 }
               },
@@ -12175,14 +12212,14 @@
                 "ports": [
                   "debounce_2/clean_pbn",
                   "xlconcat_0/In2",
-                  "xlconcat_1/In0"
+                  "Debounced_Key_Dot"
                 ]
               },
               "debounce_3_clean_pbn": {
                 "ports": [
                   "debounce_3/clean_pbn",
                   "xlconcat_0/In3",
-                  "xlconcat_1/In1"
+                  "Debounced_Key_Dash"
                 ]
               },
               "debounce_4_clean_pb": {
@@ -12209,28 +12246,22 @@
                   "xlconcat_0/In7"
                 ]
               },
+              "debounce_8_clean_pbn": {
+                "ports": [
+                  "debounce_8/clean_pbn",
+                  "IO8"
+                ]
+              },
               "rstn_1": {
                 "ports": [
                   "rstn",
                   "ClockDivider_0/resetn"
                 ]
               },
-              "util_reduced_logic_0_Res": {
-                "ports": [
-                  "util_reduced_logic_0/Res",
-                  "CW_Key_Down"
-                ]
-              },
               "xlconcat_0_dout": {
                 "ports": [
                   "xlconcat_0/dout",
                   "status_out"
-                ]
-              },
-              "xlconcat_1_dout": {
-                "ports": [
-                  "xlconcat_1/dout",
-                  "util_reduced_logic_0/Op1"
                 ]
               },
               "xlslice_0_Dout": {
@@ -12698,10 +12729,22 @@
               "debounce/clk"
             ]
           },
-          "debounce_CW_Key_Down": {
+          "debounce_Debounced_Key_Dash": {
             "ports": [
-              "debounce/CW_Key_Down",
-              "CW_Key_Down"
+              "debounce/Debounced_Key_Dash",
+              "Dbounced_Key_Dash"
+            ]
+          },
+          "debounce_Debounced_Key_Dot": {
+            "ports": [
+              "debounce/Debounced_Key_Dot",
+              "Debounced_Key_Dot"
+            ]
+          },
+          "debounce_IO8": {
+            "ports": [
+              "debounce/IO8",
+              "IO8"
             ]
           },
           "debounce_status_out": {
@@ -24737,12 +24780,6 @@
           }
         }
       },
-      "axis_clock_cvt_sidetone_122_to_12": {
-        "vlnv": "xilinx.com:ip:axis_clock_converter:1.1",
-        "xci_name": "saturn_top_axis_clock_cvt_sidetone_122_to_12_0",
-        "xci_path": "ip\\saturn_top_axis_clock_cvt_sidetone_122_to_12_0\\saturn_top_axis_clock_cvt_sidetone_122_to_12_0.xci",
-        "inst_hier_path": "axis_clock_cvt_sidetone_122_to_12"
-      },
       "clock_generator": {
         "ports": {
           "clock_122_in_n": {
@@ -25380,6 +25417,597 @@
             "value": "1"
           }
         }
+      },
+      "IambicKeyer": {
+        "ports": {
+          "CW_Key_Down": {
+            "direction": "O"
+          },
+          "Key_Dash": {
+            "direction": "I"
+          },
+          "Key_Dot": {
+            "direction": "I"
+          },
+          "clk12": {
+            "direction": "I"
+          },
+          "IambicConfig": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "aresetn": {
+            "direction": "I"
+          },
+          "IO8": {
+            "direction": "I"
+          },
+          "CW_Breakin": {
+            "direction": "O",
+            "left": "0",
+            "right": "0"
+          }
+        },
+        "components": {
+          "xlslice_speed": {
+            "vlnv": "xilinx.com:ip:xlslice:1.0",
+            "xci_name": "saturn_top_xlslice_0_12",
+            "xci_path": "ip\\saturn_top_xlslice_0_12\\saturn_top_xlslice_0_12.xci",
+            "inst_hier_path": "IambicKeyer/xlslice_speed",
+            "parameters": {
+              "DIN_FROM": {
+                "value": "5"
+              },
+              "DOUT_WIDTH": {
+                "value": "6"
+              }
+            }
+          },
+          "xlslice_weight": {
+            "vlnv": "xilinx.com:ip:xlslice:1.0",
+            "xci_name": "saturn_top_xlslice_0_13",
+            "xci_path": "ip\\saturn_top_xlslice_0_13\\saturn_top_xlslice_0_13.xci",
+            "inst_hier_path": "IambicKeyer/xlslice_weight",
+            "parameters": {
+              "DIN_FROM": {
+                "value": "15"
+              },
+              "DIN_TO": {
+                "value": "8"
+              },
+              "DOUT_WIDTH": {
+                "value": "8"
+              }
+            }
+          },
+          "xlslice_reversed": {
+            "vlnv": "xilinx.com:ip:xlslice:1.0",
+            "xci_name": "saturn_top_xlslice_0_14",
+            "xci_path": "ip\\saturn_top_xlslice_0_14\\saturn_top_xlslice_0_14.xci",
+            "inst_hier_path": "IambicKeyer/xlslice_reversed",
+            "parameters": {
+              "DIN_FROM": {
+                "value": "16"
+              },
+              "DIN_TO": {
+                "value": "16"
+              },
+              "DOUT_WIDTH": {
+                "value": "1"
+              }
+            }
+          },
+          "xlslice_strict": {
+            "vlnv": "xilinx.com:ip:xlslice:1.0",
+            "xci_name": "saturn_top_xlslice_reversed_0",
+            "xci_path": "ip\\saturn_top_xlslice_reversed_0\\saturn_top_xlslice_reversed_0.xci",
+            "inst_hier_path": "IambicKeyer/xlslice_strict",
+            "parameters": {
+              "DIN_FROM": {
+                "value": "19"
+              },
+              "DIN_TO": {
+                "value": "19"
+              },
+              "DOUT_WIDTH": {
+                "value": "1"
+              }
+            }
+          },
+          "xlslice_modeB": {
+            "vlnv": "xilinx.com:ip:xlslice:1.0",
+            "xci_name": "saturn_top_xlslice_reversed_1",
+            "xci_path": "ip\\saturn_top_xlslice_reversed_1\\saturn_top_xlslice_reversed_1.xci",
+            "inst_hier_path": "IambicKeyer/xlslice_modeB",
+            "parameters": {
+              "DIN_FROM": {
+                "value": "18"
+              },
+              "DIN_TO": {
+                "value": "18"
+              },
+              "DOUT_WIDTH": {
+                "value": "1"
+              }
+            }
+          },
+          "xlslice_iambicenable": {
+            "vlnv": "xilinx.com:ip:xlslice:1.0",
+            "xci_name": "saturn_top_xlslice_reversed_2",
+            "xci_path": "ip\\saturn_top_xlslice_reversed_2\\saturn_top_xlslice_reversed_2.xci",
+            "inst_hier_path": "IambicKeyer/xlslice_iambicenable",
+            "parameters": {
+              "DIN_FROM": {
+                "value": "17"
+              },
+              "DIN_TO": {
+                "value": "17"
+              },
+              "DOUT_WIDTH": {
+                "value": "1"
+              }
+            }
+          },
+          "xlslice_CWXDash": {
+            "vlnv": "xilinx.com:ip:xlslice:1.0",
+            "xci_name": "saturn_top_xlslice_reversed_3",
+            "xci_path": "ip\\saturn_top_xlslice_reversed_3\\saturn_top_xlslice_reversed_3.xci",
+            "inst_hier_path": "IambicKeyer/xlslice_CWXDash",
+            "parameters": {
+              "DIN_FROM": {
+                "value": "22"
+              },
+              "DIN_TO": {
+                "value": "22"
+              },
+              "DOUT_WIDTH": {
+                "value": "1"
+              }
+            }
+          },
+          "xlslice_CWXDot": {
+            "vlnv": "xilinx.com:ip:xlslice:1.0",
+            "xci_name": "saturn_top_xlslice_reversed_4",
+            "xci_path": "ip\\saturn_top_xlslice_reversed_4\\saturn_top_xlslice_reversed_4.xci",
+            "inst_hier_path": "IambicKeyer/xlslice_CWXDot",
+            "parameters": {
+              "DIN_FROM": {
+                "value": "21"
+              },
+              "DIN_TO": {
+                "value": "21"
+              },
+              "DOUT_WIDTH": {
+                "value": "1"
+              }
+            }
+          },
+          "xlslice_CWX": {
+            "vlnv": "xilinx.com:ip:xlslice:1.0",
+            "xci_name": "saturn_top_xlslice_reversed_5",
+            "xci_path": "ip\\saturn_top_xlslice_reversed_5\\saturn_top_xlslice_reversed_5.xci",
+            "inst_hier_path": "IambicKeyer/xlslice_CWX",
+            "parameters": {
+              "DIN_FROM": {
+                "value": "20"
+              },
+              "DIN_TO": {
+                "value": "20"
+              },
+              "DOUT_WIDTH": {
+                "value": "1"
+              }
+            }
+          },
+          "ClockDivider_0": {
+            "vlnv": "xilinx.com:module_ref:ClockDivider:1.0",
+            "xci_name": "saturn_top_ClockDivider_0_3",
+            "xci_path": "ip\\saturn_top_ClockDivider_0_3\\saturn_top_ClockDivider_0_3.xci",
+            "inst_hier_path": "IambicKeyer/ClockDivider_0",
+            "parameters": {
+              "Divisor": {
+                "value": "256"
+              }
+            },
+            "reference_info": {
+              "ref_type": "hdl",
+              "ref_name": "ClockDivider",
+              "boundary_crc": "0x0"
+            },
+            "ports": {
+              "aclk": {
+                "type": "clk",
+                "direction": "I",
+                "parameters": {
+                  "ASSOCIATED_RESET": {
+                    "value": "resetn",
+                    "value_src": "constant"
+                  },
+                  "FREQ_HZ": {
+                    "value": "12288000",
+                    "value_src": "ip_prop"
+                  },
+                  "PHASE": {
+                    "value": "0.0",
+                    "value_src": "ip_prop"
+                  },
+                  "CLK_DOMAIN": {
+                    "value": "saturn_top_clk_wiz_0_0_clk_out1",
+                    "value_src": "ip_prop"
+                  }
+                }
+              },
+              "resetn": {
+                "type": "rst",
+                "direction": "I",
+                "parameters": {
+                  "POLARITY": {
+                    "value": "ACTIVE_LOW",
+                    "value_src": "constant"
+                  }
+                }
+              },
+              "ClockOut": {
+                "type": "clk",
+                "direction": "O",
+                "parameters": {
+                  "FREQ_HZ": {
+                    "value": "65000000",
+                    "value_src": "constant"
+                  }
+                }
+              },
+              "TC": {
+                "direction": "O"
+              },
+              "TCN": {
+                "direction": "O"
+              }
+            }
+          },
+          "util_vector_logic_0": {
+            "vlnv": "xilinx.com:ip:util_vector_logic:2.0",
+            "xci_name": "saturn_top_util_vector_logic_0_14",
+            "xci_path": "ip\\saturn_top_util_vector_logic_0_14\\saturn_top_util_vector_logic_0_14.xci",
+            "inst_hier_path": "IambicKeyer/util_vector_logic_0",
+            "parameters": {
+              "C_OPERATION": {
+                "value": "or"
+              },
+              "C_SIZE": {
+                "value": "1"
+              }
+            }
+          },
+          "util_vector_logic_1": {
+            "vlnv": "xilinx.com:ip:util_vector_logic:2.0",
+            "xci_name": "saturn_top_util_vector_logic_0_15",
+            "xci_path": "ip\\saturn_top_util_vector_logic_0_15\\saturn_top_util_vector_logic_0_15.xci",
+            "inst_hier_path": "IambicKeyer/util_vector_logic_1",
+            "parameters": {
+              "C_OPERATION": {
+                "value": "or"
+              },
+              "C_SIZE": {
+                "value": "1"
+              }
+            }
+          },
+          "xlslice_CWXDash1": {
+            "vlnv": "xilinx.com:ip:xlslice:1.0",
+            "xci_name": "saturn_top_xlslice_CWXDash_0",
+            "xci_path": "ip\\saturn_top_xlslice_CWXDash_0\\saturn_top_xlslice_CWXDash_0.xci",
+            "inst_hier_path": "IambicKeyer/xlslice_CWXDash1",
+            "parameters": {
+              "DIN_FROM": {
+                "value": "23"
+              },
+              "DIN_TO": {
+                "value": "23"
+              },
+              "DOUT_WIDTH": {
+                "value": "1"
+              }
+            }
+          },
+          "iambic_0": {
+            "vlnv": "xilinx.com:module_ref:iambic:1.0",
+            "xci_name": "saturn_top_iambic_0_0",
+            "xci_path": "ip\\saturn_top_iambic_0_0\\saturn_top_iambic_0_0.xci",
+            "inst_hier_path": "IambicKeyer/iambic_0",
+            "parameters": {
+              "clock_speed": {
+                "value": "48"
+              }
+            },
+            "reference_info": {
+              "ref_type": "hdl",
+              "ref_name": "iambic",
+              "boundary_crc": "0x0"
+            },
+            "ports": {
+              "clock": {
+                "type": "clk",
+                "direction": "I",
+                "parameters": {
+                  "FREQ_HZ": {
+                    "value": "12288000",
+                    "value_src": "ip_prop"
+                  },
+                  "PHASE": {
+                    "value": "0.0",
+                    "value_src": "ip_prop"
+                  },
+                  "CLK_DOMAIN": {
+                    "value": "saturn_top_clk_wiz_0_0_clk_out1",
+                    "value_src": "ip_prop"
+                  }
+                }
+              },
+              "clken": {
+                "direction": "I"
+              },
+              "cw_speed": {
+                "direction": "I",
+                "left": "5",
+                "right": "0"
+              },
+              "iambic": {
+                "direction": "I"
+              },
+              "keyer_mode": {
+                "direction": "I"
+              },
+              "weight": {
+                "direction": "I",
+                "left": "7",
+                "right": "0"
+              },
+              "letter_space": {
+                "direction": "I"
+              },
+              "dot_key": {
+                "direction": "I",
+                "parameters": {
+                  "PortType": {
+                    "value": "undef",
+                    "value_src": "ip_prop"
+                  },
+                  "PortType.PROP_SRC": {
+                    "value": "false",
+                    "value_src": "ip_prop"
+                  }
+                }
+              },
+              "dash_key": {
+                "direction": "I",
+                "parameters": {
+                  "PortType": {
+                    "value": "undef",
+                    "value_src": "ip_prop"
+                  },
+                  "PortType.PROP_SRC": {
+                    "value": "false",
+                    "value_src": "ip_prop"
+                  }
+                }
+              },
+              "CWX": {
+                "direction": "I"
+              },
+              "paddle_swap": {
+                "direction": "I"
+              },
+              "keyer_out": {
+                "direction": "O"
+              },
+              "IO8": {
+                "direction": "I"
+              }
+            }
+          },
+          "D_register_0": {
+            "vlnv": "xilinx.com:module_ref:D_register:1.0",
+            "xci_name": "saturn_top_D_register_0_10",
+            "xci_path": "ip\\saturn_top_D_register_0_10\\saturn_top_D_register_0_10.xci",
+            "inst_hier_path": "IambicKeyer/D_register_0",
+            "parameters": {
+              "DATA_WIDTH": {
+                "value": "32"
+              }
+            },
+            "reference_info": {
+              "ref_type": "hdl",
+              "ref_name": "D_register",
+              "boundary_crc": "0x0"
+            },
+            "ports": {
+              "aclk": {
+                "type": "clk",
+                "direction": "I",
+                "parameters": {
+                  "ASSOCIATED_RESET": {
+                    "value": "resetn",
+                    "value_src": "constant"
+                  },
+                  "FREQ_HZ": {
+                    "value": "12288000",
+                    "value_src": "ip_prop"
+                  },
+                  "PHASE": {
+                    "value": "0.0",
+                    "value_src": "ip_prop"
+                  },
+                  "CLK_DOMAIN": {
+                    "value": "saturn_top_clk_wiz_0_0_clk_out1",
+                    "value_src": "ip_prop"
+                  }
+                }
+              },
+              "resetn": {
+                "type": "rst",
+                "direction": "I",
+                "parameters": {
+                  "POLARITY": {
+                    "value": "ACTIVE_LOW",
+                    "value_src": "constant"
+                  }
+                }
+              },
+              "din": {
+                "direction": "I",
+                "left": "31",
+                "right": "0"
+              },
+              "dout": {
+                "direction": "O",
+                "left": "31",
+                "right": "0"
+              }
+            }
+          }
+        },
+        "nets": {
+          "ClockDivider_0_TC": {
+            "ports": [
+              "ClockDivider_0/TC",
+              "iambic_0/clken"
+            ]
+          },
+          "IO8_1": {
+            "ports": [
+              "IO8",
+              "iambic_0/IO8"
+            ]
+          },
+          "IambicConfig_1": {
+            "ports": [
+              "D_register_0/dout",
+              "xlslice_CWXDash/Din",
+              "xlslice_CWXDot/Din",
+              "xlslice_CWX/Din",
+              "xlslice_strict/Din",
+              "xlslice_modeB/Din",
+              "xlslice_iambicenable/Din",
+              "xlslice_reversed/Din",
+              "xlslice_weight/Din",
+              "xlslice_speed/Din",
+              "xlslice_CWXDash1/Din"
+            ]
+          },
+          "IambicConfig_2": {
+            "ports": [
+              "IambicConfig",
+              "D_register_0/din"
+            ]
+          },
+          "Key_Dash_1": {
+            "ports": [
+              "Key_Dash",
+              "util_vector_logic_1/Op1"
+            ]
+          },
+          "Key_Dot_1": {
+            "ports": [
+              "Key_Dot",
+              "util_vector_logic_0/Op1"
+            ]
+          },
+          "aresetn_1": {
+            "ports": [
+              "aresetn",
+              "ClockDivider_0/resetn",
+              "D_register_0/resetn"
+            ]
+          },
+          "clk122_1": {
+            "ports": [
+              "clk12",
+              "ClockDivider_0/aclk",
+              "iambic_0/clock",
+              "D_register_0/aclk"
+            ]
+          },
+          "iambic_0_keyer_out": {
+            "ports": [
+              "iambic_0/keyer_out",
+              "CW_Key_Down"
+            ]
+          },
+          "util_vector_logic_0_Res": {
+            "ports": [
+              "util_vector_logic_0/Res",
+              "iambic_0/dot_key"
+            ]
+          },
+          "util_vector_logic_1_Res": {
+            "ports": [
+              "util_vector_logic_1/Res",
+              "iambic_0/dash_key"
+            ]
+          },
+          "xlslice_CWXDash1_Dout": {
+            "ports": [
+              "xlslice_CWXDash1/Dout",
+              "CW_Breakin"
+            ]
+          },
+          "xlslice_CWXDash_Dout": {
+            "ports": [
+              "xlslice_CWXDash/Dout",
+              "util_vector_logic_1/Op2"
+            ]
+          },
+          "xlslice_CWXDot_Dout": {
+            "ports": [
+              "xlslice_CWXDot/Dout",
+              "util_vector_logic_0/Op2"
+            ]
+          },
+          "xlslice_CWX_Dout": {
+            "ports": [
+              "xlslice_CWX/Dout",
+              "iambic_0/CWX"
+            ]
+          },
+          "xlslice_iambicenable_Dout": {
+            "ports": [
+              "xlslice_iambicenable/Dout",
+              "iambic_0/iambic"
+            ]
+          },
+          "xlslice_modeB_Dout": {
+            "ports": [
+              "xlslice_modeB/Dout",
+              "iambic_0/keyer_mode"
+            ]
+          },
+          "xlslice_reversed_Dout": {
+            "ports": [
+              "xlslice_reversed/Dout",
+              "iambic_0/paddle_swap"
+            ]
+          },
+          "xlslice_speed_Dout": {
+            "ports": [
+              "xlslice_speed/Dout",
+              "iambic_0/cw_speed"
+            ]
+          },
+          "xlslice_strict_Dout": {
+            "ports": [
+              "xlslice_strict/Dout",
+              "iambic_0/letter_space"
+            ]
+          },
+          "xlslice_weight_Dout": {
+            "ports": [
+              "xlslice_weight/Dout",
+              "iambic_0/weight"
+            ]
+          }
+        }
       }
     },
     "interface_nets": {
@@ -25657,6 +26285,18 @@
           "clock_monitor_0/ck2"
         ]
       },
+      "IambicConfig_1": {
+        "ports": [
+          "PCIe/IambicConfig",
+          "IambicKeyer/IambicConfig"
+        ]
+      },
+      "IambicKeyer_CW_Key_Down": {
+        "ports": [
+          "IambicKeyer/CW_Key_Down",
+          "Transmitter/cw_key_down"
+        ]
+      },
       "PCIe_ADC_CLK": {
         "ports": [
           "PCIe/ADC_CLK",
@@ -25721,8 +26361,7 @@
         "ports": [
           "PCIe/aresetn12",
           "FIFO_Interfaces/aresetn_12",
-          "Transmitter/resetn_12",
-          "axis_clock_cvt_sidetone_122_to_12/m_axis_aresetn"
+          "Transmitter/resetn_12"
         ]
       },
       "PCIe_axi_aclk_125": {
@@ -25800,6 +26439,24 @@
         "ports": [
           "RF_interfaces/Dac_Atten_Mode",
           "Dac_Atten_Mode"
+        ]
+      },
+      "RF_interfaces_Dbounced_Key_Dash": {
+        "ports": [
+          "RF_interfaces/Dbounced_Key_Dash",
+          "IambicKeyer/Key_Dash"
+        ]
+      },
+      "RF_interfaces_Debounced_Key_Dot": {
+        "ports": [
+          "RF_interfaces/Debounced_Key_Dot",
+          "IambicKeyer/Key_Dot"
+        ]
+      },
+      "RF_interfaces_IO8": {
+        "ports": [
+          "RF_interfaces/IO8",
+          "IambicKeyer/IO8"
         ]
       },
       "RF_interfaces_status_out": {
@@ -25962,8 +26619,8 @@
           "RF_interfaces/codec_clk",
           "Transmitter/clk12",
           "audio_codec_0/clk12",
-          "axis_clock_cvt_sidetone_122_to_12/m_axis_aclk",
-          "axis_data_fifo_0/m_axis_aclk"
+          "axis_data_fifo_0/m_axis_aclk",
+          "IambicKeyer/clk12"
         ]
       },
       "clock_122_1": {
@@ -25986,7 +26643,6 @@
           "RF_interfaces/aclk",
           "Receiver/aclk",
           "Transmitter/clk122",
-          "axis_clock_cvt_sidetone_122_to_12/s_axis_aclk",
           "ADC_LVDS_Pins/aclk",
           "clock_monitor_0/ck0",
           "clock_monitor_0/ck3",
@@ -26015,12 +26671,6 @@
         "ports": [
           "clock_monitor_0/LED",
           "util_vector_logic_0/Op1"
-        ]
-      },
-      "cw_key_1": {
-        "ports": [
-          "RF_interfaces/CW_Key_Down",
-          "Transmitter/cw_key_down"
         ]
       },
       "is2rxd_1": {
@@ -26114,7 +26764,6 @@
         "ports": [
           "xlslice_1/Dout",
           "Transmitter/resetn1",
-          "axis_clock_cvt_sidetone_122_to_12/s_axis_aresetn",
           "FIFO_Interfaces/aresetn_122",
           "axis_data_fifo_0/s_axis_aresetn"
         ]
@@ -26122,7 +26771,8 @@
       "xlslice_2_Dout": {
         "ports": [
           "xlslice_2/Dout",
-          "audio_codec_0/arstn"
+          "audio_codec_0/arstn",
+          "IambicKeyer/aresetn"
         ]
       },
       "xlslice_3_Dout": {
