@@ -71,6 +71,7 @@ extern sem_t CodecRegMutex;                 // protect writes to codec
 int DMAWritefile_fd = -1;											// DMA write file device
 int DMAReadfile_fd = -1;											// DMA read file device
 bool PTTPressed = false;
+int MaxMicLevel = 0;
 
 ///
 // not really needed!
@@ -202,7 +203,11 @@ void DMAReadFromCodec(char* MemPtr, uint32_t Length)
 	bool FIFOOverflow;
 	uint32_t DMACount;
 	uint32_t  TotalDMACount;
+	int16_t *MicReadPtr;
+	uint32_t SampleCntr;
+	int MicSample;
 
+	MicReadPtr = (int16_t*)MemPtr;
 	TotalDMACount = Length / VDMATRANSFERSIZE;
 	printf("Starting Read DMAs; total = %d\n", TotalDMACount);
 
@@ -215,10 +220,18 @@ void DMAReadFromCodec(char* MemPtr, uint32_t Length)
 			usleep(1000);								                    // 1ms wait
 			Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow);    // read the FIFO free locations
 		}
-		// DMA read next batch
-		// then read 16 bit samples, and write out 32 bit sample pairs
+		// DMA read next batch of 16 bit mic samples
+		// then updatre mic amplitude
 		//
 		DMAReadFromFPGA(DMAReadfile_fd, MemPtr, VDMATRANSFERSIZE, AXIBaseAddress);
+		for(SampleCntr=0; SampleCntr < VDMATRANSFERSIZE/2; SampleCntr++)
+		{
+			MicSample = *MicReadPtr++;		// get mic sample
+			if(MicSample < 0)
+				MicSample = -MicSample;		// end up with abs value
+			if(MicSample > MaxMicLevel)
+				MaxMicLevel = MicSample;	// find largest
+		}
 		MemPtr += VDMATRANSFERSIZE;
 		CheckPTT();
 	}
@@ -241,6 +254,7 @@ int main(int argc, char *argv[])
 	bool EnableBoost =false;
 	bool PTTState = false;
 	uint32_t Cntr;
+	float PercentLevel;
 
 	if (argc < 2)
 	{
@@ -346,12 +360,13 @@ int main(int argc, char *argv[])
 		printf("\n\nSpeak Now...\n\nReading mic data from Codec via DMA\n");
 		ResetDMAStreamFIFO(eMicCodecDMA);
 		DMAReadFromCodec(ReadBuffer, Length);
-		DumpMemoryBuffer(ReadBuffer, 10240);
-
+		// DumpMemoryBuffer(ReadBuffer, 10240);
+		PercentLevel = 100.0*(float)MaxMicLevel/32767.0;
 		CopyMicToSpeaker(ReadBuffer, WriteBuffer, Length);
 
 		Length = VTOTALSAMPLES * 4;
-		printf("Playing recorded data to Codec via DMA\n");
+		printf("Max mic level recorded = %3.0f%%\n\n\n", PercentLevel);
+		printf("\nPlaying recorded data to Codec via DMA\n");
 		DMAWriteToCodec(WriteBuffer, Length);
 
 
