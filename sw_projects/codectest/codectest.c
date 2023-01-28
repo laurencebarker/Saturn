@@ -70,7 +70,7 @@ extern sem_t CodecRegMutex;                 // protect writes to codec
 
 int DMAWritefile_fd = -1;											// DMA write file device
 int DMAReadfile_fd = -1;											// DMA read file device
-
+bool PTTPressed = false;
 
 ///
 // not really needed!
@@ -78,6 +78,26 @@ int DMAReadfile_fd = -1;											// DMA read file device
 void HandlerSetEERMode(bool Unused)
 {
 
+}
+
+
+//
+// check PTT. Display state 1st time, and when it changes
+//
+void CheckPTT(void)
+{
+	bool Pressed;
+
+	ReadStatusRegister();											// read h/w register
+	Pressed = GetPTTInput();
+	if(Pressed != PTTPressed)
+	{
+		PTTPressed =Pressed;
+		if(Pressed)
+			printf("PTT is pressed\n");
+		else
+			printf("PTT is released\n");
+	}
 }
 
 
@@ -138,6 +158,7 @@ void DMAWriteToCodec(char* MemPtr, uint32_t Length)
 		// DMA write next batch
 		DMAWriteToFPGA(DMAWritefile_fd, MemPtr, VDMATRANSFERSIZE, AXIBaseAddress);
 		MemPtr += VDMATRANSFERSIZE;
+		CheckPTT();
 	}
 	
 }
@@ -199,6 +220,7 @@ void DMAReadFromCodec(char* MemPtr, uint32_t Length)
 		//
 		DMAReadFromFPGA(DMAReadfile_fd, MemPtr, VDMATRANSFERSIZE, AXIBaseAddress);
 		MemPtr += VDMATRANSFERSIZE;
+		CheckPTT();
 	}
 }
 
@@ -214,12 +236,49 @@ int main(int argc, char *argv[])
 	uint32_t BufferSize = VMEMBUFFERSIZE;
 	uint32_t Frequency;
 	uint32_t Length;
+	bool MicRing = false;
+	bool EnableBias =false;
+	bool EnableBoost =false;
+	bool PTTState = false;
+	uint32_t Cntr;
 
-
-	if (argc != 2)
+	if (argc < 2)
+	{
 		printf("Usage: ./codectest <Freq in Hz>\n");
+		printf("Optional arguments: \n");
+		printf("-boost: increase mic input gain by 20dB\n");
+		printf("-bias: turn on mic bias\n");
+		printf("-mictip: connect mic to tip\n");
+		printf("-micring: connect mic to ring\n");
+	}
 	else
+	{
 		Frequency = (atoi(argv[1]));
+		if(argc > 2)
+			for(Cntr = 2; Cntr < argc; Cntr++)
+			{
+				if(strcmp(argv[Cntr], "-boost") == 0)
+				{
+					EnableBoost = true;
+					printf("enabling mic boost\n");
+				}
+				if(strcmp(argv[Cntr], "-bias") == 0)
+				{
+					EnableBias = true;
+					printf("enabling mic bias\n");
+				}
+				if(strcmp(argv[Cntr], "-mictip") == 0)
+				{
+					MicRing = false;
+					printf("mic on tip\n");
+				}
+				if(strcmp(argv[Cntr], "-micring") == 0)
+				{
+					MicRing = true;
+					printf("mic on ring\n");
+				}
+			}
+	}
 	if(Frequency > 0)
 	{
   //
@@ -267,6 +326,9 @@ int main(int argc, char *argv[])
 	// we have devices and memory.
 	// create test data, and display it
 	//
+		SetOrionMicOptions(MicRing, EnableBias, true);
+		SetMicBoost(EnableBoost);
+
 		printf("resetting FIFO..\n");
 		ResetDMAStreamFIFO(eSpkCodecDMA);
 		ResetDMAStreamFIFO(eMicCodecDMA);
@@ -277,11 +339,11 @@ int main(int argc, char *argv[])
 	//
 		//RegisterWrite(VADDRRFGPIOREG, 0x04);	// speaker on, mic on tip
 		Length = VTOTALSAMPLES * 4;
-		printf("Copying sample data to Codec via DMA\n");
+		printf("playing sinewave tone via DMA\n");
 		DMAWriteToCodec(WriteBuffer, Length);
 
 		Length = VTOTALSAMPLES * 2;				// 2 bytes per mic sample
-		printf("Reading mic data from Codec via DMA\n");
+		printf("\n\nSpeak Now...\n\nReading mic data from Codec via DMA\n");
 		ResetDMAStreamFIFO(eMicCodecDMA);
 		DMAReadFromCodec(ReadBuffer, Length);
 		DumpMemoryBuffer(ReadBuffer, 10240);
@@ -289,7 +351,7 @@ int main(int argc, char *argv[])
 		CopyMicToSpeaker(ReadBuffer, WriteBuffer, Length);
 
 		Length = VTOTALSAMPLES * 4;
-		printf("Copying data to Codec via DMA\n");
+		printf("Playing recorded data to Codec via DMA\n");
 		DMAWriteToCodec(WriteBuffer, Length);
 
 
