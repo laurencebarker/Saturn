@@ -135,6 +135,11 @@ typedef enum
 #define VBITCODECSPKFIFORESET 1					// reset bit in register
 
 //
+// MOX register
+//
+extern bool MOXAsserted;                                   // true if MOX as asserted
+
+//
 // addresses of the DDC frequency registers
 //
 extern uint32_t DDCRegisters[VNUMDDC];

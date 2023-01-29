@@ -53,6 +53,7 @@ uint32_t DDCRateReg;                                // value written into DDC ra
 bool GADCOverride;                                  // true if ADCs are to be overridden & use test source instead
 bool GByteSwapEnabled;                              // true if byte swapping enabled for sample readout 
 bool GPTTEnabled;                                   // true if PTT is enabled
+bool MOXAsserted;                                   // true if MOX as asserted
 bool GPureSignalEnabled;                            // true if PureSignal is enabled
 ESampleRate P1SampleRate;                           // rate for all DDC
 uint32_t P2SampleRates[VNUMDDC];                    // numerical sample rates for each DDC
@@ -342,6 +343,7 @@ void SetMOX(bool Mox)
 
     sem_wait(&RFGPIOMutex);                         // get protected access
     Register = GPIORegValue;                        // get current settings
+    MOXAsserted = Mox;                              // set variable
     if (Mox)
         Register |= (1 << VMOXBIT);
     else

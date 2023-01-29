@@ -111,18 +111,18 @@ void *OutgoingHighPriority(void *arg)
       Byte = (uint8_t)GetADCOverflow();
       *(uint8_t *)(UDPBuffer+5) = Byte;
       Word = (uint16_t)GetAnalogueIn(4);
-      *(uint16_t *)(UDPBuffer+6) = Word;                // exciter power
+      *(uint16_t *)(UDPBuffer+6) = htons(Word);                // exciter power
       Word = (uint16_t)GetAnalogueIn(0);
-      *(uint16_t *)(UDPBuffer+14) = Word;               // forward power
+      *(uint16_t *)(UDPBuffer+14) = htons(Word);               // forward power
       Word = (uint16_t)GetAnalogueIn(1);
-      *(uint16_t *)(UDPBuffer+22) = Word;               // reverse power
+      *(uint16_t *)(UDPBuffer+22) = htons(Word);               // reverse power
       Word = (uint16_t)GetAnalogueIn(5);
-      *(uint16_t *)(UDPBuffer+49) = Word;               // supply voltage
+      *(uint16_t *)(UDPBuffer+49) = htons(Word);               // supply voltage
 
       Word = (uint16_t)GetAnalogueIn(2);
-      *(uint16_t *)(UDPBuffer+53) = Word;               // AIN3
+      *(uint16_t *)(UDPBuffer+53) = htons(Word);               // AIN3
       Word = (uint16_t)GetAnalogueIn(3);
-      *(uint16_t *)(UDPBuffer+51) = Word;               // AIN4
+      *(uint16_t *)(UDPBuffer+51) = htons(Word);               // AIN4
 
       Byte = (uint8_t)GetUserIOBits();                  // user I/O bits
       *(uint8_t *)(UDPBuffer+59) = Byte;
@@ -134,7 +134,10 @@ void *OutgoingHighPriority(void *arg)
         printf("socket id = %d\n", ThreadData -> Socketid);
 //        InitError=true;
       }
-      usleep(50000);                                    // 50ms gap between messages
+      if(MOXAsserted)
+        usleep(1000);
+      else
+        usleep(50000);                                    // 50ms gap between messages
     }
   }
 //
