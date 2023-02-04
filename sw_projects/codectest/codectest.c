@@ -253,6 +253,7 @@ int main(int argc, char *argv[])
 	bool EnableBias =false;
 	bool EnableBoost =false;
 	bool PTTState = false;
+	bool IsXLR = false;
 	uint32_t Cntr;
 	float PercentLevel;
 
@@ -264,6 +265,7 @@ int main(int argc, char *argv[])
 		printf("-bias: turn on mic bias\n");
 		printf("-mictip: connect mic to tip\n");
 		printf("-micring: connect mic to ring\n");
+		printf("-xlr: connect mic to XLR input\n");
 	}
 	else
 	{
@@ -275,6 +277,11 @@ int main(int argc, char *argv[])
 				{
 					EnableBoost = true;
 					printf("enabling mic boost\n");
+				}
+				if(strcmp(argv[Cntr], "-xlr") == 0)
+				{
+					IsXLR = true;
+					printf("enabling XLR input\n");
 				}
 				if(strcmp(argv[Cntr], "-bias") == 0)
 				{
@@ -342,6 +349,7 @@ int main(int argc, char *argv[])
 	//
 		SetOrionMicOptions(MicRing, EnableBias, true);
 		SetMicBoost(EnableBoost);
+		SetBalancedMicInput(IsXLR);
 
 		printf("resetting FIFO..\n");
 		ResetDMAStreamFIFO(eSpkCodecDMA);
