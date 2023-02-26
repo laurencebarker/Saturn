@@ -42,8 +42,7 @@
       "axis_mux_2_0": "",
       "byteswap_48_0": "",
       "axis_subset_converter_1": "",
-      "axis_subset_converter_2": "",
-      "HalfLSBAdder_0": ""
+      "axis_subset_converter_2": ""
     },
     "interface_ports": {
       "M_AXIS_DATA": {
@@ -344,10 +343,10 @@
         "inst_hier_path": "axis_dwidth_converter_0",
         "parameters": {
           "M_TDATA_NUM_BYTES": {
-            "value": "3"
+            "value": "4"
           },
           "S_TDATA_NUM_BYTES": {
-            "value": "6"
+            "value": "8"
           }
         }
       },
@@ -404,7 +403,7 @@
             "value": "true"
           },
           "Input_Data_Width": {
-            "value": "19"
+            "value": "24"
           },
           "Input_Sample_Frequency": {
             "value": "122.88"
@@ -419,7 +418,7 @@
             "value": "6"
           },
           "Output_Data_Width": {
-            "value": "48"
+            "value": "32"
           },
           "Quantization": {
             "value": "Truncation"
@@ -460,7 +459,7 @@
             "value": "true"
           },
           "Input_Data_Width": {
-            "value": "19"
+            "value": "24"
           },
           "Input_Sample_Frequency": {
             "value": "122.88"
@@ -475,7 +474,7 @@
             "value": "6"
           },
           "Output_Data_Width": {
-            "value": "48"
+            "value": "32"
           },
           "Quantization": {
             "value": "Truncation"
@@ -501,7 +500,10 @@
         "inst_hier_path": "cmpy_0",
         "parameters": {
           "APortWidth": {
-            "value": "17"
+            "value": "16"
+          },
+          "BPortWidth": {
+            "value": "16"
           },
           "MinimumLatency": {
             "value": "6"
@@ -510,7 +512,7 @@
             "value": "Resources"
           },
           "OutputWidth": {
-            "value": "19"
+            "value": "24"
           },
           "RoundMode": {
             "value": "Truncate"
@@ -598,7 +600,7 @@
             "value": "../../../../../../../../sources/coefficientfiles/tx1024cfirImpulse.coe"
           },
           "Coefficient_Fractional_Bits": {
-            "value": "27"
+            "value": "20"
           },
           "Coefficient_Sets": {
             "value": "1"
@@ -610,7 +612,7 @@
             "value": "Inferred"
           },
           "Coefficient_Width": {
-            "value": "25"
+            "value": "18"
           },
           "ColumnConfig": {
             "value": "13"
@@ -643,7 +645,7 @@
             "value": "Signed"
           },
           "Data_Width": {
-            "value": "18"
+            "value": "25"
           },
           "Decimation_Rate": {
             "value": "8"
@@ -777,7 +779,7 @@
             "value": "0"
           },
           "CONST_WIDTH": {
-            "value": "31"
+            "value": "16"
           }
         }
       },
@@ -1260,7 +1262,7 @@
         "inst_hier_path": "reg_to_axis_1",
         "parameters": {
           "DIN_WIDTH": {
-            "value": "48"
+            "value": "32"
           }
         },
         "reference_info": {
@@ -1275,7 +1277,7 @@
             "vlnv": "xilinx.com:interface:axis_rtl:1.0",
             "parameters": {
               "TDATA_NUM_BYTES": {
-                "value": "6",
+                "value": "4",
                 "value_src": "auto"
               },
               "TDEST_WIDTH": {
@@ -1319,7 +1321,7 @@
               "TDATA": {
                 "physical_name": "m_axis_tdata",
                 "direction": "O",
-                "left": "47",
+                "left": "31",
                 "right": "0"
               },
               "TVALID": {
@@ -1332,11 +1334,11 @@
         "ports": {
           "data_in": {
             "direction": "I",
-            "left": "47",
+            "left": "31",
             "right": "0",
             "parameters": {
               "PortWidth": {
-                "value": "48",
+                "value": "32",
                 "value_src": "ip_prop"
               }
             }
@@ -2052,13 +2054,13 @@
         "inst_hier_path": "axis_subset_converter_1",
         "parameters": {
           "M_TDATA_NUM_BYTES": {
-            "value": "3"
+            "value": "4"
           },
           "S_TDATA_NUM_BYTES": {
-            "value": "6"
+            "value": "4"
           },
           "TDATA_REMAP": {
-            "value": "tdata[45], tdata[45],tdata[45], tdata[45],tdata[45], tdata[45],tdata[45:28]"
+            "value": "tdata[29],tdata[29], tdata[29], tdata[29], tdata[29], tdata[29], tdata[29], tdata[29:5]"
           }
         }
       },
@@ -2069,50 +2071,13 @@
         "inst_hier_path": "axis_subset_converter_2",
         "parameters": {
           "M_TDATA_NUM_BYTES": {
-            "value": "3"
+            "value": "4"
           },
           "S_TDATA_NUM_BYTES": {
-            "value": "6"
+            "value": "4"
           },
           "TDATA_REMAP": {
-            "value": "tdata[45], tdata[45],tdata[45], tdata[45],tdata[45], tdata[45],tdata[45:28]"
-          }
-        }
-      },
-      "HalfLSBAdder_0": {
-        "vlnv": "xilinx.com:module_ref:HalfLSBAdder:1.0",
-        "xci_name": "DDC_Block_HalfLSBAdder_0_0",
-        "xci_path": "ip\\DDC_Block_HalfLSBAdder_0_0\\DDC_Block_HalfLSBAdder_0_0.xci",
-        "inst_hier_path": "HalfLSBAdder_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "HalfLSBAdder",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "aclk": {
-            "type": "clk",
-            "direction": "I",
-            "parameters": {
-              "FREQ_HZ": {
-                "value": "122880000",
-                "value_src": "user_prop"
-              },
-              "CLK_DOMAIN": {
-                "value": "DDC_Block_aclk",
-                "value_src": "default_prop"
-              }
-            }
-          },
-          "input_data": {
-            "direction": "I",
-            "left": "15",
-            "right": "0"
-          },
-          "output_data": {
-            "direction": "O",
-            "left": "16",
-            "right": "0"
+            "value": "tdata[29],tdata[29], tdata[29], tdata[29], tdata[29], tdata[29], tdata[29], tdata[29:5]"
           }
         }
       }
@@ -2276,12 +2241,6 @@
           "xlconcat_1/In0"
         ]
       },
-      "HalfLSBAdder_0_output_data": {
-        "ports": [
-          "HalfLSBAdder_0/output_data",
-          "xlconcat_2/In0"
-        ]
-      },
       "LOIQSel_1": {
         "ports": [
           "LOIQSel",
@@ -2312,8 +2271,7 @@
           "axis_mux_2_0/clk",
           "byteswap_48_0/aclk",
           "axis_subset_converter_1/aclk",
-          "axis_subset_converter_2/aclk",
-          "HalfLSBAdder_0/aclk"
+          "axis_subset_converter_2/aclk"
         ]
       },
       "adc1_1": {
@@ -2331,7 +2289,7 @@
       "regmux_4_1_0_dout": {
         "ports": [
           "regmux_4_1_0/dout",
-          "HalfLSBAdder_0/input_data"
+          "xlconcat_2/In0"
         ]
       },
       "regmux_8_1_0_dout": {

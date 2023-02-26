@@ -100,9 +100,9 @@ module rx_ddc_tb( );
         .adc2(adc2),
         .rstn(rstn),
         .test_source(test_source),
-        .tx_samples(tx_samples),
-        .debug_tdata(debug_tdata),
-        .debug_tvalid(debug_tvalid)
+        .tx_samples(tx_samples)
+//        .debug_tdata(debug_tdata),
+//        .debug_tvalid(debug_tvalid)
   );
 
 
@@ -131,8 +131,8 @@ initial begin
 // open file for I/Q samples to be written to:
 //
     DiscardSampleCount = 100;          // samples to be discarded before starting to record (filter initiailising)
-    RequiredSampleCount = 1024;
-//    RequiredSampleCount = 4096;
+//    RequiredSampleCount = 1024;
+    RequiredSampleCount = 4096;
     fd_w = $fopen("./ddcdata.txt", "w");
     if(fd_w) $display("file opened successfully");
     else $display("file open FAIL");
@@ -141,7 +141,7 @@ initial begin
     Byteswap = 0;
     ChanConfig = 2;                 // select test DDS in (2MHz)
 //    ChanConfig = 0;                 // select ADC1
-    ChanFreq = 32'h03F55555;      // 1.9MHz
+//    ChanFreq = 32'h03F55555;      // 1.9MHz
     ChanFreq = 32'h038AAAAA;      // 1.7MHz
     CicInterp = 6;				  // 1536KHz
     LOIQIn_tdata = 0;
