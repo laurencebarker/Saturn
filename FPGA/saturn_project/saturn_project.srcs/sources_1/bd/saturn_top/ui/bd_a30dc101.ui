@@ -15,7 +15,7 @@
    "font_comment_1":"14",
    "font_comment_2":"14",
    "font_comment_3":"14",
-   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS-threadsafe
+   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
 #  -string -flagsOSRD
 preplace port PROM_SPI -pg 1 -lvl 12 -x 5550 -y 660 -defaultsOSRD
 preplace port pcie_7x_mgt_rtl_0 -pg 1 -lvl 12 -x 5550 -y 70 -defaultsOSRD
