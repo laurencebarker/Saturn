@@ -24,5 +24,10 @@
 //
 void PrintVersionInfo(void);
 
+//
+// Check for a fallback configuration
+// returns true if FPGA is a fallback load
+//
+bool IsFallbackConfig(void);
 
 #endif

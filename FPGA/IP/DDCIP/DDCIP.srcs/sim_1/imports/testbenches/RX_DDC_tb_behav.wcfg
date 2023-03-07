@@ -11,15 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="47.162300 us"></ZoomStartTime>
-      <ZoomEndTime time="76.386861 us"></ZoomEndTime>
-      <Cursor1Time time="47.676000 us"></Cursor1Time>
+      <ZoomStartTime time="2,670.009456 us"></ZoomStartTime>
+      <ZoomEndTime time="2,690.431709 us"></ZoomEndTime>
+      <Cursor1Time time="2,687.028000 us"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="257"></NameColumnWidth>
-      <ValueColumnWidth column_width="60"></ValueColumnWidth>
+      <NameColumnWidth column_width="239"></NameColumnWidth>
+      <ValueColumnWidth column_width="76"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="14" />
+   <WVObjectSize size="10" />
    <wave_markers>
       <marker time="1751991916" label="" />
       <marker time="1672793433" label="" />
@@ -54,29 +54,9 @@
       <obj_property name="ObjectShortName">M_AXIS_DATA_tdata[47:0]</obj_property>
       <obj_property name="Radix">BINARYRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/rx_ddc_tb/debug_tdata" type="array">
-      <obj_property name="ElementShortName">debug_tdata[95:0]</obj_property>
-      <obj_property name="ObjectShortName">debug_tdata[95:0]</obj_property>
-      <obj_property name="Radix">BINARYRADIX</obj_property>
-      <obj_property name="WaveformStyle">STYLE_DIGITAL</obj_property>
-   </wvobject>
    <wvobject fp_name="/rx_ddc_tb/siggen/m_axis_data_tdata" type="array">
       <obj_property name="ElementShortName">m_axis_data_tdata[15:0]</obj_property>
       <obj_property name="ObjectShortName">m_axis_data_tdata[15:0]</obj_property>
-      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
-      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
-      <obj_property name="CellHeight">100</obj_property>
-   </wvobject>
-   <wvobject fp_name="/rx_ddc_tb/IDebOut" type="array">
-      <obj_property name="ElementShortName">IDebOut[47:0]</obj_property>
-      <obj_property name="ObjectShortName">IDebOut[47:0]</obj_property>
-      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
-      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
-      <obj_property name="CellHeight">100</obj_property>
-   </wvobject>
-   <wvobject fp_name="/rx_ddc_tb/QDebOut" type="array">
-      <obj_property name="ElementShortName">QDebOut[47:0]</obj_property>
-      <obj_property name="ObjectShortName">QDebOut[47:0]</obj_property>
       <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
       <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
       <obj_property name="CellHeight">100</obj_property>
@@ -94,9 +74,5 @@
       <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
       <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
       <obj_property name="CellHeight">100</obj_property>
-   </wvobject>
-   <wvobject fp_name="/rx_ddc_tb/UUT/axis_subset_converter_0/m_axis_tdata" type="array">
-      <obj_property name="ElementShortName">m_axis_tdata[23:0]</obj_property>
-      <obj_property name="ObjectShortName">m_axis_tdata[23:0]</obj_property>
    </wvobject>
 </wave_config>

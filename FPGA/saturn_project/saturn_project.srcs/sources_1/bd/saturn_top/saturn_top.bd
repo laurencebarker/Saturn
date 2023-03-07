@@ -6859,6 +6859,9 @@
             "xci_path": "ip\\saturn_top_xlconstant_3_0\\saturn_top_xlconstant_3_0.xci",
             "inst_hier_path": "PCIe/xlconstant_productversion",
             "parameters": {
+              "CONST_VAL": {
+                "value": "2"
+              },
               "CONST_WIDTH": {
                 "value": "16"
               }
@@ -6871,7 +6874,7 @@
             "inst_hier_path": "PCIe/xlconstant_productid",
             "parameters": {
               "CONST_VAL": {
-                "value": "2"
+                "value": "1"
               },
               "CONST_WIDTH": {
                 "value": "16"
@@ -6885,7 +6888,7 @@
             "inst_hier_path": "PCIe/xlconstant_swversion",
             "parameters": {
               "CONST_VAL": {
-                "value": "2"
+                "value": "1"
               },
               "CONST_WIDTH": {
                 "value": "16"
@@ -6899,7 +6902,7 @@
             "inst_hier_path": "PCIe/xlconstant_swid",
             "parameters": {
               "CONST_VAL": {
-                "value": "2"
+                "value": "4"
               },
               "CONST_WIDTH": {
                 "value": "12"
@@ -13318,7 +13321,7 @@
                 "variant_info": {
                   "DDC_Block.bd": {
                     "scoped_diagram": "DDC_Block_inst_0.bd",
-                    "design_checksum": "0x41A5947A",
+                    "design_checksum": "0x6A8A79D1",
                     "ref_name": "DDC_Block",
                     "ref_subinst_path": "saturn_top_DDC_Block_0",
                     "ref_type": "Block Design",
@@ -13623,7 +13626,7 @@
                 "variant_info": {
                   "DDC_Block.bd": {
                     "scoped_diagram": "DDC_Block_inst_1.bd",
-                    "design_checksum": "0x41A5947A",
+                    "design_checksum": "0x6A8A79D1",
                     "ref_name": "DDC_Block",
                     "ref_subinst_path": "saturn_topDDC_Block_1",
                     "ref_type": "Block Design",
@@ -15428,7 +15431,7 @@
                 "variant_info": {
                   "DDC_Block.bd": {
                     "scoped_diagram": "DDC_Block_inst_8.bd",
-                    "design_checksum": "0x41A5947A",
+                    "design_checksum": "0x6A8A79D1",
                     "ref_name": "DDC_Block",
                     "ref_subinst_path": "saturn_topDDC_Block_8",
                     "ref_type": "Block Design",
@@ -15733,7 +15736,7 @@
                 "variant_info": {
                   "DDC_Block.bd": {
                     "scoped_diagram": "DDC_Block_inst_9.bd",
-                    "design_checksum": "0x41A5947A",
+                    "design_checksum": "0x6A8A79D1",
                     "ref_name": "DDC_Block",
                     "ref_subinst_path": "saturn_topDDC_Block_9",
                     "ref_type": "Block Design",
@@ -16854,7 +16857,7 @@
                 "variant_info": {
                   "DDC_Block.bd": {
                     "scoped_diagram": "DDC_Block_inst_2.bd",
-                    "design_checksum": "0x41A5947A",
+                    "design_checksum": "0x6A8A79D1",
                     "ref_name": "DDC_Block",
                     "ref_subinst_path": "saturn_topDDC_Block_2",
                     "ref_type": "Block Design",
@@ -17159,7 +17162,7 @@
                 "variant_info": {
                   "DDC_Block.bd": {
                     "scoped_diagram": "DDC_Block_inst_3.bd",
-                    "design_checksum": "0x41A5947A",
+                    "design_checksum": "0x6A8A79D1",
                     "ref_name": "DDC_Block",
                     "ref_subinst_path": "saturn_topDDC_Block_3",
                     "ref_type": "Block Design",
@@ -18280,7 +18283,7 @@
                 "variant_info": {
                   "DDC_Block.bd": {
                     "scoped_diagram": "DDC_Block_inst_4.bd",
-                    "design_checksum": "0x41A5947A",
+                    "design_checksum": "0x6A8A79D1",
                     "ref_name": "DDC_Block",
                     "ref_subinst_path": "saturn_topDDC_Block_4",
                     "ref_type": "Block Design",
@@ -18585,7 +18588,7 @@
                 "variant_info": {
                   "DDC_Block.bd": {
                     "scoped_diagram": "DDC_Block_inst_5.bd",
-                    "design_checksum": "0x41A5947A",
+                    "design_checksum": "0x6A8A79D1",
                     "ref_name": "DDC_Block",
                     "ref_subinst_path": "saturn_topDDC_Block_5",
                     "ref_type": "Block Design",
@@ -19706,7 +19709,7 @@
                 "variant_info": {
                   "DDC_Block.bd": {
                     "scoped_diagram": "DDC_Block_inst_6.bd",
-                    "design_checksum": "0x41A5947A",
+                    "design_checksum": "0x6A8A79D1",
                     "ref_name": "DDC_Block",
                     "ref_subinst_path": "saturn_topDDC_Block_6",
                     "ref_type": "Block Design",
@@ -20011,7 +20014,7 @@
                 "variant_info": {
                   "DDC_Block.bd": {
                     "scoped_diagram": "DDC_Block_inst_7.bd",
-                    "design_checksum": "0x41A5947A",
+                    "design_checksum": "0x6A8A79D1",
                     "ref_name": "DDC_Block",
                     "ref_subinst_path": "saturn_topDDC_Block_7",
                     "ref_type": "Block Design",

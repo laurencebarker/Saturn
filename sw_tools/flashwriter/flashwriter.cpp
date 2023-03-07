@@ -40,7 +40,8 @@ gboolean DriverPresent;             // true if device driver is accessible
 gboolean FileNameSet;               // true if filename has been set by "file open"
 gboolean PrimaryImage;              // set true if primary image to be written
 
-#define VFALLBACKADDR 0x1000000     //16MBytes into Flash
+#define VFALLBACKADDR 0x00000000    // start of flash Flash
+#define VPRIMARYADDR  0x01000000    // 16MBytes into Flash
 //
 // SPI writer constron structure:
 //
@@ -162,7 +163,7 @@ void on_program_button_clicked()
     if(gtk_toggle_button_get_active(RbPrimary))
     {
         PrimaryImage = TRUE;
-        FlashStartAddress = 0;
+        FlashStartAddress = VPRIMARYADDR;
     }
     else
     {
