@@ -40,24 +40,28 @@
 #define VADDRPRODVERSIONREG 0XC004              // user defined product version register
 
 
-
-#define VMAXPRODUCTID 2							// product ID index limit
+//
+// the identification scheme leaves open the possibility of other products with similar s/w & FPGA architecture
+//
+#define VMAXPRODUCTID 1							// product ID index limit
 #define VMAXSWID 3								// software ID index limit
 
 char* ProductIDStrings[] =
 {
 	"invalid product ID",
-	"Saturn 1st prototype",
-	"Saturn 2nd Prototype"
+	"Saturn"
 };
 
+//
+// these are relevant to Saturn only!
+//
 char* SWIDStrings[] =
 {
 	"invalid software ID",
-	"Saturn 1st prototype, board test code",
-	"Saturn 1st prototype, with DSP",
-	"Saturn 2nd prototype, with DSP"
-
+	"Saturn prototype, board test code",
+	"Saturn prototype, with DSP",
+	"Fallback Golden image",
+	"Saturn prototype, full function"
 };
 
 char* ClockStrings[] =
@@ -68,6 +72,50 @@ char* ClockStrings[] =
 	"122.88MHz main clock"
 };
 
+#define SATURNPRODUCTID 1					// Saturn, any version
+#define SATURNGOLDENCONFIGID 3				// "golden" configuration id
+
+
+
+//
+// Check for a fallback configuration
+// returns true if FPGA is a fallback load
+//
+bool IsFallbackConfig(void)
+{
+	bool Result = false;
+	uint32_t SoftwareInformation;			// swid & version
+	uint32_t ProductInformation;			// product id & version
+	uint32_t DateCode;						// date code from user register in FPGA
+
+	uint32_t SWVer, SWID;					// s/w version and id
+	uint32_t ProdVer, ProdID;				// product version and id
+	uint32_t ClockInfo;						// clock status
+	uint32_t Cntr;
+
+	char* ProdString;
+	char* SWString;
+
+	//
+	// read the raw data from registers
+	//
+	SoftwareInformation = RegisterRead(VADDRSWVERSIONREG);
+	ProductInformation = RegisterRead(VADDRPRODVERSIONREG);
+	DateCode = RegisterRead(VADDRUSERVERSIONREG);
+	printf("FPGA BIT file data code = %08x\n", DateCode);
+
+	ClockInfo = (SoftwareInformation & 0xF);				// 4 clock bits
+	SWVer = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version
+	SWID = SoftwareInformation >> 20;						// 12 bit software ID
+
+	ProdVer = ProductInformation & 0xFFFF;					// 16 bit product version
+	ProdID = ProductInformation >> 16;						// 16 bit product ID
+
+	if ((ProdID == SATURNPRODUCTID) && (SWID == SATURNGOLDENCONFIGID))
+		Result = true;
+
+	return Result;
+}
 
 //
 // prints version information from the registers

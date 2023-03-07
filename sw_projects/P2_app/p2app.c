@@ -307,6 +307,9 @@ int main(int argc, char *argv[])
 
   OpenXDMADriver();
   PrintVersionInfo();
+  if (IsFallbackConfig())
+      printf("FPGA load is a fallback - you should re-flash the primary FPGA image!");
+
   CodecInitialise();
   InitialiseDACAttenROMs();
   InitialiseCWKeyerRamp(true, 5000);                                // 5 ms ramp, P2
