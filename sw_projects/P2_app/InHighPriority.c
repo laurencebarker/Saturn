@@ -66,7 +66,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
     size = recvmsg(ThreadData->Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
     if(size < 0 && errno != EAGAIN)
     {
-      perror("recvfrom");
+      perror("recvfrom, high priority");
       printf("error number = %d\n", errno);
       return EXIT_FAILURE;
     }

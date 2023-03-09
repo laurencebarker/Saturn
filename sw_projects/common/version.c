@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "../common/saturntypes.h"
 #include "../common/version.h"
 #include "../common/saturnregisters.h"
 #include "../common/hwaccess.h"
@@ -44,7 +45,7 @@
 // the identification scheme leaves open the possibility of other products with similar s/w & FPGA architecture
 //
 #define VMAXPRODUCTID 1							// product ID index limit
-#define VMAXSWID 3								// software ID index limit
+#define VMAXSWID 4								// software ID index limit
 
 char* ProductIDStrings[] =
 {
@@ -102,7 +103,6 @@ bool IsFallbackConfig(void)
 	SoftwareInformation = RegisterRead(VADDRSWVERSIONREG);
 	ProductInformation = RegisterRead(VADDRPRODVERSIONREG);
 	DateCode = RegisterRead(VADDRUSERVERSIONREG);
-	printf("FPGA BIT file data code = %08x\n", DateCode);
 
 	ClockInfo = (SoftwareInformation & 0xF);				// 4 clock bits
 	SWVer = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version

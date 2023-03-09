@@ -71,6 +71,7 @@ extern struct ThreadSocketData SocketData[];        // data for each thread
 extern struct sockaddr_in reply_addr;               // destination address for outgoing data
 extern bool IsTXMode;                               // true if in TX
 extern bool SDRActive;                              // true if this SDR is running at the moment
+extern bool ThreadError;                            // set true if a thread reports an error
 
 
 #define VBITCHANGEPORT 1                        // if set, thread must close its socket and open a new one on different port

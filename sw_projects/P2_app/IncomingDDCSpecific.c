@@ -67,8 +67,8 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
     size = recvmsg(ThreadData->Socketid, &datagram, 0);         // get one message. If it times out, ges size=-1
     if(size < 0 && errno != EAGAIN)
     {
-      perror("recvfrom");
-//      return EXIT_FAILURE;
+      perror("recvfrom, DDC Specific");
+      return EXIT_FAILURE;
     }
     if(size == VDDCSPECIFICSIZE)
     {

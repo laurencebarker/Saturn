@@ -62,6 +62,7 @@ struct sockaddr_in reply_addr;              // destination address for outgoing 
 bool IsTXMode;                              // true if in TX
 bool SDRActive;                             // true if this SDR is running at the moment
 bool ExitRequested;                         // true if "exit checking" thread requests shutdown
+bool ThreadError = false;                   // true if a thread reports an error
 
 
 #define SDRBOARDID 1                        // Hermes
@@ -467,11 +468,13 @@ int main(int argc, char *argv[])
     size = recvmsg(SocketData[0].Socketid, &datagram, 0);         // get one message. If it times out, gets size=-1
     if(size < 0 && errno != EAGAIN)
     {
-      perror("recvfrom");
+      perror("recvfrom, port 1024");
       return EXIT_FAILURE;
     }
 
     if(ExitRequested)
+      break;
+    if(ThreadError)
       break;
 
 
@@ -528,7 +531,8 @@ int main(int argc, char *argv[])
 // now do any "post packet" processing
 //
   } //while(1)
-
+  if(ThreadError)
+    printf("Thread error reported - exiting\n");
   //
   // clean exit
   //

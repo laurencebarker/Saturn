@@ -132,7 +132,7 @@ void *OutgoingHighPriority(void *arg)
       {
         printf("High Priority Send Error, errno=%d\n", errno);
         printf("socket id = %d\n", ThreadData -> Socketid);
-//        InitError=true;
+        InitError=true;
       }
       if(MOXAsserted)
         usleep(1000);
@@ -143,6 +143,8 @@ void *OutgoingHighPriority(void *arg)
 //
 // tidy shutdown of the thread
 //
+  if(InitError)                                           // if error, flag it to main program
+    ThreadError = true;
   printf("shutting down outgoing high priority thread\n");
   close(ThreadData->Socketid); 
   ThreadData->Active = false;                   // signal closed

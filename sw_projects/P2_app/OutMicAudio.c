@@ -129,6 +129,7 @@ void *OutgoingMicSamples(void *arg)
         {
             if(ThreadData->Cmdid & VBITCHANGEPORT)
             {
+                printf("Mic data request change port\n");
                 close(ThreadData->Socketid);                      // close old socket, open new one
                 MakeSocket(ThreadData, 0);                        // this binds to the new port.
                 ThreadData->Cmdid &= ~VBITCHANGEPORT;             // clear command bit
@@ -179,6 +180,9 @@ void *OutgoingMicSamples(void *arg)
 //
 // tidy shutdown of the thread
 //
+    if(InitError)                                           // if error, flag it to main program
+      ThreadError = true;
+
     printf("shutting down outgoing mic data thread\n");
     close(ThreadData->Socketid); 
     ThreadData->Active = false;                   // signal closed
