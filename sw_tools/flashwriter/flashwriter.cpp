@@ -41,7 +41,7 @@ gboolean FileNameSet;               // true if filename has been set by "file op
 gboolean PrimaryImage;              // set true if primary image to be written
 
 #define VFALLBACKADDR 0x00000000    // start of flash Flash
-#define VPRIMARYADDR  0x01000000    // 16MBytes into Flash
+#define VPRIMARYADDR  0x00980000    // at end of 1st image + timer barrier
 //
 // SPI writer constron structure:
 //
