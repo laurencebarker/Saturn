@@ -1,3 +1,43 @@
+#
+# user access register
+# used for "version number" settig - currently a date code
+#
+set_property BITSTREAM.CONFIG.USR_ACCESS 0x09032023 [current_design]
+
+#SPI_BUSWIDTH sets the read commands into bit file.
+#CONFIG_MODE SPIx4 is for Vivado tool to check DRC. 
+#The advice is to match both setting to the mode you are using.
+set_property CONFIG_VOLTAGE 3.3 [current_design]
+set_property CFGBVS VCCO [current_design]
+
+
+## bitstream constraints for NORMAL FPGA BIT file 
+#full size, uncompressed image
+set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR YES [current_design]
+set_property BITSTREAM.CONFIG.EXTMASTERCCLK_EN Div-2 [current_design]
+set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]
+set_property CONFIG_MODE SPIx4 [current_design]
+set_property BITSTREAM.CONFIG.SPI_FALL_EDGE YES [current_design]
+set_property BITSTREAM.CONFIG.CONFIGFALLBACK ENABLE [current_design]
+
+## bitstream constraints for GOLDEN fallback) FPGA BIT file
+#full size, uncompressed image
+# point to timer 1 region address
+#set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR YES [current_design]
+#set_property BITSTREAM.CONFIG.NEXT_CONFIG_ADDR 0x0097FC00 [current_design]
+#set_property BITSTREAM.CONFIG.EXTMASTERCCLK_EN Div-2 [current_design]
+#set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 1 [current_design]
+#set_property CONFIG_MODE SPIx1 [current_design]
+#set_property BITSTREAM.CONFIG.SPI_FALL_EDGE YES [current_design]
+#set_property BITSTREAM.CONFIG.CONFIGFALLBACK ENABLE [current_design]
+
+#golden bit file needs 2 bitstreams and 2 timer files
+
+
+#from both, deleted the line:
+#set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
+
+
 ## physical constraints
 set_property IOSTANDARD LVDS_25 [get_ports {DAC_Out_P[15]}]
 set_property IOSTANDARD LVDS_25 [get_ports {DAC_Out_N[15]}]
@@ -228,44 +268,6 @@ set_property PACKAGE_PIN A11 [get_ports {pcie_7x_mgt_rtl_0_rxn[3]}]
 set_property PACKAGE_PIN B11 [get_ports {pcie_7x_mgt_rtl_0_rxp[3]}]
 set_property PACKAGE_PIN A7 [get_ports {pcie_7x_mgt_rtl_0_txn[3]}]
 set_property PACKAGE_PIN B7 [get_ports {pcie_7x_mgt_rtl_0_txp[3]}]
-
-
-#
-# user access register
-# used for "version number" settig - currently a date code
-#
-set_property BITSTREAM.CONFIG.USR_ACCESS 0x05032023 [current_design]
-
-
-
-#SPI_BUSWIDTH sets the read commands into bit file.
-#CONFIG_MODE SPIx4 is for Vivado tool to check DRC. 
-#The advice is to match both setting to the mode you are using.
-set_property CONFIG_VOLTAGE 3.3 [current_design]
-set_property CFGBVS VCCO [current_design]
-
-## bitstream constraints for NORMAL FPGA BIT file
-set_property BITSTREAM.CONFIG.EXTMASTERCCLK_EN Div-2 [current_design]
-set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]
-set_property CONFIG_MODE SPIx4 [current_design]
-set_property BITSTREAM.CONFIG.SPI_FALL_EDGE YES [current_design]
-set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
-set_property BITSTREAM.CONFIG.CONFIGFALLBACK ENABLE [current_design]
-set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR YES [current_design]
-
-
-
-
-
-## bitstream constraints for GOLDEN fallback) FPGA BIT file
-#set_property BITSTREAM.CONFIG.EXTMASTERCCLK_EN Div-2 [current_design]
-#set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 1 [current_design]
-#set_property CONFIG_MODE SPIx1 [current_design]
-#set_property BITSTREAM.CONFIG.SPI_FALL_EDGE YES [current_design]
-#set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
-#set_property BITSTREAM.CONFIG.CONFIGFALLBACK ENABLE [current_design]
-#set_property BITSTREAM.CONFIG.NEXT_CONFIG_ADDR 0x0100000 [current_design]
-#set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR YES [current_design]
 
 
 
