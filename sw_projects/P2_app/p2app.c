@@ -39,6 +39,7 @@
 #include "../common/saturnregisters.h"              // register I/O for Saturn
 #include "../common/codecwrite.h"                   // codec register I/O for Saturn
 #include "../common/version.h"                      // version I/O for Saturn
+#include "../common/auxadc.h"                      // version I/O for Saturn
 
 #include "threaddata.h"
 #include "generalpacket.h"
@@ -308,8 +309,9 @@ int main(int argc, char *argv[])
 
   OpenXDMADriver();
   PrintVersionInfo();
+  PrintAuxADCInfo();
   if (IsFallbackConfig())
-      printf("FPGA load is a fallback - you should re-flash the primary FPGA image!");
+      printf("FPGA load is a fallback - you should re-flash the primary FPGA image!\n");
 
   CodecInitialise();
   InitialiseDACAttenROMs();
