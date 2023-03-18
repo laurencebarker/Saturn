@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=AXIReaderWriter
+Comment=Saturn FPGA Register Read/Write
+Icon=/usr/share/pixmaps/obconf.png
+Exec=/home/pi/github/Saturn/sw_projects/P2_app/p2app
+Type=Application
+Encoding=UTF-8
+Terminal=true
+Path=/home/pi/github/Saturn/sw_projects/P2_app
+StartupNotify=false
+Name[en_US]=P2app
+X-KeepTerminal=true
+Comment[en_US]=Saturn protocol 2 server
