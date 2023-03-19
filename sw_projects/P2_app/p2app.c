@@ -62,6 +62,9 @@ struct sockaddr_in reply_addr;              // destination address for outgoing 
 
 bool IsTXMode;                              // true if in TX
 bool SDRActive;                             // true if this SDR is running at the moment
+bool ReplyAddressSet = false;               // true when reply address has been set
+bool StartBitReceived = false;              // true when "run" bit has been set
+bool NewMessageReceived = false;            // set whenever a message is received
 bool ExitRequested;                         // true if "exit checking" thread requests shutdown
 bool ThreadError = false;                   // true if a thread reports an error
 
@@ -218,7 +221,7 @@ int MakeSocket(struct ThreadSocketData* Ptr, int DDCid)
 // this runs as its own thread to monitor command line activity. A string "exist" exits the application. 
 // thread initiated at the start.
 //
-void *CheckForExitCommand(void *arg)
+void* CheckForExitCommand(void *arg)
 {
   char ch;
   printf("spinning up Check For Exit thread\n");
@@ -233,6 +236,28 @@ void *CheckForExitCommand(void *arg)
     }
   }
 }
+
+
+//
+// this runs as its own thread to see if messages have stopped being received.
+// if nomessages in a second, goes back to "inactive" state.
+//
+void* CheckForActivity(void *arg)
+{
+  while(1)
+  {
+    sleep(1000);                    // wait for 1 second
+    if (!NewMessageReceived)        // if no messages received,
+    {
+      SDRActive = false;            // set back to inactive
+      ReplyAddressSet = false;
+      StartBitReceived = false;
+      printf("Reverted to InactiveState\n");
+    }
+    NewMessageReceived = false;
+  }
+}
+
 
 
 
@@ -480,7 +505,6 @@ int main(int argc, char *argv[])
       perror("recvfrom, port 1024");
       return EXIT_FAILURE;
     }
-
     if(ExitRequested)
       break;
     if(ThreadError)
@@ -493,6 +517,8 @@ int main(int argc, char *argv[])
 //
     CmdByte = UDPInBuffer[4];
     if(size==VDISCOVERYSIZE)  
+    {
+      NewMessageReceived = true;
       switch(CmdByte)
       {
         //
@@ -508,6 +534,9 @@ int main(int argc, char *argv[])
           reply_addr.sin_addr.s_addr = addr_from.sin_addr.s_addr;
           reply_addr.sin_port = addr_from.sin_port;                       // (but each outgoing thread needs to set its own sin_port)
           HandleGeneralPacket(UDPInBuffer);
+          ReplyAddressSet = true;
+          if(ReplyAddressSet && StartBitReceived)
+            SDRActive = true;                                       // only set active if we have start bit too
           break;
 
         //
@@ -535,7 +564,7 @@ int main(int argc, char *argv[])
           break;
 
       }// end switch (packet type)
-
+    }
 //
 // now do any "post packet" processing
 //

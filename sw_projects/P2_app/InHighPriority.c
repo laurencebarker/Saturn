@@ -76,10 +76,21 @@ void *IncomingHighPriority(void *arg)                   // listener thread
     //
     if(size == VHIGHPRIOTIYTOSDRSIZE)
     {
+      NewMessageReceived = true;
       printf("high priority packet received\n");
       Byte = (uint8_t)(UDPInBuffer[4]);
       RunBit = (bool)(Byte&1);
-      SDRActive = RunBit;                                       // set state of whole app
+      if(RunBit)
+      {
+        StartBitReceived = true;
+        if(ReplyAddressSet && StartBitReceived)
+          SDRActive = true;                                       // only set active if we have replay address too
+      }
+      else
+      {
+        SDRActive = false;                                       // set state of whole app
+        StartBitReceived = false;
+      }
       IsTXMode = (bool)(Byte&2);
       SetMOX(IsTXMode);
 

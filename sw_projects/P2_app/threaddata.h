@@ -71,6 +71,9 @@ extern struct ThreadSocketData SocketData[];        // data for each thread
 extern struct sockaddr_in reply_addr;               // destination address for outgoing data
 extern bool IsTXMode;                               // true if in TX
 extern bool SDRActive;                              // true if this SDR is running at the moment
+extern bool ReplyAddressSet;                        // true when reply address has been set
+extern bool StartBitReceived;                       // true when "run" bit has been set
+extern bool NewMessageReceived;                     // set whenever a message is received
 extern bool ThreadError;                            // set true if a thread reports an error
 
 

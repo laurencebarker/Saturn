@@ -114,7 +114,7 @@ void *OutgoingMicSamples(void *arg)
     SetupFIFOMonitorChannel(eMicCodecDMA, false);
     ResetDMAStreamFIFO(eMicCodecDMA);
     RegisterValue = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow);				// read the FIFO Depth register
-    printf("mic FIFO Depth register = %08x (should be 0)\n", RegisterValue);
+    printf("mic FIFO Depth register = %08x (should be ~0)\n", RegisterValue);
     Depth = 0;
 
 

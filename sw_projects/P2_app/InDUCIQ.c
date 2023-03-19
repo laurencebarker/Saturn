@@ -126,6 +126,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
         }
         if(size == VDUCIQSIZE)
         {
+            NewMessageReceived = true;
             Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow);           // read the FIFO free locations
             while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {

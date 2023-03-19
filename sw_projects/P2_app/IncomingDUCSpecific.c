@@ -72,6 +72,7 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
       }
       if(size == VDUCSPECIFICSIZE)
       {
+          NewMessageReceived = true;
           printf("DUC packet received\n");
 // iambic settings
           IambicSpeed = *(uint8_t*)(UDPInBuffer+9);               // keyer speed

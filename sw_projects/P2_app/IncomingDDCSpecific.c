@@ -72,6 +72,7 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
     }
     if(size == VDDCSPECIFICSIZE)
     {
+      NewMessageReceived = true;
       printf("DDC specific packet received\n");
       // get ADC details:
       Byte1 = *(uint8_t*)(UDPInBuffer+4);                   // get ADC count
