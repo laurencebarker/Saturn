@@ -121,7 +121,8 @@ pthread_t DUCIQThread;
 pthread_t DDCIQThread[VNUMDDC];               // array, but not sure how many
 pthread_t MicThread;
 pthread_t HighPriorityFromSDRThread;
-pthread_t CheckForExitThread;
+pthread_t CheckForExitThread;                 // thread looks for types "exit" command
+pthread_t CheckForNoActivityThread;           // thread looks for inactvity
 
 
 //
@@ -244,15 +245,18 @@ void* CheckForExitCommand(void *arg)
 //
 void* CheckForActivity(void *arg)
 {
+  bool PreviouslyActiveState;               
   while(1)
   {
-    sleep(1000);                    // wait for 1 second
-    if (!NewMessageReceived)        // if no messages received,
+    sleep(1);                               // wait for 1 second
+    PreviouslyActiveState = SDRActive;      // see if active on entry
+    if (!NewMessageReceived)                // if no messages received,
     {
-      SDRActive = false;            // set back to inactive
+      SDRActive = false;                    // set back to inactive
       ReplyAddressSet = false;
       StartBitReceived = false;
-      printf("Reverted to InactiveState\n");
+      if(PreviouslyActiveState)
+        printf("Reverted to Inactive State after no activity\n");
     }
     NewMessageReceived = false;
   }
@@ -361,6 +365,15 @@ int main(int argc, char *argv[])
   }
   pthread_detach(CheckForExitThread);
 
+//
+// start up thread to check for no longer getting messages, to set back to inactive
+//
+  if(pthread_create(&CheckForNoActivityThread, NULL, CheckForActivity, NULL) < 0)
+  {
+    perror("pthread_create check for exit");
+    return EXIT_FAILURE;
+  }
+  pthread_detach(CheckForNoActivityThread);
 
   //
   // check if we are using test source DDS

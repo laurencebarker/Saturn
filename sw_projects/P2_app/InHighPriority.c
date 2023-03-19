@@ -89,6 +89,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       else
       {
         SDRActive = false;                                       // set state of whole app
+        printf("set to inactive by client app\n");
         StartBitReceived = false;
       }
       IsTXMode = (bool)(Byte&2);

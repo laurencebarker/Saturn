@@ -107,7 +107,6 @@ void *OutgoingMicSamples(void *arg)
 
   //
   // now initialise Saturn hardware.
-  // ***This os debug code at the moment. ***
   // clear FIFO
   // then read depth
   //
@@ -140,6 +139,7 @@ void *OutgoingMicSamples(void *arg)
     // if we get here, run has been initiated
     // initialise outgoing data packet
     //
+        printf("starting activity on mic thread\n");
         SequenceCounter = 0;
         memcpy(&DestAddr, &reply_addr, sizeof(struct sockaddr_in));           // create local copy of PC destination address
         memset(&iovecinst, 0, sizeof(struct iovec));
