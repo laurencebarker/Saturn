@@ -118,6 +118,7 @@ pthread_t DUCIQThread;
 pthread_t DDCIQThread[VNUMDDC];               // array, but not sure how many
 pthread_t MicThread;
 pthread_t HighPriorityFromSDRThread;
+pthread_t CheckForExitThread;
 
 
 //
@@ -290,7 +291,6 @@ int main(int argc, char *argv[])
   uint8_t UDPInBuffer[VDDCPACKETSIZE];                              // outgoing buffer
   struct iovec iovecinst;                                           // iovcnt buffer - 1 for each outgoing buffer
   struct msghdr datagram;                                           // multiple incoming message header
-  pthread_t CheckForExitThread;
 
   uint32_t TestFrequency;                                           // test source DDS freq
 
@@ -403,9 +403,11 @@ int main(int argc, char *argv[])
 //
 // create outgoing mic data thread
 // note this shares a port with incoming DUC specific, so don't create a new port
-//  MakeSocket(SocketData+VPORTMICAUDIO, 0);
+// instead copy socket settings from DUCSPECIFIC socket:
 //
-  if(pthread_create(&MicThread, NULL, OutgoingMicSamples, (void*)&SocketData[VPORTDUCSPECIFIC]) < 0)
+  SocketData[VPORTMICAUDIO].Socketid = SocketData[VPORTDUCSPECIFIC].Socketid;
+  memcpy(&SocketData[VPORTMICAUDIO].addr_cmddata, &SocketData[VPORTDUCSPECIFIC].addr_cmddata, sizeof(struct sockaddr_in));
+  if(pthread_create(&MicThread, NULL, OutgoingMicSamples, (void*)&SocketData[VPORTMICAUDIO]) < 0)
   {
     perror("pthread_create Mic");
     return EXIT_FAILURE;
@@ -413,12 +415,17 @@ int main(int argc, char *argv[])
   pthread_detach(MicThread);
 
 
+
+
+
 //
 // create outgoing high priority data thread
 // note this shares a port with incoming DDC specific, so don't create a new port
-//  MakeSocket(SocketData+VPORTHIGHPRIORITYFROMSDR, 0);
+// instead copy socket settings from VPORTDDCSPECIFIC socket:
 //
-  if(pthread_create(&HighPriorityFromSDRThread, NULL, OutgoingHighPriority, (void*)&SocketData[VPORTDDCSPECIFIC]) < 0)
+  SocketData[VPORTHIGHPRIORITYFROMSDR].Socketid = SocketData[VPORTDDCSPECIFIC].Socketid;
+  memcpy(&SocketData[VPORTHIGHPRIORITYFROMSDR].addr_cmddata, &SocketData[VPORTDDCSPECIFIC].addr_cmddata, sizeof(struct sockaddr_in));
+  if(pthread_create(&HighPriorityFromSDRThread, NULL, OutgoingHighPriority, (void*)&SocketData[VPORTHIGHPRIORITYFROMSDR]) < 0)
   {
     perror("pthread_create outgoing hi priority");
     return EXIT_FAILURE;
