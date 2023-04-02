@@ -40,9 +40,7 @@
       "regmux_4_1_0": "",
       "regmux_8_1_0": "",
       "axis_mux_2_0": "",
-      "byteswap_48_0": "",
-      "axis_subset_converter_1": "",
-      "axis_subset_converter_2": ""
+      "byteswap_48_0": ""
     },
     "interface_ports": {
       "M_AXIS_DATA": {
@@ -312,16 +310,16 @@
             "value": "0"
           },
           "M00_TDATA_REMAP": {
-            "value": "tdata[23:0]"
+            "value": "tdata[15:0]"
           },
           "M01_TDATA_REMAP": {
-            "value": "tdata[47:24]"
+            "value": "tdata[31:16]"
           },
           "M_TDATA_NUM_BYTES": {
-            "value": "3"
+            "value": "2"
           },
           "S_TDATA_NUM_BYTES": {
-            "value": "6"
+            "value": "4"
           }
         }
       },
@@ -343,10 +341,10 @@
         "inst_hier_path": "axis_dwidth_converter_0",
         "parameters": {
           "M_TDATA_NUM_BYTES": {
-            "value": "4"
+            "value": "3"
           },
           "S_TDATA_NUM_BYTES": {
-            "value": "8"
+            "value": "6"
           }
         }
       },
@@ -403,7 +401,7 @@
             "value": "true"
           },
           "Input_Data_Width": {
-            "value": "24"
+            "value": "16"
           },
           "Input_Sample_Frequency": {
             "value": "122.88"
@@ -418,7 +416,7 @@
             "value": "6"
           },
           "Output_Data_Width": {
-            "value": "32"
+            "value": "18"
           },
           "Quantization": {
             "value": "Truncation"
@@ -456,7 +454,7 @@
             "value": "true"
           },
           "Input_Data_Width": {
-            "value": "24"
+            "value": "16"
           },
           "Input_Sample_Frequency": {
             "value": "122.88"
@@ -471,7 +469,7 @@
             "value": "6"
           },
           "Output_Data_Width": {
-            "value": "32"
+            "value": "18"
           },
           "Quantization": {
             "value": "Truncation"
@@ -503,7 +501,7 @@
             "value": "Resources"
           },
           "OutputWidth": {
-            "value": "24"
+            "value": "16"
           },
           "RoundMode": {
             "value": "Truncate"
@@ -591,7 +589,7 @@
             "value": "../../../../../../../sources/coefficientfiles/tx1024cfirImpulse.coe"
           },
           "Coefficient_Fractional_Bits": {
-            "value": "20"
+            "value": "24"
           },
           "Coefficient_Sets": {
             "value": "1"
@@ -603,7 +601,7 @@
             "value": "Inferred"
           },
           "Coefficient_Width": {
-            "value": "18"
+            "value": "22"
           },
           "ColumnConfig": {
             "value": "13"
@@ -633,7 +631,7 @@
             "value": "true"
           },
           "Data_Width": {
-            "value": "25"
+            "value": "18"
           },
           "Decimation_Rate": {
             "value": "8"
@@ -687,7 +685,7 @@
             "value": "Truncate_LSBs"
           },
           "Output_Width": {
-            "value": "27"
+            "value": "28"
           },
           "Pre_Adder_Pipeline": {
             "value": "true"
@@ -2029,40 +2027,6 @@
             "direction": "I"
           }
         }
-      },
-      "axis_subset_converter_1": {
-        "vlnv": "xilinx.com:ip:axis_subset_converter:1.1",
-        "xci_name": "DDC_Block_axis_subset_converter_1_0",
-        "xci_path": "ip\\DDC_Block_axis_subset_converter_1_0\\DDC_Block_axis_subset_converter_1_0.xci",
-        "inst_hier_path": "axis_subset_converter_1",
-        "parameters": {
-          "M_TDATA_NUM_BYTES": {
-            "value": "4"
-          },
-          "S_TDATA_NUM_BYTES": {
-            "value": "4"
-          },
-          "TDATA_REMAP": {
-            "value": "tdata[29],tdata[29], tdata[29], tdata[29], tdata[29], tdata[29], tdata[29], tdata[29:5]"
-          }
-        }
-      },
-      "axis_subset_converter_2": {
-        "vlnv": "xilinx.com:ip:axis_subset_converter:1.1",
-        "xci_name": "DDC_Block_axis_subset_converter_1_1",
-        "xci_path": "ip\\DDC_Block_axis_subset_converter_1_1\\DDC_Block_axis_subset_converter_1_1.xci",
-        "inst_hier_path": "axis_subset_converter_2",
-        "parameters": {
-          "M_TDATA_NUM_BYTES": {
-            "value": "4"
-          },
-          "S_TDATA_NUM_BYTES": {
-            "value": "4"
-          },
-          "TDATA_REMAP": {
-            "value": "tdata[29],tdata[29], tdata[29], tdata[29], tdata[29], tdata[29], tdata[29], tdata[29:5]"
-          }
-        }
       }
     },
     "interface_nets": {
@@ -2126,18 +2090,6 @@
           "axis_dwidth_converter_1/S_AXIS"
         ]
       },
-      "axis_subset_converter_1_M_AXIS": {
-        "interface_ports": [
-          "axis_subset_converter_1/M_AXIS",
-          "axis_combiner_0/S00_AXIS"
-        ]
-      },
-      "axis_subset_converter_2_M_AXIS": {
-        "interface_ports": [
-          "axis_subset_converter_2/M_AXIS",
-          "axis_combiner_0/S01_AXIS"
-        ]
-      },
       "axis_variable_0_m_axis": {
         "interface_ports": [
           "axis_variable_0/m_axis",
@@ -2159,13 +2111,13 @@
       "cic_compiler_0_M_AXIS_DATA": {
         "interface_ports": [
           "cic_compiler_0/M_AXIS_DATA",
-          "axis_subset_converter_2/S_AXIS"
+          "axis_combiner_0/S01_AXIS"
         ]
       },
       "cic_compiler_1_M_AXIS_DATA": {
         "interface_ports": [
           "cic_compiler_1/M_AXIS_DATA",
-          "axis_subset_converter_1/S_AXIS"
+          "axis_combiner_0/S00_AXIS"
         ]
       },
       "cmpy_0_M_AXIS_DOUT": {
@@ -2252,9 +2204,7 @@
           "regmux_4_1_0/aclk",
           "regmux_8_1_0/aclk",
           "axis_mux_2_0/clk",
-          "byteswap_48_0/aclk",
-          "axis_subset_converter_1/aclk",
-          "axis_subset_converter_2/aclk"
+          "byteswap_48_0/aclk"
         ]
       },
       "adc1_1": {
@@ -2299,9 +2249,7 @@
           "regmux_4_1_0/resetn",
           "regmux_8_1_0/resetn",
           "axis_mux_2_0/rstn",
-          "byteswap_48_0/aresetn",
-          "axis_subset_converter_1/aresetn",
-          "axis_subset_converter_2/aresetn"
+          "byteswap_48_0/aresetn"
         ]
       },
       "sel_0_1": {
