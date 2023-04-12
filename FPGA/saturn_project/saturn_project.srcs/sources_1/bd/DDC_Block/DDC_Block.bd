@@ -42,7 +42,8 @@
       "cic_compiler_0": "",
       "cic_compiler_1": "",
       "cmpy_0": "",
-      "fir_compiler_0": ""
+      "fir_compiler_0": "",
+      "LFSR_Random_Number_G_0": ""
     },
     "interface_ports": {
       "M_AXIS_DATA": {
@@ -1917,7 +1918,7 @@
             "value": "24"
           },
           "RoundMode": {
-            "value": "Truncate"
+            "value": "Random_Rounding"
           }
         }
       },
@@ -2036,7 +2037,7 @@
             "value": "true"
           },
           "Output_Rounding_Mode": {
-            "value": "Truncate_LSBs"
+            "value": "Non_Symmetric_Rounding_Up"
           },
           "Output_Width": {
             "value": "27"
@@ -2063,9 +2064,121 @@
             "value": "1"
           }
         }
+      },
+      "LFSR_Random_Number_G_0": {
+        "vlnv": "xilinx.com:module_ref:LFSR_Random_Number_Generator:1.0",
+        "xci_name": "DDC_Block_LFSR_Random_Number_G_0_0",
+        "xci_path": "ip\\DDC_Block_LFSR_Random_Number_G_0_0\\DDC_Block_LFSR_Random_Number_G_0_0.xci",
+        "inst_hier_path": "LFSR_Random_Number_G_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "LFSR_Random_Number_Generator",
+          "boundary_crc": "0x0"
+        },
+        "interface_ports": {
+          "m_axis": {
+            "mode": "Master",
+            "vlnv_bus_definition": "xilinx.com:interface:axis:1.0",
+            "vlnv": "xilinx.com:interface:axis_rtl:1.0",
+            "parameters": {
+              "TDATA_NUM_BYTES": {
+                "value": "1",
+                "value_src": "constant"
+              },
+              "TDEST_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "TID_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "TUSER_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TREADY": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TSTRB": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TKEEP": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TLAST": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "user_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "DDC_Block_aclk",
+                "value_src": "default_prop"
+              }
+            },
+            "port_maps": {
+              "TDATA": {
+                "physical_name": "m_axis_tdata",
+                "direction": "O",
+                "left": "7",
+                "right": "0"
+              },
+              "TVALID": {
+                "physical_name": "m_axis_tvalid",
+                "direction": "O"
+              }
+            }
+          }
+        },
+        "ports": {
+          "aclk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_BUSIF": {
+                "value": "m_axis",
+                "value_src": "constant"
+              },
+              "ASSOCIATED_RESET": {
+                "value": "aresetn",
+                "value_src": "constant"
+              },
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "user_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "DDC_Block_aclk",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "aresetn": {
+            "type": "rst",
+            "direction": "I",
+            "parameters": {
+              "POLARITY": {
+                "value": "ACTIVE_LOW",
+                "value_src": "constant"
+              }
+            }
+          }
+        }
       }
     },
     "interface_nets": {
+      "LFSR_Random_Number_G_0_m_axis": {
+        "interface_ports": [
+          "LFSR_Random_Number_G_0/m_axis",
+          "cmpy_0/S_AXIS_CTRL"
+        ]
+      },
       "LOIQIn_1": {
         "interface_ports": [
           "LOIQIn",
@@ -2254,7 +2367,8 @@
           "cic_compiler_0/aclk",
           "cic_compiler_1/aclk",
           "cmpy_0/aclk",
-          "fir_compiler_0/aclk"
+          "fir_compiler_0/aclk",
+          "LFSR_Random_Number_G_0/aclk"
         ]
       },
       "adc1_1": {
@@ -2301,7 +2415,8 @@
           "axis_subset_converter_0/aresetn",
           "cic_compiler_0/aresetn",
           "cic_compiler_1/aresetn",
-          "fir_compiler_0/aresetn"
+          "fir_compiler_0/aresetn",
+          "LFSR_Random_Number_G_0/aresetn"
         ]
       },
       "sel_0_1": {
