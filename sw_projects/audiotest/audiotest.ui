@@ -198,20 +198,6 @@ Author: Laurence Barker
               </packing>
             </child>
             <child>
-              <object class="GtkSpinButton" id="MicDurationSpin">
-                <property name="width-request">100</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="adjustment">micdurationadjustment</property>
-                <signal name="value-changed" handler="on_MicDurationSpin_value_changed" swapped="no"/>
-              </object>
-              <packing>
-                <property name="x">227</property>
-                <property name="y">70</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkLabel" id="MicActivityLabel">
                 <property name="width-request">200</property>
                 <property name="height-request">40</property>
@@ -263,6 +249,19 @@ Author: Laurence Barker
               <packing>
                 <property name="x">210</property>
                 <property name="y">190</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSpinButton" id="MicDurationSpin">
+                <property name="width-request">100</property>
+                <property name="height-request">40</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="adjustment">micdurationadjustment</property>
+              </object>
+              <packing>
+                <property name="x">227</property>
+                <property name="y">70</property>
               </packing>
             </child>
           </object>
