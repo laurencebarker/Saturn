@@ -79,7 +79,7 @@ Author: Laurence Barker
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
-                <signal name="clicked" handler="on_program_button_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_testR_button_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="x">465</property>
@@ -190,7 +190,6 @@ Author: Laurence Barker
                 <property name="restrict-to-fill-level">False</property>
                 <property name="fill-level">100</property>
                 <property name="round-digits">0</property>
-                <signal name="value-changed" handler="on_VolumeScale_value_changed" swapped="no"/>
               </object>
               <packing>
                 <property name="x">198</property>
@@ -219,7 +218,6 @@ Author: Laurence Barker
                 <property name="can-focus">True</property>
                 <property name="receives-default">False</property>
                 <property name="draw-indicator">True</property>
-                <signal name="toggled" handler="on_MicBoostCheck_toggled" swapped="no"/>
               </object>
               <packing>
                 <property name="x">10</property>
