@@ -1,0 +1,1058 @@
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2021.2 (win64) Build 3367213 Tue Oct 19 02:48:09 MDT 2021
+| Date         : Tue Apr  4 17:52:51 2023
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_fir_compiler_0_0'
+
+1. Summary
+----------
+
+CAUTION (success, with warnings) in the conversion of DDC_Block_fir_compiler_0_0 (xilinx.com:ip:fir_compiler:7.2 (Rev. 17)) to Vivado generation flows.
+
+After upgrade, an IP may have parameter and port differences compared to the original customization. Please review the parameters within the IP customization GUI to ensure proper functionality. Also, please review the updated IP instantiation template to ensure proper connectivity, and update your design if required.
+
+2. Connection Warnings
+----------------------
+
+Detected external port differences while upgrading 'DDC_Block_fir_compiler_0_0'. These changes may impact your design.
+
+
+-Upgraded port 's_axis_data_tdata' width 32 differs from original width 24
+
+
+3. Customization warnings
+-------------------------
+
+Parameter 'TDATA_NUM_BYTES' is no longer present on the upgraded IP 'DDC_Block_fir_compiler_0_0', and cannot be set to '4'
+
+Parameter 'LAYERED_METADATA' is no longer present on the upgraded IP 'DDC_Block_fir_compiler_0_0', and cannot be set to 'xilinx.com:interface:datatypes:1.0 {TDATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 59} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} array_type {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan} size {attribs {resolve_type generated dependency chan_size format long minimum {} maximum {}} value 2} stride {attribs {resolve_type generated dependency chan_stride format long minimum {} maximum {}} value 32} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 27} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} array_type {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value path} size {attribs {resolve_type generated dependency path_size format long minimum {} maximum {}} value 1} stride {attribs {resolve_type generated dependency path_stride format long minimum {} maximum {}} value 32} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency out_width format long minimum {} maximum {}} value 27} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} real {fixed {fractwidth {attribs {resolve_type generated dependency out_fractwidth format long minimum {} maximum {}} value 0} signed {attribs {resolve_type generated dependency out_signed format bool minimum {} maximum {}} value true}}}}}}}}} TDATA_WIDTH 32 TUSER {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} struct {field_data_valid {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value data_valid} enabled {attribs {resolve_type generated dependency data_valid_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency data_valid_bitwidth format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0}}} field_chanid {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chanid} enabled {attribs {resolve_type generated dependency chanid_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chanid_bitwidth format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency chanid_bitoffset format long minimum {} maximum {}} value 0} integer {signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value false}}}} field_user {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value user} enabled {attribs {resolve_type generated dependency user_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency user_bitwidth format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency user_bitoffset format long minimum {} maximum {}} value 0}}}}}} TUSER_WIDTH 0}'
+
+
+4. Debug Commands
+-----------------
+
+  The following debug information can be passed to Vivado as Tcl commands,
+in order to validate or debug the output of the upgrade flow.
+  You may consult any warnings from within this upgrade, and alter or remove
+the configuration parameter(s) which caused the warning; then execute the Tcl
+commands, and use the IP Customization GUI to verify the IP configuration.
+
+create_ip -vlnv xilinx.com:ip:fir_compiler:7.2 -user_name DDC_Block_fir_compiler_0_0
+set_property -dict "\
+  CONFIG.BestPrecision {false} \
+  CONFIG.Blank_Output {false} \
+  CONFIG.Channel_Sequence {Basic} \
+  CONFIG.Clock_Frequency {122.88} \
+  CONFIG.CoefficientSource {COE_File} \
+  CONFIG.CoefficientVector {6,0,-4,-3,5,6,-6,-13,7,44,64,44,7,-13,-6,6,5,-3,-4,0,6} \
+  CONFIG.Coefficient_Buffer_Type {Automatic} \
+  CONFIG.Coefficient_Fanout {true} \
+  CONFIG.Coefficient_File {../../../../../../../sources/coefficientfiles/tx1024cfirImpulse.coe} \
+  CONFIG.Coefficient_Fractional_Bits {20} \
+  CONFIG.Coefficient_Reload {false} \
+  CONFIG.Coefficient_Sets {1} \
+  CONFIG.Coefficient_Sign {Signed} \
+  CONFIG.Coefficient_Structure {Inferred} \
+  CONFIG.Coefficient_Width {18} \
+  CONFIG.ColumnConfig {13} \
+  CONFIG.Component_Name {DDC_Block_fir_compiler_0_0} \
+  CONFIG.Control_Broadcast_Fanout {true} \
+  CONFIG.Control_Column_Fanout {true} \
+  CONFIG.Control_LUT_Pipeline {true} \
+  CONFIG.Control_Path_Fanout {true} \
+  CONFIG.DATA_Has_TLAST {Not_Required} \
+  CONFIG.DATA_TUSER_Width {1} \
+  CONFIG.Data_Buffer_Type {Automatic} \
+  CONFIG.Data_Fractional_Bits {0} \
+  CONFIG.Data_Path_Broadcast {false} \
+  CONFIG.Data_Path_Fanout {true} \
+  CONFIG.Data_Sign {Signed} \
+  CONFIG.Data_Width {25} \
+  CONFIG.Decimation_Rate {8} \
+  CONFIG.Disable_Half_Band_Centre_Tap {false} \
+  CONFIG.DisplayReloadOrder {false} \
+  CONFIG.Filter_Architecture {Systolic_Multiply_Accumulate} \
+  CONFIG.Filter_Selection {1} \
+  CONFIG.Filter_Type {Decimation} \
+  CONFIG.GUI_Behaviour {Coregen} \
+  CONFIG.Gen_MIF_Files {false} \
+  CONFIG.Gen_MIF_from_COE {false} \
+  CONFIG.Gen_MIF_from_Spec {false} \
+  CONFIG.HardwareOversamplingRate {1} \
+  CONFIG.Has_ACLKEN {false} \
+  CONFIG.Has_ARESETn {true} \
+  CONFIG.Input_Buffer_Type {Automatic} \
+  CONFIG.Inter_Column_Pipe_Length {4} \
+  CONFIG.Interpolation_Rate {1} \
+  CONFIG.M_AXIS_DATA.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.M_AXIS_DATA.FREQ_HZ {122880000} \
+  CONFIG.M_AXIS_DATA.HAS_TKEEP {0} \
+  CONFIG.M_AXIS_DATA.HAS_TLAST {0} \
+  CONFIG.M_AXIS_DATA.HAS_TREADY {1} \
+  CONFIG.M_AXIS_DATA.HAS_TSTRB {0} \
+  CONFIG.M_AXIS_DATA.INSERT_VIP {0} \
+  CONFIG.M_AXIS_DATA.LAYERED_METADATA {xilinx.com:interface:datatypes:1.0 {TDATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 60} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} array_type {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan} size {attribs {resolve_type generated dependency chan_size format long minimum {} maximum {}} value 2} stride {attribs {resolve_type generated dependency chan_stride format long minimum {} maximum {}} value 32} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 28} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} array_type {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value path} size {attribs {resolve_type generated dependency path_size format long minimum {} maximum {}} value 1} stride {attribs {resolve_type generated dependency path_stride format long minimum {} maximum {}} value 32} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency out_width format long minimum {} maximum {}} value 28} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} real {fixed {fractwidth {attribs {resolve_type generated dependency out_fractwidth format long minimum {} maximum {}} value 8} signed {attribs {resolve_type generated dependency out_signed format bool minimum {} maximum {}} value true}}}}}}}}} TDATA_WIDTH 32 TUSER {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} struct {field_data_valid {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value data_valid} enabled {attribs {resolve_type generated dependency data_valid_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency data_valid_bitwidth format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0}}} field_chanid {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chanid} enabled {attribs {resolve_type generated dependency chanid_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chanid_bitwidth format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency chanid_bitoffset format long minimum {} maximum {}} value 0} integer {signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value false}}}} field_user {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value user} enabled {attribs {resolve_type generated dependency user_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency user_bitwidth format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency user_bitoffset format long minimum {} maximum {}} value 0}}}}}} TUSER_WIDTH 0}} \
+  CONFIG.M_AXIS_DATA.PHASE {0.0} \
+  CONFIG.M_AXIS_DATA.TDATA_NUM_BYTES {4} \
+  CONFIG.M_AXIS_DATA.TDEST_WIDTH {0} \
+  CONFIG.M_AXIS_DATA.TID_WIDTH {0} \
+  CONFIG.M_AXIS_DATA.TUSER_WIDTH {0} \
+  CONFIG.M_DATA_Has_TREADY {true} \
+  CONFIG.M_DATA_Has_TUSER {Not_Required} \
+  CONFIG.Multi_Column_Support {Automatic} \
+  CONFIG.No_BRAM_Read_First_Mode {true} \
+  CONFIG.No_SRL_Attributes {false} \
+  CONFIG.Num_Reload_Slots {1} \
+  CONFIG.Number_Channels {2} \
+  CONFIG.Number_Paths {1} \
+  CONFIG.Optimal_Column_Lengths {true} \
+  CONFIG.Optimization_Goal {Speed} \
+  CONFIG.Optimization_List {Data_Path_Fanout,Pre-Adder_Pipeline,Coefficient_Fanout,Control_Path_Fanout,Control_Column_Fanout,Control_Broadcast_Fanout,Control_LUT_Pipeline,No_BRAM_Read_First_Mode,Optimal_Column_Lengths,Other} \
+  CONFIG.Optimization_Selection {All} \
+  CONFIG.Other {true} \
+  CONFIG.Output_Buffer_Type {Automatic} \
+  CONFIG.Output_Rounding_Mode {Truncate_LSBs} \
+  CONFIG.Output_Width {27} \
+  CONFIG.Passband_Max {0.5} \
+  CONFIG.Passband_Min {0.0} \
+  CONFIG.Pattern_List {P4-0,P4-1,P4-2,P4-3,P4-4} \
+  CONFIG.Pre_Adder_Pipeline {true} \
+  CONFIG.Preference_For_Other_Storage {Automatic} \
+  CONFIG.Quantization {Quantize_Only} \
+  CONFIG.RateSpecification {Frequency_Specification} \
+  CONFIG.Rate_Change_Type {Integer} \
+  CONFIG.Reload_File {no_coe_file_loaded} \
+  CONFIG.Reset_Data_Vector {true} \
+  CONFIG.S_AXIS_DATA.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.S_AXIS_DATA.FREQ_HZ {122880000} \
+  CONFIG.S_AXIS_DATA.HAS_TKEEP {0} \
+  CONFIG.S_AXIS_DATA.HAS_TLAST {0} \
+  CONFIG.S_AXIS_DATA.HAS_TREADY {1} \
+  CONFIG.S_AXIS_DATA.HAS_TSTRB {0} \
+  CONFIG.S_AXIS_DATA.INSERT_VIP {0} \
+  CONFIG.S_AXIS_DATA.LAYERED_METADATA {undef} \
+  CONFIG.S_AXIS_DATA.PHASE {0.0} \
+  CONFIG.S_AXIS_DATA.TDATA_NUM_BYTES {3} \
+  CONFIG.S_AXIS_DATA.TDEST_WIDTH {0} \
+  CONFIG.S_AXIS_DATA.TID_WIDTH {0} \
+  CONFIG.S_AXIS_DATA.TUSER_WIDTH {0} \
+  CONFIG.S_CONFIG_Method {Single} \
+  CONFIG.S_CONFIG_Sync_Mode {On_Vector} \
+  CONFIG.S_DATA_Has_FIFO {true} \
+  CONFIG.S_DATA_Has_TUSER {Not_Required} \
+  CONFIG.SamplePeriod {1} \
+  CONFIG.Sample_Frequency {12.288} \
+  CONFIG.Select_Pattern {All} \
+  CONFIG.Stopband_Max {1.0} \
+  CONFIG.Stopband_Min {0.5} \
+  CONFIG.Zero_Pack_Factor {1} \
+  CONFIG.aclk_intf.ASSOCIATED_BUSIF {S_AXIS_CONFIG:M_AXIS_DATA:S_AXIS_DATA:S_AXIS_RELOAD} \
+  CONFIG.aclk_intf.ASSOCIATED_CLKEN {aclken} \
+  CONFIG.aclk_intf.ASSOCIATED_PORT {} \
+  CONFIG.aclk_intf.ASSOCIATED_RESET {aresetn} \
+  CONFIG.aclk_intf.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.aclk_intf.FREQ_HZ {122880000} \
+  CONFIG.aclk_intf.FREQ_TOLERANCE_HZ {0} \
+  CONFIG.aclk_intf.INSERT_VIP {0} \
+  CONFIG.aclk_intf.PHASE {0.0} \
+  CONFIG.aclken_intf.POLARITY {ACTIVE_HIGH} \
+  CONFIG.aresetn_intf.INSERT_VIP {0} \
+  CONFIG.aresetn_intf.POLARITY {ACTIVE_LOW} \
+  CONFIG.event_s_config_tlast_missing_intf.PortWidth {1} \
+  CONFIG.event_s_config_tlast_missing_intf.SENSITIVITY {EDGE_RISING} \
+  CONFIG.event_s_config_tlast_unexpected_intf.PortWidth {1} \
+  CONFIG.event_s_config_tlast_unexpected_intf.SENSITIVITY {EDGE_RISING} \
+  CONFIG.event_s_data_chanid_incorrect_intf.PortWidth {1} \
+  CONFIG.event_s_data_chanid_incorrect_intf.SENSITIVITY {EDGE_RISING} \
+  CONFIG.event_s_data_tlast_missing_intf.PortWidth {1} \
+  CONFIG.event_s_data_tlast_missing_intf.SENSITIVITY {EDGE_RISING} \
+  CONFIG.event_s_data_tlast_unexpected_intf.PortWidth {1} \
+  CONFIG.event_s_data_tlast_unexpected_intf.SENSITIVITY {EDGE_RISING} \
+  CONFIG.event_s_reload_tlast_missing_intf.PortWidth {1} \
+  CONFIG.event_s_reload_tlast_missing_intf.SENSITIVITY {EDGE_RISING} \
+  CONFIG.event_s_reload_tlast_unexpected_intf.PortWidth {1} \
+  CONFIG.event_s_reload_tlast_unexpected_intf.SENSITIVITY {EDGE_RISING} " [get_ips DDC_Block_fir_compiler_0_0]
+
+
+
+
+
+
+
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2021.2 (win64) Build 3367213 Tue Oct 19 02:48:09 MDT 2021
+| Date         : Tue Apr  4 17:52:51 2023
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_cmpy_0_0'
+
+1. Summary
+----------
+
+CAUTION (success, with warnings) in the conversion of DDC_Block_cmpy_0_0 (xilinx.com:ip:cmpy:6.0 (Rev. 20)) to Vivado generation flows.
+
+After upgrade, an IP may have parameter and port differences compared to the original customization. Please review the parameters within the IP customization GUI to ensure proper functionality. Also, please review the updated IP instantiation template to ensure proper connectivity, and update your design if required.
+
+2. Connection Warnings
+----------------------
+
+Detected external port differences while upgrading 'DDC_Block_cmpy_0_0'. These changes may impact your design.
+
+
+-Upgraded port 'm_axis_dout_tdata' width 48 differs from original width 32
+
+
+3. Customization warnings
+-------------------------
+
+Parameter 'TDATA_NUM_BYTES' is no longer present on the upgraded IP 'DDC_Block_cmpy_0_0', and cannot be set to '6'
+
+Parameter 'LAYERED_METADATA' is no longer present on the upgraded IP 'DDC_Block_cmpy_0_0', and cannot be set to 'xilinx.com:interface:datatypes:1.0 {TDATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 48} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} complex {bitwidth {attribs {resolve_type generated dependency set_width format long minimum {} maximum {}} value 24} stride {attribs {resolve_type generated dependency set_stride format long minimum {} maximum {}} value 24} real {fixed {fractwidth {attribs {resolve_type generated dependency set_fractwidth format long minimum {} maximum {}} value 0} signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value true}}} realfirst {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value true}}}} TDATA_WIDTH 48 TUSER {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} struct {field_a_tuser {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value a_tuser} enabled {attribs {resolve_type generated dependency a_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency a_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0}}} field_b_tuser {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value b_tuser} enabled {attribs {resolve_type generated dependency b_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency b_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency b_offset format long minimum {} maximum {}} value 0}}} field_ctrl_tuser {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value ctrl_tuser} enabled {attribs {resolve_type generated dependency ctrl_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency ctrl_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency ctrl_offset format long minimum {} maximum {}} value 0}}}}}} TUSER_WIDTH 0}'
+
+
+4. Debug Commands
+-----------------
+
+  The following debug information can be passed to Vivado as Tcl commands,
+in order to validate or debug the output of the upgrade flow.
+  You may consult any warnings from within this upgrade, and alter or remove
+the configuration parameter(s) which caused the warning; then execute the Tcl
+commands, and use the IP Customization GUI to verify the IP configuration.
+
+create_ip -vlnv xilinx.com:ip:cmpy:6.0 -user_name DDC_Block_cmpy_0_0
+set_property -dict "\
+  CONFIG.ACLKEN {false} \
+  CONFIG.APortWidth {16} \
+  CONFIG.ARESETN {false} \
+  CONFIG.ATUSERWidth {1} \
+  CONFIG.BPortWidth {16} \
+  CONFIG.BTUSERWidth {1} \
+  CONFIG.CTRLTUSERWidth {1} \
+  CONFIG.Component_Name {DDC_Block_cmpy_0_0} \
+  CONFIG.FlowControl {NonBlocking} \
+  CONFIG.HasATLAST {false} \
+  CONFIG.HasATUSER {false} \
+  CONFIG.HasBTLAST {false} \
+  CONFIG.HasBTUSER {false} \
+  CONFIG.HasCTRLTLAST {false} \
+  CONFIG.HasCTRLTUSER {false} \
+  CONFIG.LatencyConfig {Automatic} \
+  CONFIG.M_AXIS_DOUT.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.M_AXIS_DOUT.FREQ_HZ {122880000} \
+  CONFIG.M_AXIS_DOUT.HAS_TKEEP {0} \
+  CONFIG.M_AXIS_DOUT.HAS_TLAST {0} \
+  CONFIG.M_AXIS_DOUT.HAS_TREADY {0} \
+  CONFIG.M_AXIS_DOUT.HAS_TSTRB {0} \
+  CONFIG.M_AXIS_DOUT.INSERT_VIP {0} \
+  CONFIG.M_AXIS_DOUT.LAYERED_METADATA {xilinx.com:interface:datatypes:1.0 {TDATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 32} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} complex {bitwidth {attribs {resolve_type generated dependency set_width format long minimum {} maximum {}} value 16} stride {attribs {resolve_type generated dependency set_stride format long minimum {} maximum {}} value 16} real {fixed {fractwidth {attribs {resolve_type generated dependency set_fractwidth format long minimum {} maximum {}} value 0} signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value true}}} realfirst {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value true}}}} TDATA_WIDTH 32 TUSER {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} struct {field_a_tuser {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value a_tuser} enabled {attribs {resolve_type generated dependency a_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency a_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0}}} field_b_tuser {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value b_tuser} enabled {attribs {resolve_type generated dependency b_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency b_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency b_offset format long minimum {} maximum {}} value 0}}} field_ctrl_tuser {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value ctrl_tuser} enabled {attribs {resolve_type generated dependency ctrl_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency ctrl_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency ctrl_offset format long minimum {} maximum {}} value 0}}}}}} TUSER_WIDTH 0}} \
+  CONFIG.M_AXIS_DOUT.PHASE {0.0} \
+  CONFIG.M_AXIS_DOUT.TDATA_NUM_BYTES {4} \
+  CONFIG.M_AXIS_DOUT.TDEST_WIDTH {0} \
+  CONFIG.M_AXIS_DOUT.TID_WIDTH {0} \
+  CONFIG.M_AXIS_DOUT.TUSER_WIDTH {0} \
+  CONFIG.MinimumLatency {6} \
+  CONFIG.MultType {Use_Mults} \
+  CONFIG.OptimizeGoal {Resources} \
+  CONFIG.OutTLASTBehv {Null} \
+  CONFIG.OutputWidth {24} \
+  CONFIG.RoundMode {Truncate} \
+  CONFIG.S_AXIS_A.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.S_AXIS_A.FREQ_HZ {122880000} \
+  CONFIG.S_AXIS_A.HAS_TKEEP {0} \
+  CONFIG.S_AXIS_A.HAS_TLAST {0} \
+  CONFIG.S_AXIS_A.HAS_TREADY {0} \
+  CONFIG.S_AXIS_A.HAS_TSTRB {0} \
+  CONFIG.S_AXIS_A.INSERT_VIP {0} \
+  CONFIG.S_AXIS_A.LAYERED_METADATA {undef} \
+  CONFIG.S_AXIS_A.PHASE {0.0} \
+  CONFIG.S_AXIS_A.TDATA_NUM_BYTES {4} \
+  CONFIG.S_AXIS_A.TDEST_WIDTH {0} \
+  CONFIG.S_AXIS_A.TID_WIDTH {0} \
+  CONFIG.S_AXIS_A.TUSER_WIDTH {0} \
+  CONFIG.S_AXIS_B.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.S_AXIS_B.FREQ_HZ {122880000} \
+  CONFIG.S_AXIS_B.HAS_TKEEP {0} \
+  CONFIG.S_AXIS_B.HAS_TLAST {0} \
+  CONFIG.S_AXIS_B.HAS_TREADY {0} \
+  CONFIG.S_AXIS_B.HAS_TSTRB {0} \
+  CONFIG.S_AXIS_B.INSERT_VIP {0} \
+  CONFIG.S_AXIS_B.LAYERED_METADATA {undef} \
+  CONFIG.S_AXIS_B.PHASE {0.0} \
+  CONFIG.S_AXIS_B.TDATA_NUM_BYTES {4} \
+  CONFIG.S_AXIS_B.TDEST_WIDTH {0} \
+  CONFIG.S_AXIS_B.TID_WIDTH {0} \
+  CONFIG.S_AXIS_B.TUSER_WIDTH {0} \
+  CONFIG.aclk_intf.ASSOCIATED_BUSIF {S_AXIS_CTRL:S_AXIS_B:S_AXIS_A:M_AXIS_DOUT} \
+  CONFIG.aclk_intf.ASSOCIATED_CLKEN {aclken} \
+  CONFIG.aclk_intf.ASSOCIATED_PORT {} \
+  CONFIG.aclk_intf.ASSOCIATED_RESET {aresetn} \
+  CONFIG.aclk_intf.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.aclk_intf.FREQ_HZ {122880000} \
+  CONFIG.aclk_intf.FREQ_TOLERANCE_HZ {0} \
+  CONFIG.aclk_intf.INSERT_VIP {0} \
+  CONFIG.aclk_intf.PHASE {0.0} \
+  CONFIG.aclken_intf.POLARITY {ACTIVE_HIGH} \
+  CONFIG.aresetn_intf.INSERT_VIP {0} \
+  CONFIG.aresetn_intf.POLARITY {ACTIVE_LOW} " [get_ips DDC_Block_cmpy_0_0]
+
+
+
+
+
+
+
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2021.2 (win64) Build 3367213 Tue Oct 19 02:48:09 MDT 2021
+| Date         : Tue Apr  4 17:52:51 2023
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_cic_compiler_1_0'
+
+1. Summary
+----------
+
+CAUTION (success, with warnings) in the conversion of DDC_Block_cic_compiler_1_0 (xilinx.com:ip:cic_compiler:4.0 (Rev. 15)) to Vivado generation flows.
+
+After upgrade, an IP may have parameter and port differences compared to the original customization. Please review the parameters within the IP customization GUI to ensure proper functionality. Also, please review the updated IP instantiation template to ensure proper connectivity, and update your design if required.
+
+2. Connection Warnings
+----------------------
+
+Detected external port differences while upgrading 'DDC_Block_cic_compiler_1_0'. These changes may impact your design.
+
+
+-Upgraded port 'm_axis_data_tdata' width 32 differs from original width 24
+
+-Upgraded port 's_axis_data_tdata' width 24 differs from original width 16
+
+
+3. Customization warnings
+-------------------------
+
+Parameter 'TDATA_NUM_BYTES' is no longer present on the upgraded IP 'DDC_Block_cic_compiler_1_0', and cannot be set to '3'
+
+Parameter 'LAYERED_METADATA' is no longer present on the upgraded IP 'DDC_Block_cic_compiler_1_0', and cannot be set to 'xilinx.com:interface:datatypes:1.0 {TDATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 32} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} array_type {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan} size {attribs {resolve_type generated dependency chan_size format long minimum {} maximum {}} value 1} stride {attribs {resolve_type generated dependency chan_stride format long minimum {} maximum {}} value 32} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency data_width format long minimum {} maximum {}} value 32} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} real {fixed {fractwidth {attribs {resolve_type generated dependency data_fractwidth format long minimum {} maximum {}} value 0} signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value true}}}}}}} TDATA_WIDTH 32 TUSER {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} struct {field_chan_out {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan_out} enabled {attribs {resolve_type generated dependency enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chan_out_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} integer {signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value false}}}} field_chan_sync {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan_sync} enabled {attribs {resolve_type generated dependency enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chan_sync_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency chan_sync_offset format long minimum {} maximum {}} value 0}}}}}} TUSER_WIDTH 0}'
+
+
+4. Debug Commands
+-----------------
+
+  The following debug information can be passed to Vivado as Tcl commands,
+in order to validate or debug the output of the upgrade flow.
+  You may consult any warnings from within this upgrade, and alter or remove
+the configuration parameter(s) which caused the warning; then execute the Tcl
+commands, and use the IP Customization GUI to verify the IP configuration.
+
+create_ip -vlnv xilinx.com:ip:cic_compiler:4.0 -user_name DDC_Block_cic_compiler_1_0
+set_property -dict "\
+  CONFIG.Clock_Frequency {122.88} \
+  CONFIG.Component_Name {DDC_Block_cic_compiler_1_0} \
+  CONFIG.Differential_Delay {1} \
+  CONFIG.Filter_Type {Decimation} \
+  CONFIG.Fixed_Or_Initial_Rate {40} \
+  CONFIG.GUI_Behaviour {Coregen} \
+  CONFIG.HAS_ACLKEN {false} \
+  CONFIG.HAS_ARESETN {true} \
+  CONFIG.HAS_DOUT_TREADY {false} \
+  CONFIG.HardwareOversamplingRate {1} \
+  CONFIG.Input_Data_Width {24} \
+  CONFIG.Input_Sample_Frequency {122.88} \
+  CONFIG.M_AXIS_DATA.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.M_AXIS_DATA.FREQ_HZ {122880000} \
+  CONFIG.M_AXIS_DATA.HAS_TKEEP {0} \
+  CONFIG.M_AXIS_DATA.HAS_TLAST {0} \
+  CONFIG.M_AXIS_DATA.HAS_TREADY {0} \
+  CONFIG.M_AXIS_DATA.HAS_TSTRB {0} \
+  CONFIG.M_AXIS_DATA.INSERT_VIP {0} \
+  CONFIG.M_AXIS_DATA.LAYERED_METADATA {xilinx.com:interface:datatypes:1.0 {TDATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 18} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} array_type {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan} size {attribs {resolve_type generated dependency chan_size format long minimum {} maximum {}} value 1} stride {attribs {resolve_type generated dependency chan_stride format long minimum {} maximum {}} value 24} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency data_width format long minimum {} maximum {}} value 18} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} real {fixed {fractwidth {attribs {resolve_type generated dependency data_fractwidth format long minimum {} maximum {}} value 0} signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value true}}}}}}} TDATA_WIDTH 24 TUSER {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} struct {field_chan_out {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan_out} enabled {attribs {resolve_type generated dependency enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chan_out_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} integer {signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value false}}}} field_chan_sync {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan_sync} enabled {attribs {resolve_type generated dependency enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chan_sync_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency chan_sync_offset format long minimum {} maximum {}} value 0}}}}}} TUSER_WIDTH 0}} \
+  CONFIG.M_AXIS_DATA.PHASE {0.0} \
+  CONFIG.M_AXIS_DATA.TDATA_NUM_BYTES {3} \
+  CONFIG.M_AXIS_DATA.TDEST_WIDTH {0} \
+  CONFIG.M_AXIS_DATA.TID_WIDTH {0} \
+  CONFIG.M_AXIS_DATA.TUSER_WIDTH {0} \
+  CONFIG.Maximum_Rate {320} \
+  CONFIG.Minimum_Rate {10} \
+  CONFIG.Number_Of_Channels {1} \
+  CONFIG.Number_Of_Stages {6} \
+  CONFIG.Output_Data_Width {32} \
+  CONFIG.Passband_Max {0.5} \
+  CONFIG.Passband_Min {0.0} \
+  CONFIG.Quantization {Truncation} \
+  CONFIG.RateSpecification {Frequency_Specification} \
+  CONFIG.Response_Magnitude {Normalized} \
+  CONFIG.S_AXIS_CONFIG.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.S_AXIS_CONFIG.FREQ_HZ {122880000} \
+  CONFIG.S_AXIS_CONFIG.HAS_TKEEP {0} \
+  CONFIG.S_AXIS_CONFIG.HAS_TLAST {0} \
+  CONFIG.S_AXIS_CONFIG.HAS_TREADY {1} \
+  CONFIG.S_AXIS_CONFIG.HAS_TSTRB {0} \
+  CONFIG.S_AXIS_CONFIG.INSERT_VIP {0} \
+  CONFIG.S_AXIS_CONFIG.LAYERED_METADATA {undef} \
+  CONFIG.S_AXIS_CONFIG.PHASE {0.0} \
+  CONFIG.S_AXIS_CONFIG.TDATA_NUM_BYTES {2} \
+  CONFIG.S_AXIS_CONFIG.TDEST_WIDTH {0} \
+  CONFIG.S_AXIS_CONFIG.TID_WIDTH {0} \
+  CONFIG.S_AXIS_CONFIG.TUSER_WIDTH {0} \
+  CONFIG.S_AXIS_DATA.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.S_AXIS_DATA.FREQ_HZ {122880000} \
+  CONFIG.S_AXIS_DATA.HAS_TKEEP {0} \
+  CONFIG.S_AXIS_DATA.HAS_TLAST {0} \
+  CONFIG.S_AXIS_DATA.HAS_TREADY {1} \
+  CONFIG.S_AXIS_DATA.HAS_TSTRB {0} \
+  CONFIG.S_AXIS_DATA.INSERT_VIP {0} \
+  CONFIG.S_AXIS_DATA.LAYERED_METADATA {undef} \
+  CONFIG.S_AXIS_DATA.PHASE {0.0} \
+  CONFIG.S_AXIS_DATA.TDATA_NUM_BYTES {2} \
+  CONFIG.S_AXIS_DATA.TDEST_WIDTH {0} \
+  CONFIG.S_AXIS_DATA.TID_WIDTH {0} \
+  CONFIG.S_AXIS_DATA.TUSER_WIDTH {0} \
+  CONFIG.SamplePeriod {1} \
+  CONFIG.Sample_Rate_Changes {Programmable} \
+  CONFIG.Stopband_Max {1.0} \
+  CONFIG.Stopband_Min {0.5} \
+  CONFIG.Use_Streaming_Interface {true} \
+  CONFIG.Use_Xtreme_DSP_Slice {false} \
+  CONFIG.aclk_intf.ASSOCIATED_BUSIF {S_AXIS_CONFIG:M_AXIS_DATA:S_AXIS_DATA} \
+  CONFIG.aclk_intf.ASSOCIATED_CLKEN {aclken} \
+  CONFIG.aclk_intf.ASSOCIATED_PORT {} \
+  CONFIG.aclk_intf.ASSOCIATED_RESET {aresetn} \
+  CONFIG.aclk_intf.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.aclk_intf.FREQ_HZ {122880000} \
+  CONFIG.aclk_intf.FREQ_TOLERANCE_HZ {0} \
+  CONFIG.aclk_intf.INSERT_VIP {0} \
+  CONFIG.aclk_intf.PHASE {0.0} \
+  CONFIG.aclken_intf.POLARITY {ACTIVE_HIGH} \
+  CONFIG.aresetn_intf.INSERT_VIP {0} \
+  CONFIG.aresetn_intf.POLARITY {ACTIVE_LOW} \
+  CONFIG.event_halted_intf.PortWidth {1} \
+  CONFIG.event_halted_intf.SENSITIVITY {EDGE_RISING} \
+  CONFIG.event_tlast_missing_intf.PortWidth {1} \
+  CONFIG.event_tlast_missing_intf.SENSITIVITY {EDGE_RISING} \
+  CONFIG.event_tlast_unexpected_intf.PortWidth {1} \
+  CONFIG.event_tlast_unexpected_intf.SENSITIVITY {EDGE_RISING} " [get_ips DDC_Block_cic_compiler_1_0]
+
+
+
+
+
+
+
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2021.2 (win64) Build 3367213 Tue Oct 19 02:48:09 MDT 2021
+| Date         : Tue Apr  4 17:52:51 2023
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_cic_compiler_0_0'
+
+1. Summary
+----------
+
+CAUTION (success, with warnings) in the conversion of DDC_Block_cic_compiler_0_0 (xilinx.com:ip:cic_compiler:4.0 (Rev. 15)) to Vivado generation flows.
+
+After upgrade, an IP may have parameter and port differences compared to the original customization. Please review the parameters within the IP customization GUI to ensure proper functionality. Also, please review the updated IP instantiation template to ensure proper connectivity, and update your design if required.
+
+2. Connection Warnings
+----------------------
+
+Detected external port differences while upgrading 'DDC_Block_cic_compiler_0_0'. These changes may impact your design.
+
+
+-Upgraded port 'm_axis_data_tdata' width 32 differs from original width 24
+
+-Upgraded port 's_axis_data_tdata' width 24 differs from original width 16
+
+
+3. Customization warnings
+-------------------------
+
+Parameter 'TDATA_NUM_BYTES' is no longer present on the upgraded IP 'DDC_Block_cic_compiler_0_0', and cannot be set to '3'
+
+Parameter 'LAYERED_METADATA' is no longer present on the upgraded IP 'DDC_Block_cic_compiler_0_0', and cannot be set to 'xilinx.com:interface:datatypes:1.0 {TDATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 32} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} array_type {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan} size {attribs {resolve_type generated dependency chan_size format long minimum {} maximum {}} value 1} stride {attribs {resolve_type generated dependency chan_stride format long minimum {} maximum {}} value 32} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency data_width format long minimum {} maximum {}} value 32} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} real {fixed {fractwidth {attribs {resolve_type generated dependency data_fractwidth format long minimum {} maximum {}} value 0} signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value true}}}}}}} TDATA_WIDTH 32 TUSER {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} struct {field_chan_out {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan_out} enabled {attribs {resolve_type generated dependency enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chan_out_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} integer {signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value false}}}} field_chan_sync {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan_sync} enabled {attribs {resolve_type generated dependency enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chan_sync_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency chan_sync_offset format long minimum {} maximum {}} value 0}}}}}} TUSER_WIDTH 0}'
+
+
+4. Debug Commands
+-----------------
+
+  The following debug information can be passed to Vivado as Tcl commands,
+in order to validate or debug the output of the upgrade flow.
+  You may consult any warnings from within this upgrade, and alter or remove
+the configuration parameter(s) which caused the warning; then execute the Tcl
+commands, and use the IP Customization GUI to verify the IP configuration.
+
+create_ip -vlnv xilinx.com:ip:cic_compiler:4.0 -user_name DDC_Block_cic_compiler_0_0
+set_property -dict "\
+  CONFIG.Clock_Frequency {122.88} \
+  CONFIG.Component_Name {DDC_Block_cic_compiler_0_0} \
+  CONFIG.Differential_Delay {1} \
+  CONFIG.Filter_Type {Decimation} \
+  CONFIG.Fixed_Or_Initial_Rate {40} \
+  CONFIG.GUI_Behaviour {Coregen} \
+  CONFIG.HAS_ACLKEN {false} \
+  CONFIG.HAS_ARESETN {true} \
+  CONFIG.HAS_DOUT_TREADY {false} \
+  CONFIG.HardwareOversamplingRate {1} \
+  CONFIG.Input_Data_Width {24} \
+  CONFIG.Input_Sample_Frequency {122.88} \
+  CONFIG.M_AXIS_DATA.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.M_AXIS_DATA.FREQ_HZ {122880000} \
+  CONFIG.M_AXIS_DATA.HAS_TKEEP {0} \
+  CONFIG.M_AXIS_DATA.HAS_TLAST {0} \
+  CONFIG.M_AXIS_DATA.HAS_TREADY {0} \
+  CONFIG.M_AXIS_DATA.HAS_TSTRB {0} \
+  CONFIG.M_AXIS_DATA.INSERT_VIP {0} \
+  CONFIG.M_AXIS_DATA.LAYERED_METADATA {xilinx.com:interface:datatypes:1.0 {TDATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 18} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} array_type {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan} size {attribs {resolve_type generated dependency chan_size format long minimum {} maximum {}} value 1} stride {attribs {resolve_type generated dependency chan_stride format long minimum {} maximum {}} value 24} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency data_width format long minimum {} maximum {}} value 18} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} real {fixed {fractwidth {attribs {resolve_type generated dependency data_fractwidth format long minimum {} maximum {}} value 0} signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value true}}}}}}} TDATA_WIDTH 24 TUSER {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} struct {field_chan_out {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan_out} enabled {attribs {resolve_type generated dependency enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chan_out_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} integer {signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value false}}}} field_chan_sync {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan_sync} enabled {attribs {resolve_type generated dependency enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chan_sync_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency chan_sync_offset format long minimum {} maximum {}} value 0}}}}}} TUSER_WIDTH 0}} \
+  CONFIG.M_AXIS_DATA.PHASE {0.0} \
+  CONFIG.M_AXIS_DATA.TDATA_NUM_BYTES {3} \
+  CONFIG.M_AXIS_DATA.TDEST_WIDTH {0} \
+  CONFIG.M_AXIS_DATA.TID_WIDTH {0} \
+  CONFIG.M_AXIS_DATA.TUSER_WIDTH {0} \
+  CONFIG.Maximum_Rate {320} \
+  CONFIG.Minimum_Rate {10} \
+  CONFIG.Number_Of_Channels {1} \
+  CONFIG.Number_Of_Stages {6} \
+  CONFIG.Output_Data_Width {32} \
+  CONFIG.Passband_Max {0.5} \
+  CONFIG.Passband_Min {0.0} \
+  CONFIG.Quantization {Truncation} \
+  CONFIG.RateSpecification {Frequency_Specification} \
+  CONFIG.Response_Magnitude {Normalized} \
+  CONFIG.S_AXIS_CONFIG.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.S_AXIS_CONFIG.FREQ_HZ {122880000} \
+  CONFIG.S_AXIS_CONFIG.HAS_TKEEP {0} \
+  CONFIG.S_AXIS_CONFIG.HAS_TLAST {0} \
+  CONFIG.S_AXIS_CONFIG.HAS_TREADY {1} \
+  CONFIG.S_AXIS_CONFIG.HAS_TSTRB {0} \
+  CONFIG.S_AXIS_CONFIG.INSERT_VIP {0} \
+  CONFIG.S_AXIS_CONFIG.LAYERED_METADATA {undef} \
+  CONFIG.S_AXIS_CONFIG.PHASE {0.0} \
+  CONFIG.S_AXIS_CONFIG.TDATA_NUM_BYTES {2} \
+  CONFIG.S_AXIS_CONFIG.TDEST_WIDTH {0} \
+  CONFIG.S_AXIS_CONFIG.TID_WIDTH {0} \
+  CONFIG.S_AXIS_CONFIG.TUSER_WIDTH {0} \
+  CONFIG.S_AXIS_DATA.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.S_AXIS_DATA.FREQ_HZ {122880000} \
+  CONFIG.S_AXIS_DATA.HAS_TKEEP {0} \
+  CONFIG.S_AXIS_DATA.HAS_TLAST {0} \
+  CONFIG.S_AXIS_DATA.HAS_TREADY {1} \
+  CONFIG.S_AXIS_DATA.HAS_TSTRB {0} \
+  CONFIG.S_AXIS_DATA.INSERT_VIP {0} \
+  CONFIG.S_AXIS_DATA.LAYERED_METADATA {undef} \
+  CONFIG.S_AXIS_DATA.PHASE {0.0} \
+  CONFIG.S_AXIS_DATA.TDATA_NUM_BYTES {2} \
+  CONFIG.S_AXIS_DATA.TDEST_WIDTH {0} \
+  CONFIG.S_AXIS_DATA.TID_WIDTH {0} \
+  CONFIG.S_AXIS_DATA.TUSER_WIDTH {0} \
+  CONFIG.SamplePeriod {1} \
+  CONFIG.Sample_Rate_Changes {Programmable} \
+  CONFIG.Stopband_Max {1.0} \
+  CONFIG.Stopband_Min {0.5} \
+  CONFIG.Use_Streaming_Interface {true} \
+  CONFIG.Use_Xtreme_DSP_Slice {false} \
+  CONFIG.aclk_intf.ASSOCIATED_BUSIF {S_AXIS_CONFIG:M_AXIS_DATA:S_AXIS_DATA} \
+  CONFIG.aclk_intf.ASSOCIATED_CLKEN {aclken} \
+  CONFIG.aclk_intf.ASSOCIATED_PORT {} \
+  CONFIG.aclk_intf.ASSOCIATED_RESET {aresetn} \
+  CONFIG.aclk_intf.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.aclk_intf.FREQ_HZ {122880000} \
+  CONFIG.aclk_intf.FREQ_TOLERANCE_HZ {0} \
+  CONFIG.aclk_intf.INSERT_VIP {0} \
+  CONFIG.aclk_intf.PHASE {0.0} \
+  CONFIG.aclken_intf.POLARITY {ACTIVE_HIGH} \
+  CONFIG.aresetn_intf.INSERT_VIP {0} \
+  CONFIG.aresetn_intf.POLARITY {ACTIVE_LOW} \
+  CONFIG.event_halted_intf.PortWidth {1} \
+  CONFIG.event_halted_intf.SENSITIVITY {EDGE_RISING} \
+  CONFIG.event_tlast_missing_intf.PortWidth {1} \
+  CONFIG.event_tlast_missing_intf.SENSITIVITY {EDGE_RISING} \
+  CONFIG.event_tlast_unexpected_intf.PortWidth {1} \
+  CONFIG.event_tlast_unexpected_intf.SENSITIVITY {EDGE_RISING} " [get_ips DDC_Block_cic_compiler_0_0]
+
+
+
+
+
+
+
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2021.2 (win64) Build 3367213 Tue Oct 19 02:48:09 MDT 2021
+| Date         : Tue Apr  4 17:52:51 2023
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_axis_subset_converter_0_0'
+
+1. Summary
+----------
+
+CAUTION (success, with warnings) in the conversion of DDC_Block_axis_subset_converter_0_0 (xilinx.com:ip:axis_subset_converter:1.1 (Rev. 25)) to Vivado generation flows.
+
+After upgrade, an IP may have parameter differences compared to the original customization. Please review the parameters within the IP customization GUI to ensure proper functionality.
+
+2. Customization warnings
+-------------------------
+
+Parameter 'LAYERED_METADATA' is no longer present on the upgraded IP 'DDC_Block_axis_subset_converter_0_0', and cannot be set to 'xilinx.com:interface:datatypes:1.0 {TDATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 59} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} array_type {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan} size {attribs {resolve_type generated dependency chan_size format long minimum {} maximum {}} value 2} stride {attribs {resolve_type generated dependency chan_stride format long minimum {} maximum {}} value 32} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 27} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} array_type {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value path} size {attribs {resolve_type generated dependency path_size format long minimum {} maximum {}} value 1} stride {attribs {resolve_type generated dependency path_stride format long minimum {} maximum {}} value 32} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency out_width format long minimum {} maximum {}} value 27} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} real {fixed {fractwidth {attribs {resolve_type generated dependency out_fractwidth format long minimum {} maximum {}} value 0} signed {attribs {resolve_type generated dependency out_signed format bool minimum {} maximum {}} value true}}}}}}}}} TDATA_WIDTH 32 TUSER {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} struct {field_data_valid {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value data_valid} enabled {attribs {resolve_type generated dependency data_valid_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency data_valid_bitwidth format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0}}} field_chanid {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chanid} enabled {attribs {resolve_type generated dependency chanid_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chanid_bitwidth format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency chanid_bitoffset format long minimum {} maximum {}} value 0} integer {signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value false}}}} field_user {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value user} enabled {attribs {resolve_type generated dependency user_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency user_bitwidth format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency user_bitoffset format long minimum {} maximum {}} value 0}}}}}} TUSER_WIDTH 0}'
+
+
+3. Debug Commands
+-----------------
+
+  The following debug information can be passed to Vivado as Tcl commands,
+in order to validate or debug the output of the upgrade flow.
+  You may consult any warnings from within this upgrade, and alter or remove
+the configuration parameter(s) which caused the warning; then execute the Tcl
+commands, and use the IP Customization GUI to verify the IP configuration.
+
+create_ip -vlnv xilinx.com:ip:axis_subset_converter:1.1 -user_name DDC_Block_axis_subset_converter_0_0
+set_property -dict "\
+  CONFIG.CLKIF.ASSOCIATED_BUSIF {S_AXIS:M_AXIS} \
+  CONFIG.CLKIF.ASSOCIATED_PORT {} \
+  CONFIG.CLKIF.ASSOCIATED_RESET {aresetn} \
+  CONFIG.CLKIF.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.CLKIF.FREQ_HZ {122880000} \
+  CONFIG.CLKIF.FREQ_TOLERANCE_HZ {0} \
+  CONFIG.CLKIF.INSERT_VIP {0} \
+  CONFIG.CLKIF.PHASE {0.0} \
+  CONFIG.Component_Name {DDC_Block_axis_subset_converter_0_0} \
+  CONFIG.DEFAULT_TLAST {0} \
+  CONFIG.HAS_ACLKEN {0} \
+  CONFIG.M_AXIS.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.M_AXIS.FREQ_HZ {122880000} \
+  CONFIG.M_AXIS.HAS_TKEEP {0} \
+  CONFIG.M_AXIS.HAS_TLAST {0} \
+  CONFIG.M_AXIS.HAS_TREADY {1} \
+  CONFIG.M_AXIS.HAS_TSTRB {0} \
+  CONFIG.M_AXIS.INSERT_VIP {0} \
+  CONFIG.M_AXIS.LAYERED_METADATA {undef} \
+  CONFIG.M_AXIS.PHASE {0.0} \
+  CONFIG.M_AXIS.TDATA_NUM_BYTES {3} \
+  CONFIG.M_AXIS.TDEST_WIDTH {0} \
+  CONFIG.M_AXIS.TID_WIDTH {0} \
+  CONFIG.M_AXIS.TUSER_WIDTH {0} \
+  CONFIG.M_HAS_TKEEP {0} \
+  CONFIG.M_HAS_TLAST {0} \
+  CONFIG.M_HAS_TREADY {1} \
+  CONFIG.M_HAS_TSTRB {0} \
+  CONFIG.M_TDATA_NUM_BYTES {3} \
+  CONFIG.M_TDEST_WIDTH {0} \
+  CONFIG.M_TID_WIDTH {0} \
+  CONFIG.M_TUSER_WIDTH {0} \
+  CONFIG.RSTIF.INSERT_VIP {0} \
+  CONFIG.RSTIF.POLARITY {ACTIVE_LOW} \
+  CONFIG.S_AXIS.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.S_AXIS.FREQ_HZ {122880000} \
+  CONFIG.S_AXIS.HAS_TKEEP {0} \
+  CONFIG.S_AXIS.HAS_TLAST {0} \
+  CONFIG.S_AXIS.HAS_TREADY {1} \
+  CONFIG.S_AXIS.HAS_TSTRB {0} \
+  CONFIG.S_AXIS.INSERT_VIP {0} \
+  CONFIG.S_AXIS.LAYERED_METADATA {xilinx.com:interface:datatypes:1.0 {TDATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 60} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} array_type {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan} size {attribs {resolve_type generated dependency chan_size format long minimum {} maximum {}} value 2} stride {attribs {resolve_type generated dependency chan_stride format long minimum {} maximum {}} value 32} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 28} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} array_type {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value path} size {attribs {resolve_type generated dependency path_size format long minimum {} maximum {}} value 1} stride {attribs {resolve_type generated dependency path_stride format long minimum {} maximum {}} value 32} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency out_width format long minimum {} maximum {}} value 28} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} real {fixed {fractwidth {attribs {resolve_type generated dependency out_fractwidth format long minimum {} maximum {}} value 8} signed {attribs {resolve_type generated dependency out_signed format bool minimum {} maximum {}} value true}}}}}}}}} TDATA_WIDTH 32 TUSER {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} struct {field_data_valid {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value data_valid} enabled {attribs {resolve_type generated dependency data_valid_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency data_valid_bitwidth format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0}}} field_chanid {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chanid} enabled {attribs {resolve_type generated dependency chanid_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chanid_bitwidth format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency chanid_bitoffset format long minimum {} maximum {}} value 0} integer {signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value false}}}} field_user {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value user} enabled {attribs {resolve_type generated dependency user_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency user_bitwidth format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency user_bitoffset format long minimum {} maximum {}} value 0}}}}}} TUSER_WIDTH 0}} \
+  CONFIG.S_AXIS.PHASE {0.0} \
+  CONFIG.S_AXIS.TDATA_NUM_BYTES {4} \
+  CONFIG.S_AXIS.TDEST_WIDTH {0} \
+  CONFIG.S_AXIS.TID_WIDTH {0} \
+  CONFIG.S_AXIS.TUSER_WIDTH {0} \
+  CONFIG.S_HAS_TKEEP {0} \
+  CONFIG.S_HAS_TLAST {0} \
+  CONFIG.S_HAS_TREADY {1} \
+  CONFIG.S_HAS_TSTRB {0} \
+  CONFIG.S_TDATA_NUM_BYTES {4} \
+  CONFIG.S_TDEST_WIDTH {0} \
+  CONFIG.S_TID_WIDTH {0} \
+  CONFIG.S_TUSER_WIDTH {0} \
+  CONFIG.TDATA_REMAP {tdata[23:0]} \
+  CONFIG.TDEST_REMAP {1'b0} \
+  CONFIG.TID_REMAP {1'b0} \
+  CONFIG.TKEEP_REMAP {1'b0} \
+  CONFIG.TLAST_REMAP {1'b0} \
+  CONFIG.TSTRB_REMAP {1'b0} \
+  CONFIG.TUSER_REMAP {1'b0} " [get_ips DDC_Block_axis_subset_converter_0_0]
+
+
+
+
+
+
+
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2021.2 (win64) Build 3367213 Tue Oct 19 02:48:09 MDT 2021
+| Date         : Tue Apr  4 17:52:51 2023
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_axis_dwidth_converter_0_0'
+
+1. Summary
+----------
+
+CAUTION (success, with warnings) in the conversion of DDC_Block_axis_dwidth_converter_0_0 (xilinx.com:ip:axis_dwidth_converter:1.1 (Rev. 24)) to Vivado generation flows.
+
+After upgrade, an IP may have parameter and port differences compared to the original customization. Please review the parameters within the IP customization GUI to ensure proper functionality. Also, please review the updated IP instantiation template to ensure proper connectivity, and update your design if required.
+
+2. Connection Warnings
+----------------------
+
+Detected external port differences while upgrading 'DDC_Block_axis_dwidth_converter_0_0'. These changes may impact your design.
+
+
+-Upgraded port 'm_axis_tdata' width 32 differs from original width 24
+
+-Upgraded port 's_axis_tdata' width 64 differs from original width 48
+
+
+3. Customization warnings
+-------------------------
+
+Parameter 'TDATA_NUM_BYTES' is no longer present on the upgraded IP 'DDC_Block_axis_dwidth_converter_0_0', and cannot be set to '8'
+
+
+4. Debug Commands
+-----------------
+
+  The following debug information can be passed to Vivado as Tcl commands,
+in order to validate or debug the output of the upgrade flow.
+  You may consult any warnings from within this upgrade, and alter or remove
+the configuration parameter(s) which caused the warning; then execute the Tcl
+commands, and use the IP Customization GUI to verify the IP configuration.
+
+create_ip -vlnv xilinx.com:ip:axis_dwidth_converter:1.1 -user_name DDC_Block_axis_dwidth_converter_0_0
+set_property -dict "\
+  CONFIG.CLKIF.ASSOCIATED_BUSIF {S_AXIS:M_AXIS} \
+  CONFIG.CLKIF.ASSOCIATED_PORT {} \
+  CONFIG.CLKIF.ASSOCIATED_RESET {aresetn} \
+  CONFIG.CLKIF.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.CLKIF.FREQ_HZ {122880000} \
+  CONFIG.CLKIF.FREQ_TOLERANCE_HZ {0} \
+  CONFIG.CLKIF.INSERT_VIP {0} \
+  CONFIG.CLKIF.PHASE {0.0} \
+  CONFIG.Component_Name {DDC_Block_axis_dwidth_converter_0_0} \
+  CONFIG.HAS_ACLKEN {0} \
+  CONFIG.HAS_MI_TKEEP {0} \
+  CONFIG.HAS_TKEEP {0} \
+  CONFIG.HAS_TLAST {0} \
+  CONFIG.HAS_TREADY {1} \
+  CONFIG.HAS_TSTRB {0} \
+  CONFIG.M_AXIS.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.M_AXIS.FREQ_HZ {122880000} \
+  CONFIG.M_AXIS.HAS_TKEEP {0} \
+  CONFIG.M_AXIS.HAS_TLAST {0} \
+  CONFIG.M_AXIS.HAS_TREADY {1} \
+  CONFIG.M_AXIS.HAS_TSTRB {0} \
+  CONFIG.M_AXIS.INSERT_VIP {0} \
+  CONFIG.M_AXIS.LAYERED_METADATA {undef} \
+  CONFIG.M_AXIS.PHASE {0.0} \
+  CONFIG.M_AXIS.TDATA_NUM_BYTES {3} \
+  CONFIG.M_AXIS.TDEST_WIDTH {0} \
+  CONFIG.M_AXIS.TID_WIDTH {0} \
+  CONFIG.M_AXIS.TUSER_WIDTH {0} \
+  CONFIG.M_TDATA_NUM_BYTES {4} \
+  CONFIG.RSTIF.INSERT_VIP {0} \
+  CONFIG.RSTIF.POLARITY {ACTIVE_LOW} \
+  CONFIG.S_AXIS.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.S_AXIS.FREQ_HZ {122880000} \
+  CONFIG.S_AXIS.HAS_TKEEP {0} \
+  CONFIG.S_AXIS.HAS_TLAST {0} \
+  CONFIG.S_AXIS.HAS_TREADY {1} \
+  CONFIG.S_AXIS.HAS_TSTRB {0} \
+  CONFIG.S_AXIS.INSERT_VIP {0} \
+  CONFIG.S_AXIS.LAYERED_METADATA {undef} \
+  CONFIG.S_AXIS.PHASE {0.0} \
+  CONFIG.S_AXIS.TDATA_NUM_BYTES {6} \
+  CONFIG.S_AXIS.TDEST_WIDTH {0} \
+  CONFIG.S_AXIS.TID_WIDTH {0} \
+  CONFIG.S_AXIS.TUSER_WIDTH {0} \
+  CONFIG.S_TDATA_NUM_BYTES {8} \
+  CONFIG.TDEST_WIDTH {0} \
+  CONFIG.TID_WIDTH {0} \
+  CONFIG.TUSER_BITS_PER_BYTE {0} " [get_ips DDC_Block_axis_dwidth_converter_0_0]
+
+
+
+
+
+
+
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2021.2 (win64) Build 3367213 Tue Oct 19 02:48:09 MDT 2021
+| Date         : Tue Apr  4 17:52:51 2023
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_axis_combiner_0_0'
+
+1. Summary
+----------
+
+CAUTION (success, with warnings) in the conversion of DDC_Block_axis_combiner_0_0 (xilinx.com:ip:axis_combiner:1.1 (Rev. 23)) to Vivado generation flows.
+
+After upgrade, an IP may have parameter and port differences compared to the original customization. Please review the parameters within the IP customization GUI to ensure proper functionality. Also, please review the updated IP instantiation template to ensure proper connectivity, and update your design if required.
+
+2. Connection Warnings
+----------------------
+
+Detected external port differences while upgrading 'DDC_Block_axis_combiner_0_0'. These changes may impact your design.
+
+
+-Upgraded port 'm_axis_tdata' width 64 differs from original width 48
+
+-Upgraded port 's_axis_tdata' width 64 differs from original width 48
+
+
+3. Customization warnings
+-------------------------
+
+Parameter 'LAYERED_METADATA' is no longer present on the upgraded IP 'DDC_Block_axis_combiner_0_0', and cannot be set to 'undef'
+
+
+4. Debug Commands
+-----------------
+
+  The following debug information can be passed to Vivado as Tcl commands,
+in order to validate or debug the output of the upgrade flow.
+  You may consult any warnings from within this upgrade, and alter or remove
+the configuration parameter(s) which caused the warning; then execute the Tcl
+commands, and use the IP Customization GUI to verify the IP configuration.
+
+create_ip -vlnv xilinx.com:ip:axis_combiner:1.1 -user_name DDC_Block_axis_combiner_0_0
+set_property -dict "\
+  CONFIG.CLKIF.ASSOCIATED_BUSIF {S00_AXIS:S01_AXIS:S02_AXIS:S03_AXIS:S04_AXIS:S05_AXIS:S06_AXIS:S07_AXIS:S08_AXIS:S09_AXIS:S10_AXIS:S11_AXIS:S12_AXIS:S13_AXIS:S14_AXIS:S15_AXIS:M_AXIS} \
+  CONFIG.CLKIF.ASSOCIATED_PORT {} \
+  CONFIG.CLKIF.ASSOCIATED_RESET {aresetn} \
+  CONFIG.CLKIF.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.CLKIF.FREQ_HZ {122880000} \
+  CONFIG.CLKIF.FREQ_TOLERANCE_HZ {0} \
+  CONFIG.CLKIF.INSERT_VIP {0} \
+  CONFIG.CLKIF.PHASE {0.0} \
+  CONFIG.Component_Name {DDC_Block_axis_combiner_0_0} \
+  CONFIG.HAS_ACLKEN {0} \
+  CONFIG.HAS_CMD_ERR {0} \
+  CONFIG.HAS_TKEEP {0} \
+  CONFIG.HAS_TLAST {0} \
+  CONFIG.HAS_TSTRB {0} \
+  CONFIG.MASTER_PORT_NUM {0} \
+  CONFIG.M_AXIS.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.M_AXIS.FREQ_HZ {122880000} \
+  CONFIG.M_AXIS.HAS_TKEEP {0} \
+  CONFIG.M_AXIS.HAS_TLAST {0} \
+  CONFIG.M_AXIS.HAS_TREADY {1} \
+  CONFIG.M_AXIS.HAS_TSTRB {0} \
+  CONFIG.M_AXIS.INSERT_VIP {0} \
+  CONFIG.M_AXIS.LAYERED_METADATA {undef} \
+  CONFIG.M_AXIS.PHASE {0.0} \
+  CONFIG.M_AXIS.TDATA_NUM_BYTES {6} \
+  CONFIG.M_AXIS.TDEST_WIDTH {0} \
+  CONFIG.M_AXIS.TID_WIDTH {0} \
+  CONFIG.M_AXIS.TUSER_WIDTH {0} \
+  CONFIG.NUM_SI {2} \
+  CONFIG.RSTIF.INSERT_VIP {0} \
+  CONFIG.RSTIF.POLARITY {ACTIVE_LOW} \
+  CONFIG.S00_AXIS.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.S00_AXIS.FREQ_HZ {122880000} \
+  CONFIG.S00_AXIS.HAS_TKEEP {0} \
+  CONFIG.S00_AXIS.HAS_TLAST {0} \
+  CONFIG.S00_AXIS.HAS_TREADY {1} \
+  CONFIG.S00_AXIS.HAS_TSTRB {0} \
+  CONFIG.S00_AXIS.INSERT_VIP {0} \
+  CONFIG.S00_AXIS.LAYERED_METADATA {xilinx.com:interface:datatypes:1.0 {TDATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 18} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} array_type {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan} size {attribs {resolve_type generated dependency chan_size format long minimum {} maximum {}} value 1} stride {attribs {resolve_type generated dependency chan_stride format long minimum {} maximum {}} value 24} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency data_width format long minimum {} maximum {}} value 18} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} real {fixed {fractwidth {attribs {resolve_type generated dependency data_fractwidth format long minimum {} maximum {}} value 0} signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value true}}}}}}} TDATA_WIDTH 24 TUSER {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} struct {field_chan_out {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan_out} enabled {attribs {resolve_type generated dependency enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chan_out_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} integer {signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value false}}}} field_chan_sync {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan_sync} enabled {attribs {resolve_type generated dependency enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chan_sync_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency chan_sync_offset format long minimum {} maximum {}} value 0}}}}}} TUSER_WIDTH 0}} \
+  CONFIG.S00_AXIS.PHASE {0.0} \
+  CONFIG.S00_AXIS.TDATA_NUM_BYTES {3} \
+  CONFIG.S00_AXIS.TDEST_WIDTH {0} \
+  CONFIG.S00_AXIS.TID_WIDTH {0} \
+  CONFIG.S00_AXIS.TUSER_WIDTH {0} \
+  CONFIG.S01_AXIS.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.S01_AXIS.FREQ_HZ {122880000} \
+  CONFIG.S01_AXIS.HAS_TKEEP {0} \
+  CONFIG.S01_AXIS.HAS_TLAST {0} \
+  CONFIG.S01_AXIS.HAS_TREADY {1} \
+  CONFIG.S01_AXIS.HAS_TSTRB {0} \
+  CONFIG.S01_AXIS.INSERT_VIP {0} \
+  CONFIG.S01_AXIS.LAYERED_METADATA {xilinx.com:interface:datatypes:1.0 {TDATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 18} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} array_type {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan} size {attribs {resolve_type generated dependency chan_size format long minimum {} maximum {}} value 1} stride {attribs {resolve_type generated dependency chan_stride format long minimum {} maximum {}} value 24} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency data_width format long minimum {} maximum {}} value 18} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} real {fixed {fractwidth {attribs {resolve_type generated dependency data_fractwidth format long minimum {} maximum {}} value 0} signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value true}}}}}}} TDATA_WIDTH 24 TUSER {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} struct {field_chan_out {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan_out} enabled {attribs {resolve_type generated dependency enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chan_out_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} integer {signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value false}}}} field_chan_sync {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value chan_sync} enabled {attribs {resolve_type generated dependency enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency chan_sync_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency chan_sync_offset format long minimum {} maximum {}} value 0}}}}}} TUSER_WIDTH 0}} \
+  CONFIG.S01_AXIS.PHASE {0.0} \
+  CONFIG.S01_AXIS.TDATA_NUM_BYTES {3} \
+  CONFIG.S01_AXIS.TDEST_WIDTH {0} \
+  CONFIG.S01_AXIS.TID_WIDTH {0} \
+  CONFIG.S01_AXIS.TUSER_WIDTH {0} \
+  CONFIG.TDATA_NUM_BYTES {4} \
+  CONFIG.TDEST_WIDTH {0} \
+  CONFIG.TID_WIDTH {0} \
+  CONFIG.TUSER_WIDTH {0} " [get_ips DDC_Block_axis_combiner_0_0]
+
+
+
+
+
+
+
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2021.2 (win64) Build 3367213 Tue Oct 19 02:48:09 MDT 2021
+| Date         : Tue Apr  4 17:52:51 2023
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_axis_broadcaster_1_0'
+
+1. Summary
+----------
+
+CAUTION (success, with warnings) in the conversion of DDC_Block_axis_broadcaster_1_0 (xilinx.com:ip:axis_broadcaster:1.1 (Rev. 24)) to Vivado generation flows.
+
+After upgrade, an IP may have parameter and port differences compared to the original customization. Please review the parameters within the IP customization GUI to ensure proper functionality. Also, please review the updated IP instantiation template to ensure proper connectivity, and update your design if required.
+
+2. Connection Warnings
+----------------------
+
+Detected external port differences while upgrading 'DDC_Block_axis_broadcaster_1_0'. These changes may impact your design.
+
+
+-Upgraded port 'm_axis_tdata' width 48 differs from original width 32
+
+-Upgraded port 's_axis_tdata' width 48 differs from original width 32
+
+
+3. Customization warnings
+-------------------------
+
+Parameter 'TDATA_NUM_BYTES' is no longer present on the upgraded IP 'DDC_Block_axis_broadcaster_1_0', and cannot be set to '6'
+
+Parameter 'LAYERED_METADATA' is no longer present on the upgraded IP 'DDC_Block_axis_broadcaster_1_0', and cannot be set to 'xilinx.com:interface:datatypes:1.0 {TDATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 48} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} complex {bitwidth {attribs {resolve_type generated dependency set_width format long minimum {} maximum {}} value 24} stride {attribs {resolve_type generated dependency set_stride format long minimum {} maximum {}} value 24} real {fixed {fractwidth {attribs {resolve_type generated dependency set_fractwidth format long minimum {} maximum {}} value 0} signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value true}}} realfirst {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value true}}}} TDATA_WIDTH 48 TUSER {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} struct {field_a_tuser {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value a_tuser} enabled {attribs {resolve_type generated dependency a_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency a_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0}}} field_b_tuser {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value b_tuser} enabled {attribs {resolve_type generated dependency b_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency b_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency b_offset format long minimum {} maximum {}} value 0}}} field_ctrl_tuser {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value ctrl_tuser} enabled {attribs {resolve_type generated dependency ctrl_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency ctrl_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency ctrl_offset format long minimum {} maximum {}} value 0}}}}}} TUSER_WIDTH 0}'
+
+
+4. Debug Commands
+-----------------
+
+  The following debug information can be passed to Vivado as Tcl commands,
+in order to validate or debug the output of the upgrade flow.
+  You may consult any warnings from within this upgrade, and alter or remove
+the configuration parameter(s) which caused the warning; then execute the Tcl
+commands, and use the IP Customization GUI to verify the IP configuration.
+
+create_ip -vlnv xilinx.com:ip:axis_broadcaster:1.1 -user_name DDC_Block_axis_broadcaster_1_0
+set_property -dict "\
+  CONFIG.CLKIF.ASSOCIATED_BUSIF {M00_AXIS:M01_AXIS:M02_AXIS:M03_AXIS:M04_AXIS:M05_AXIS:M06_AXIS:M07_AXIS:M08_AXIS:M09_AXIS:M10_AXIS:M11_AXIS:M12_AXIS:M13_AXIS:M14_AXIS:M15_AXIS:S_AXIS} \
+  CONFIG.CLKIF.ASSOCIATED_PORT {} \
+  CONFIG.CLKIF.ASSOCIATED_RESET {aresetn} \
+  CONFIG.CLKIF.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.CLKIF.FREQ_HZ {122880000} \
+  CONFIG.CLKIF.FREQ_TOLERANCE_HZ {0} \
+  CONFIG.CLKIF.INSERT_VIP {0} \
+  CONFIG.CLKIF.PHASE {0.0} \
+  CONFIG.Component_Name {DDC_Block_axis_broadcaster_1_0} \
+  CONFIG.HAS_ACLKEN {0} \
+  CONFIG.HAS_SPLITTER {0} \
+  CONFIG.HAS_TKEEP {0} \
+  CONFIG.HAS_TLAST {0} \
+  CONFIG.HAS_TREADY {0} \
+  CONFIG.HAS_TSTRB {0} \
+  CONFIG.M00_AXIS.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.M00_AXIS.FREQ_HZ {122880000} \
+  CONFIG.M00_AXIS.HAS_TKEEP {0} \
+  CONFIG.M00_AXIS.HAS_TLAST {0} \
+  CONFIG.M00_AXIS.HAS_TREADY {0} \
+  CONFIG.M00_AXIS.HAS_TSTRB {0} \
+  CONFIG.M00_AXIS.INSERT_VIP {0} \
+  CONFIG.M00_AXIS.LAYERED_METADATA {undef} \
+  CONFIG.M00_AXIS.PHASE {0.0} \
+  CONFIG.M00_AXIS.TDATA_NUM_BYTES {2} \
+  CONFIG.M00_AXIS.TDEST_WIDTH {0} \
+  CONFIG.M00_AXIS.TID_WIDTH {0} \
+  CONFIG.M00_AXIS.TUSER_WIDTH {0} \
+  CONFIG.M00_TDATA_REMAP {tdata[23:0]} \
+  CONFIG.M00_TUSER_REMAP {1'b0} \
+  CONFIG.M01_AXIS.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.M01_AXIS.FREQ_HZ {122880000} \
+  CONFIG.M01_AXIS.HAS_TKEEP {0} \
+  CONFIG.M01_AXIS.HAS_TLAST {0} \
+  CONFIG.M01_AXIS.HAS_TREADY {0} \
+  CONFIG.M01_AXIS.HAS_TSTRB {0} \
+  CONFIG.M01_AXIS.INSERT_VIP {0} \
+  CONFIG.M01_AXIS.LAYERED_METADATA {undef} \
+  CONFIG.M01_AXIS.PHASE {0.0} \
+  CONFIG.M01_AXIS.TDATA_NUM_BYTES {2} \
+  CONFIG.M01_AXIS.TDEST_WIDTH {0} \
+  CONFIG.M01_AXIS.TID_WIDTH {0} \
+  CONFIG.M01_AXIS.TUSER_WIDTH {0} \
+  CONFIG.M01_TDATA_REMAP {tdata[47:24]} \
+  CONFIG.M01_TUSER_REMAP {1'b0} \
+  CONFIG.M02_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M02_TUSER_REMAP {1'b0} \
+  CONFIG.M03_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M03_TUSER_REMAP {1'b0} \
+  CONFIG.M04_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M04_TUSER_REMAP {1'b0} \
+  CONFIG.M05_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M05_TUSER_REMAP {1'b0} \
+  CONFIG.M06_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M06_TUSER_REMAP {1'b0} \
+  CONFIG.M07_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M07_TUSER_REMAP {1'b0} \
+  CONFIG.M08_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M08_TUSER_REMAP {1'b0} \
+  CONFIG.M09_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M09_TUSER_REMAP {1'b0} \
+  CONFIG.M10_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M10_TUSER_REMAP {1'b0} \
+  CONFIG.M11_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M11_TUSER_REMAP {1'b0} \
+  CONFIG.M12_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M12_TUSER_REMAP {1'b0} \
+  CONFIG.M13_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M13_TUSER_REMAP {1'b0} \
+  CONFIG.M14_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M14_TUSER_REMAP {1'b0} \
+  CONFIG.M15_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M15_TUSER_REMAP {1'b0} \
+  CONFIG.M16_TDATA_REMAP {TDATA[7:0]} \
+  CONFIG.M16_TUSER_REMAP {1'b0} \
+  CONFIG.M_TDATA_NUM_BYTES {3} \
+  CONFIG.M_TUSER_WIDTH {0} \
+  CONFIG.NUM_MI {2} \
+  CONFIG.RSTIF.INSERT_VIP {0} \
+  CONFIG.RSTIF.POLARITY {ACTIVE_LOW} \
+  CONFIG.S_AXIS.CLK_DOMAIN {DDC_Block_aclk} \
+  CONFIG.S_AXIS.FREQ_HZ {122880000} \
+  CONFIG.S_AXIS.HAS_TKEEP {0} \
+  CONFIG.S_AXIS.HAS_TLAST {0} \
+  CONFIG.S_AXIS.HAS_TREADY {0} \
+  CONFIG.S_AXIS.HAS_TSTRB {0} \
+  CONFIG.S_AXIS.INSERT_VIP {0} \
+  CONFIG.S_AXIS.LAYERED_METADATA {xilinx.com:interface:datatypes:1.0 {TDATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 32} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} complex {bitwidth {attribs {resolve_type generated dependency set_width format long minimum {} maximum {}} value 16} stride {attribs {resolve_type generated dependency set_stride format long minimum {} maximum {}} value 16} real {fixed {fractwidth {attribs {resolve_type generated dependency set_fractwidth format long minimum {} maximum {}} value 0} signed {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value true}}} realfirst {attribs {resolve_type immediate dependency {} format bool minimum {} maximum {}} value true}}}} TDATA_WIDTH 32 TUSER {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type automatic dependency {} format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} struct {field_a_tuser {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value a_tuser} enabled {attribs {resolve_type generated dependency a_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency a_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0}}} field_b_tuser {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value b_tuser} enabled {attribs {resolve_type generated dependency b_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency b_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency b_offset format long minimum {} maximum {}} value 0}}} field_ctrl_tuser {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value ctrl_tuser} enabled {attribs {resolve_type generated dependency ctrl_enabled format bool minimum {} maximum {}} value false} datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value {}} bitwidth {attribs {resolve_type generated dependency ctrl_width format long minimum {} maximum {}} value 0} bitoffset {attribs {resolve_type generated dependency ctrl_offset format long minimum {} maximum {}} value 0}}}}}} TUSER_WIDTH 0}} \
+  CONFIG.S_AXIS.PHASE {0.0} \
+  CONFIG.S_AXIS.TDATA_NUM_BYTES {4} \
+  CONFIG.S_AXIS.TDEST_WIDTH {0} \
+  CONFIG.S_AXIS.TID_WIDTH {0} \
+  CONFIG.S_AXIS.TUSER_WIDTH {0} \
+  CONFIG.S_TDATA_NUM_BYTES {6} \
+  CONFIG.S_TUSER_WIDTH {0} \
+  CONFIG.TDEST_WIDTH {0} \
+  CONFIG.TID_WIDTH {0} " [get_ips DDC_Block_axis_broadcaster_1_0]
+
+
