@@ -303,7 +303,7 @@ int main(int argc, char *argv[])
     0,0,0,0,0,0,                                  // SDR (raspberry i) MAC address
     5,                                            // board type. changed from "hermes" to "orion mk2"
     38,                                           // protocol version 3.8
-    10,                                           // this SDR firmware version. 
+    20,                                           // this SDR firmware version. >17 to enable QSK
     0,0,0,0,0,0,                                  // Mercury, Metis, Penny version numbers
     4,                                            // 4DDC
     1,                                            // phase word
@@ -322,6 +322,7 @@ int main(int argc, char *argv[])
   struct msghdr datagram;                                           // multiple incoming message header
 
   uint32_t TestFrequency;                                           // test source DDS freq
+  int CmdOption;                                                    // command line option
 
   //
   // initialise register access semaphores
@@ -375,15 +376,53 @@ int main(int argc, char *argv[])
   }
   pthread_detach(CheckForNoActivityThread);
 
-  //
-  // check if we are using test source DDS
-  //
-  if (argc == 2)
-	{
-    TestFrequency = (atoi(argv[1]));
-    SetTestDDSFrequency(TestFrequency, false);   
-    UseTestDDSSource();                           
-  }	
+//
+// option string needs a colon after each option letter that has a parameter after it
+// and it has a leading colon to suppress error messages
+//
+  while((CmdOption = getopt(argc, argv, ":i:f:h")) != -1)
+  {
+    switch(CmdOption)
+    {
+      case 'h':
+        printf("usage: ./p2app <optional arguments>\n");
+        printf("optional arguments:\n");
+        printf("-f <frequency in Hz> turns on test source for all DDCs\n");
+        printf("-i saturn     board responds as board id = Saturn\n");
+        printf("-i orionmk2   board responds as board id = Orion mk 2\n");
+        return EXIT_SUCCESS;
+        break;
+
+
+      case 'i':
+        if(strcmp(optarg,"saturn") == 0)
+        {
+          printf("Discovery will respond as Saturn\n");
+          DiscoveryReply[11] = 10;
+        }
+        else if(strcmp(optarg,"orionmk2") == 0)
+        {
+          printf("Discovery will respond as Orion mk 2\n");
+          DiscoveryReply[11] = 5;
+        }
+        else
+        {
+          printf("error parsing board id. Values must be lower case\n");
+          printf("-i saturn     board responds as board id = Saturn\n");
+          printf("-i orionmk2   board responds as board id = Orion mk 2\n");
+          return EXIT_SUCCESS;
+        }
+        break;
+
+      case 'f':
+        TestFrequency = (atoi(optarg));
+        SetTestDDSFrequency(TestFrequency, false);   
+        UseTestDDSSource();         
+        printf ("Test source selected, frequency = %dHz\n", TestFrequency);                  
+        break;
+    }
+  }
+  printf("\n");
 
   //
   // create socket for incoming data on the command port
