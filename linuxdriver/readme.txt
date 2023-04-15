@@ -55,7 +55,7 @@ https://community.element14.com/technologies/fpga-group/b/blog/posts/installing-
 (The Xilinx distribution as at April 2023 has not been edited to include this!)
 The driver suitable for pre-kernel 5.18 is in folder xdma_pre_kernel_5.18
 
-
+Thank you to Rick Koch N1GP for improving my fix!
 
 
 
@@ -120,16 +120,16 @@ Directory and file description:
 
 Usage:
   - If you are updating: unload the previous driver from memory.
-        rmmod -s xdma
+        sudo rmmod -s xdma
   
   - Change directory to the driver directory.
         cd xdma
 
   - Compile and install the kernel module driver.
-        make install
+        sudo make install
 
   - Load the kernel module driver:
-	modprobe xdma
+	sudo modprobe xdma
 
   - Change directory to the tools directory.
         cd tools
