@@ -2901,7 +2901,7 @@ static void transfer_destroy(struct xdma_dev *xdev, struct xdma_transfer *xfer)
 		struct sg_table *sgt = xfer->sgt;
 
 		if (sgt->nents) {
-			dma_unmap_sg(&xdev->pdev->dev, sgt->sgl, sgt->nents,
+			pci_unmap_sg(xdev->pdev, sgt->sgl, sgt->nents,
 				     xfer->dir);
 			sgt->nents = 0;
 		}
@@ -3200,7 +3200,7 @@ ssize_t xdma_xfer_submit(void *dev_hndl, int channel, bool write, u64 ep_addr,
 	}
 
 	if (!dma_mapped) {
-		nents = dma_map_sg(&xdev->pdev->dev, sg, sgt->orig_nents, dir);
+		nents = pci_map_sg(xdev->pdev, sg, sgt->orig_nents, dir);
 		if (!nents) {
 			pr_info("map sgl failed, sgt 0x%p.\n", sgt);
 			return -EIO;
@@ -3356,7 +3356,7 @@ ssize_t xdma_xfer_submit(void *dev_hndl, int channel, bool write, u64 ep_addr,
 
 unmap_sgl:
 	if (!dma_mapped && sgt->nents) {
-		dma_unmap_sg(&xdev->pdev->dev, sgt->sgl, sgt->orig_nents, dir);
+		pci_unmap_sg(xdev->pdev, sgt->sgl, sgt->orig_nents, dir);
 		sgt->nents = 0;
 	}
 
@@ -3477,7 +3477,7 @@ ssize_t xdma_xfer_completion(void *cb_hndl, void *dev_hndl, int channel,
 
 unmap_sgl:
 	if (!dma_mapped && sgt->nents) {
-		dma_unmap_sg(&xdev->pdev->dev, sgt->sgl, sgt->orig_nents, dir);
+		pci_unmap_sg(xdev->pdev, sgt->sgl, sgt->orig_nents, dir);
 		sgt->nents = 0;
 	}
 
@@ -3551,7 +3551,7 @@ ssize_t xdma_xfer_submit_nowait(void *cb_hndl, void *dev_hndl, int channel,
 	}
 
 	if (!dma_mapped) {
-		nents = dma_map_sg(&xdev->pdev->dev, sg, sgt->orig_nents, dir);
+		nents = pci_map_sg(xdev->pdev, sg, sgt->orig_nents, dir);
 		if (!nents) {
 			pr_info("map sgl failed, sgt 0x%p.\n", sgt);
 			return -EIO;
@@ -3591,7 +3591,7 @@ ssize_t xdma_xfer_submit_nowait(void *cb_hndl, void *dev_hndl, int channel,
 			pr_info("transfer_init failed\n");
 
 			if (!dma_mapped && sgt->nents) {
-				dma_unmap_sg(&xdev->pdev->dev, sgt->sgl,
+				pci_unmap_sg(xdev->pdev, sgt->sgl,
 						sgt->orig_nents, dir);
 				sgt->nents = 0;
 			}
@@ -3639,7 +3639,7 @@ ssize_t xdma_xfer_submit_nowait(void *cb_hndl, void *dev_hndl, int channel,
 
 unmap_sgl:
 	if (!dma_mapped && sgt->nents) {
-		dma_unmap_sg(&xdev->pdev->dev, sgt->sgl, sgt->orig_nents, dir);
+		pci_unmap_sg(xdev->pdev, sgt->sgl, sgt->orig_nents, dir);
 		sgt->nents = 0;
 	}
 
@@ -3887,18 +3887,18 @@ static int set_dma_mask(struct pci_dev *pdev)
 
 	dbg_init("sizeof(dma_addr_t) == %ld\n", sizeof(dma_addr_t));
 	/* 64-bit addressing capability for XDMA? */
-	if (!dma_set_mask(&pdev->dev, DMA_BIT_MASK(64))) {
+	if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(64))) {
 		/* query for DMA transfer */
 		/* @see Documentation/DMA-mapping.txt */
-		dbg_init("dma_set_mask()\n");
+		dbg_init("pci_set_dma_mask()\n");
 		/* use 64-bit DMA */
 		dbg_init("Using a 64-bit DMA mask.\n");
 		/* use 32-bit DMA for descriptors */
-		dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(64));
+		pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
 		/* use 64-bit DMA, 32-bit for consistent */
-	} else if (!dma_set_mask(&pdev->dev, DMA_BIT_MASK(32))) {
+	} else if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(32))) {
 		dbg_init("Could not set 64-bit DMA mask.\n");
-		dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
+		pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
 		/* use 32-bit DMA */
 		dbg_init("Using a 32-bit DMA mask.\n");
 	} else {

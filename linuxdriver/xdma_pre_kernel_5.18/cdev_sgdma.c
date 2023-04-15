@@ -105,7 +105,7 @@ static void async_io_handler(unsigned long  cb_hndl, int err)
 		res = caio->res;
 		res2 = caio->res2;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
-		caio->iocb->ki_complete(caio->iocb, res);
+		caio->iocb->ki_complete(caio->iocb, res, res2);
 #else
 		aio_complete(caio->iocb, res, res2);
 #endif
@@ -120,7 +120,7 @@ skip_tran:
 
 skip_dev_lock:
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
-	caio->iocb->ki_complete(caio->iocb, numbytes);
+	caio->iocb->ki_complete(caio->iocb, numbytes, -EBUSY);
 #else
 	aio_complete(caio->iocb, numbytes, -EBUSY);
 #endif

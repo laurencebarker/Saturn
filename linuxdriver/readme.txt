@@ -48,6 +48,12 @@ static int set_dma_mask(struct pci_dev *pdev)
 }
 
 
+also changes were needed to cdev_xdma.c and libxdma.c to handle changes
+to the linux kernel introduced at V5.18. See:
+
+https://community.element14.com/technologies/fpga-group/b/blog/posts/installing-xilinx-vivado-on-ubuntu
+(The Xilinx distribution as at April 2023 has not been edited to include this!)
+The driver suitable for pre-kernel 5.18 is in folder xdma_pre_kernel_5.18
 
 
 
@@ -64,8 +70,8 @@ Directory and file description:
  - xdma/: This directory contains the Xilinx PCIe DMA kernel module
        driver files.
 
- - libxdma/: This directory contains support files for the kernel driver module,
-	which interfaces directly with the XDMA IP.
+ - xdma_pre_kernel_5.18/: This directory contains the Xilinx PCIe DMA kernel module
+       driver files for earlier OS releases
 
  - include/: This directory contains all include files that are needed for
 	compiling driver.
@@ -113,19 +119,27 @@ Directory and file description:
 		data transfers to the Xilinx FPGA PCIe endpoint device.
 
 Usage:
+  - If you are updating: unload the previous driver from memory.
+        rmmod -s xdma
+  
   - Change directory to the driver directory.
         cd xdma
+
   - Compile and install the kernel module driver.
         make install
+
+  - Load the kernel module driver:
+	modprobe xdma
+
   - Change directory to the tools directory.
         cd tools
+  
   - Compile the provided example test tools.
         make
-  - Load the kernel module driver:
-	a. modprobe xdma
-	b. using the provided script.
-		cd tests
-        	./load_driver.sh
+	
+  - test the new driver.
+	cd tests
+        ./load_driver.sh
   - Run the provided test script to generate basic DMA traffic.
         ./run_test.sh
   - Check driver Version number
