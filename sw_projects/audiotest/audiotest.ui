@@ -20,6 +20,7 @@ Author: Laurence Barker
   <!-- interface-authors Laurence Barker -->
   <object class="GtkAdjustment" id="id_voladjustment">
     <property name="upper">100</property>
+    <property name="value">10</property>
     <property name="step-increment">1</property>
     <property name="page-increment">10</property>
   </object>
@@ -82,7 +83,7 @@ Author: Laurence Barker
                 <signal name="clicked" handler="on_testR_button_clicked" swapped="no"/>
               </object>
               <packing>
-                <property name="x">465</property>
+                <property name="x">460</property>
                 <property name="y">10</property>
               </packing>
             </child>
@@ -113,7 +114,7 @@ Author: Laurence Barker
                 <signal name="clicked" handler="on_close_button_clicked" swapped="no"/>
               </object>
               <packing>
-                <property name="x">10</property>
+                <property name="x">460</property>
                 <property name="y">253</property>
               </packing>
             </child>
@@ -218,10 +219,11 @@ Author: Laurence Barker
                 <property name="can-focus">True</property>
                 <property name="receives-default">False</property>
                 <property name="draw-indicator">True</property>
+                <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
               </object>
               <packing>
                 <property name="x">10</property>
-                <property name="y">190</property>
+                <property name="y">230</property>
               </packing>
             </child>
             <child>
@@ -260,6 +262,66 @@ Author: Laurence Barker
               <packing>
                 <property name="x">227</property>
                 <property name="y">70</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="MicXLRCheck">
+                <property name="label" translatable="yes">XLR Input</property>
+                <property name="width-request">100</property>
+                <property name="height-request">40</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">False</property>
+                <property name="draw-indicator">True</property>
+                <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
+              </object>
+              <packing>
+                <property name="x">10</property>
+                <property name="y">170</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="MicTipCheck">
+                <property name="label" translatable="yes">Mic on Jack Tip</property>
+                <property name="width-request">100</property>
+                <property name="height-request">40</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">False</property>
+                <property name="draw-indicator">True</property>
+                <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
+              </object>
+              <packing>
+                <property name="x">10</property>
+                <property name="y">260</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="MicBiasCheck">
+                <property name="label" translatable="yes">Mic Bias</property>
+                <property name="width-request">100</property>
+                <property name="height-request">40</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">False</property>
+                <property name="draw-indicator">True</property>
+                <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
+              </object>
+              <packing>
+                <property name="x">10</property>
+                <property name="y">200</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="PTTLabel">
+                <property name="width-request">100</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">No PTT</property>
+              </object>
+              <packing>
+                <property name="x">270</property>
+                <property name="y">270</property>
               </packing>
             </child>
           </object>

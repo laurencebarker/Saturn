@@ -1,5 +1,6 @@
 # change application name here (executable output name)
 TARGET=audiotest
+VPATH=.:../common
 
 # compiler
 CC=gcc
@@ -18,9 +19,9 @@ GTKLIB=`pkg-config --cflags --libs glib-2.0 gtk+-3.0`
 
 # linker
 LD=gcc
-LDFLAGS=$(PTHREAD) $(GTKLIB) -rdynamic
+LDFLAGS=$(PTHREAD) $(GTKLIB) -rdynamic -lm
 
-OBJS=    $(TARGET).o
+OBJS=    $(TARGET).o hwaccess.o saturnregisters.o codecwrite.o saturndrivers.o version.o debugaids.o
 
 all: $(OBJS)
 	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS)

@@ -43,7 +43,6 @@
 #include "../common/codecwrite.h"                   // codec register I/O for Saturn
 #include "../common/version.h"                      // version I/O for Saturn
 #include "../common/debugaids.h"
-#include "../common/codecwrite.h"
 
 extern sem_t DDCInSelMutex;                 // protect access to shared DDC input select register
 extern sem_t DDCResetFIFOMutex;             // protect access to FIFO reset register
