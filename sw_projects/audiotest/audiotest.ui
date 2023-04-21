@@ -80,6 +80,7 @@ Author: Laurence Barker
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
+                <property name="tooltip-text" translatable="yes">Plays tone to right speaker</property>
                 <signal name="clicked" handler="on_testR_button_clicked" swapped="no"/>
               </object>
               <packing>
@@ -95,6 +96,7 @@ Author: Laurence Barker
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
+                <property name="tooltip-text" translatable="yes">Plays tone to left speaker</property>
                 <signal name="clicked" handler="on_testL_button_clicked" swapped="no"/>
               </object>
               <packing>
@@ -141,7 +143,7 @@ Author: Laurence Barker
               </object>
               <packing>
                 <property name="x">140</property>
-                <property name="y">80</property>
+                <property name="y">100</property>
               </packing>
             </child>
             <child>
@@ -152,7 +154,7 @@ Author: Laurence Barker
               </object>
               <packing>
                 <property name="x">350</property>
-                <property name="y">80</property>
+                <property name="y">100</property>
               </packing>
             </child>
             <child>
@@ -163,11 +165,12 @@ Author: Laurence Barker
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
+                <property name="tooltip-text" translatable="yes">Selects mic record, then replay, for a duration</property>
                 <signal name="clicked" handler="on_MicTestButton_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="x">10</property>
-                <property name="y">70</property>
+                <property name="y">90</property>
               </packing>
             </child>
             <child>
@@ -178,7 +181,7 @@ Author: Laurence Barker
               </object>
               <packing>
                 <property name="x">140</property>
-                <property name="y">21</property>
+                <property name="y">24</property>
               </packing>
             </child>
             <child>
@@ -187,6 +190,7 @@ Author: Laurence Barker
                 <property name="height-request">40</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
+                <property name="tooltip-text" translatable="yes">Volume for speaker test tones</property>
                 <property name="adjustment">id_voladjustment</property>
                 <property name="restrict-to-fill-level">False</property>
                 <property name="fill-level">100</property>
@@ -194,7 +198,7 @@ Author: Laurence Barker
               </object>
               <packing>
                 <property name="x">198</property>
-                <property name="y">10</property>
+                <property name="y">1</property>
               </packing>
             </child>
             <child>
@@ -207,7 +211,7 @@ Author: Laurence Barker
               </object>
               <packing>
                 <property name="x">10</property>
-                <property name="y">130</property>
+                <property name="y">137</property>
               </packing>
             </child>
             <child>
@@ -218,6 +222,7 @@ Author: Laurence Barker
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">False</property>
+                <property name="tooltip-text" translatable="yes">20dB mic level boost</property>
                 <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
               </object>
@@ -230,25 +235,11 @@ Author: Laurence Barker
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">level</property>
+                <property name="label" translatable="yes">mic level</property>
               </object>
               <packing>
                 <property name="x">150</property>
-                <property name="y">201</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLevelBar" id="MicLevelBar">
-                <property name="width-request">200</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="value">25</property>
-                <property name="max-value">100</property>
-              </object>
-              <packing>
-                <property name="x">210</property>
-                <property name="y">190</property>
+                <property name="y">213</property>
               </packing>
             </child>
             <child>
@@ -257,11 +248,12 @@ Author: Laurence Barker
                 <property name="height-request">40</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
+                <property name="tooltip-text" translatable="yes">Duration of microphone record test</property>
                 <property name="adjustment">micdurationadjustment</property>
               </object>
               <packing>
                 <property name="x">227</property>
-                <property name="y">70</property>
+                <property name="y">90</property>
               </packing>
             </child>
             <child>
@@ -272,6 +264,7 @@ Author: Laurence Barker
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">False</property>
+                <property name="tooltip-text" translatable="yes">Selects XLR input</property>
                 <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
               </object>
@@ -288,6 +281,7 @@ Author: Laurence Barker
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">False</property>
+                <property name="tooltip-text" translatable="yes">Selects Mic input on 3.5mm jack TIP</property>
                 <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
               </object>
@@ -304,6 +298,7 @@ Author: Laurence Barker
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">False</property>
+                <property name="tooltip-text" translatable="yes">Selects bias for electret microphones</property>
                 <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
               </object>
@@ -322,6 +317,19 @@ Author: Laurence Barker
               <packing>
                 <property name="x">270</property>
                 <property name="y">270</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkProgressBar" id="MicLevelBar">
+                <property name="width-request">190</property>
+                <property name="height-request">40</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="show-text">True</property>
+              </object>
+              <packing>
+                <property name="x">220</property>
+                <property name="y">190</property>
               </packing>
             </child>
           </object>

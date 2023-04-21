@@ -38,7 +38,7 @@ GtkLabel *PTTLbl;
 GtkProgressBar *MicProgressBar;
 GtkScale *VolumeScale;
 GtkSpinButton *MicDurationSpin;
-GtkLevelBar *MicLevelBar;   
+GtkProgressBar *MicLevelBar;   
 GtkAdjustment *VolAdjustment; 
 GtkCheckButton *MicBoostCheck;
 GtkCheckButton *MicXLRCheck;
@@ -65,7 +65,7 @@ bool GSpeakerTestIsLeftChannel;		// true for left channel speaker test
 #define AXIBaseAddress 0x40000L						// address of StreamRead/Writer IP
 #define VDURATION 10								// seconds
 #define VTOTALSAMPLES VSAMPLERATE * VDURATION
-#define VSPKDURATION 2								// seconds
+#define VSPKDURATION 1								// seconds
 #define VSPKSAMPLES VSAMPLERATE * VSPKDURATION
 #define VDMATRANSFERSIZE 1024
 #define VSAMPLEWORDSPERDMA 256
@@ -79,7 +79,6 @@ char* WriteBuffer = NULL;											// data for DMA write
 char* ReadBuffer = NULL;											// data for DMA read
 uint32_t BufferSize = VMEMBUFFERSIZE;
 bool PTTPressed = false;
-int MaxMicLevel = 0;
 
 extern sem_t DDCInSelMutex;                 // protect access to shared DDC input select register
 extern sem_t DDCResetFIFOMutex;             // protect access to FIFO reset register
@@ -107,19 +106,21 @@ void HandlerSetEERMode(bool Unused)
 
 //
 // callback from microphone testing code. Set the progress bar accordingly.
-// parameters are pecentage complete, and percentsage level (0 to 100)
+// parameters are pecentage complete, and percentage level (0 to 100)
 //
-static void MyStatusCallback(int ProgressPercent, int LevelPercent)
+static void MyStatusCallback(float ProgressPercent, float LevelPercent)
 {
 	float ProgressFraction;
 
-	ProgressFraction = (float)ProgressPercent / 100.0;
+	ProgressFraction = ProgressPercent / 100.0;
     gtk_progress_bar_set_fraction(MicProgressBar, ProgressFraction);
-    gtk_level_bar_set_value(MicLevelBar, (float)LevelPercent);
+
+    gtk_progress_bar_set_fraction(MicLevelBar, (LevelPercent/100.0));
+	printf("level set to%3.1f\n", LevelPercent);
 
     // update the window - MAY NOT NEED THIS AS THREADED
-    while(gtk_events_pending())
-        gtk_main_iteration();
+//    while(gtk_events_pending())
+//        gtk_main_iteration();
 }
 
   
@@ -131,18 +132,20 @@ static void MyStatusCallback(int ProgressPercent, int LevelPercent)
 // create test data into memory buffer
 // Samples is the number of samples to create
 // data format is twos complement
-// Freq is in Hz
+// Freq is in Hz; ramp is freq increment over duration of pulse
 // Amplitude is 0-1
 //
-void CreateSpkTestData(char* MemPtr, uint32_t Samples, uint32_t Freq, float Amplitude, bool IsL)
+void CreateSpkTestData(char* MemPtr, uint32_t Samples, float StartFreq, float FreqRamp, float Amplitude, bool IsL)
 {
 	uint32_t* Data;						// ptr to memory block to write data
 	int16_t Word;						// a word of write data
 	uint16_t UnsignedWord;
+	uint16_t ZeroWord = 0;
 	uint32_t Cntr;						// memory counter
 	double Sample;
 	double Phase;
 	double Ampl;
+	double Freq;
 	uint32_t TwoWords;					// 32 bit L&R sample
 
 	Phase = 2.0 * M_PI * Freq / (double)VSAMPLERATE;		// 2 pi f t
@@ -150,11 +153,16 @@ void CreateSpkTestData(char* MemPtr, uint32_t Samples, uint32_t Freq, float Ampl
 	Data = (uint32_t *) MemPtr;
 	for(Cntr=0; Cntr < Samples; Cntr++)
 	{
+		Freq = StartFreq + FreqRamp*(float)Cntr/(float)Samples;
+		Phase = 2.0 * M_PI * Freq / (double)VSAMPLERATE;		// 2 pi f t
 //		Sample = 32768.0 + Ampl * sin(Phase * (double)Cntr);
 		Sample = Ampl * sin(Phase * (double)Cntr);
 		Word = (int16_t)Sample;
 		UnsignedWord = (uint16_t)Word;
-		TwoWords = (UnsignedWord << 16) | UnsignedWord;
+		if(IsL)
+			TwoWords = (ZeroWord << 16) | UnsignedWord;
+		else
+			TwoWords = (UnsignedWord << 16) | ZeroWord;
 		*Data++ = TwoWords;
 	}
 }
@@ -187,7 +195,7 @@ void DMAWriteToCodec(char* MemPtr, uint32_t Length)
 		DMAWriteToFPGA(DMAWritefile_fd, MemPtr, VDMATRANSFERSIZE, AXIBaseAddress);
 		MemPtr += VDMATRANSFERSIZE;
 	}
-	
+	usleep(10000);
 }
 
 
@@ -218,11 +226,13 @@ void CopyMicToSpeaker(char* Read, char *Write, uint32_t Length)
 }
 
 
-
+#define VDMADISPUPDATE 6				// #DMAs before updating the UI
 //
 // DMA read sample data from Codec
 // Length = number of bytes to transfer
 // need to read the bytes in, then write 2 copies to output buffer
+// transfer 1024 bytes (512 samples, 10.7ms) per DMA
+// every few DMAs, update the screen
 void DMAReadFromCodec(char* MemPtr, uint32_t Length)
 {
 	uint32_t Depth = 0;
@@ -232,6 +242,9 @@ void DMAReadFromCodec(char* MemPtr, uint32_t Length)
 	int16_t *MicReadPtr;
 	uint32_t SampleCntr;
 	int MicSample;
+	int MaxMicLevel = 0;
+	float ProgressFraction;						// activity progress (0 to 100)
+	float AmplPercent;							// amplitude % (0 to 100)
 
 	MicReadPtr = (int16_t*)MemPtr;
 	TotalDMACount = Length / VDMATRANSFERSIZE;
@@ -243,11 +256,11 @@ void DMAReadFromCodec(char* MemPtr, uint32_t Length)
 		//printf("FIFO monitor read; depth = %d\n", Depth);
 		while (Depth < VDMAWORDSPERDMA)       // loop till enough data available
 		{
-			usleep(1000);								                    // 1ms wait
+			usleep(2000);								                    // 2ms wait
 			Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow);    // read the FIFO free locations
 		}
 		// DMA read next batch of 16 bit mic samples
-		// then updatre mic amplitude
+		// then update mic amplitude
 		//
 		DMAReadFromFPGA(DMAReadfile_fd, MemPtr, VDMATRANSFERSIZE, AXIBaseAddress);
 		for(SampleCntr=0; SampleCntr < VDMATRANSFERSIZE/2; SampleCntr++)
@@ -259,6 +272,13 @@ void DMAReadFromCodec(char* MemPtr, uint32_t Length)
 				MaxMicLevel = MicSample;	// find largest
 		}
 		MemPtr += VDMATRANSFERSIZE;
+		if((DMACount % VDMADISPUPDATE) == 0)
+		{
+			ProgressFraction = 100.0* (float)DMACount / (float)TotalDMACount;
+			AmplPercent = 100.0*(float)MaxMicLevel / 32767.0;
+			MyStatusCallback(ProgressFraction, AmplPercent);
+			MaxMicLevel = 0;
+		}
 	}
 }
 
@@ -360,13 +380,15 @@ void* MicTest(void *arg)
 			Length = Samples * 2;							// 2 bytes per mic sample
 			ResetDMAStreamFIFO(eMicCodecDMA);
 			DMAReadFromCodec(ReadBuffer, Length);
-//			PercentLevel = 100.0*(float)MaxMicLevel/32767.0;
 			CopyMicToSpeaker(ReadBuffer, WriteBuffer, Length);
+//
+// we have done the record. now play back.
+//
+    		gtk_progress_bar_set_fraction(MicLevelBar, 0.0);
 			gtk_label_set_text(MicActivityLbl, "Playing");
-
 			Length = Samples * 4;							// 4 bytes per speaker sample
+			usleep(1000);
 			DMAWriteToCodec(WriteBuffer, Length);
-
 			gtk_label_set_text(MicActivityLbl, "Idle");
 			GMicTestInitiated = false;
 		}
@@ -383,7 +405,8 @@ void* SpeakerTest(void *arg)
 {
     double Ampl;
 	uint32_t Length;
-	uint32_t Freq = 400;
+	float Freq;
+	float FreqRamp;
 
 	while (1)
 	{
@@ -393,9 +416,17 @@ void* SpeakerTest(void *arg)
 			Ampl = Ampl / 100.0;
 
 			if(!GSpeakerTestIsLeftChannel)
-				Freq = 1000;
+			{
+				Freq = 1000.0;
+				FreqRamp = 0.0;
+			}
+			else
+			{
+				Freq = 400.0;
+				FreqRamp = 0.0;
+			}
 			ResetDMAStreamFIFO(eSpkCodecDMA);
-			CreateSpkTestData(WriteBuffer, VSPKSAMPLES, Freq, Ampl, GSpeakerTestIsLeftChannel);
+			CreateSpkTestData(WriteBuffer, VSPKSAMPLES, Freq, FreqRamp, Ampl, GSpeakerTestIsLeftChannel);
 			Length = VSPKSAMPLES * 4;
 			gtk_text_buffer_insert_at_cursor(TextBuffer, "playing sinewave tone via DMA\n", -1);
 			DMAWriteToCodec(WriteBuffer, Length);
@@ -456,7 +487,7 @@ int main(int argc, char *argv[])
     MicProgressBar = GTK_PROGRESS_BAR(gtk_builder_get_object(Builder, "id_progress"));
     VolumeScale = GTK_SCALE(gtk_builder_get_object(Builder, "VolumeScale"));
     MicDurationSpin = GTK_SPIN_BUTTON(gtk_builder_get_object(Builder, "MicDurationSpin"));
-    MicLevelBar = GTK_LEVEL_BAR(gtk_builder_get_object(Builder, "MicLevelBar"));    
+    MicLevelBar = GTK_PROGRESS_BAR(gtk_builder_get_object(Builder, "MicLevelBar"));    
     VolAdjustment = GTK_ADJUSTMENT(gtk_builder_get_object(Builder, "id_voladjustment"));
     MicBoostCheck = GTK_CHECK_BUTTON(gtk_builder_get_object(Builder, "MicBoostCheck"));
     MicXLRCheck = GTK_CHECK_BUTTON(gtk_builder_get_object(Builder, "MicXLRCheck"));
@@ -520,6 +551,8 @@ int main(int argc, char *argv[])
 	// we have devices and memory.
 	//
 	on_MicSettings_Changed();									// set mic inputs for defaults
+	gtk_progress_bar_set_fraction(MicLevelBar, 0.0);
+
 //
 // start up thread to check for no longer getting messages, to set back to inactive
 //
