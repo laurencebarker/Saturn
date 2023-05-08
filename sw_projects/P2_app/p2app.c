@@ -355,6 +355,8 @@ int main(int argc, char *argv[])
   SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR);
   SetTXEnable(true);
   EnableAlexManualFilterSelect(true);
+  SetBalancedMicInput(false);
+
 //
 // start up thread for exit command checking
 //
@@ -380,7 +382,7 @@ int main(int argc, char *argv[])
 // option string needs a colon after each option letter that has a parameter after it
 // and it has a leading colon to suppress error messages
 //
-  while((CmdOption = getopt(argc, argv, ":i:f:h")) != -1)
+  while((CmdOption = getopt(argc, argv, ":i:f:h:m:")) != -1)
   {
     switch(CmdOption)
     {
@@ -390,9 +392,10 @@ int main(int argc, char *argv[])
         printf("-f <frequency in Hz> turns on test source for all DDCs\n");
         printf("-i saturn     board responds as board id = Saturn\n");
         printf("-i orionmk2   board responds as board id = Orion mk 2\n");
+        printf("-m xlr        selects balanced XLR microphone input\n");
+        printf("-m jack       selects unbalanced 3.5mm microphone input\n");
         return EXIT_SUCCESS;
         break;
-
 
       case 'i':
         if(strcmp(optarg,"saturn") == 0)
@@ -410,6 +413,27 @@ int main(int argc, char *argv[])
           printf("error parsing board id. Values must be lower case\n");
           printf("-i saturn     board responds as board id = Saturn\n");
           printf("-i orionmk2   board responds as board id = Orion mk 2\n");
+          return EXIT_SUCCESS;
+        }
+        break;
+
+
+      case 'm':
+        if(strcmp(optarg,"xlr") == 0)
+        {
+          printf("XLR mic input selected\n");
+          SetBalancedMicInput(true);
+        }
+        else if(strcmp(optarg,"jack") == 0)
+        {
+          printf("unbalanced mic input selected\n");
+          SetBalancedMicInput(false);
+        }
+        else
+        {
+          printf("error parsing microphone type. Values must be lower case\n");
+          printf("-m xlr    selects balanced XLR microphone input\n\n");
+          printf("-m jack   selects unbalanced 3.5mm microphone input\n");
           return EXIT_SUCCESS;
         }
         break;
