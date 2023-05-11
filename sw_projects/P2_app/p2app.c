@@ -33,6 +33,7 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <semaphore.h>
+#include<signal.h>
 
 #include "../common/saturntypes.h"
 #include "../common/hwaccess.h"                     // access to PCIe read & write
@@ -65,7 +66,8 @@ bool SDRActive;                             // true if this SDR is running at th
 bool ReplyAddressSet = false;               // true when reply address has been set
 bool StartBitReceived = false;              // true when "run" bit has been set
 bool NewMessageReceived = false;            // set whenever a message is received
-bool ExitRequested;                         // true if "exit checking" thread requests shutdown
+bool ExitRequested = false;                 // true if "exit checking" thread requests shutdown
+bool SkipExitCheck = false;                 // true to skip "exit checking", if running as a service
 bool ThreadError = false;                   // true if a thread reports an error
 
 
@@ -124,10 +126,16 @@ pthread_t HighPriorityFromSDRThread;
 pthread_t CheckForExitThread;                 // thread looks for types "exit" command
 pthread_t CheckForNoActivityThread;           // thread looks for inactvity
 
+void sig_handler(int signo)
+{
+    if (signo == SIGINT)
+        printf("received SIGINT\n");
+    ExitRequested = true;
+}
 
 //
 // function to check if any threads are still active
-// lop through the table; report if any are true.
+// loop through the table; report if any are true.
 // parameter is to allow the "command" socket to stay open
 //
 bool CheckActiveThreads(int StartingPoint)
@@ -357,16 +365,8 @@ int main(int argc, char *argv[])
   EnableAlexManualFilterSelect(true);
   SetBalancedMicInput(false);
 
-//
-// start up thread for exit command checking
-//
-  ExitRequested = false;
-  if(pthread_create(&CheckForExitThread, NULL, CheckForExitCommand, NULL) < 0)
-  {
-    perror("pthread_create check for exit");
-    return EXIT_FAILURE;
-  }
-  pthread_detach(CheckForExitThread);
+  if (signal(SIGINT, sig_handler) == SIG_ERR)
+    printf("\ncan't catch SIGINT\n");
 
 //
 // start up thread to check for no longer getting messages, to set back to inactive
@@ -382,7 +382,7 @@ int main(int argc, char *argv[])
 // option string needs a colon after each option letter that has a parameter after it
 // and it has a leading colon to suppress error messages
 //
-  while((CmdOption = getopt(argc, argv, ":i:f:h:m:")) != -1)
+  while((CmdOption = getopt(argc, argv, ":i:f:h:m::s")) != -1)
   {
     switch(CmdOption)
     {
@@ -394,6 +394,7 @@ int main(int argc, char *argv[])
         printf("-i orionmk2   board responds as board id = Orion mk 2\n");
         printf("-m xlr        selects balanced XLR microphone input\n");
         printf("-m jack       selects unbalanced 3.5mm microphone input\n");
+        printf("-s skip checking for exit keys, run as service\n");
         return EXIT_SUCCESS;
         break;
 
@@ -444,9 +445,27 @@ int main(int argc, char *argv[])
         UseTestDDSSource();         
         printf ("Test source selected, frequency = %dHz\n", TestFrequency);                  
         break;
+
+      case 's':
+        printf ("Skipping check for exit keys\n");                  
+        SkipExitCheck = true;
+        break;
     }
   }
   printf("\n");
+
+//
+// start up thread for exit command checking
+//
+  if (SkipExitCheck == false)
+  {
+    if(pthread_create(&CheckForExitThread, NULL, CheckForExitCommand, NULL) < 0)
+    {
+      perror("pthread_create check for exit");
+      return EXIT_FAILURE;
+    }
+  }
+  pthread_detach(CheckForExitThread);
 
   //
   // create socket for incoming data on the command port
