@@ -383,7 +383,7 @@ int main(int argc, char *argv[])
 // option string needs a colon after each option letter that has a parameter after it
 // and it has a leading colon to suppress error messages
 //
-  while((CmdOption = getopt(argc, argv, ":i:f:h:m::s")) != -1)
+  while((CmdOption = getopt(argc, argv, ":i:f:h:m:s")) != -1)
   {
     switch(CmdOption)
     {
