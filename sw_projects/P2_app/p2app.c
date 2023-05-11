@@ -237,6 +237,7 @@ void* CheckForExitCommand(void *arg)
   
   while (1)
   {
+    usleep(10000);
     ch = getchar();
     if((ch == 'x') || (ch == 'X'))
     {
