@@ -163,7 +163,7 @@ void PrintVersionInfo(void)
 		SWString = SWIDStrings[SWID];
 
 	printf(" Product: %s; Version = %d\n", ProdString, ProdVer);
-	printf(" Software loaded: %s; SW Version = %d\n", SWString, SWVer);
+	printf(" FPGA Firmware loaded: %s; FW Version = %d\n", SWString, SWVer);
 
 	if (ClockInfo == 0xF)
 		printf("All clocks present\n");
