@@ -1327,7 +1327,7 @@ void SetDDCADC(int DDC, EADCSelect ADC)
         ADC = eTestSource;                          // override setting
 
     ADCSetting = ((uint32_t)ADC & 0x3) << (DDC*2);  // 2 bits with ADC setting
-    Mask = 0x11 << (DDC*2);                         // 0,5,10,15,20 bit positions
+    Mask = 0x3 << (DDC*2);                         // 0,2,4,6,8,10,12,14,16,18 bit positions
 
     sem_wait(&DDCInSelMutex);                       // get protected access
     RegisterValue = DDCInSelReg;                    // get current register setting
