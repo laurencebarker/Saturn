@@ -479,6 +479,7 @@ void SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bo
     Mask = Mask << (DDC * 3);                       // get new bits to right bit position
     RegisterValue |= Mask;
     DDCRateReg = RegisterValue;                     // don't save to hardware
+    printf("debug: DDC rate register = %08x\n", DDCRateReg);
 }
 
 
@@ -1327,7 +1328,7 @@ void SetDDCADC(int DDC, EADCSelect ADC)
         ADC = eTestSource;                          // override setting
 
     ADCSetting = ((uint32_t)ADC & 0x3) << (DDC*2);  // 2 bits with ADC setting
-    Mask = 0x3 << (DDC*2);                         // 0,2,4,6,8,10,12,14,16,18 bit positions
+    Mask = 0x3 << (DDC*2);                         // 0,2,4,6,8,10,12,14,16,18bit positions
 
     sem_wait(&DDCInSelMutex);                       // get protected access
     RegisterValue = DDCInSelReg;                    // get current register setting

@@ -159,6 +159,7 @@ uint32_t AnalyseDDCHeader(uint32_t Header, uint32_t* DDCCounts)
 	uint32_t Rate;								// 3 bit value for this DDC
 	uint32_t Count;
 	uint32_t Total = 0;
+	printf("\n\nDDC Header = %08X\n", Header);
 	for (DDC = 0; DDC < VNUMDDC; DDC++)
 	{
 		Rate = Header & 7;						// get settings for this DDC
@@ -167,7 +168,9 @@ uint32_t AnalyseDDCHeader(uint32_t Header, uint32_t* DDCCounts)
 			Count = DDCSampleCounts[Rate];
 			DDCCounts[DDC] = Count;
 			Total += Count;						// add up samples
+			printf("DDC = %d     count for this = %d\n", DDC, Count);
 		}
+		
 		else									// interleaved
 		{
 			Header = Header >> 3;
@@ -177,8 +180,10 @@ uint32_t AnalyseDDCHeader(uint32_t Header, uint32_t* DDCCounts)
 			Total += Count;
 			DDCCounts[DDC + 1] = 0;
 			DDC += 1;
+			printf("DDC = %d     INTERLEAVED; count for this = %d\n", DDC, Count);
 		}
 		Header = Header >> 3;					// ready for next DDC rate
 	}
+	printf("Total = %d\n", Total);
 	return Total;
 }

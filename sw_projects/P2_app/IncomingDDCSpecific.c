@@ -176,6 +176,7 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
         SetP2SampleRate(i, Enabled, Word2, Interleaved);
         Word = Word >> 1;                                 // move onto next DDC enabled bit
       }
+      SetP2SampleRate(6, true, 192, false);
       // now set register, and see if any changes made; reuse Dither again
       Dither = WriteP2DDCRateRegister();
       if (Dither)
