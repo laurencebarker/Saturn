@@ -350,7 +350,6 @@ int main(int argc, char *argv[])
   OpenXDMADriver();
   PrintVersionInfo();
   printf("p2app client app software Version:%d Build Date:%s\n", 11, BuildDate);
-exit(0);
   PrintAuxADCInfo();
   if (IsFallbackConfig())
       printf("FPGA load is a fallback - you should re-flash the primary FPGA image!\n");
