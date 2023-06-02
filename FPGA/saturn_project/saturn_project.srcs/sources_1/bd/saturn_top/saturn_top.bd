@@ -6888,7 +6888,7 @@
             "inst_hier_path": "PCIe/xlconstant_swversion",
             "parameters": {
               "CONST_VAL": {
-                "value": "4"
+                "value": "5"
               },
               "CONST_WIDTH": {
                 "value": "16"
@@ -20757,7 +20757,8 @@
               "util_reduced_logic_0_Res": {
                 "ports": [
                   "util_reduced_logic_0/Res",
-                  "DDC_Block_1/LOIQSel"
+                  "DDC_Block_1/LOIQSel",
+                  "regmux_2_1_0/sel"
                 ]
               },
               "xlconstant_1_dout": {
@@ -20770,7 +20771,6 @@
                 "ports": [
                   "xlslice_Arate/Dout",
                   "util_reduced_logic_0/Op1",
-                  "regmux_2_1_0/sel",
                   "regmux_2_1_0/din0"
                 ]
               },

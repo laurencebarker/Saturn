@@ -165,11 +165,12 @@ module streammux_tb();
     reset<=1;
     repeat(5) @(posedge clock);
 //
-// set active, and DDC0 = 48KHz, DDC1 = 96KHz, DDC2 = 384KHz, others disabled
-// DDC word = 00 000 000 000 000 000 000 000 100 010 001
+// set active, and DDC2, 6 = 192KHz, others disabled
+// DDC word = hex 000C00C0
 //    
     enabledin<= 1;
-    DDCconfigin <= 32'b00000000000000000000000100010001;
+    DDCconfigin <= 32'h000C00C0;          // DDC 2& 6
+//    DDCconfigin <= 32'h000C0018;          // DDC 1 & 6
     
     // now initiate data generator and slave monitor
     fork
@@ -251,9 +252,9 @@ module streammux_tb();
       //
       // check if finished. Trigger event if ready to change data or stop data transfer.
       //
-      if(samplenum == 20)
+      if(samplenum == 200)
           ->ev_changedata;
-      if(samplenum == 30)
+      if(samplenum == 300)
           ->ev_disable;
     end
   endtask
@@ -285,17 +286,15 @@ module streammux_tb();
   task master2_generate_data();
     logic [47:0] writedata = 0;
     logic[15:0] samplenum = 0;
-    axi4stream_transaction wr_transaction = mst_agent2.driver.create_transaction("master VIP write transaction");
 //    mst_agent2.driver.set_transaction_depth(16);
     while(samplenum < 255) begin
-      for (int i=0; i<16; i++) begin
+        axi4stream_transaction wr_transaction = mst_agent2.driver.create_transaction("master VIP write transaction");
         writedata[47:32] = 16'h0022;                      // master number
         writedata[31:16] = 16'hff00;                      // identifyable activeout 
-        writedata[15:0] = samplenum + i;
+        writedata[15:0] = samplenum;
         wr_transaction.set_data_beat(writedata);
+        samplenum = samplenum + 1;
         mst_agent2.driver.send(wr_transaction);
-      end
-      samplenum = samplenum + 16;
     end
   endtask
 

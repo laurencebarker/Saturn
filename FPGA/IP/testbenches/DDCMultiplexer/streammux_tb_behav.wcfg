@@ -13,15 +13,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="438.329 ns"></ZoomEndTime>
-      <Cursor1Time time="379.123 ns"></Cursor1Time>
+      <ZoomStartTime time="5,872.058 ns"></ZoomStartTime>
+      <ZoomEndTime time="6,329.334 ns"></ZoomEndTime>
+      <Cursor1Time time="6,123.833 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="212"></NameColumnWidth>
-      <ValueColumnWidth column_width="66"></ValueColumnWidth>
+      <NameColumnWidth column_width="205"></NameColumnWidth>
+      <ValueColumnWidth column_width="99"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="28" />
+   <WVObjectSize size="29" />
    <wave_markers>
       <marker time="8900061" label="" />
    </wave_markers>
@@ -97,8 +97,8 @@
       <obj_property name="ObjectShortName">DDCrates[31:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/muxstate" type="array">
-      <obj_property name="ElementShortName">muxstate[2:0]</obj_property>
-      <obj_property name="ObjectShortName">muxstate[2:0]</obj_property>
+      <obj_property name="ElementShortName">muxstate[3:0]</obj_property>
+      <obj_property name="ObjectShortName">muxstate[3:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/muxactive" type="logic">
       <obj_property name="ElementShortName">muxactive</obj_property>
@@ -139,5 +139,9 @@
    <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/inst/s02_axis_tdata" type="array">
       <obj_property name="ElementShortName">s02_axis_tdata[47:0]</obj_property>
       <obj_property name="ObjectShortName">s02_axis_tdata[47:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/streammux_tb/DUT/testbench_i/AXIS_DDC_Multiplexer_0/s06_axis_tdata" type="array">
+      <obj_property name="ElementShortName">s06_axis_tdata[47:0]</obj_property>
+      <obj_property name="ObjectShortName">s06_axis_tdata[47:0]</obj_property>
    </wvobject>
 </wave_config>

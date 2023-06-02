@@ -1,7 +1,7 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"1.0",
-   "Default View_TopLeft":"-191,-264",
+   "Default View_TopLeft":"-191,-526",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
 #  -string -flagsOSRD
@@ -40,32 +40,32 @@ preplace inst D_register_norst_0 -pg 1 -lvl 2 -x 740 -y 410 -defaultsOSRD
 preplace inst regmux_2_1_0 -pg 1 -lvl 2 -x 740 -y -370 -defaultsOSRD
 preplace netloc ADC1_1 1 0 1 70 -20n
 preplace netloc ADC2_1 1 0 1 80 -260n
-preplace netloc CicInterp_1 1 2 1 960 -370n
-preplace netloc DDCAFreq_1 1 0 3 NJ -240 560J -70 940
-preplace netloc DDCBFreq_1 1 0 3 60J -130 520J -50 940
-preplace netloc D_register_norst_0_dout 1 2 1 1000 220n
-preplace netloc InputFIFO_rstn_1 1 0 4 30J -600 NJ -600 N -600 1560
-preplace netloc LOIQSel_1 1 1 2 580 0 930
-preplace netloc Net 1 0 4 90 -160 550 -30 990 -270 1540
-preplace netloc Net1 1 0 3 100 -140 580 -20 960
+preplace netloc Byteswap_1 1 0 3 50J -120 540J -60 880
+preplace netloc CicInterp_1 1 2 1 950 -370n
+preplace netloc DDCAFreq_1 1 0 3 NJ -240 560J -70 930
+preplace netloc DDCBFreq_1 1 0 3 60J -130 520J -50 930
+preplace netloc D_register_norst_0_dout 1 2 1 990 220n
+preplace netloc InputFIFO_rstn_1 1 0 4 30J -610 NJ -610 N -610 1560
+preplace netloc LOIQSel_1 1 1 2 580 0 900
+preplace netloc Net 1 0 4 90 -160 550 -30 980 -270 1540
+preplace netloc Net1 1 0 3 100 -140 580 -20 950
 preplace netloc Net2 1 0 2 40 -150 590
 preplace netloc Net3 1 0 2 N -320 530
 preplace netloc RX_Test_1 1 0 1 20 110n
 preplace netloc TX_samples_1 1 0 1 60 130n
-preplace netloc adc1_2 1 1 2 NJ -40 910
-preplace netloc adc2_2 1 1 2 510 -580 950
+preplace netloc adc1_2 1 1 2 NJ -40 890
+preplace netloc adc2_2 1 1 2 510 -580 940
 preplace netloc axis_data_fifo_0_almost_full 1 4 1 1900 -10n
 preplace netloc axis_data_fifo_1_almost_full 1 4 1 1920 50n
-preplace netloc test_source_1 1 1 2 570 340 970
-preplace netloc tx_samples_2 1 1 2 N 240 980
-preplace netloc util_reduced_logic_0_Res 1 2 1 900 -510n
+preplace netloc test_source_1 1 1 2 570 340 960
+preplace netloc tx_samples_2 1 1 2 N 240 970
+preplace netloc util_reduced_logic_0_Res 1 1 2 610 -570 910
 preplace netloc xlconstant_1_dout 1 1 2 560 -10 920
-preplace netloc xlslice_Arate_Dout 1 1 2 610 -570 870
-preplace netloc xlslice_Asource_Dout 1 2 1 940 -140n
-preplace netloc xlslice_Brate_Dout 1 1 2 600 -590 880
+preplace netloc xlslice_Arate_Dout 1 1 2 590 -600 900
+preplace netloc xlslice_Asource_Dout 1 2 1 930 -140n
+preplace netloc xlslice_Brate_Dout 1 1 2 600 -590 870
 preplace netloc xlslice_Bsource_Dout 1 2 1 920 160n
-preplace netloc Byteswap_1 1 0 3 50J -120 540J -60 890
-preplace netloc DDC_Block_0_LOIQOut 1 2 2 1000 -260 1530
+preplace netloc DDC_Block_0_LOIQOut 1 2 2 990 -260 1530
 preplace netloc DDC_Block_0_M_AXIS_DATA 1 3 1 1550 -80n
 preplace netloc DDC_Block_1_M_AXIS_DATA 1 3 1 1550 100n
 preplace netloc axis_data_fifo_0_M_AXIS 1 4 1 1910 -30n
