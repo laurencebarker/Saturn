@@ -479,7 +479,6 @@ void SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bo
     Mask = Mask << (DDC * 3);                       // get new bits to right bit position
     RegisterValue |= Mask;
     DDCRateReg = RegisterValue;                     // don't save to hardware
-    printf("debug: DDC rate register = %08x\n", DDCRateReg);
 }
 
 
