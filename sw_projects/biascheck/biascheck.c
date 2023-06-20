@@ -2,6 +2,14 @@
 // main file for audio test GUI app
 // GUI created with GTK3
 //
+
+//
+// this value may need to be edited depending on the current sensing circuit
+//
+#define PACURRENTSCALE 0.00996F                         // for ACS713-20
+
+
+
 #include <gtk/gtk.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -132,7 +140,7 @@ void* CurrentRead(void *arg)
             DriverReading = GetAnalogueIn(6);               // current = ADC reading /1638.4
             PAReading = GetAnalogueIn(3);                   // current = ADC reading * 0.01387
             DriverCurrent = (float)DriverReading / 1638.4F;
-            PACurrent = (float)PAReading * 0.01387F;
+            PACurrent = (float)PAReading * PACURRENTSCALE;
             sprintf(DisplayedValue, "%6.3f", DriverCurrent);
             gtk_entry_set_text(DriverCurrentText, DisplayedValue);
             sprintf(DisplayedValue, "%6.2f", PACurrent);
