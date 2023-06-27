@@ -6,7 +6,8 @@
 //
 // this value may need to be edited depending on the current sensing circuit
 //
-#define PACURRENTSCALE 0.00996F                         // for ACS713-20
+//#define PACURRENTSCALE 0.00996F                         // for ACS713-20
+#define PACURRENTSCALE 0.01844F                         // for TMCS1100A2
 
 
 
@@ -197,12 +198,12 @@ int main(int argc, char *argv[])
     SetTXEnable(true);
 
 //
-// now sdtart current reading thread
+// now start current reading thread
 //
 	if(pthread_create(&CurrentReadThread, NULL, CurrentRead, NULL) < 0)
 	{
-	perror("pthread_create check for current read");
-	return EXIT_FAILURE;
+	    perror("pthread_create check for current read");
+	    return EXIT_FAILURE;
 	}
 	pthread_detach(CurrentReadThread);
 
