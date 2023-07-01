@@ -2,7 +2,7 @@
 # user access register
 # used for "version number" settig - currently a date code
 #
-set_property BITSTREAM.CONFIG.USR_ACCESS 0x02062023 [current_design]
+set_property BITSTREAM.CONFIG.USR_ACCESS 0x01072023 [current_design]
 
 #SPI_BUSWIDTH sets the read commands into bit file.
 #CONFIG_MODE SPIx4 is for Vivado tool to check DRC. 
@@ -15,8 +15,10 @@ set_property CFGBVS VCCO [current_design]
 #full size, uncompressed image
 set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR YES [current_design]
 set_property BITSTREAM.CONFIG.EXTMASTERCCLK_EN Div-2 [current_design]
-set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]
-set_property CONFIG_MODE SPIx4 [current_design]
+set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 1 [current_design]
+set_property CONFIG_MODE SPIx1 [current_design]
+#set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]
+#set_property CONFIG_MODE SPIx4 [current_design]
 set_property BITSTREAM.CONFIG.SPI_FALL_EDGE YES [current_design]
 set_property BITSTREAM.CONFIG.CONFIGFALLBACK ENABLE [current_design]
 
