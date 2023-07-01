@@ -1,40 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.1 -->
+<!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.0"/>
   <object class="GtkTextBuffer" id="textbuffer_main"/>
   <object class="GtkWindow" id="window_main">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="border_width">4</property>
+    <property name="can-focus">False</property>
+    <property name="border-width">4</property>
     <property name="title">SPI Configuration Prom Writer</property>
     <property name="resizable">False</property>
-    <property name="icon_name">applications-utilities</property>
+    <property name="icon-name">applications-utilities</property>
     <signal name="destroy" handler="on_window_main_destroy" swapped="no"/>
     <child>
-      <placeholder/>
-    </child>
-    <child>
+      <!-- n-columns=3 n-rows=3 -->
       <object class="GtkGrid">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <child>
           <object class="GtkFixed">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkScrolledWindow">
-                <property name="width_request">573</property>
-                <property name="height_request">200</property>
+                <property name="width-request">573</property>
+                <property name="height-request">200</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="shadow_type">in</property>
+                <property name="can-focus">True</property>
+                <property name="shadow-type">in</property>
                 <child>
                   <object class="GtkTextView" id="txt_status">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscroll_policy">natural</property>
-                    <property name="vscroll_policy">natural</property>
+                    <property name="can-focus">True</property>
+                    <property name="hscroll-policy">natural</property>
+                    <property name="vscroll-policy">natural</property>
                     <property name="editable">False</property>
                     <property name="buffer">textbuffer_main</property>
                   </object>
@@ -48,11 +46,11 @@
             <child>
               <object class="GtkButton">
                 <property name="label" translatable="yes">Program</property>
-                <property name="width_request">100</property>
-                <property name="height_request">40</property>
+                <property name="width-request">100</property>
+                <property name="height-request">40</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
                 <signal name="clicked" handler="on_program_button_clicked" swapped="no"/>
               </object>
               <packing>
@@ -63,11 +61,11 @@
             <child>
               <object class="GtkButton">
                 <property name="label" translatable="yes">Open File</property>
-                <property name="width_request">100</property>
-                <property name="height_request">40</property>
+                <property name="width-request">100</property>
+                <property name="height-request">40</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
                 <signal name="clicked" handler="on_file_button_clicked" swapped="no"/>
               </object>
               <packing>
@@ -78,12 +76,12 @@
             <child>
               <object class="GtkButton">
                 <property name="label">gtk-close</property>
-                <property name="width_request">100</property>
-                <property name="height_request">40</property>
+                <property name="width-request">100</property>
+                <property name="height-request">40</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-stock">True</property>
                 <signal name="clicked" handler="on_close_button_clicked" swapped="no"/>
               </object>
               <packing>
@@ -93,15 +91,15 @@
             </child>
             <child>
               <object class="GtkBox">
-                <property name="width_request">100</property>
+                <property name="width-request">100</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <child>
                   <object class="GtkLabel">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Boot image</property>
-                    <property name="width_chars">12</property>
+                    <property name="width-chars">12</property>
                     <property name="xalign">0</property>
                   </object>
                   <packing>
@@ -114,10 +112,10 @@
                   <object class="GtkRadioButton" id="rb_1">
                     <property name="label" translatable="yes">Primary</property>
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">False</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">False</property>
                     <property name="active">True</property>
-                    <property name="draw_indicator">True</property>
+                    <property name="draw-indicator">True</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -129,10 +127,10 @@
                   <object class="GtkRadioButton" id="rb_2">
                     <property name="label" translatable="yes">Fallback</property>
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">False</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">False</property>
                     <property name="active">True</property>
-                    <property name="draw_indicator">True</property>
+                    <property name="draw-indicator">True</property>
                     <property name="group">rb_1</property>
                   </object>
                   <packing>
@@ -149,12 +147,12 @@
             </child>
             <child>
               <object class="GtkProgressBar" id="id_progress">
-                <property name="width_request">400</property>
-                <property name="height_request">30</property>
+                <property name="width-request">400</property>
+                <property name="height-request">30</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="pulse_step">0.050000000000000003</property>
-                <property name="show_text">True</property>
+                <property name="can-focus">False</property>
+                <property name="pulse-step">0.05</property>
+                <property name="show-text">True</property>
               </object>
               <packing>
                 <property name="x">140</property>
@@ -163,9 +161,9 @@
             </child>
             <child>
               <object class="GtkLabel">
-                <property name="width_request">100</property>
+                <property name="width-request">100</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Stage:</property>
               </object>
               <packing>
@@ -175,9 +173,9 @@
             </child>
             <child>
               <object class="GtkLabel" id="lbl_stage">
-                <property name="width_request">100</property>
+                <property name="width-request">100</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Idle</property>
               </object>
               <packing>
@@ -187,11 +185,11 @@
             </child>
             <child>
               <object class="GtkLabel" id="lbl_filename">
-                <property name="width_request">100</property>
+                <property name="width-request">100</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">(no file)</property>
-                <property name="width_chars">50</property>
+                <property name="width-chars">50</property>
                 <property name="xalign">0</property>
               </object>
               <packing>
@@ -199,68 +197,97 @@
                 <property name="y">20</property>
               </packing>
             </child>
+            <child>
+              <object class="GtkButton">
+                <property name="label" translatable="yes">Erase Device</property>
+                <property name="name">EraseButton</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <signal name="clicked" handler="OnEraseButtonClicked" swapped="no"/>
+              </object>
+              <packing>
+                <property name="x">450</property>
+                <property name="y">60</property>
+              </packing>
+            </child>
           </object>
           <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">0</property>
+            <property name="left-attach">0</property>
+            <property name="top-attach">0</property>
           </packing>
         </child>
         <child>
           <object class="GtkStatusbar" id="statusbar_main">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="margin_left">10</property>
-            <property name="margin_right">10</property>
-            <property name="margin_start">10</property>
-            <property name="margin_end">10</property>
-            <property name="margin_top">6</property>
-            <property name="margin_bottom">6</property>
+            <property name="can-focus">False</property>
+            <property name="margin-left">10</property>
+            <property name="margin-right">10</property>
+            <property name="margin-start">10</property>
+            <property name="margin-end">10</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
             <property name="orientation">vertical</property>
             <property name="spacing">2</property>
           </object>
           <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">2</property>
+            <property name="left-attach">0</property>
+            <property name="top-attach">2</property>
           </packing>
         </child>
         <child>
           <object class="GtkSeparator">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
           </object>
           <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">1</property>
+            <property name="left-attach">0</property>
+            <property name="top-attach">1</property>
             <property name="height">2</property>
           </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+        <child>
+          <placeholder/>
         </child>
       </object>
     </child>
   </object>
   <object class="GtkFileChooserDialog" id="dlg_file_choose">
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="title" translatable="yes">Open PROM File</property>
-    <property name="type_hint">dialog</property>
-    <property name="transient_for">window_main</property>
-    <child>
-      <placeholder/>
-    </child>
+    <property name="type-hint">dialog</property>
+    <property name="transient-for">window_main</property>
     <child internal-child="vbox">
       <object class="GtkBox">
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox">
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
+            <property name="can-focus">False</property>
+            <property name="layout-style">end</property>
             <child>
               <object class="GtkButton" id="button1">
                 <property name="label" translatable="yes">Open</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">True</property>
+                <property name="can-focus">True</property>
+                <property name="can-default">True</property>
+                <property name="receives-default">True</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -272,9 +299,9 @@
               <object class="GtkButton" id="button2">
                 <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-stock">True</property>
               </object>
               <packing>
                 <property name="expand">True</property>
