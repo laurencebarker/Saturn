@@ -6,57 +6,57 @@
    "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
 #  -string -flagsOSRD
 preplace port s_axi_alex -pg 1 -lvl 0 -x 0 -y 520 -defaultsOSRD
-preplace port port-id_ADC1_ATTEN_CLK -pg 1 -lvl 3 -x 960 -y 190 -defaultsOSRD
-preplace port port-id_ADC1_ATTEN_DAT -pg 1 -lvl 3 -x 960 -y 210 -defaultsOSRD
-preplace port port-id_ADC1_ATTEN_LE -pg 1 -lvl 3 -x 960 -y 230 -defaultsOSRD
-preplace port port-id_ADC2_ATTEN_CLK -pg 1 -lvl 3 -x 960 -y 250 -defaultsOSRD
-preplace port port-id_ADC2_ATTEN_DAT -pg 1 -lvl 3 -x 960 -y 270 -defaultsOSRD
-preplace port port-id_ADC2_ATTEN_LE -pg 1 -lvl 3 -x 960 -y 290 -defaultsOSRD
+preplace port port-id_ADC1_ATTEN_CLK -pg 1 -lvl 3 -x 970 -y 190 -defaultsOSRD
+preplace port port-id_ADC1_ATTEN_DAT -pg 1 -lvl 3 -x 970 -y 210 -defaultsOSRD
+preplace port port-id_ADC1_ATTEN_LE -pg 1 -lvl 3 -x 970 -y 230 -defaultsOSRD
+preplace port port-id_ADC2_ATTEN_CLK -pg 1 -lvl 3 -x 970 -y 250 -defaultsOSRD
+preplace port port-id_ADC2_ATTEN_DAT -pg 1 -lvl 3 -x 970 -y 270 -defaultsOSRD
+preplace port port-id_ADC2_ATTEN_LE -pg 1 -lvl 3 -x 970 -y 290 -defaultsOSRD
 preplace port port-id_BUFF_Alex_Pin1 -pg 1 -lvl 0 -x 0 -y 20 -defaultsOSRD
 preplace port port-id_BUFF_Alex_Pin8 -pg 1 -lvl 0 -x 0 -y 40 -defaultsOSRD
-preplace port port-id_CTRL_TRSW -pg 1 -lvl 3 -x 960 -y 90 -defaultsOSRD
-preplace port port-id_RF_SPI_CK -pg 1 -lvl 3 -x 960 -y 540 -defaultsOSRD
-preplace port port-id_RF_SPI_DATA -pg 1 -lvl 3 -x 960 -y 520 -defaultsOSRD
-preplace port port-id_RF_SPI_RX_LOAD -pg 1 -lvl 3 -x 960 -y 560 -defaultsOSRD
-preplace port port-id_RF_SPI_TX_LOAD -pg 1 -lvl 3 -x 960 -y 580 -defaultsOSRD
-preplace port port-id_TX_DAC_PWM -pg 1 -lvl 3 -x 960 -y 360 -defaultsOSRD
+preplace port port-id_CTRL_TRSW -pg 1 -lvl 3 -x 970 -y 90 -defaultsOSRD
+preplace port port-id_RF_SPI_CK -pg 1 -lvl 3 -x 970 -y 540 -defaultsOSRD
+preplace port port-id_RF_SPI_DATA -pg 1 -lvl 3 -x 970 -y 520 -defaultsOSRD
+preplace port port-id_RF_SPI_RX_LOAD -pg 1 -lvl 3 -x 970 -y 560 -defaultsOSRD
+preplace port port-id_RF_SPI_TX_LOAD -pg 1 -lvl 3 -x 970 -y 580 -defaultsOSRD
+preplace port port-id_TX_DAC_PWM -pg 1 -lvl 3 -x 970 -y 360 -defaultsOSRD
 preplace port port-id_aclk -pg 1 -lvl 0 -x 0 -y 540 -defaultsOSRD
 preplace port port-id_codec_clk -pg 1 -lvl 0 -x 0 -y 260 -defaultsOSRD
 preplace port port-id_rstn -pg 1 -lvl 0 -x 0 -y 560 -defaultsOSRD
-preplace port port-id_Dbounced_Key_Dash -pg 1 -lvl 3 -x 960 -y 0 -defaultsOSRD
-preplace port port-id_Debounced_Key_Dot -pg 1 -lvl 3 -x 960 -y 650 -defaultsOSRD
-preplace port port-id_IO8 -pg 1 -lvl 3 -x 960 -y 340 -defaultsOSRD
+preplace port port-id_Dbounced_Key_Dash -pg 1 -lvl 3 -x 970 -y 0 -defaultsOSRD
+preplace port port-id_Debounced_Key_Dot -pg 1 -lvl 3 -x 970 -y 650 -defaultsOSRD
+preplace port port-id_IO8 -pg 1 -lvl 3 -x 970 -y 340 -defaultsOSRD
 preplace portBus ADC_Ctrl -pg 1 -lvl 0 -x 0 -y 220 -defaultsOSRD
-preplace portBus ADC_Randomise -pg 1 -lvl 3 -x 960 -y 50 -defaultsOSRD
-preplace portBus ATU_TUNE -pg 1 -lvl 3 -x 960 -y 70 -defaultsOSRD
-preplace portBus BUF_Out_FPGA -pg 1 -lvl 3 -x 960 -y 750 -defaultsOSRD
+preplace portBus ADC_Randomise -pg 1 -lvl 3 -x 970 -y 50 -defaultsOSRD
+preplace portBus ATU_TUNE -pg 1 -lvl 3 -x 970 -y 70 -defaultsOSRD
+preplace portBus BUF_Out_FPGA -pg 1 -lvl 3 -x 970 -y 750 -defaultsOSRD
 preplace portBus DAC_Ctrl -pg 1 -lvl 0 -x 0 -y 240 -defaultsOSRD
-preplace portBus Dac_Atten -pg 1 -lvl 3 -x 960 -y 310 -defaultsOSRD
-preplace portBus Dac_Atten_Clk -pg 1 -lvl 3 -x 960 -y 770 -defaultsOSRD
-preplace portBus Dac_Atten_Data -pg 1 -lvl 3 -x 960 -y 790 -defaultsOSRD
-preplace portBus Dac_Atten_LE -pg 1 -lvl 3 -x 960 -y 910 -defaultsOSRD
-preplace portBus Dac_Atten_Mode -pg 1 -lvl 3 -x 960 -y 810 -defaultsOSRD
-preplace portBus GPIO_OUT -pg 1 -lvl 3 -x 960 -y 110 -defaultsOSRD
-preplace portBus MOX_strobe -pg 1 -lvl 3 -x 960 -y 130 -defaultsOSRD
+preplace portBus Dac_Atten -pg 1 -lvl 3 -x 970 -y 310 -defaultsOSRD
+preplace portBus Dac_Atten_Clk -pg 1 -lvl 3 -x 970 -y 770 -defaultsOSRD
+preplace portBus Dac_Atten_Data -pg 1 -lvl 3 -x 970 -y 790 -defaultsOSRD
+preplace portBus Dac_Atten_LE -pg 1 -lvl 3 -x 970 -y 910 -defaultsOSRD
+preplace portBus Dac_Atten_Mode -pg 1 -lvl 3 -x 970 -y 810 -defaultsOSRD
+preplace portBus GPIO_OUT -pg 1 -lvl 3 -x 970 -y 110 -defaultsOSRD
+preplace portBus MOX_strobe -pg 1 -lvl 3 -x 970 -y 130 -defaultsOSRD
 preplace portBus RF_GPIO -pg 1 -lvl 0 -x 0 -y 90 -defaultsOSRD
-preplace portBus TXRX_RELAY -pg 1 -lvl 3 -x 960 -y 420 -defaultsOSRD
+preplace portBus TXRX_RELAY -pg 1 -lvl 3 -x 970 -y 420 -defaultsOSRD
 preplace portBus keyer_PTT -pg 1 -lvl 0 -x 0 -y 110 -defaultsOSRD
 preplace portBus status_in -pg 1 -lvl 0 -x 0 -y 720 -defaultsOSRD
-preplace portBus status_out -pg 1 -lvl 3 -x 960 -y 710 -defaultsOSRD
-preplace inst AttenDrivers -pg 1 -lvl 2 -x 750 -y 260 -defaultsOSRD
+preplace portBus status_out -pg 1 -lvl 3 -x 970 -y 710 -defaultsOSRD
+preplace inst AttenDrivers -pg 1 -lvl 2 -x 760 -y 260 -defaultsOSRD
 preplace inst Strobes -pg 1 -lvl 1 -x 420 -y 100 -defaultsOSRD
-preplace inst debounce -pg 1 -lvl 2 -x 750 -y 710 -defaultsOSRD
-preplace inst util_vector_logic_0 -pg 1 -lvl 2 -x 750 -y 420 -defaultsOSRD
-preplace inst xlconstant_drive0 -pg 1 -lvl 2 -x 750 -y 830 -defaultsOSRD
-preplace inst xlconstant_drive1 -pg 1 -lvl 2 -x 750 -y 930 -defaultsOSRD
-preplace inst AXILite_Alex_SPI_0 -pg 1 -lvl 2 -x 750 -y 550 -defaultsOSRD
+preplace inst debounce -pg 1 -lvl 2 -x 760 -y 710 -defaultsOSRD
+preplace inst util_vector_logic_0 -pg 1 -lvl 2 -x 760 -y 420 -defaultsOSRD
+preplace inst xlconstant_drive0 -pg 1 -lvl 2 -x 760 -y 830 -defaultsOSRD
+preplace inst xlconstant_drive1 -pg 1 -lvl 2 -x 760 -y 930 -defaultsOSRD
+preplace inst AXILite_Alex_SPI_0 -pg 1 -lvl 2 -x 760 -y 550 -defaultsOSRD
 preplace netloc AXILite_Alex_SPI_0_Rx_load_strobe 1 2 1 N 560
 preplace netloc AXILite_Alex_SPI_0_SPI_ck 1 2 1 N 540
 preplace netloc AXILite_Alex_SPI_0_SPI_data 1 2 1 N 520
 preplace netloc AXILite_Alex_SPI_0_Tx_load_strobe 1 2 1 N 580
-preplace netloc Net 1 0 2 NJ 220 NJ
-preplace netloc Net1 1 0 2 NJ 240 NJ
-preplace netloc PWM_DAC_0_DAC_bit 1 2 1 940J 330n
+preplace netloc Net 1 0 2 NJ 220 570J
+preplace netloc Net1 1 0 2 NJ 240 570J
+preplace netloc PWM_DAC_0_DAC_bit 1 2 1 950J 330n
 preplace netloc RF_GPIO_1 1 0 1 NJ 90
 preplace netloc SerialAtten_0_ATTN_CLK 1 2 1 NJ 190
 preplace netloc SerialAtten_0_ATTN_DATA 1 2 1 NJ 210
@@ -65,27 +65,27 @@ preplace netloc SerialAtten_1_ATTN_CLK 1 2 1 NJ 250
 preplace netloc SerialAtten_1_ATTN_DATA 1 2 1 NJ 270
 preplace netloc SerialAtten_1_ATTN_LE 1 2 1 NJ 290
 preplace netloc Strobes_ADC_Randomise 1 1 2 NJ 50 NJ
-preplace netloc aclk_1 1 0 2 NJ 540 N
-preplace netloc clk_1 1 0 2 NJ 260 580
-preplace netloc debounce_Debounced_Key_Dash 1 2 1 900 0n
-preplace netloc debounce_Debounced_Key_Dot 1 2 1 910 650n
-preplace netloc debounce_IO8 1 2 1 930 340n
-preplace netloc debounce_status_out 1 2 1 920J 680n
+preplace netloc aclk_1 1 0 2 NJ 540 590
+preplace netloc clk_1 1 0 2 NJ 260 600
+preplace netloc debounce_Debounced_Key_Dash 1 2 1 910 0n
+preplace netloc debounce_Debounced_Key_Dot 1 2 1 920 650n
+preplace netloc debounce_IO8 1 2 1 940 340n
+preplace netloc debounce_status_out 1 2 1 930J 680n
 preplace netloc keyer_PTT_1 1 0 1 NJ 110
 preplace netloc regmux_2_1_1_dout 1 2 1 NJ 310
-preplace netloc rstn_1 1 0 2 NJ 560 590
-preplace netloc status_in_1 1 0 2 NJ 720 580J
-preplace netloc util_reduced_logic_1_Res 1 1 2 600 130 NJ
+preplace netloc rstn_1 1 0 2 NJ 560 610
+preplace netloc status_in_1 1 0 2 NJ 720 590J
+preplace netloc util_reduced_logic_1_Res 1 1 2 590 130 NJ
 preplace netloc util_reduced_logic_2_Res 1 1 2 NJ 90 NJ
-preplace netloc util_reduced_logic_3_Res 1 1 1 570 150n
+preplace netloc util_reduced_logic_3_Res 1 1 1 580 150n
 preplace netloc util_vector_logic_0_Res 1 2 1 NJ 420
-preplace netloc xlconstant_0_dout 1 2 1 920J 910n
-preplace netloc xlconstant_1_dout 1 2 1 920J 750n
+preplace netloc xlconstant_0_dout 1 2 1 930J 910n
+preplace netloc xlconstant_1_dout 1 2 1 930J 750n
 preplace netloc xlslice_0_Dout 1 1 2 NJ 110 NJ
 preplace netloc xlslice_5_Dout 1 1 2 NJ 70 NJ
 preplace netloc Conn1 1 0 2 NJ 520 N
-levelinfo -pg 1 0 420 750 960
-pagesize -pg 1 -db -bbox -sgen -160 -20 1150 990
+levelinfo -pg 1 0 420 760 970
+pagesize -pg 1 -db -bbox -sgen -160 -20 1160 990
 "
 }
 0

@@ -1,0 +1,68 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"0.951111",
+   "Default View_TopLeft":"-553,-11",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
+#  -string -flagsOSRD
+preplace port port-id_ADC1_ATTEN_CLK -pg 1 -lvl 4 -x 860 -y 60 -defaultsOSRD
+preplace port port-id_ADC1_ATTEN_DAT -pg 1 -lvl 4 -x 860 -y 80 -defaultsOSRD
+preplace port port-id_ADC1_ATTEN_LE -pg 1 -lvl 4 -x 860 -y 100 -defaultsOSRD
+preplace port port-id_ADC2_ATTEN_CLK -pg 1 -lvl 4 -x 860 -y 340 -defaultsOSRD
+preplace port port-id_ADC2_ATTEN_DAT -pg 1 -lvl 4 -x 860 -y 360 -defaultsOSRD
+preplace port port-id_ADC2_ATTEN_LE -pg 1 -lvl 4 -x 860 -y 380 -defaultsOSRD
+preplace port port-id_TX_DAC_PWM -pg 1 -lvl 4 -x 860 -y 780 -defaultsOSRD
+preplace port port-id_clk -pg 1 -lvl 0 -x 0 -y 650 -defaultsOSRD
+preplace port port-id_rstn -pg 1 -lvl 0 -x 0 -y 670 -defaultsOSRD
+preplace port port-id_tx_strobe -pg 1 -lvl 0 -x 0 -y 630 -defaultsOSRD
+preplace port port-id_clk122 -pg 1 -lvl 0 -x 0 -y 440 -defaultsOSRD
+preplace portBus ADC_Ctrl -pg 1 -lvl 0 -x 0 -y 110 -defaultsOSRD
+preplace portBus DAC_Ctrl -pg 1 -lvl 0 -x 0 -y 610 -defaultsOSRD
+preplace portBus Dac_Atten -pg 1 -lvl 4 -x 860 -y 530 -defaultsOSRD
+preplace inst xlconstant_0 -pg 1 -lvl 2 -x 420 -y 230 -defaultsOSRD
+preplace inst xlslice_0 -pg 1 -lvl 1 -x 130 -y 730 -defaultsOSRD
+preplace inst xlslice_1 -pg 1 -lvl 1 -x 130 -y 830 -defaultsOSRD
+preplace inst xlslice_2 -pg 1 -lvl 2 -x 420 -y 550 -defaultsOSRD
+preplace inst xlslice_3 -pg 1 -lvl 2 -x 420 -y 650 -defaultsOSRD
+preplace inst xlslice_4 -pg 1 -lvl 1 -x 130 -y 210 -defaultsOSRD
+preplace inst xlslice_5 -pg 1 -lvl 1 -x 130 -y 110 -defaultsOSRD
+preplace inst xlslice_6 -pg 1 -lvl 1 -x 130 -y 310 -defaultsOSRD
+preplace inst xlslice_7 -pg 1 -lvl 1 -x 130 -y 410 -defaultsOSRD
+preplace inst PWM_DAC_0 -pg 1 -lvl 3 -x 700 -y 780 -defaultsOSRD
+preplace inst SerialAtten_0 -pg 1 -lvl 3 -x 700 -y 80 -defaultsOSRD
+preplace inst SerialAtten_1 -pg 1 -lvl 3 -x 700 -y 360 -defaultsOSRD
+preplace inst regmux_2_1_0 -pg 1 -lvl 2 -x 420 -y 790 -defaultsOSRD
+preplace inst regmux_2_1_1 -pg 1 -lvl 3 -x 700 -y 530 -defaultsOSRD
+preplace inst regmux_2_1_2 -pg 1 -lvl 2 -x 420 -y 90 -defaultsOSRD
+preplace inst regmux_2_1_3 -pg 1 -lvl 2 -x 420 -y 370 -defaultsOSRD
+preplace netloc Net 1 0 1 20 110n
+preplace netloc Net1 1 0 2 20 610 290
+preplace netloc PWM_DAC_0_DAC_bit 1 3 1 NJ 780
+preplace netloc SerialAtten_0_ATTN_CLK 1 3 1 NJ 60
+preplace netloc SerialAtten_0_ATTN_DATA 1 3 1 NJ 80
+preplace netloc SerialAtten_0_ATTN_LE 1 3 1 NJ 100
+preplace netloc SerialAtten_1_ATTN_CLK 1 3 1 NJ 340
+preplace netloc SerialAtten_1_ATTN_DATA 1 3 1 NJ 360
+preplace netloc SerialAtten_1_ATTN_LE 1 3 1 NJ 380
+preplace netloc clk_1 1 0 3 NJ 650 240 -10 540
+preplace netloc regmux_2_1_0_dout 1 2 1 N 790
+preplace netloc regmux_2_1_1_dout 1 3 1 NJ 530
+preplace netloc regmux_2_1_2_dout 1 2 1 N 90
+preplace netloc regmux_2_1_3_dout 1 2 1 N 370
+preplace netloc rstn_1 1 0 3 NJ 670 260 480 550
+preplace netloc tx_strobe_1 1 0 3 NJ 630 280 490 NJ
+preplace netloc xlconstant_0_dout 1 2 1 560 70n
+preplace netloc xlslice_0_Dout 1 1 1 230J 730n
+preplace netloc xlslice_1_Dout 1 1 1 NJ 830
+preplace netloc xlslice_2_Dout 1 2 1 NJ 550
+preplace netloc xlslice_3_Dout 1 2 1 550J 570n
+preplace netloc xlslice_4_Dout 1 1 1 250J 130n
+preplace netloc xlslice_5_Dout 1 1 1 NJ 110
+preplace netloc xlslice_6_Dout 1 1 1 270J 310n
+preplace netloc xlslice_7_Dout 1 1 1 NJ 410
+preplace netloc clk122_1 1 0 3 20J 470 NJ 470 530
+levelinfo -pg 1 0 130 420 700 860
+pagesize -pg 1 -db -bbox -sgen -150 -20 1040 890
+"
+}
+
