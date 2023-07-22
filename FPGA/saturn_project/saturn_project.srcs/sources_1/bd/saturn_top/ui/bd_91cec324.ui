@@ -3,7 +3,7 @@
    "Default View_ScaleFactor":"0.707107",
    "Default View_TopLeft":"-372,-789",
    "ExpandedHierarchyInLayout":"",
-   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS-threadsafe
+   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
 #  -string -flagsOSRD
 preplace port port-id_CW_Key_Down -pg 1 -lvl 5 -x 1330 -y -160 -defaultsOSRD
 preplace port port-id_Key_Dash -pg 1 -lvl 0 -x -10 -y -310 -defaultsOSRD
@@ -13,43 +13,43 @@ preplace port port-id_aresetn -pg 1 -lvl 0 -x -10 -y -620 -defaultsOSRD
 preplace port port-id_IO8 -pg 1 -lvl 0 -x -10 -y -650 -defaultsOSRD
 preplace portBus IambicConfig -pg 1 -lvl 0 -x -10 -y -470 -defaultsOSRD
 preplace portBus CW_Breakin -pg 1 -lvl 5 -x 1330 -y 130 -defaultsOSRD
-preplace inst xlslice_speed -pg 1 -lvl 2 -x 400 -y -970 -defaultsOSRD
-preplace inst xlslice_weight -pg 1 -lvl 2 -x 400 -y -870 -defaultsOSRD
-preplace inst xlslice_reversed -pg 1 -lvl 2 -x 400 -y -770 -defaultsOSRD
-preplace inst xlslice_strict -pg 1 -lvl 2 -x 400 -y -470 -defaultsOSRD
-preplace inst xlslice_modeB -pg 1 -lvl 2 -x 400 -y -570 -defaultsOSRD
-preplace inst xlslice_iambicenable -pg 1 -lvl 2 -x 400 -y -670 -defaultsOSRD
-preplace inst xlslice_CWXDash -pg 1 -lvl 2 -x 400 -y -70 -defaultsOSRD
-preplace inst xlslice_CWXDot -pg 1 -lvl 2 -x 400 -y -190 -defaultsOSRD
-preplace inst xlslice_CWX -pg 1 -lvl 2 -x 400 -y -370 -defaultsOSRD
-preplace inst ClockDivider_0 -pg 1 -lvl 3 -x 670 -y 50 -defaultsOSRD
-preplace inst util_vector_logic_0 -pg 1 -lvl 3 -x 670 -y -200 -defaultsOSRD
-preplace inst util_vector_logic_1 -pg 1 -lvl 3 -x 670 -y -80 -defaultsOSRD
-preplace inst xlslice_CWXDash1 -pg 1 -lvl 2 -x 400 -y 130 -defaultsOSRD
+preplace inst xlslice_speed -pg 1 -lvl 2 -x 410 -y -970 -defaultsOSRD
+preplace inst xlslice_weight -pg 1 -lvl 2 -x 410 -y -870 -defaultsOSRD
+preplace inst xlslice_reversed -pg 1 -lvl 2 -x 410 -y -770 -defaultsOSRD
+preplace inst xlslice_strict -pg 1 -lvl 2 -x 410 -y -470 -defaultsOSRD
+preplace inst xlslice_modeB -pg 1 -lvl 2 -x 410 -y -570 -defaultsOSRD
+preplace inst xlslice_iambicenable -pg 1 -lvl 2 -x 410 -y -670 -defaultsOSRD
+preplace inst xlslice_CWXDash -pg 1 -lvl 2 -x 410 -y -70 -defaultsOSRD
+preplace inst xlslice_CWXDot -pg 1 -lvl 2 -x 410 -y -190 -defaultsOSRD
+preplace inst xlslice_CWX -pg 1 -lvl 2 -x 410 -y -370 -defaultsOSRD
+preplace inst ClockDivider_0 -pg 1 -lvl 3 -x 690 -y 50 -defaultsOSRD
+preplace inst util_vector_logic_0 -pg 1 -lvl 3 -x 690 -y -200 -defaultsOSRD
+preplace inst util_vector_logic_1 -pg 1 -lvl 3 -x 690 -y -80 -defaultsOSRD
+preplace inst xlslice_CWXDash1 -pg 1 -lvl 2 -x 410 -y 130 -defaultsOSRD
 preplace inst iambic_0 -pg 1 -lvl 4 -x 1180 -y -430 -defaultsOSRD
 preplace inst D_register_0 -pg 1 -lvl 1 -x 150 -y -470 -defaultsOSRD
-preplace netloc ClockDivider_0_TC 1 3 1 850 -520n
-preplace netloc IO8_1 1 0 4 NJ -650 300 -310 NJ -310 870
+preplace netloc ClockDivider_0_TC 1 3 1 870 -520n
+preplace netloc IO8_1 1 0 4 NJ -650 300 -310 NJ -310 890
 preplace netloc IambicConfig_1 1 1 1 290 -970n
-preplace netloc Key_Dash_1 1 0 3 NJ -310 270 -260 510
-preplace netloc Key_Dot_1 1 0 3 NJ -240 300 -250 500
+preplace netloc IambicConfig_2 1 0 1 10 -470n
+preplace netloc Key_Dash_1 1 0 3 NJ -310 270 -260 520
+preplace netloc Key_Dot_1 1 0 3 NJ -240 300 -250 510
 preplace netloc aresetn_1 1 0 3 30J -550 280 60 N
-preplace netloc clk122_1 1 0 4 20J -10 N -10 520 -540 N
+preplace netloc clk122_1 1 0 4 20J -10 N -10 530 -540 N
 preplace netloc iambic_0_keyer_out 1 4 1 1310 -430n
-preplace netloc util_vector_logic_0_Res 1 3 1 840 -400n
-preplace netloc util_vector_logic_1_Res 1 3 1 880 -380n
+preplace netloc util_vector_logic_0_Res 1 3 1 860 -400n
+preplace netloc util_vector_logic_1_Res 1 3 1 900 -380n
 preplace netloc xlslice_CWXDash1_Dout 1 2 3 NJ 130 NJ 130 N
 preplace netloc xlslice_CWXDash_Dout 1 2 1 N -70
 preplace netloc xlslice_CWXDot_Dout 1 2 1 N -190
-preplace netloc xlslice_CWX_Dout 1 2 2 NJ -370 820
-preplace netloc xlslice_iambicenable_Dout 1 2 2 NJ -670 860
-preplace netloc xlslice_modeB_Dout 1 2 2 NJ -570 840
-preplace netloc xlslice_reversed_Dout 1 2 2 NJ -770 830
-preplace netloc xlslice_speed_Dout 1 2 2 NJ -970 880
-preplace netloc xlslice_strict_Dout 1 2 2 NJ -470 820
-preplace netloc xlslice_weight_Dout 1 2 2 NJ -870 870
-preplace netloc IambicConfig_2 1 0 1 10 -470n
-levelinfo -pg 1 -10 150 400 670 1180 1330
+preplace netloc xlslice_CWX_Dout 1 2 2 NJ -370 840
+preplace netloc xlslice_iambicenable_Dout 1 2 2 NJ -670 880
+preplace netloc xlslice_modeB_Dout 1 2 2 NJ -570 860
+preplace netloc xlslice_reversed_Dout 1 2 2 NJ -770 850
+preplace netloc xlslice_speed_Dout 1 2 2 NJ -970 900
+preplace netloc xlslice_strict_Dout 1 2 2 NJ -470 840
+preplace netloc xlslice_weight_Dout 1 2 2 NJ -870 890
+levelinfo -pg 1 -10 150 410 690 1180 1330
 pagesize -pg 1 -db -bbox -sgen -180 -1030 1490 190
 "
 }

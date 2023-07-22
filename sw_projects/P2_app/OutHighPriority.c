@@ -120,9 +120,9 @@ void *OutgoingHighPriority(void *arg)
       *(uint16_t *)(UDPBuffer+49) = htons(Word);               // supply voltage
 
       Word = (uint16_t)GetAnalogueIn(2);
-      *(uint16_t *)(UDPBuffer+53) = htons(Word);               // AIN3
+      *(uint16_t *)(UDPBuffer+57) = htons(Word);               // AIN3 user_analog1
       Word = (uint16_t)GetAnalogueIn(3);
-      *(uint16_t *)(UDPBuffer+51) = htons(Word);               // AIN4
+      *(uint16_t *)(UDPBuffer+55) = htons(Word);               // AIN4 user_analog2
 
       Byte = (uint8_t)GetUserIOBits();                  // user I/O bits
       *(uint8_t *)(UDPBuffer+59) = Byte;
@@ -137,7 +137,7 @@ void *OutgoingHighPriority(void *arg)
       if(MOXAsserted)
         usleep(1000);
       else
-        usleep(50000);                                    // 50ms gap between messages
+        usleep(200000);                                    // 200ms gap between messages to match Orion
     }
   }
 //

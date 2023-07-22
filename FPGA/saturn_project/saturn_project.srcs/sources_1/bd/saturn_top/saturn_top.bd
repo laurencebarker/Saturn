@@ -6888,7 +6888,7 @@
             "inst_hier_path": "PCIe/xlconstant_swversion",
             "parameters": {
               "CONST_VAL": {
-                "value": "5"
+                "value": "6"
               },
               "CONST_WIDTH": {
                 "value": "16"
@@ -10209,6 +10209,9 @@
               },
               "tx_strobe": {
                 "direction": "I"
+              },
+              "clk122": {
+                "direction": "I"
               }
             },
             "components": {
@@ -10384,15 +10387,11 @@
                     "direction": "I",
                     "parameters": {
                       "FREQ_HZ": {
-                        "value": "12288000",
+                        "value": "122880000",
                         "value_src": "ip_prop"
                       },
                       "PHASE": {
                         "value": "0.0",
-                        "value_src": "ip_prop"
-                      },
-                      "CLK_DOMAIN": {
-                        "value": "saturn_top_clk_wiz_0_0_clk_out1",
                         "value_src": "ip_prop"
                       }
                     }
@@ -10919,10 +10918,15 @@
                   "ADC2_ATTEN_LE"
                 ]
               },
+              "clk122_1": {
+                "ports": [
+                  "clk122",
+                  "PWM_DAC_0/aclk"
+                ]
+              },
               "clk_1": {
                 "ports": [
                   "clk",
-                  "PWM_DAC_0/aclk",
                   "SerialAtten_0/aclk",
                   "SerialAtten_1/aclk",
                   "regmux_2_1_0/aclk",
@@ -12722,7 +12726,8 @@
           "aclk_1": {
             "ports": [
               "aclk",
-              "AXILite_Alex_SPI_0/aclk"
+              "AXILite_Alex_SPI_0/aclk",
+              "AttenDrivers/clk122"
             ]
           },
           "clk_1": {
