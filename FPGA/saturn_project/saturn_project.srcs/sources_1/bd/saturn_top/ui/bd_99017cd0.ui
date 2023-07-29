@@ -1,7 +1,7 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"1.04803",
-   "Default View_TopLeft":"36,1265",
+   "Default View_TopLeft":"83,1345",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
 #  -string -flagsOSRD
@@ -30,6 +30,7 @@ preplace port port-id_PLL_LOCK -pg 1 -lvl 0 -x -20 -y 1170 -defaultsOSRD
 preplace port port-id_codecspiclk -pg 1 -lvl 10 -x 3900 -y 870 -defaultsOSRD
 preplace port port-id_codecspidata -pg 1 -lvl 10 -x 3900 -y 890 -defaultsOSRD
 preplace port port-id_codec_cs -pg 1 -lvl 10 -x 3900 -y 920 -defaultsOSRD
+preplace port port-id_CK_KEY_DOWN -pg 1 -lvl 0 -x -20 -y 1100 -defaultsOSRD
 preplace portBus ADCCtrlData -pg 1 -lvl 10 -x 3900 -y 740 -defaultsOSRD
 preplace portBus ADC_CLK -pg 1 -lvl 10 -x 3900 -y 1100 -defaultsOSRD
 preplace portBus ADC_MOSI -pg 1 -lvl 10 -x 3900 -y 1080 -defaultsOSRD
@@ -83,7 +84,7 @@ preplace inst D_register_0 -pg 1 -lvl 5 -x 1610 -y 1720 -defaultsOSRD
 preplace inst D_register_1 -pg 1 -lvl 2 -x 590 -y 1560 -defaultsOSRD
 preplace inst Double_D_register_syncareset1 -pg 1 -lvl 9 -x 3550 -y 2370 -defaultsOSRD
 preplace inst Double_D_register_syncareset -pg 1 -lvl 1 -x 310 -y 1500 -defaultsOSRD
-preplace inst Usr_Reg_Access_0 -pg 1 -lvl 4 -x 1220 -y 1430 -defaultsOSRD
+preplace inst Usr_Reg_Access_0 -pg 1 -lvl 4 -x 1220 -y 1440 -defaultsOSRD
 preplace inst AXIL_ConfigReg_256_2 -pg 1 -lvl 9 -x 3550 -y 760 -defaultsOSRD
 preplace inst AXIL_ConfigReg_64_0 -pg 1 -lvl 7 -x 2720 -y 140 -defaultsOSRD
 preplace inst AXIL_ReadReg_64_ID -pg 1 -lvl 4 -x 1220 -y 1740 -defaultsOSRD
@@ -100,11 +101,11 @@ preplace inst util_vector_logic_4 -pg 1 -lvl 7 -x 2720 -y 2340 -defaultsOSRD
 preplace inst util_vector_logic_5 -pg 1 -lvl 7 -x 2720 -y 2220 -defaultsOSRD
 preplace inst xlslice_3 -pg 1 -lvl 6 -x 2420 -y 2220 -defaultsOSRD
 preplace inst xlslice_4 -pg 1 -lvl 6 -x 2420 -y 2320 -defaultsOSRD
-preplace netloc ACLK_1 1 3 7 1010 540 1390 190 N 190 2530 290 N 290 3370 300 3800
-preplace netloc ADC1_Overrange_1 1 0 9 NJ 1290 NJ 1290 NJ 1290 960J 1510 1420J 1390 N 1390 N 1390 N 1390 3270
-preplace netloc ADC2_Overrange_1 1 0 9 NJ 1310 NJ 1310 NJ 1310 950J 1520 1430J 1410 N 1410 N 1410 N 1410 3260
+preplace netloc ACLK_1 1 3 7 1020 540 1390 190 N 190 2530 290 N 290 3370 300 3800
+preplace netloc ADC1_Overrange_1 1 0 9 NJ 1290 NJ 1290 NJ 1290 960J 1520 1420J 1390 N 1390 N 1390 N 1390 3270
+preplace netloc ADC2_Overrange_1 1 0 9 NJ 1310 NJ 1310 NJ 1310 950J 1530 1430J 1410 N 1410 N 1410 N 1410 3260
 preplace netloc ADC_MISO_1 1 0 9 0J 210 NJ 210 NJ 210 NJ 210 1370J 200 NJ 200 2540 220 N 220 3360
-preplace netloc ARESETN_1 1 0 10 30 1330 NJ 1330 NJ 1330 970 840 1410 210 N 210 2550 240 N 240 3310 2640 3740
+preplace netloc ARESETN_1 1 0 10 30 1330 NJ 1330 NJ 1330 980 840 1410 210 N 210 2550 240 N 240 3310 2640 3740
 preplace netloc AXIL_ConfigReg_256_2_config_reg0 1 9 1 3740J 620n
 preplace netloc AXIL_ConfigReg_256_2_config_reg1 1 9 1 3750J 640n
 preplace netloc AXIL_ConfigReg_256_2_config_reg2 1 9 1 3760J 660n
@@ -124,14 +125,14 @@ preplace netloc AXI_SPI_ADC_0_nCS 1 9 1 3830J 1060n
 preplace netloc D_register_0_dout 1 5 5 N 1720 N 1720 N 1720 3260 1850 3850J
 preplace netloc Double_D_register_syncareset1_dout 1 6 4 2540 2700 N 2700 3320 2670 3800J
 preplace netloc Net 1 5 4 1820 2090 N 2090 N 2090 3250
-preplace netloc Net2 1 1 4 450 1480 NJ 1480 940J 1530 1440J
+preplace netloc Net2 1 1 4 450 1480 NJ 1480 940J 1540 1440J
 preplace netloc Net3 1 1 4 460 1640 NJ 1640 NJ 1640 1370J
-preplace netloc PLL_LOCK_1 1 0 4 NJ 1170 NJ 1170 720J 1270 N
-preplace netloc Status_data_1 1 0 4 0J 1280 NJ 1280 NJ 1280 960J
-preplace netloc TX_ENABLE_1 1 0 4 10J 1420 NJ 1420 700J 1450 990J
+preplace netloc PLL_LOCK_1 1 0 4 NJ 1170 NJ 1170 NJ 1170 990
+preplace netloc Status_data_1 1 0 4 0J 1240 NJ 1240 NJ 1240 NJ
+preplace netloc TX_ENABLE_1 1 0 4 10J 1420 NJ 1420 700J 1450 1000J
 preplace netloc Usr_Reg_Access_0_Usr_Reg_Data 1 4 5 1400J 1380 NJ 1380 N 1380 N 1380 3360
 preplace netloc clk12_1 1 0 9 NJ 2360 NJ 2360 NJ 2360 NJ 2360 NJ 2360 1770J 2380 2520 2410 2910 2360 N
-preplace netloc clk_122_1 1 0 9 0 1410 440 770 NJ 770 940 550 1380 630 1790 890 N 890 2950 890 3370
+preplace netloc clk_122_1 1 0 9 0 1410 440 770 NJ 770 950 550 1380 630 1790 890 N 890 2950 890 3370
 preplace netloc clock_mon_1 1 0 2 20J 1430 430
 preplace netloc pci_clk_buf_IBUF_OUT 1 4 5 NJ 2080 NJ 2080 N 2080 N 2080 3260
 preplace netloc reset_rtl_0_1 1 0 9 NJ 2160 NJ 2160 NJ 2160 NJ 2160 NJ 2160 NJ 2160 2540 2150 N 2150 3260
@@ -141,13 +142,13 @@ preplace netloc util_vector_logic_2_Res 1 7 3 NJ 2630 3250J 2660 N
 preplace netloc util_vector_logic_3_Res 1 7 3 NJ 2500 3260J 2650 3840
 preplace netloc util_vector_logic_4_Res 1 7 3 2920J 2300 NJ 2300 N
 preplace netloc util_vector_logic_5_Res 1 7 3 2910J 2010 NJ 2010 N
-preplace netloc xdma_0_axi_aresetn 1 2 7 710J 1260 950 560 1430 640 1770 900 N 900 2960 900 3380
+preplace netloc xdma_0_axi_aresetn 1 2 7 710J 1150 960 560 1430 640 1770 900 N 900 2960 900 3380
 preplace netloc xdma_0_user_lnk_up 1 8 2 3370 2020 3700
 preplace netloc xlconcat_0_dout 1 4 5 1400J 1290 N 1290 N 1290 N 1290 3320
 preplace netloc xlconcat_1_dout 1 2 2 N 1780 NJ
 preplace netloc xlconcat_2_dout 1 4 2 1460 1400 1800
 preplace netloc xlconcat_3_dout 1 2 2 710 1760 NJ
-preplace netloc xlconstant_0_dout 1 3 1 980J 1290n
+preplace netloc xlconstant_0_dout 1 3 1 970J 1300n
 preplace netloc xlconstant_2_dout 1 9 1 NJ 2480
 preplace netloc xlconstant_2_pciebusreq_dout 1 9 1 NJ 2580
 preplace netloc xlconstant_3_dout 1 8 1 3370 1530n
@@ -161,6 +162,7 @@ preplace netloc xlslice_1_Dout 1 6 1 N 2620
 preplace netloc xlslice_1_Dout1 1 6 1 2520 2490n
 preplace netloc xlslice_3_Dout 1 6 1 2530 2210n
 preplace netloc xlslice_4_Dout 1 6 1 2520 2320n
+preplace netloc CK_KEY_DOWN_1 1 0 4 NJ 1100 NJ 1100 720J 1160 1000
 preplace netloc Conn1 1 5 5 1760J 810 N 810 2870 380 3250 310 3850J
 preplace netloc Conn2 1 0 4 NJ 2090 NJ 2090 NJ 2090 NJ
 preplace netloc Conn4 1 9 1 3740J 320n
@@ -169,7 +171,7 @@ preplace netloc Conn6 1 5 5 1780J 820 N 820 2880 390 3260 320 3720J
 preplace netloc Conn7 1 5 5 1810J 840 N 840 2900 410 3290 350 3840J
 preplace netloc Conn11 1 9 1 NJ 2080
 preplace netloc Conn12 1 5 5 1810J 850 N 850 2910 420 3300 360 3780J
-preplace netloc S00_AXI_1 1 3 7 970 220 NJ 220 NJ 220 2520 230 N 230 N 230 3710
+preplace netloc S00_AXI_1 1 3 7 980 220 NJ 220 NJ 220 2520 230 N 230 N 230 3710
 preplace netloc axi_interconnect_0_M06_AXI 1 5 4 N 990 N 990 N 990 3340
 preplace netloc axi_interconnect_122_M02_AXI 1 5 4 N 910 N 910 N 910 3350
 preplace netloc axi_interconnect_122_M03_AXI 1 5 4 N 930 N 930 N 930 3350
@@ -180,7 +182,7 @@ preplace netloc axi_interconnect_122_M10_AXI 1 5 3 1840 880 N 880 2940
 preplace netloc axi_interconnect_lite_125_M00_AXI 1 5 4 1820 870 N 870 2930 440 3350
 preplace netloc axi_interconnect_lite_125_M01_AXI 1 4 2 1450 650 1760
 preplace netloc axi_interconnect_lite_125_M02_AXI 1 5 2 1810 120 N
-preplace netloc axi_interconnect_lite_125_M04_AXI 1 3 3 1000 230 N 230 1770
+preplace netloc axi_interconnect_lite_125_M04_AXI 1 3 3 1010 230 N 230 1770
 preplace netloc axi_interconnect_lite_M00_AXI 1 4 1 1370 290n
 preplace netloc axi_interconnect_lite_M01_AXI 1 4 1 N 710
 preplace netloc xdma_0_pcie_mgt 1 9 1 NJ 2120
