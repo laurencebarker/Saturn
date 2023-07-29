@@ -137,7 +137,7 @@ void *OutgoingHighPriority(void *arg)
       if(MOXAsserted)
         usleep(1000);
       else
-        usleep(200000);                                    // 200ms gap between messages to match Orion
+        usleep(5000);                                    // 200ms gap between messages to match Orion
     }
   }
 //
