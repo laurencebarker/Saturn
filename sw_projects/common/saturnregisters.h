@@ -728,7 +728,12 @@ bool GetKeyerDashInput(void);
 //
 bool GetKeyerDotInput(void);
 
-
+//
+// GetCWKeyDown(void)
+// return true if keyer has initiated TX.
+// depends on the status register having been read before this is called!
+//
+bool GetCWKeyDown(void);
 
 //
 // GetP2PTTKeyInputs(void)

@@ -262,6 +262,8 @@ void* CheckForActivity(void *arg)
     if (!NewMessageReceived)                // if no messages received,
     {
       SDRActive = false;                    // set back to inactive
+      SetTXEnable(false);
+      EnableCW(false);
       ReplyAddressSet = false;
       StartBitReceived = false;
       if(PreviouslyActiveState)
@@ -287,6 +289,7 @@ void Shutdown()
   sem_destroy(&CodecRegMutex);
   SetMOX(false);
   SetTXEnable(false);
+  EnableCW(false);
 }
 
 
@@ -364,7 +367,7 @@ int main(int argc, char *argv[])
   SetByteSwapping(true);                                            // h/w to generate network byte order
   SetSpkrMute(false);
   SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR);
-  SetTXEnable(true);
+  // SetTXEnable(true);                                             // now only enabled if SDR active
   EnableAlexManualFilterSelect(true);
   SetBalancedMicInput(false);
 
@@ -634,7 +637,10 @@ int main(int argc, char *argv[])
           HandleGeneralPacket(UDPInBuffer);
           ReplyAddressSet = true;
           if(ReplyAddressSet && StartBitReceived)
+          {
             SDRActive = true;                                       // only set active if we have start bit too
+            SetTXEnable(true);
+          }
           break;
 
         //

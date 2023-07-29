@@ -84,16 +84,19 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       {
         StartBitReceived = true;
         if(ReplyAddressSet && StartBitReceived)
+        {
           SDRActive = true;                                       // only set active if we have replay address too
+          SetTXEnable(true);
+        }
       }
       else
       {
         SDRActive = false;                                       // set state of whole app
+        SetTXEnable(false);
+        EnableCW(false);
         printf("set to inactive by client app\n");
         StartBitReceived = false;
       }
-      IsTXMode = (bool)(Byte&2);
-      SetMOX(IsTXMode);
 
 //
 // now properly decode DDC frequencies
@@ -141,6 +144,11 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       //
       Byte = (uint8_t)(UDPInBuffer[5]);      // CWX
       SetCWXBits((bool)(Byte & 1), (bool)((Byte>>2) & 1), (bool)((Byte>>1) & 1));    // enabled, dash, dot
+      //
+      // finally set TX or not TX
+      //
+      IsTXMode = (bool)(Byte&2);
+      SetMOX(IsTXMode);
     }
   }
 //

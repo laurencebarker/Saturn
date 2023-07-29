@@ -226,13 +226,14 @@ uint32_t DDCRegisters[VNUMDDC] =
 #define VPTTIN2BIT 1                    // not currently used
 #define VKEYINA 2                       // dot key
 #define VKEYINB 3                       // dash key
-#define VPLLLOCKED 4
 #define VUSERIO4 4
 #define VUSERIO5 5
 #define VUSERIO6 8
 #define VUSERIO8 7
 #define V13_8VDETECTBIT 8
 #define VATUTUNECOMPLETEBIT 9
+#define VPLLLOCKED 10
+#define VCWKEYDOWN 11                   // keyer output 
 #define VEXTTXENABLEBIT 31
 
 
@@ -1856,12 +1857,27 @@ bool GetKeyerDotInput(void)
 
 
 //
+// GetCWKeyDown(void)
+// return true if keyer has initiated TX.
+// depends on the status register having been read before this is called!
+//
+bool GetCWKeyDown(void)
+{
+    bool Result = false;
+    Result = (bool)((GStatusRegister >> VCWKEYDOWN) & 1);                       // get PTT bit
+
+    return Result;
+}
+
+
+//
 // GetP2PTTKeyInputs(void)
 // return several bits from Saturn status register:
 // bit 0 - true if PTT active
 // bit 1 - true if CW dot input active
 // bit 2 - true if CW dash input active
 // bit 4 - true if 10MHz to 122MHz PLL is locked
+// note that PTT declared if PTT pressed, or CW key is pressed.
 //
 unsigned int GetP2PTTKeyInputs(void)
 {
@@ -1875,7 +1891,9 @@ unsigned int GetP2PTTKeyInputs(void)
     if ((GStatusRegister >> VKEYINB) & 1)
         Result |= 4;                                                        // set dash output bit
     if ((GStatusRegister >> VPLLLOCKED) & 1)
-        Result |= 16;                                                        // set PLL output bit
+        Result |= 16;                                                       // set PLL output bit
+    if ((GStatusRegister >> VCWKEYDOWN) & 1)
+        Result |= 1;                                                        // set PTT if keyer asserted TX
     return Result;
 }
 
