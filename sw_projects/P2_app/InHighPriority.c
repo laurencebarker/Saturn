@@ -93,10 +93,15 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       {
         SDRActive = false;                                       // set state of whole app
         SetTXEnable(false);
-        EnableCW(false);
+        EnableCW(false, false);
         printf("set to inactive by client app\n");
         StartBitReceived = false;
       }
+      //
+      // set TX or not TX
+      //
+      IsTXMode = (bool)(Byte&2);
+      SetMOX(IsTXMode);
 
 //
 // now properly decode DDC frequencies
@@ -134,21 +139,17 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       AlexManualRXFilters(Word, 0);
       //
       // RX atten during TX and RX
+      // this should be just on RX now, because TX settings are in the DUC specific packet bytes 58&59
       //
       Byte2 = (uint8_t)(UDPInBuffer[1442]);     // RX2 atten
       Byte = (uint8_t)(UDPInBuffer[1443]);      // RX1 atten
-      SetADCAttenuator(eADC1, Byte, true, true);
-      SetADCAttenuator(eADC2, Byte2, true, true);
+      SetADCAttenuator(eADC1, Byte, true, false);
+      SetADCAttenuator(eADC2, Byte2, true, false);
       //
       // CWX bits
       //
       Byte = (uint8_t)(UDPInBuffer[5]);      // CWX
       SetCWXBits((bool)(Byte & 1), (bool)((Byte>>2) & 1), (bool)((Byte>>1) & 1));    // enabled, dash, dot
-      //
-      // finally set TX or not TX
-      //
-      IsTXMode = (bool)(Byte&2);
-      SetMOX(IsTXMode);
     }
   }
 //

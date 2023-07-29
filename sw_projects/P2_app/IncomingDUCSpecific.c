@@ -82,7 +82,7 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
                           (bool)((Byte >> 6)&1), (bool)((Byte >> 3)&1), (bool)((Byte >> 7)&1));
 // general CW settings
           SetCWSidetoneEnabled((bool)((Byte >> 4)&1));
-          EnableCW((bool)((Byte >> 1)&1));                        // CW enabled bit
+          EnableCW((bool)((Byte >> 1)&1), (bool)((Byte >> 7)&1));   // CW enabled bit, breakin bit
           SidetoneVolume = *(uint8_t*)(UDPInBuffer+6);            // keyer speed
           SidetoneFreq = *(uint16_t*)(UDPInBuffer+7);             // get frequency
           SidetoneFreq = ntohs(SidetoneFreq);                     // convert from big endian
@@ -101,6 +101,10 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
           SetBalancedMicInput((bool)((Byte >> 5)&1));
           Byte = *(uint8_t*)(UDPInBuffer+51);                     // line in gain
           SetCodecLineInGain(Byte);
+          Byte = *(uint8_t*)(UDPInBuffer+58);                     // ADC1 att on TX
+          SetADCAttenuator(eADC2, Byte, false, true);
+          Byte = *(uint8_t*)(UDPInBuffer+59);                     // ADC1 att on TX
+          SetADCAttenuator(eADC1, Byte, false, true);
       }
     }
 //

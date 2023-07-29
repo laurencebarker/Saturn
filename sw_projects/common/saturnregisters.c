@@ -104,6 +104,8 @@ bool GCWXDot;                                       // True if computer generate
 bool GCWXDash;                                      // True if computer generated CW Dash.
 bool GDashPressed;                                  // P2. True if dash input pressed.
 bool GDotPressed;                                   // P2. true if dot input pressed.
+bool GCWEnabled;                                    // true if CW mode
+bool GBreakinEnabled;                               // true if break-in is enabled
 unsigned int GUserOutputBits;                       // P2. Not yet implermented.
 unsigned int GTXAmplScaleFactor;                    // values multipled into TX output after DUC
 bool GTXAlwaysEnabled;                              // true if TX samples always enabled (for test)
@@ -334,9 +336,32 @@ void SetByteSwapping(bool IsSwapped)
 
 
 //
+// internal function to set the keyer on or off
+// needed because keyer setting can change by message, of by TX operation
+//
+void ActivateCWKeyer(bool Keyer)
+{
+    uint32_t Register;
+    Register = GCWKeyerSetup;                           // get current settings
+    if(Keyer)
+        Register |= (1<<VCWKEYERENABLE);
+    else
+        Register &= ~(1<<VCWKEYERENABLE);
+    if(Register != GCWKeyerSetup)                       // write back if different
+    {
+        GCWKeyerSetup = Register;                       // store it back
+        RegisterWrite(VADDRKEYERCONFIGREG, Register);   // and write to it
+    }
+
+}
+
+
+
+//
 // SetMOX(bool Mox)
 // sets or clears TX state
 // set or clear the relevant bit in GPIO
+// and enable keyer if CW
 //
 void SetMOX(bool Mox)
 {
@@ -351,6 +376,14 @@ void SetMOX(bool Mox)
         Register &= ~(1 << VMOXBIT);
     GPIORegValue = Register;                        // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);        // and write to it
+//
+// now set CW keyer if required
+//
+    if (Mox)
+        ActivateCWKeyer(GCWEnabled);
+    else            // disable keyer unless CW & breakin
+        ActivateCWKeyer(GCWEnabled && GBreakinEnabled);
+
     sem_post(&RFGPIOMutex);                         // clear protected access
 }
 
@@ -1434,33 +1467,28 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
 
 
 
+
+
 //
-// EnableCW (bool Enabled)
-// enables or disables CW mode. If enabled, the key input engages TX automatically
+// EnableCW (bool Enabled, bool Breakin)
+// enables or disables CW mode; selects CW as modulation source.
+// If Breakin enabled, the key input engages TX automatically
 // and generates sidetone.
 //
-void EnableCW (bool Enabled)
+void EnableCW (bool Enabled, bool Breakin)
 {
-    uint32_t Register;
-
-    Register = GCWKeyerSetup;                    // get current settings
-    if(Enabled)
-        Register |= (1<<VCWKEYERENABLE);
-    else
-        Register &= ~(1<<VCWKEYERENABLE);
-    if(Register != GCWKeyerSetup)                    // write back if different
-    {
-        GCWKeyerSetup = Register;                    // store it back
-        RegisterWrite(VADDRKEYERCONFIGREG, Register);  // and write to it
-    }
     //
-    // now set I/Q modulation source
+    // set I/Q modulation source if CW selected 
     //
+    GCWEnabled = Enabled;
     if(Enabled)
-        SetTXModulationSource(eCWKeyer);                                  // CW source
+        SetTXModulationSource(eCWKeyer);                // CW source
     else
-        SetTXModulationSource(eIQData);                                   // else IQ source
+        SetTXModulationSource(eIQData);                 // else IQ source
 
+    // now set keyer enable if CW and break-in
+    GBreakinEnabled = Breakin;
+    ActivateCWKeyer(GBreakinEnabled && GCWEnabled);
 }
 
 
