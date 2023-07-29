@@ -4144,6 +4144,9 @@
             "direction": "O",
             "left": "31",
             "right": "0"
+          },
+          "CK_KEY_DOWN": {
+            "direction": "I"
           }
         },
         "components": {
@@ -6727,13 +6730,16 @@
                 "value": "1"
               },
               "IN2_WIDTH": {
-                "value": "20"
+                "value": "1"
               },
               "IN3_WIDTH": {
+                "value": "19"
+              },
+              "IN4_WIDTH": {
                 "value": "1"
               },
               "NUM_PORTS": {
-                "value": "4"
+                "value": "5"
               }
             }
           },
@@ -6758,7 +6764,7 @@
                 "value": "0"
               },
               "CONST_WIDTH": {
-                "value": "20"
+                "value": "19"
               }
             }
           },
@@ -6888,7 +6894,7 @@
             "inst_hier_path": "PCIe/xlconstant_swversion",
             "parameters": {
               "CONST_VAL": {
-                "value": "6"
+                "value": "7"
               },
               "CONST_WIDTH": {
                 "value": "16"
@@ -9689,6 +9695,12 @@
               "nADC_CS"
             ]
           },
+          "CK_KEY_DOWN_1": {
+            "ports": [
+              "CK_KEY_DOWN",
+              "xlconcat_0/In2"
+            ]
+          },
           "D_register_0_dout": {
             "ports": [
               "D_register_0/dout",
@@ -9747,7 +9759,7 @@
           "TX_ENABLE_1": {
             "ports": [
               "TX_ENABLE",
-              "xlconcat_0/In3"
+              "xlconcat_0/In4"
             ]
           },
           "Usr_Reg_Access_0_Usr_Reg_Data": {
@@ -9902,7 +9914,7 @@
           "xlconstant_0_dout": {
             "ports": [
               "xlconstant_0/dout",
-              "xlconcat_0/In2"
+              "xlconcat_0/In3"
             ]
           },
           "xlconstant_2_dout": {
@@ -26603,7 +26615,8 @@
       "Transmitter_cw_ptt1": {
         "ports": [
           "Transmitter/cw_ptt1",
-          "RF_interfaces/keyer_PTT"
+          "RF_interfaces/keyer_PTT",
+          "PCIe/CK_KEY_DOWN"
         ]
       },
       "Transmitter_txmux_reset": {
