@@ -137,9 +137,10 @@ void *OutgoingHighPriority(void *arg)
         InitError=true;
       }
       //
-      // now we need to sleep for 1ms (in TX) or 200ms (nit in TX)
+      // now we need to sleep for 1ms (in TX) or 200ms (not in TX)
       // BUT if any of the PTT or key inputs change, send a message immediately
       // so break up the 200ms period with smaller sleeps
+      // thank you to Rick N1GP for recommending this approach
       //
       SleepCount = (MOXAsserted)? 2: 400;
       while (SleepCount-- > 0)
