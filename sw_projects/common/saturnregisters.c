@@ -1901,9 +1901,9 @@ bool GetCWKeyDown(void)
 //
 // GetP2PTTKeyInputs(void)
 // return several bits from Saturn status register:
-// bit 0 - true if PTT active
+// bit 0 - true if PTT active or CW keyer active
 // bit 1 - true if CW dot input active
-// bit 2 - true if CW dash input active
+// bit 2 - true if CW dash input active or IO8 active
 // bit 4 - true if 10MHz to 122MHz PLL is locked
 // note that PTT declared if PTT pressed, or CW key is pressed.
 //
@@ -1914,10 +1914,14 @@ unsigned int GetP2PTTKeyInputs(void)
     // ReadStatusRegister();
     if (GStatusRegister & 1)
         Result |= 1;                                                        // set PTT output bit
+    if ((GStatusRegister >> VCWKEYDOWN) & 1)
+        Result |= 1;                                                        // set PTT output bit if keyer PTT active
     if ((GStatusRegister >> VKEYINA) & 1)
         Result |= 2;                                                        // set dot output bit
     if ((GStatusRegister >> VKEYINB) & 1)
         Result |= 4;                                                        // set dash output bit
+    if ((GStatusRegister >> VUSERIO8) & 1)
+        Result |= 4;                                                        // set dash output bit if IO8 active
     if ((GStatusRegister >> VPLLLOCKED) & 1)
         Result |= 16;                                                       // set PLL output bit
     if ((GStatusRegister >> VCWKEYDOWN) & 1)

@@ -103,11 +103,13 @@ void *OutgoingHighPriority(void *arg)
     //
     while(SDRActive && !InitError)                               // main loop
     {
+      uint8_t SleepCount;                                       // counter for sending next message
+      uint8_t PTTBits;                                          // PTT bits - and change means a new message needed
       // create the packet
       *(uint32_t *)UDPBuffer = htonl(SequenceCounter++);        // add sequence count
       ReadStatusRegister();
-      Byte = (uint8_t)GetP2PTTKeyInputs();
-      *(uint8_t *)(UDPBuffer+4) = Byte;
+      PTTBits = (uint8_t)GetP2PTTKeyInputs();
+      *(uint8_t *)(UDPBuffer+4) = PTTBits;
       Byte = (uint8_t)GetADCOverflow();
       *(uint8_t *)(UDPBuffer+5) = Byte;
       Word = (uint16_t)GetAnalogueIn(4);
@@ -134,10 +136,19 @@ void *OutgoingHighPriority(void *arg)
         printf("socket id = %d\n", ThreadData -> Socketid);
         InitError=true;
       }
-      if(MOXAsserted)
-        usleep(1000);
-      else
-        usleep(5000);                                    // 200ms gap between messages to match Orion
+      //
+      // now we need to sleep for 1ms (in TX) or 200ms (nit in TX)
+      // BUT if any of the PTT or key inputs change, send a message immediately
+      // so break up the 200ms period with smaller sleeps
+      //
+      SleepCount = (MOXAsserted)? 2: 400;
+      while (SleepCount-- > 0)
+      {
+        ReadStatusRegister();
+        if ((uint8_t)GetP2PTTKeyInputs() != PTTBits)
+          break;
+        usleep(500);
+      }
     }
   }
 //
