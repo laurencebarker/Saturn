@@ -53,7 +53,7 @@
 #include "OutDDCIQ.h"
 #include "OutHighPriority.h"
 
-#define P2APPVERSION 12
+#define P2APPVERSION 13
 
 extern sem_t DDCInSelMutex;                 // protect access to shared DDC input select register
 extern sem_t DDCResetFIFOMutex;             // protect access to FIFO reset register

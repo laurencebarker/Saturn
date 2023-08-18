@@ -230,7 +230,7 @@ uint32_t DDCRegisters[VNUMDDC] =
 #define VKEYINB 3                       // dash key
 #define VUSERIO4 4
 #define VUSERIO5 5
-#define VUSERIO6 8
+#define VUSERIO6 6
 #define VUSERIO8 7
 #define V13_8VDETECTBIT 8
 #define VATUTUNECOMPLETEBIT 9
@@ -1906,6 +1906,7 @@ bool GetCWKeyDown(void)
 // bit 2 - true if CW dash input active or IO8 active
 // bit 4 - true if 10MHz to 122MHz PLL is locked
 // note that PTT declared if PTT pressed, or CW key is pressed.
+// note that PTT & key bits are inverted by hardware, but IO4/5/6/8 are not.
 //
 unsigned int GetP2PTTKeyInputs(void)
 {
@@ -1920,7 +1921,7 @@ unsigned int GetP2PTTKeyInputs(void)
         Result |= 2;                                                        // set dot output bit
     if ((GStatusRegister >> VKEYINB) & 1)
         Result |= 4;                                                        // set dash output bit
-    if ((GStatusRegister >> VUSERIO8) & 1)
+    if (!((GStatusRegister >> VUSERIO8) & 1))
         Result |= 4;                                                        // set dash output bit if IO8 active
     if ((GStatusRegister >> VPLLLOCKED) & 1)
         Result |= 16;                                                       // set PLL output bit
