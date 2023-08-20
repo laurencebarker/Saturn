@@ -139,7 +139,6 @@ void CreateSpkTestData(char* MemPtr, uint32_t Samples, float StartFreq, float Fr
 {
 	uint32_t* Data;						// ptr to memory block to write data
 	int16_t Word;						// a word of write data
-	uint16_t UnsignedWord;
 	uint16_t ZeroWord = 0;
 	uint32_t Cntr;						// memory counter
 	double Sample;
@@ -149,20 +148,21 @@ void CreateSpkTestData(char* MemPtr, uint32_t Samples, float StartFreq, float Fr
 	uint32_t TwoWords;					// 32 bit L&R sample
 
 	Phase = 2.0 * M_PI * Freq / (double)VSAMPLERATE;		// 2 pi f t
-	Ampl = 32767.0 * Amplitude;
+//	Ampl = 32767.0 * Amplitude;
+	Ampl = 400.0 * Amplitude;
+
 	Data = (uint32_t *) MemPtr;
+	printf("Scaled amplitude = %5.1f\n", Ampl);
 	for(Cntr=0; Cntr < Samples; Cntr++)
 	{
 		Freq = StartFreq + FreqRamp*(float)Cntr/(float)Samples;
 		Phase = 2.0 * M_PI * Freq / (double)VSAMPLERATE;		// 2 pi f t
-//		Sample = 32768.0 + Ampl * sin(Phase * (double)Cntr);
 		Sample = Ampl * sin(Phase * (double)Cntr);
 		Word = (int16_t)Sample;
-		UnsignedWord = (uint16_t)Word;
 		if(IsL)
-			TwoWords = (ZeroWord << 16) | UnsignedWord;
+			TwoWords = (ZeroWord << 16) | (uint32_t) Word;
 		else
-			TwoWords = (UnsignedWord << 16) | ZeroWord;
+			TwoWords = ((uint32_t) Word << 16) | ZeroWord;
 		*Data++ = TwoWords;
 	}
 }
