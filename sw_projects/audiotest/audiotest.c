@@ -115,6 +115,10 @@ static void MyStatusCallback(float ProgressPercent, float LevelPercent)
 	ProgressFraction = ProgressPercent / 100.0;
     gtk_progress_bar_set_fraction(MicProgressBar, ProgressFraction);
 
+	if(LevelPercent < 0.1)
+		LevelPercent = 0.1;
+	LevelPercent = 20.0*log10(LevelPercent) + 20;		// 0-60.0
+	LevelPercent *= (100.0/60.0);
     gtk_progress_bar_set_fraction(MicLevelBar, (LevelPercent/100.0));
 	printf("level set to%3.1f\n", LevelPercent);
 
@@ -148,8 +152,8 @@ void CreateSpkTestData(char* MemPtr, uint32_t Samples, float StartFreq, float Fr
 	uint32_t TwoWords;					// 32 bit L&R sample
 
 	Phase = 2.0 * M_PI * Freq / (double)VSAMPLERATE;		// 2 pi f t
-//	Ampl = 32767.0 * Amplitude;
-	Ampl = 400.0 * Amplitude;
+	Ampl = 32767.0 * Amplitude;
+	//Ampl = 400.0 * Amplitude;
 
 	Data = (uint32_t *) MemPtr;
 	printf("Scaled amplitude = %5.1f\n", Ampl);

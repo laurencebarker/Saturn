@@ -332,6 +332,50 @@ Author: Laurence Barker
                 <property name="y">190</property>
               </packing>
             </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">0dB</property>
+              </object>
+              <packing>
+                <property name="x">410</property>
+                <property name="y">200</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">-60dB</property>
+              </object>
+              <packing>
+                <property name="x">220</property>
+                <property name="y">200</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">-40dB</property>
+              </object>
+              <packing>
+                <property name="x">282</property>
+                <property name="y">200</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">-20dB</property>
+              </object>
+              <packing>
+                <property name="x">346</property>
+                <property name="y">200</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="left-attach">0</property>
