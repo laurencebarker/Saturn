@@ -2009,6 +2009,7 @@ void CodecInitialise(void)
     CodecRegisterWrite(VCODECDIGITALPATHREG, 0x0);    // no soft mute; no deemphasis; ADC high pss filter enabled
     usleep(100);
     CodecRegisterWrite(VCODECLLINEVOLREG, GCodecLineGain);        // line in gain=0
+    CodecRegisterWrite(VCODECRLINEVOLREG, GCodecLineGain);        // line in gain=0
     usleep(100);
 
 }
