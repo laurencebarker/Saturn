@@ -474,7 +474,7 @@
             "value": "4"
           },
           "TDATA_REMAP": {
-            "value": "tdata[15:0]"
+            "value": "tdata[31:16]"
           }
         }
       },

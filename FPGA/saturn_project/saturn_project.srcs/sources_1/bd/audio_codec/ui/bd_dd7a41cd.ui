@@ -1,74 +1,74 @@
 {
    "ActiveEmotionalView":"Default View",
-   "Default View_ScaleFactor":"1.54738",
-   "Default View_TopLeft":"-747,-153",
+   "Default View_ScaleFactor":"0.757021",
+   "Default View_TopLeft":"-29,-300",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
 #  -string -flagsOSRD
 preplace port LR_Spkr_data -pg 1 -lvl 0 -x -570 -y 40 -defaultsOSRD
-preplace port RX_Audio_Data -pg 1 -lvl 10 -x 2350 -y 20 -defaultsOSRD
+preplace port RX_Audio_Data -pg 1 -lvl 10 -x 2310 -y 20 -defaultsOSRD
 preplace port S_AXIS_KeyerAmpl -pg 1 -lvl 0 -x -570 -y 60 -defaultsOSRD
-preplace port port-id_BCLK -pg 1 -lvl 10 -x 2350 -y 40 -defaultsOSRD
-preplace port port-id_LRCLK -pg 1 -lvl 10 -x 2350 -y 60 -defaultsOSRD
-preplace port port-id_MCLK -pg 1 -lvl 10 -x 2350 -y 80 -defaultsOSRD
+preplace port port-id_BCLK -pg 1 -lvl 10 -x 2310 -y 40 -defaultsOSRD
+preplace port port-id_LRCLK -pg 1 -lvl 10 -x 2310 -y 60 -defaultsOSRD
+preplace port port-id_MCLK -pg 1 -lvl 10 -x 2310 -y 80 -defaultsOSRD
 preplace port port-id_arstn -pg 1 -lvl 0 -x -570 -y 80 -defaultsOSRD
 preplace port port-id_clk12 -pg 1 -lvl 0 -x -570 -y 100 -defaultsOSRD
 preplace port port-id_i2srxd -pg 1 -lvl 0 -x -570 -y 120 -defaultsOSRD
-preplace port port-id_i2stxd -pg 1 -lvl 10 -x 2350 -y 100 -defaultsOSRD
+preplace port port-id_i2stxd -pg 1 -lvl 10 -x 2310 -y 100 -defaultsOSRD
 preplace port port-id_Byteswap -pg 1 -lvl 0 -x -570 -y 240 -defaultsOSRD
 preplace portBus CodecConfig -pg 1 -lvl 0 -x -570 -y 20 -defaultsOSRD
 preplace inst axis_broadcaster_0 -pg 1 -lvl 5 -x 750 -y 380 -defaultsOSRD
-preplace inst axis_broadcaster_1 -pg 1 -lvl 6 -x 1150 -y 870 -defaultsOSRD
-preplace inst axis_combiner_0 -pg 1 -lvl 8 -x 1840 -y 650 -defaultsOSRD
+preplace inst axis_broadcaster_1 -pg 1 -lvl 6 -x 1110 -y 870 -defaultsOSRD
+preplace inst axis_combiner_0 -pg 1 -lvl 8 -x 1800 -y 650 -defaultsOSRD
 preplace inst dds_compiler_0 -pg 1 -lvl 3 -x 140 -y 670 -defaultsOSRD
 preplace inst xlslice_sidetonefreq -pg 1 -lvl 1 -x -430 -y 680 -defaultsOSRD
 preplace inst xlslice_sidetonevol -pg 1 -lvl 2 -x -170 -y 810 -defaultsOSRD
-preplace inst axis_subset_converter_0 -pg 1 -lvl 8 -x 1840 -y 70 -defaultsOSRD
-preplace inst axis_adder_0 -pg 1 -lvl 7 -x 1530 -y 650 -defaultsOSRD
-preplace inst axis_adder_1 -pg 1 -lvl 7 -x 1530 -y 490 -defaultsOSRD
+preplace inst axis_subset_converter_0 -pg 1 -lvl 8 -x 1800 -y 70 -defaultsOSRD
+preplace inst axis_adder_0 -pg 1 -lvl 7 -x 1490 -y 650 -defaultsOSRD
+preplace inst axis_adder_1 -pg 1 -lvl 7 -x 1490 -y 490 -defaultsOSRD
 preplace inst axis_constant_2 -pg 1 -lvl 2 -x -170 -y 570 -defaultsOSRD
 preplace inst axis_constant_3 -pg 1 -lvl 3 -x 140 -y 800 -defaultsOSRD
-preplace inst i2s_clk_lrclk_gen_0 -pg 1 -lvl 6 -x 1150 -y -180 -defaultsOSRD
-preplace inst I2S_xmit_0 -pg 1 -lvl 9 -x 2170 -y 380 -defaultsOSRD
-preplace inst I2S_rcv_0 -pg 1 -lvl 6 -x 1150 -y 70 -defaultsOSRD
+preplace inst i2s_clk_lrclk_gen_0 -pg 1 -lvl 6 -x 1110 -y -180 -defaultsOSRD
+preplace inst I2S_xmit_0 -pg 1 -lvl 9 -x 2130 -y 380 -defaultsOSRD
+preplace inst I2S_rcv_0 -pg 1 -lvl 6 -x 1110 -y 70 -defaultsOSRD
 preplace inst byteswap_32_0 -pg 1 -lvl 3 -x 140 -y -30 -defaultsOSRD
-preplace inst byteswap_32_1 -pg 1 -lvl 7 -x 1530 -y 60 -defaultsOSRD
+preplace inst byteswap_32_1 -pg 1 -lvl 7 -x 1490 -y 60 -defaultsOSRD
 preplace inst axis_multiplier_vol_star_sine -pg 1 -lvl 4 -x 440 -y 780 -defaultsOSRD
 preplace inst axis_multiplier_vol_star_sine_star_ramp -pg 1 -lvl 5 -x 750 -y 820 -defaultsOSRD
-preplace netloc Byteswap_1 1 0 7 NJ 240 NJ 240 -20 220 NJ 220 NJ 220 NJ 220 1330J
+preplace netloc Byteswap_1 1 0 7 NJ 240 NJ 240 -20 220 NJ 220 NJ 220 NJ 220 1290J
 preplace netloc CodecConfig_1 1 0 2 -540 810 NJ
-preplace netloc I2S_xmit_0_outbit 1 9 1 2330 100n
-preplace netloc Net3 1 0 10 NJ 100 -320 100 -30 590 290 590 590 300 920 270 1370 150 1660 150 2030 180 2320
-preplace netloc arstn_1 1 0 9 NJ 80 NJ 80 -10 580 300 580 580 290 900 260 1340 170 1670 420 2010J
-preplace netloc i2s_clk_lrclk_gen_0_BCLK 1 5 5 950 210 1320 160 NJ 160 NJ 160 2300
-preplace netloc i2s_clk_lrclk_gen_0_Bfall 1 5 4 940 240 1350 400 NJ 400 1990J
-preplace netloc i2s_clk_lrclk_gen_0_Brise 1 5 4 930 250 1360 410 NJ 410 NJ
-preplace netloc i2s_clk_lrclk_gen_0_LRCLK 1 5 5 960 230 1310 180 NJ 180 2020 170 2310
-preplace netloc i2s_clk_lrclk_gen_0_LRfall 1 5 2 960 -70 1300
-preplace netloc i2s_clk_lrclk_gen_0_LRrise 1 5 2 950 -290 1300
+preplace netloc I2S_xmit_0_outbit 1 9 1 2290 100n
+preplace netloc Net3 1 0 10 NJ 100 -330 100 -30 590 300 590 590 300 920 270 1330 150 1620 150 2000 180 2280
+preplace netloc arstn_1 1 0 9 NJ 80 NJ 80 -10 580 310 580 580 290 900 260 1300 170 1630 420 1980J
+preplace netloc i2s_clk_lrclk_gen_0_BCLK 1 5 5 950 210 1280 160 NJ 160 NJ 160 2260
+preplace netloc i2s_clk_lrclk_gen_0_Bfall 1 5 4 940 240 1310 400 NJ 400 1960J
+preplace netloc i2s_clk_lrclk_gen_0_Brise 1 5 4 930 250 1320 410 NJ 410 NJ
+preplace netloc i2s_clk_lrclk_gen_0_LRCLK 1 5 5 960 230 1270 180 NJ 180 1990 170 2270
+preplace netloc i2s_clk_lrclk_gen_0_LRfall 1 5 2 960 -70 1260
+preplace netloc i2s_clk_lrclk_gen_0_LRrise 1 5 2 950 -290 1260
 preplace netloc is2rxd_1 1 0 6 -550J 150 NJ 150 NJ 150 NJ 150 NJ 150 NJ
-preplace netloc xlslice_2_Dout 1 1 1 -320 580n
+preplace netloc xlslice_2_Dout 1 1 1 -330 580n
 preplace netloc xlslice_sidetonevol_Dout 1 2 1 N 810
-preplace netloc I2S_rcv_0_mrecv_axis 1 6 1 1330 30n
+preplace netloc I2S_rcv_0_mrecv_axis 1 6 1 1290 30n
 preplace netloc LR_Spkr_data_1 1 0 3 NJ 40 NJ 40 -40
 preplace netloc S_AXIS_KeyerAmpl_1 1 0 5 NJ 60 NJ 60 NJ 60 NJ 60 570
-preplace netloc axis_adder_0_m_axis 1 7 1 1680 640n
-preplace netloc axis_adder_1_m_axis 1 7 1 1650 490n
-preplace netloc axis_broadcaster_0_M00_AXIS 1 5 2 NJ 370 1330
-preplace netloc axis_broadcaster_0_M01_AXIS 1 5 2 NJ 390 1310
-preplace netloc axis_broadcaster_1_M00_AXIS 1 6 1 1380 490n
-preplace netloc axis_broadcaster_1_M01_AXIS 1 6 1 1390 650n
-preplace netloc axis_combiner_0_M_AXIS 1 8 1 2000 330n
+preplace netloc axis_adder_0_m_axis 1 7 1 1640 640n
+preplace netloc axis_adder_1_m_axis 1 7 1 1610 490n
+preplace netloc axis_broadcaster_0_M00_AXIS 1 5 2 NJ 370 1290
+preplace netloc axis_broadcaster_0_M01_AXIS 1 5 2 NJ 390 1270
+preplace netloc axis_broadcaster_1_M00_AXIS 1 6 1 1340 490n
+preplace netloc axis_broadcaster_1_M01_AXIS 1 6 1 1350 650n
+preplace netloc axis_combiner_0_M_AXIS 1 8 1 1970 330n
 preplace netloc axis_constant_2_m_axis 1 2 1 -40 570n
-preplace netloc axis_constant_3_m_axis 1 3 1 310 770n
+preplace netloc axis_constant_3_m_axis 1 3 1 320 770n
 preplace netloc axis_multiplier_vol_star_sine_m_axis 1 4 1 560 780n
 preplace netloc axis_multiplier_vol_star_sine_star_ramp_m_axis 1 5 1 910 820n
-preplace netloc axis_subset_converter_0_M_AXIS 1 8 2 NJ 70 2290
+preplace netloc axis_subset_converter_0_M_AXIS 1 8 2 NJ 70 2250
 preplace netloc byteswap_32_0_m_axis 1 3 2 N -30 600
-preplace netloc byteswap_32_1_m_axis 1 7 1 1660 50n
-preplace netloc dds_compiler_0_M_AXIS_DATA 1 3 1 280 670n
-levelinfo -pg 1 -570 -430 -170 140 440 750 1150 1530 1840 2170 2350
-pagesize -pg 1 -db -bbox -sgen -750 -390 2500 1270
+preplace netloc byteswap_32_1_m_axis 1 7 1 1620 50n
+preplace netloc dds_compiler_0_M_AXIS_DATA 1 3 1 290 670n
+levelinfo -pg 1 -570 -430 -170 140 440 750 1110 1490 1800 2130 2310
+pagesize -pg 1 -db -bbox -sgen -750 -390 2470 1270
 "
 }
 0
