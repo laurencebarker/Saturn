@@ -18,6 +18,12 @@ Author: Laurence Barker
   <!-- interface-description mic and speaker audio level tests -->
   <!-- interface-copyright Laurence Barker 2023 -->
   <!-- interface-authors Laurence Barker -->
+  <object class="GtkAdjustment" id="id_gainadjustment">
+    <property name="lower">-34.5</property>
+    <property name="upper">12</property>
+    <property name="step-increment">1.5</property>
+    <property name="page-increment">10</property>
+  </object>
   <object class="GtkAdjustment" id="id_voladjustment">
     <property name="upper">100</property>
     <property name="value">10</property>
@@ -116,7 +122,7 @@ Author: Laurence Barker
                 <signal name="clicked" handler="on_close_button_clicked" swapped="no"/>
               </object>
               <packing>
-                <property name="x">460</property>
+                <property name="x">470</property>
                 <property name="y">253</property>
               </packing>
             </child>
@@ -130,8 +136,8 @@ Author: Laurence Barker
                 <property name="show-text">True</property>
               </object>
               <packing>
-                <property name="x">210</property>
-                <property name="y">135</property>
+                <property name="x">220</property>
+                <property name="y">175</property>
               </packing>
             </child>
             <child>
@@ -143,7 +149,7 @@ Author: Laurence Barker
               </object>
               <packing>
                 <property name="x">140</property>
-                <property name="y">100</property>
+                <property name="y">70</property>
               </packing>
             </child>
             <child>
@@ -154,7 +160,7 @@ Author: Laurence Barker
               </object>
               <packing>
                 <property name="x">350</property>
-                <property name="y">100</property>
+                <property name="y">70</property>
               </packing>
             </child>
             <child>
@@ -170,7 +176,7 @@ Author: Laurence Barker
               </object>
               <packing>
                 <property name="x">10</property>
-                <property name="y">90</property>
+                <property name="y">60</property>
               </packing>
             </child>
             <child>
@@ -203,15 +209,15 @@ Author: Laurence Barker
             </child>
             <child>
               <object class="GtkLabel" id="MicActivityLabel">
-                <property name="width-request">200</property>
+                <property name="width-request">110</property>
                 <property name="height-request">40</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes">nothing</property>
               </object>
               <packing>
-                <property name="x">10</property>
-                <property name="y">137</property>
+                <property name="x">110</property>
+                <property name="y">177</property>
               </packing>
             </child>
             <child>
@@ -239,7 +245,7 @@ Author: Laurence Barker
               </object>
               <packing>
                 <property name="x">150</property>
-                <property name="y">213</property>
+                <property name="y">243</property>
               </packing>
             </child>
             <child>
@@ -253,7 +259,7 @@ Author: Laurence Barker
               </object>
               <packing>
                 <property name="x">227</property>
-                <property name="y">90</property>
+                <property name="y">60</property>
               </packing>
             </child>
             <child>
@@ -316,7 +322,7 @@ Author: Laurence Barker
               </object>
               <packing>
                 <property name="x">270</property>
-                <property name="y">270</property>
+                <property name="y">275</property>
               </packing>
             </child>
             <child>
@@ -328,8 +334,8 @@ Author: Laurence Barker
                 <property name="show-text">True</property>
               </object>
               <packing>
-                <property name="x">220</property>
-                <property name="y">190</property>
+                <property name="x">240</property>
+                <property name="y">220</property>
               </packing>
             </child>
             <child>
@@ -339,8 +345,8 @@ Author: Laurence Barker
                 <property name="label" translatable="yes">0dB</property>
               </object>
               <packing>
-                <property name="x">410</property>
-                <property name="y">200</property>
+                <property name="x">420</property>
+                <property name="y">228</property>
               </packing>
             </child>
             <child>
@@ -350,8 +356,8 @@ Author: Laurence Barker
                 <property name="label" translatable="yes">-60dB</property>
               </object>
               <packing>
-                <property name="x">220</property>
-                <property name="y">200</property>
+                <property name="x">217</property>
+                <property name="y">228</property>
               </packing>
             </child>
             <child>
@@ -361,8 +367,8 @@ Author: Laurence Barker
                 <property name="label" translatable="yes">-40dB</property>
               </object>
               <packing>
-                <property name="x">282</property>
-                <property name="y">200</property>
+                <property name="x">279</property>
+                <property name="y">228</property>
               </packing>
             </child>
             <child>
@@ -372,8 +378,60 @@ Author: Laurence Barker
                 <property name="label" translatable="yes">-20dB</property>
               </object>
               <packing>
-                <property name="x">346</property>
-                <property name="y">200</property>
+                <property name="x">343</property>
+                <property name="y">228</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="LineCheck">
+                <property name="label" translatable="yes">Line In</property>
+                <property name="width-request">100</property>
+                <property name="height-request">40</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">False</property>
+                <property name="draw-indicator">True</property>
+                <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
+              </object>
+              <packing>
+                <property name="x">10</property>
+                <property name="y">117</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">Line Gain:</property>
+              </object>
+              <packing>
+                <property name="x">150</property>
+                <property name="y">130</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">dB</property>
+              </object>
+              <packing>
+                <property name="x">360</property>
+                <property name="y">130</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSpinButton" id="GainSpin">
+                <property name="width-request">100</property>
+                <property name="height-request">40</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="adjustment">id_gainadjustment</property>
+                <property name="digits">1</property>
+              </object>
+              <packing>
+                <property name="x">227</property>
+                <property name="y">120</property>
               </packing>
             </child>
           </object>

@@ -38,12 +38,15 @@ GtkLabel *PTTLbl;
 GtkProgressBar *MicProgressBar;
 GtkScale *VolumeScale;
 GtkSpinButton *MicDurationSpin;
+GtkSpinButton *GainSpin;
 GtkProgressBar *MicLevelBar;   
 GtkAdjustment *VolAdjustment; 
+GtkAdjustment *GainAdjustment;
 GtkCheckButton *MicBoostCheck;
 GtkCheckButton *MicXLRCheck;
 GtkCheckButton *MicTipCheck;
 GtkCheckButton *MicBiasCheck;
+GtkCheckButton *LineCheck;
 
 //
 // mem read/write variables:
@@ -120,7 +123,6 @@ static void MyStatusCallback(float ProgressPercent, float LevelPercent)
 	LevelPercent = 20.0*log10(LevelPercent) + 20;		// 0-60.0
 	LevelPercent *= (100.0/60.0);
     gtk_progress_bar_set_fraction(MicLevelBar, (LevelPercent/100.0));
-	printf("level set to%3.1f\n", LevelPercent);
 
     // update the window - MAY NOT NEED THIS AS THREADED
 //    while(gtk_events_pending())
@@ -320,15 +322,19 @@ void on_testR_button_clicked()
 //
 void on_MicSettings_Changed(void)
 {
-	gboolean XLR, MicBoost, MicTip, MicBias;
+	gboolean XLR, MicBoost, MicTip, MicBias, LineInput;
+
  
     XLR = gtk_toggle_button_get_active(MicXLRCheck);
     MicBoost = gtk_toggle_button_get_active(MicBoostCheck);
     MicTip = gtk_toggle_button_get_active(MicTipCheck);
     MicBias = gtk_toggle_button_get_active(MicBiasCheck);
+    LineInput = gtk_toggle_button_get_active(LineCheck);
+
 	SetOrionMicOptions(!MicTip, MicBias, true);
 	SetMicBoost(MicBoost);
 	SetBalancedMicInput(XLR);
+	SetMicLineInput(LineInput);
 }
 
 
@@ -373,11 +379,21 @@ void* MicTest(void *arg)
 	gint Duration;					// record and replay duration in seconds
 	uint32_t Length;
 	uint32_t Samples;
+	double Gain;											// line gain	
+	uint32_t IntGain;
+
+
 	while (1)
 	{
 		usleep(50000);												// 50ms wait
 		if(GMicTestInitiated)
 		{
+
+			Gain = gtk_spin_button_get_value(GainSpin);
+			IntGain = (uint32_t)((Gain+34.5)/1.5);
+			SetCodecLineInGain(IntGain);
+			printf("line selected; gain = %7.1f dB; intGain =%d\n", Gain, IntGain);
+
 			gtk_label_set_text(MicActivityLbl, "Speak Now");
 			Duration = gtk_spin_button_get_value_as_int(MicDurationSpin);
 			Samples = 48000 * Duration;						// no. samples to record and play
@@ -491,12 +507,15 @@ int main(int argc, char *argv[])
     MicProgressBar = GTK_PROGRESS_BAR(gtk_builder_get_object(Builder, "id_progress"));
     VolumeScale = GTK_SCALE(gtk_builder_get_object(Builder, "VolumeScale"));
     MicDurationSpin = GTK_SPIN_BUTTON(gtk_builder_get_object(Builder, "MicDurationSpin"));
+    GainSpin = GTK_SPIN_BUTTON(gtk_builder_get_object(Builder, "GainSpin"));
     MicLevelBar = GTK_PROGRESS_BAR(gtk_builder_get_object(Builder, "MicLevelBar"));    
     VolAdjustment = GTK_ADJUSTMENT(gtk_builder_get_object(Builder, "id_voladjustment"));
+    GainAdjustment = GTK_ADJUSTMENT(gtk_builder_get_object(Builder, "id_gainadjustment"));
     MicBoostCheck = GTK_CHECK_BUTTON(gtk_builder_get_object(Builder, "MicBoostCheck"));
     MicXLRCheck = GTK_CHECK_BUTTON(gtk_builder_get_object(Builder, "MicXLRCheck"));
     MicTipCheck = GTK_CHECK_BUTTON(gtk_builder_get_object(Builder, "MicTipCheck"));
     MicBiasCheck = GTK_CHECK_BUTTON(gtk_builder_get_object(Builder, "MicBiasCheck"));
+    LineCheck = GTK_CHECK_BUTTON(gtk_builder_get_object(Builder, "LineCheck"));
 
     gtk_builder_add_callback_symbol (Builder, "on_testL_button_clicked", G_CALLBACK (on_testL_button_clicked));
     gtk_builder_add_callback_symbol (Builder, "on_testR_button_clicked", G_CALLBACK (on_testR_button_clicked));

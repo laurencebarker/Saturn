@@ -36,8 +36,8 @@ void CodecRegisterWrite(uint32_t Address, uint32_t Data)
 
 	WriteData = (Address << 9) | (Data & 0x01FFUL);
     sem_wait(&CodecRegMutex);                       // get protected access
+//	printf("writing data %04x to codec register %04x\n", Data, Address);
 	RegisterWrite(VADDRCODECSPIREG, WriteData);  	// and write to it
-	//printf("Codec write: send %03x to Codec register address %02x, written=%04x\n", Data, Address, WriteData);
     sem_post(&CodecRegMutex);                       // clear protected access
 }
 
