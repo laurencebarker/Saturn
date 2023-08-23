@@ -1,7 +1,7 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"1.04803",
-   "Default View_TopLeft":"83,1345",
+   "Default View_TopLeft":"79,1345",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
 #  -string -flagsOSRD
@@ -122,6 +122,7 @@ preplace netloc AXIL_SPIWriter_0_SPILoad_0 1 9 1 3850 920n
 preplace netloc AXI_SPI_ADC_0_MOSI 1 9 1 3840J 1080n
 preplace netloc AXI_SPI_ADC_0_SCLK 1 9 1 3850J 1100n
 preplace netloc AXI_SPI_ADC_0_nCS 1 9 1 3830J 1060n
+preplace netloc CK_KEY_DOWN_1 1 0 4 NJ 1100 NJ 1100 720J 1160 1000
 preplace netloc D_register_0_dout 1 5 5 N 1720 N 1720 N 1720 3260 1850 3850J
 preplace netloc Double_D_register_syncareset1_dout 1 6 4 2540 2700 N 2700 3320 2670 3800J
 preplace netloc Net 1 5 4 1820 2090 N 2090 N 2090 3250
@@ -162,7 +163,6 @@ preplace netloc xlslice_1_Dout 1 6 1 N 2620
 preplace netloc xlslice_1_Dout1 1 6 1 2520 2490n
 preplace netloc xlslice_3_Dout 1 6 1 2530 2210n
 preplace netloc xlslice_4_Dout 1 6 1 2520 2320n
-preplace netloc CK_KEY_DOWN_1 1 0 4 NJ 1100 NJ 1100 720J 1160 1000
 preplace netloc Conn1 1 5 5 1760J 810 N 810 2870 380 3250 310 3850J
 preplace netloc Conn2 1 0 4 NJ 2090 NJ 2090 NJ 2090 NJ
 preplace netloc Conn4 1 9 1 3740J 320n

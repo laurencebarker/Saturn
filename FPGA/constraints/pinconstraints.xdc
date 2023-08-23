@@ -2,7 +2,7 @@
 # user access register
 # used for "version number" settig - currently a date code
 #
-set_property BITSTREAM.CONFIG.USR_ACCESS 0x29072023 [current_design]
+set_property BITSTREAM.CONFIG.USR_ACCESS 0x23082023 [current_design]
 
 #SPI_BUSWIDTH sets the read commands into bit file.
 #CONFIG_MODE SPIx4 is for Vivado tool to check DRC. 

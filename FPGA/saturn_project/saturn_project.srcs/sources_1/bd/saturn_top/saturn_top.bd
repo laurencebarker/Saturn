@@ -6894,7 +6894,7 @@
             "inst_hier_path": "PCIe/xlconstant_swversion",
             "parameters": {
               "CONST_VAL": {
-                "value": "7"
+                "value": "8"
               },
               "CONST_WIDTH": {
                 "value": "16"
@@ -24827,7 +24827,7 @@
         "variant_info": {
           "audio_codec.bd": {
             "scoped_diagram": "audio_codec_inst_0.bd",
-            "design_checksum": "0xB6061C8B",
+            "design_checksum": "0x186ED96A",
             "ref_name": "audio_codec",
             "ref_subinst_path": "saturn_top_audio_codec_0",
             "ref_type": "Block Design",
