@@ -86,6 +86,8 @@ bit SPI_data;
 bit SPI_ck;
 bit Rx_load_strobe;
 bit Tx_load_strobe;
+bit test_fifo_tvalid;
+bit [7:0] test_fifo_tdata;
 
 
 //AXI4-Lite signals
@@ -120,7 +122,9 @@ AXI_GPIO_Sim_wrapper UUT
     .SPI_data             (SPI_data),
     .SPI_ck               (SPI_ck),
     .Rx_load_strobe       (Rx_load_strobe),
-    .Tx_load_strobe       (Tx_load_strobe)
+    .Tx_load_strobe       (Tx_load_strobe),
+    .test_fifo_tdata      (test_fifo_tdata),
+    .test_fifo_tvalid     (test_fifo_tvalid)
 
 );
 
@@ -133,10 +137,16 @@ always #10ns aclk = ~aclk;
 //
 initial begin
     //Assert the reset
+    fifo1_overflow = 0;
+    fifo2_overflow = 0;
+    fifo3_overflow = 0;
+    fifo4_overflow = 0;
     aresetn = 0;
     overrange1=0;
     overrange2=0;
     MISO=1;
+    test_fifo_tvalid = 0;
+    test_fifo_tdata = 0;
     #340ns
     // Release the reset
     aresetn = 1;
@@ -171,12 +181,12 @@ master_agent.start_master();
 // write control reg1-4; then read them back
 #100ns
 addr = 32'h00030010;
-data = 32'h80001000;        // FIFO threshold =0x1000, is enabled, read FIFO
+data = 32'hC0000200;        // FIFO threshold =512, int enabled, read FIFO
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
 
 #100ns
 addr = 32'h00030014;
-data = 32'h80002000;        // FIFO threshold =0x2000, is enabled, read FIFO
+data = 32'h80000200;        // FIFO threshold =512, int enabled, read FIFO
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
 
 #100ns
@@ -215,20 +225,19 @@ $display("read FIFO monitor control reg 4: data = 0x%x", data);
 
 //
 // give the FIFOs some data then read the status registers
-// giove them a FIFO overflow, but on 3&4 remove the overflow before the read to check it is cancelled
-//
+// give them a FIFO overflow, but on 3&4 remove the overflow before the read to check it is cancelled
+// write 10 bytes to the test FIFO
 #200ns
- fifo1_count=16'h001ff;                   // give it some data
- fifo1_overflow=1'b1;                    // make it overflow
- fifo2_count=16'h002ff;                   // give it some data
- fifo2_overflow=1'b1;                    // make it overflow
  fifo3_count=16'h003ff;                   // give it some data
  fifo3_overflow=1'b1;                    // make it overflow
  fifo4_count=16'h004ff;                   // give it some data
  fifo4_overflow=1'b1;                    // make it overflow
-#100ns
+ test_fifo_tdata = 8'hbc;
+ test_fifo_tvalid = 1;
+#200ns
  fifo3_overflow=1'b0;                    // clear overflow
  fifo4_overflow=1'b0;                    // clear overflow
+ test_fifo_tvalid = 0;
 #100ns
 // they should also show overflows, but 3&4 should drop their interrupt.
 
@@ -257,26 +266,6 @@ master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read FIFO monitor status 1 reg: data = 0x%x", data);
 
 
-//
-// now make FIFO count over threshold
-//   
-#200ns
- fifo1_count=16'h20ff;                   // give it some data over threshold
-#100ns
-data = 32'b0;
-master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
-$display("read FIFO monitor status 1 reg: data = 0x%x", data);
-
-
-#200ns
-// now set the FIFO to be a write fifo, so it reports underflow
-addr = 32'h00030010;
-data = 32'hC0001000;        // FIFO threshold =0x1000, in enabled, read FIFO
-master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
-     
-
-#200ns
-fifo1_count=16'h00ff;                   // make it go under threshold
 
 
 ////////////////////////////////////////////////////////////////////////////////
