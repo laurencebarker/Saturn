@@ -287,19 +287,23 @@ $display("(should be 1) read FIFO monitor status 1 reg: data = 0x%x", data);
 
 $display ("fill FIFO to 510 samples");
  test_fifo_tvalid = 1;
-#10180ns
+#10200ns
  test_fifo_tvalid = 0;
 
+@(posedge aclk)
 addr = 32'h00030000;        // status register
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("(should be 510) read FIFO monitor status 1 reg: data = 0x%x", data);
 
 $display ("add 2 to 512 samples then read one");
  test_fifo_tvalid = 1;
-#40ns
+@(posedge aclk)
+@(posedge aclk)
+
  test_fifo_tvalid = 0;
+@(posedge aclk)
  fifo_tready=1;
-#20ns
+@(posedge aclk)
  fifo_tready=0;
 addr = 32'h00030000;        // status register
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);

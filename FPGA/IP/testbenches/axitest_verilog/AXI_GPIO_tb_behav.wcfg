@@ -16,15 +16,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="997,040.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="1,000,592.001 ns"></ZoomEndTime>
-      <Cursor1Time time="1,000,000.000 ns"></Cursor1Time>
+      <ZoomStartTime time="14,325.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="15,000.001 ns"></ZoomEndTime>
+      <Cursor1Time time="3,000,000.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="223"></NameColumnWidth>
-      <ValueColumnWidth column_width="106"></ValueColumnWidth>
+      <ValueColumnWidth column_width="98"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="63" />
+   <WVObjectSize size="66" />
    <wave_markers>
       <marker time="15211621" label="" />
    </wave_markers>
@@ -148,6 +148,7 @@
       <obj_property name="ElementShortName">M_AXI</obj_property>
       <obj_property name="ObjectShortName">M_AXI</obj_property>
       <obj_property name="isExpanded"></obj_property>
+      <obj_property name="CellHeight">36</obj_property>
    </wvobject>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/fifo1_count" type="array">
       <obj_property name="ElementShortName">fifo1_count[15:0]</obj_property>
@@ -288,5 +289,17 @@
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/FIFO_Monitor_0/inst/fifo1_underflowed" type="logic">
       <obj_property name="ElementShortName">fifo1_underflowed</obj_property>
       <obj_property name="ObjectShortName">fifo1_underflowed</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/FIFO_Monitor_0/inst/fifo1_count" type="array">
+      <obj_property name="ElementShortName">fifo1_count[31:0]</obj_property>
+      <obj_property name="ObjectShortName">fifo1_count[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/fifo_tready" type="logic">
+      <obj_property name="ElementShortName">fifo_tready</obj_property>
+      <obj_property name="ObjectShortName">fifo_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/test_fifo_tvalid" type="logic">
+      <obj_property name="ElementShortName">test_fifo_tvalid</obj_property>
+      <obj_property name="ObjectShortName">test_fifo_tvalid</obj_property>
    </wvobject>
 </wave_config>
