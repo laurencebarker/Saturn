@@ -31,7 +31,7 @@
 //     bit 31      Interrupt enable
 //
 // FIFO Interface signals:
-//     FIFOn_Words(15:0)      current FIFO depth
+//     FIFOn_Words(31:0)      current FIFO depth (note only 16 bits considered valid)
 //     FIFOn_Overflow         if 1, an over(or under) flow has occurred 
 
 // Dependencies: 
@@ -49,8 +49,7 @@
 module FIFO_Monitor #
 (
   parameter integer AXI_DATA_WIDTH = 32,
-  parameter integer AXI_ADDR_WIDTH = 16,
-  parameter integer FIFO_DEPTH_SIZE = 16
+  parameter integer AXI_ADDR_WIDTH = 16
 )
 (
   // System signals
@@ -79,13 +78,13 @@ module FIFO_Monitor #
   // FIFO interface 
   // note the Xilinx FIFO reports the number of words held through both read and write side
   //
-  input wire [FIFO_DEPTH_SIZE-1:0] fifo1_count,    // current number of words in FIFO
+  input wire [31:0]                fifo1_count,    // current number of words in FIFO
   input wire                       fifo1_overflow, // if 1, an over(or under) flow has occurred 
-  input wire [FIFO_DEPTH_SIZE-1:0] fifo2_count,    // current number of words in FIFO
+  input wire [31:0]                fifo2_count,    // current number of words in FIFO
   input wire                       fifo2_overflow, // if 1, an over(or under) flow has occurred 
-  input wire [FIFO_DEPTH_SIZE-1:0] fifo3_count,    // current number of words in FIFO
+  input wire [31:0]                fifo3_count,    // current number of words in FIFO
   input wire                       fifo3_overflow, // if 1, an over(or under) flow has occurred 
-  input wire [FIFO_DEPTH_SIZE-1:0] fifo4_count,    // current number of words in FIFO
+  input wire [31:0]                fifo4_count,    // current number of words in FIFO
   input wire                       fifo4_overflow, // if 1, an over(or under) flow has occurred 
 
 // interrupt
@@ -95,32 +94,32 @@ module FIFO_Monitor #
   output wire                      int4_out        // interrupt output 1 for interrupt
 );
 
-  reg [FIFO_DEPTH_SIZE-1:0] fifo1_threshold; // writable register - threshold to trigger intr
-  reg [FIFO_DEPTH_SIZE-1:0] fifo1_count_reg; // current FIFO word count
+  reg [15:0] fifo1_threshold;                // writable register - threshold to trigger intr
+  reg [15:0] fifo1_count_reg;                // current FIFO word count
   reg int1_enable;                           // 1 enables interrupt generation
   reg fifo1_overflowed;                      // set true if FIFO has under/overflowed (from FIFO bit)
   reg fifo1_over_threshold;                  // set if FIFO exceeds threshold
   reg fifo1_underflowed;                     // set if FIFO emptied (from count)
   reg interrupt1_out;                        // interrupt bit out 
 
-  reg [FIFO_DEPTH_SIZE-1:0] fifo2_threshold; // writable register - threshold to trigger intr
-  reg [FIFO_DEPTH_SIZE-1:0] fifo2_count_reg; // current FIFO word count
+  reg [15:0] fifo2_threshold; // writable register - threshold to trigger intr
+  reg [15:0] fifo2_count_reg; // current FIFO word count
   reg int2_enable;                           // 1 enables interrupt generation
   reg fifo2_overflowed;                      // set true if FIFO has under/overflowed
   reg fifo2_over_threshold;                  // set if FIFO exceeds threshold
   reg fifo2_underflowed;                     // set if FIFO emptied (from count)
   reg interrupt2_out;                        // interrupt bit out 
 
-  reg [FIFO_DEPTH_SIZE-1:0] fifo3_threshold; // writable register - threshold to trigger intr
-  reg [FIFO_DEPTH_SIZE-1:0] fifo3_count_reg; // current FIFO word count
+  reg [15:0] fifo3_threshold; // writable register - threshold to trigger intr
+  reg [15:0] fifo3_count_reg; // current FIFO word count
   reg int3_enable;                           // 1 enables interrupt generation
   reg fifo3_overflowed;                      // set true if FIFO has under/overflowed
   reg fifo3_over_threshold;                  // set if FIFO exceeds threshold
   reg fifo3_underflowed;                     // set if FIFO emptied (from count)
   reg interrupt3_out;                        // interrupt bit out 
 
-  reg [FIFO_DEPTH_SIZE-1:0] fifo4_threshold; // writable register - threshold to trigger intr
-  reg [FIFO_DEPTH_SIZE-1:0] fifo4_count_reg; // current FIFO word count
+  reg [15:0] fifo4_threshold; // writable register - threshold to trigger intr
+  reg [15:0] fifo4_count_reg; // current FIFO word count
   reg int4_enable;                           // 1 enables interrupt generation
   reg fifo4_overflowed;                      // set true if FIFO has under/overflowed
   reg fifo4_over_threshold;                  // set if FIFO exceeds threshold
@@ -180,32 +179,32 @@ module FIFO_Monitor #
       rdatareg <= {(AXI_DATA_WIDTH){1'b0}};
       arreadyreg <= 1'b1;                           // ready for address transfer
       rvalidreg <= 1'b0;                            // not ready to transfer read data
-      awreadyreg  <= 1'b1;              // initialise to write address ready
-      wreadyreg  <= 1'b1;               // initialise to write data ready
-      bvalidreg <= 1'b0;                // initialise to "not ready to complete"
+      awreadyreg  <= 1'b1;                          // initialise to write address ready
+      wreadyreg  <= 1'b1;                           // initialise to write data ready
+      bvalidreg <= 1'b0;                            // initialise to "not ready to complete"
 // clear the FIFO registers      
-      fifo1_threshold <= {(FIFO_DEPTH_SIZE){1'b0}};      // zero the FIFO threshold
+      fifo1_threshold <= {32{1'b0}};                // zero the FIFO threshold
       int1_enable <= 1'b0;
       fifo1_overflowed <= 1'b0;
       interrupt1_out <= 1'b0;
       fifo1_over_threshold <= 1'b0;
       fifo1_underflowed <= 1'b0;
 
-      fifo2_threshold <= {(FIFO_DEPTH_SIZE){1'b0}};      // zero the FIFO threshold
+      fifo2_threshold <= {32{1'b0}};                // zero the FIFO threshold
       int2_enable <= 1'b0;
       fifo2_overflowed <= 1'b0;
       interrupt2_out <= 1'b0;
       fifo2_over_threshold <= 1'b0;
       fifo2_underflowed <= 1'b0;
 
-      fifo3_threshold <= {(FIFO_DEPTH_SIZE){1'b0}};      // zero the FIFO threshold
+      fifo3_threshold <= {32{1'b0}};                // zero the FIFO threshold
       int3_enable <= 1'b0;
       fifo3_overflowed <= 1'b0;
       interrupt3_out <= 1'b0;
       fifo3_over_threshold <= 1'b0;
       fifo3_underflowed <= 1'b0;
 
-      fifo4_threshold <= {(FIFO_DEPTH_SIZE){1'b0}};      // zero the FIFO threshold
+      fifo4_threshold <= {32{1'b0}};                // zero the FIFO threshold
       int4_enable <= 1'b0;
       fifo4_overflowed <= 1'b0;
       interrupt4_out <= 1'b0;
@@ -236,7 +235,7 @@ module FIFO_Monitor #
         fifo2_overflowed <= 1'b1;               // set persistently
 
       if(fifo2_count_reg >= fifo2_threshold)
-        fifo12_over_threshold <= 1'b1;
+        fifo2_over_threshold <= 1'b1;
       else if(fifo2_count_reg == 0)
         fifo2_underflowed <= 1'b1;
       interrupt2_out <= (int2_enable & (fifo2_overflowed | fifo2_over_threshold | fifo2_underflowed));
@@ -279,28 +278,28 @@ module FIFO_Monitor #
         rvalidreg <= 1'b1;                                  // signal ready to complete data
         case (raddrreg[4:2])
         0:  rdatareg <= {fifo1_overflowed, fifo1_over_threshold, fifo1_underflowed,
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 3){1'b0}}, 
+                    {(AXI_DATA_WIDTH - 19){1'b0}}, 
                     fifo1_count_reg};                        // concat data
         1:  rdatareg <= {fifo2_overflowed, fifo2_over_threshold, fifo2_underflowed,
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 3){1'b0}}, 
+                    {(AXI_DATA_WIDTH - 19){1'b0}}, 
                     fifo2_count_reg};                        // concat data
         2:  rdatareg <= {fifo3_overflowed, fifo3_over_threshold, fifo3_underflowed,
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 3){1'b0}}, 
+                    {(AXI_DATA_WIDTH - 19){1'b0}}, 
                     fifo3_count_reg};                        // concat data
         3:  rdatareg <= {fifo4_overflowed, fifo4_over_threshold, fifo4_underflowed,
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 3){1'b0}}, 
+                    {(AXI_DATA_WIDTH - 19){1'b0}}, 
                     fifo4_count_reg};                        // concat data
         4: rdatareg <= {int1_enable,  
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 1){1'b0}}, 
+                    {(AXI_DATA_WIDTH - 16 - 1){1'b0}}, 
                     fifo1_threshold};                        //concat 
         5: rdatareg <= {int2_enable,  
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 1){1'b0}}, 
+                    {(AXI_DATA_WIDTH - 16 - 1){1'b0}}, 
                     fifo2_threshold};                        //concat 
         6: rdatareg <= {int3_enable,  
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 1){1'b0}}, 
+                    {(AXI_DATA_WIDTH - 16 - 1){1'b0}}, 
                     fifo3_threshold};                        //concat 
         7: rdatareg <= {int4_enable,  
-                    {(AXI_DATA_WIDTH - FIFO_DEPTH_SIZE - 1){1'b0}}, 
+                    {(AXI_DATA_WIDTH - 16 - 1){1'b0}}, 
                     fifo4_threshold};                        //concat 
         endcase
       end
@@ -368,19 +367,19 @@ module FIFO_Monitor #
         wreadyreg <= 1'b1;
         case (waddrreg[4:2])
           4: begin
-               fifo1_threshold <= ( wdatareg & {(FIFO_DEPTH_SIZE){1'b1}});      // subset
+               fifo1_threshold <= ( wdatareg & {16{1'b1}});      // subset
                int1_enable <= (wdatareg >> (AXI_DATA_WIDTH-1)) & 1'b1;
              end
           5: begin
-               fifo2_threshold <= ( wdatareg & {(FIFO_DEPTH_SIZE){1'b1}});      // subset
+               fifo2_threshold <= ( wdatareg & {16{1'b1}});      // subset
                int2_enable <= (wdatareg >> (AXI_DATA_WIDTH-1)) & 1'b1;
              end
           6: begin
-               fifo3_threshold <= ( wdatareg & {(FIFO_DEPTH_SIZE){1'b1}});      // subset
+               fifo3_threshold <= ( wdatareg & {16{1'b1}});      // subset
                int3_enable <= (wdatareg >> (AXI_DATA_WIDTH-1)) & 1'b1;
              end
           7: begin
-               fifo4_threshold <= ( wdatareg & {(FIFO_DEPTH_SIZE){1'b1}});      // subset
+               fifo4_threshold <= ( wdatareg & {16{1'b1}});      // subset
                int4_enable <= (wdatareg >> (AXI_DATA_WIDTH-1)) & 1'b1;
              end
         endcase

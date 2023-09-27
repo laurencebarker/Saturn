@@ -88,6 +88,7 @@ bit Rx_load_strobe;
 bit Tx_load_strobe;
 bit test_fifo_tvalid;
 bit [7:0] test_fifo_tdata;
+bit fifo_tready;
 
 
 //AXI4-Lite signals
@@ -124,7 +125,8 @@ AXI_GPIO_Sim_wrapper UUT
     .Rx_load_strobe       (Rx_load_strobe),
     .Tx_load_strobe       (Tx_load_strobe),
     .test_fifo_tdata      (test_fifo_tdata),
-    .test_fifo_tvalid     (test_fifo_tvalid)
+    .test_fifo_tvalid     (test_fifo_tvalid),
+    .fifo_tready          (fifo_tready)
 
 );
 
@@ -147,6 +149,7 @@ initial begin
     MISO=1;
     test_fifo_tvalid = 0;
     test_fifo_tdata = 0;
+    fifo_tready=0;
     #340ns
     // Release the reset
     aresetn = 1;
@@ -222,6 +225,7 @@ data = 32'b0;
 addr = 32'h0003001C;
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read FIFO monitor control reg 4: data = 0x%x", data);
+$display("writing 10 bytes to FIFO 1");
 
 //
 // give the FIFOs some data then read the status registers
@@ -248,25 +252,62 @@ $display("read FIFO monitor status 1 reg: data = 0x%x", data);
 addr = 32'h00030004;        // status register
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read FIFO monitor status 2 reg: data = 0x%x", data);
+
+$display("reading 5 bytes from FIFO 1");
+
+//
+// assert fifo_tready
+ fifo_tready = 1;
 #100ns
-addr = 32'h00030008;        // status register
+ fifo_tready = 0;
+#100ns
+addr = 32'h00030000;        // status register
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
-$display("read FIFO monitor status 3 reg: data = 0x%x", data);
+$display("(should be 5) read FIFO monitor status 1 reg: data = 0x%x", data);
+
+$display("reading 5 bytes from FIFO 1 then write one byte back");
+
+//
+// assert fifo_tready to read
+ fifo_tready = 1;
 #100ns
-addr = 32'h0003000C;        // status register
+ fifo_tready = 0;
+#100ns
+ test_fifo_tvalid = 1;
+#20ns
+ test_fifo_tvalid = 0;
+addr = 32'h00030000;        // status register
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
-$display("read FIFO monitor status 4 reg: data = 0x%x", data);
+$display("(should be 1 with underflow) read FIFO monitor status 1 reg: data = 0x%x", data);
 
-#100ns
-fifo1_overflow = 1'b0;                   // remove the overflow
-#100ns
-data = 32'b0;
-addr = 32'h00030000;        // status register 1
+addr = 32'h00030000;        // status register
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
-$display("read FIFO monitor status 1 reg: data = 0x%x", data);
+$display("(should be 1) read FIFO monitor status 1 reg: data = 0x%x", data);
 
 
+$display ("fill FIFO to 510 samples");
+ test_fifo_tvalid = 1;
+#10180ns
+ test_fifo_tvalid = 0;
 
+addr = 32'h00030000;        // status register
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("(should be 510) read FIFO monitor status 1 reg: data = 0x%x", data);
+
+$display ("add 2 to 512 samples then read one");
+ test_fifo_tvalid = 1;
+#40ns
+ test_fifo_tvalid = 0;
+ fifo_tready=1;
+#20ns
+ fifo_tready=0;
+addr = 32'h00030000;        // status register
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("(should be 511 with overflow) read FIFO monitor status 1 reg: data = 0x%x", data);
+
+addr = 32'h00030000;        // status register
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("(should be 511) read FIFO monitor status 1 reg: data = 0x%x", data);
 
 ////////////////////////////////////////////////////////////////////////////////
 //
