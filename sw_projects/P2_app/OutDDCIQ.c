@@ -266,7 +266,7 @@ void *OutgoingDDCIQ(void *arg)
     
     int IQReadfile_fd = -1;									    // DMA read file device
     uint32_t RegisterValue;
-    bool FIFOOverflow;
+    bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;
     int DDC;                                                    // iterator
 
     struct ThreadSocketData *ThreadData;                        // socket etc data for each thread.
@@ -333,8 +333,8 @@ void *OutgoingDDCIQ(void *arg)
     usleep(1000);                           // give FIFO time to stop recording 
     SetupFIFOMonitorChannel(eRXDDCDMA, false);
     ResetDMAStreamFIFO(eRXDDCDMA);
-    RegisterValue = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow);				// read the FIFO Depth register
-	printf("DDC FIFO Depth register = %08x (should be 0)\n", RegisterValue);
+    RegisterValue = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);				// read the FIFO Depth register
+	printf("DDC FIFO Depth register = %08x (should be ~0)\n", RegisterValue);
 	Depth=0;
 
 
@@ -440,12 +440,22 @@ void *OutgoingDDCIQ(void *arg)
             // and copy it like we do with IQ data so the next readout begins at a new frame
             // the latter approach seems easier!
             //
-            Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow);				// read the FIFO Depth register
+            Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);				// read the FIFO Depth register
+            if(FIFOOverThreshold)
+                printf("RX DDC FIFO Overthreshold, depth now = %d\n", Depth);
+// note this could often generate a message at low sample rate because we deliberately read it down to zero.
+// this isn't a problem as we can send the data on without the code becoming blocked. so not a useful trap.
+//            if(FIFOUnderflow)
+//                 printf("RX DDC FIFO Underflowed, depth now = %d\n", Depth);
             //		printf("read: depth = %d\n", Depth);
             while(Depth < (DMATransferSize/8U))			// 8 bytes per location
             {
                 usleep(1000);								// 1ms wait
-                Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow);				// read the FIFO Depth register
+                Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);				// read the FIFO Depth register
+                if(FIFOOverThreshold)
+                    printf("RX DDC FIFO Overthreshold, depth now = %d\n", Depth);
+//                if(FIFOUnderflow)
+//                    printf("RX DDC FIFO Underflowed, depth now = %d\n", Depth);
             //			printf("read: depth = %d\n", Depth);
             }
 //            printf("DDC DMA read %d bytes from destination to base\n", DMATransferSize);

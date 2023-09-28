@@ -69,7 +69,7 @@ void *OutgoingMicSamples(void *arg)
     uint32_t Depth = 0;
     int DMAReadfile_fd = -1;									// DMA read file device
     uint32_t RegisterValue;
-    bool FIFOOverflow;
+    bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;
 
 
 //
@@ -112,7 +112,7 @@ void *OutgoingMicSamples(void *arg)
   //
     SetupFIFOMonitorChannel(eMicCodecDMA, false);
     ResetDMAStreamFIFO(eMicCodecDMA);
-    RegisterValue = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow);				// read the FIFO Depth register
+    RegisterValue = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);				// read the FIFO Depth register
     printf("mic FIFO Depth register = %08x (should be ~0)\n", RegisterValue);
     Depth = 0;
 
@@ -156,11 +156,21 @@ void *OutgoingMicSamples(void *arg)
             //
             // now wait until there is data, then DMA it
             //
-            Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow);			// read the FIFO Depth register. 4 mic words per 64 bit word.
+            Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);			// read the FIFO Depth register. 4 mic words per 64 bit word.
+            if(FIFOOverThreshold)
+                printf("Codec Mic FIFO Overthreshold, depth now = %d\n", Depth);
+// note this would often generate a message because we deliberately read it down to zero.
+// this isn't a problem as we can send the data on without the code becoming blocked.
+//            if(FIFOUnderflow)
+//                printf("Codec Mic FIFO Underflowed, depth now = %d\n", Depth);
             while (Depth < (VMICSAMPLESPERFRAME/4))			        // 16 locations = 64 samples
             {
                 usleep(1000);								        // 1ms wait
-                Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow);				// read the FIFO Depth register
+                Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);				// read the FIFO Depth register
+                if(FIFOOverThreshold)
+                    printf("Codec Mic FIFO Overthreshold, depth now = %d\n", Depth);
+//                if(FIFOUnderflow)
+//                    printf("Codec Mic FIFO Underflowed, depth now = %d\n", Depth);
             }
 
             DMAReadFromFPGA(DMAReadfile_fd, MicBasePtr, VDMATRANSFERSIZE, VADDRMICSTREAMREAD);

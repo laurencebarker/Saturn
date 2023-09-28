@@ -31,6 +31,7 @@ sem_t DDCResetFIFOMutex;
 // Setup a single FIFO monitor channel.
 //   Channel:			IP channel number (enum)
 //   EnableInterrupt:	true if interrupt generation enabled for overflows
+// modified 28/9/2023 to remove "write FIFO": FPGA now detects overflow AND underflow
 //
 void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt)
 {
@@ -39,8 +40,6 @@ void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt)
 
 	Address = VADDRFIFOMONBASE + 4 * Channel + 0x10;			// config register address
 	Data = DMAFIFODepths[(int)Channel];							// memory depth
-	if ((Channel == eTXDUCDMA) || (Channel == eSpkCodecDMA))	// if a "write" FIFO
-		Data += 0x40000000;						// bit 30 
 	if (EnableInterrupt)
 		Data += 0x80000000;						// bit 31
 	RegisterWrite(Address, Data);
@@ -56,19 +55,29 @@ void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt)
 // for a write FIFO: returns the number of free locations available to write
 //   Channel:			IP core channel number (enum)
 //   Overflowed:		true if an overflow has occurred. Reading clears the overflow bit.
+//   OverThreshold:		true if overflow occurred  measures by threshold. Cleared by read.
+//   Underflowed:       true if underflow has occurred. Cleared by read.
 //
-uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed)
+uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed, bool* OverThreshold, bool* Underflowed)
 {
 	uint32_t Address;							// register address
 	uint32_t Data = 0;							// register content
 	bool Overflow = false;
+	bool OverThresh = false;
+	bool Underflow = false;
 
 	Address = VADDRFIFOMONBASE + 4 * (uint32_t)Channel;			// status register address
 	Data = RegisterRead(Address);
 	if (Data & 0x80000000)										// if top bit set, declare overflow
 		Overflow = true;
+	if (Data & 0x40000000)										// if bit 30 set, declare over threshold
+		OverThresh = true;
+	if (Data & 0x20000000)										// if bit 29 set, declare underflow
+		Underflow = true;
 	Data = Data & 0xFFFF;										// strip to 16 bits
 	*Overflowed = Overflow;										// send out overflow result
+	*OverThreshold = OverThresh;								// send out over threshold result
+	*Underflowed = Underflow;									// send out underflow result
 	if ((Channel == eTXDUCDMA) || (Channel == eSpkCodecDMA))	// if a write channel
 		Data = DMAFIFODepths[Channel] - Data;					// calculate free locations
 	return Data;												// return 16 bit FIFO count

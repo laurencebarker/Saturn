@@ -64,7 +64,7 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
     unsigned char* SpkBasePtr;								// ptr to DMA location in spk memory
     uint32_t Depth = 0;
     int DMAWritefile_fd = -1;								// DMA read file device
-    bool FIFOOverflow;
+    bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;
     uint32_t RegVal;
 
     ThreadData = (struct ThreadSocketData *)arg;
@@ -95,6 +95,7 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
         InitError = true;
     }
 	ResetDMAStreamFIFO(eSpkCodecDMA);
+    SetupFIFOMonitorChannel(eSpkCodecDMA, false);
 
   //
   // main processing loop
@@ -119,12 +120,20 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
         {
             NewMessageReceived = true;
             RegVal += 1;            //debug
-            Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow);        // read the FIFO free locations
+            Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);        // read the FIFO free locations
+            if(FIFOOverThreshold)
+                printf("Codec speaker FIFO Overthreshold, depth now = %d\n", Depth);
+            if(FIFOUnderflow)
+                printf("Codec Speaker FIFO Underflowed, depth now = %d\n", Depth);
 //            printf("speaker packet received; depth = %d\n", Depth);
             while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {
                 usleep(1000);								                    // 1ms wait
-                Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow);    // read the FIFO free locations
+                Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);    // read the FIFO free locations
+                if(FIFOOverThreshold)
+                    printf("Codec speaker FIFO Overthreshold, depth now = %d\n", Depth);
+                if(FIFOUnderflow)
+                    printf("Codec Speaker FIFO Underflowed, depth now = %d\n", Depth);
             }
             // copy sata from UDP Buffer & DMA write it
             memcpy(SpkBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);              // copy out spk samples

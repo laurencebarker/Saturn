@@ -63,7 +63,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     unsigned char* IQBasePtr;								// ptr to DMA location in I/Q memory
     uint32_t Depth = 0;
     int DMAWritefile_fd = -1;								// DMA read file device
-    bool FIFOOverflow;
+    bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;
     uint32_t Cntr;                                          // sample counter
     uint8_t* SrcPtr;                                        // pointer to data from Thetis
     uint8_t* DestPtr;                                       // pointer to DMA buffer data
@@ -103,6 +103,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     SetTXIQDeinterleaved(false);                          // not interleaved (at least for now!)
     ResetDUCMux();                                        // reset 64 to 48 mux
     ResetDMAStreamFIFO(eTXDUCDMA);
+    SetupFIFOMonitorChannel(eTXDUCDMA, false);
     EnableDUCMux(true);                                   // enable operation
 
   //
@@ -127,11 +128,19 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
         if(size == VDUCIQSIZE)
         {
             NewMessageReceived = true;
-            Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow);           // read the FIFO free locations
+            Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);           // read the FIFO free locations
+            if(FIFOOverThreshold)
+                printf("TX DUC FIFO Overthreshold, depth now = %d\n", Depth);
+            if(FIFOUnderflow)
+                printf("TX DUC FIFO Underflowed, depth now = %d\n", Depth);
             while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {
                 usleep(500);								                    // 0.5ms wait
-                Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow);       // read the FIFO free locations
+                Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);       // read the FIFO free locations
+                if(FIFOOverThreshold)
+                    printf("TX DUC FIFO Overthreshold, depth now = %d\n", Depth);
+                if(FIFOUnderflow)
+                    printf("TX DUC FIFO Underflowed, depth now = %d\n", Depth);
             }
             // copy data from UDP Buffer & DMA write it
 //            memcpy(IQBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);                // copy out I/Q samples

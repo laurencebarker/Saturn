@@ -43,8 +43,10 @@ void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt);
 // for a write FIFO: returns the number of free locations available to write
 //   Channel:			IP core channel number (enum)
 //   Overflowed:		true if an overflow has occurred. Reading clears the overflow bit.
+//   OverThreshold:		true if overflow occurred  measures by threshold. Cleared by read.
+//   Underflowed:       true if underflow has occurred. Cleared by read.
 //
-uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed);
+uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed, bool* OverThreshold, bool* Underflowed);
 
 
 //
