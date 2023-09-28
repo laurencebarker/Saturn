@@ -7,18 +7,11 @@
       "name": "IQ_Modulation_Select",
       "rev_ctrl_bd_flag": "RevCtrlBdOff",
       "synth_flow_mode": "Hierarchical",
-      "tool_version": "2021.2",
+      "tool_version": "2023.1",
       "validated": "true"
     },
     "design_tree": {
-      "axi_bram_ctrl_0": "",
-      "axis_subset_converter_32to48bit": "",
-      "blk_mem_gen_0": "",
-      "dds_compiler_testsource": "",
       "util_reduced_logic_0": "",
-      "util_vector_OR_TXgate": "",
-      "util_vector_TXgate1": "",
-      "xlconst_amplQ": "",
       "xlslice_0": "",
       "xlslice_TXsel": "",
       "xlslice_keyerdelay": "",
@@ -30,7 +23,14 @@
       "axis_mux_4_0": "",
       "cw_key_ramp_0": "",
       "reg_to_axis_0": "",
-      "byteswap_48_0": ""
+      "byteswap_48_0": "",
+      "axi_bram_ctrl_0": "",
+      "axis_subset_converter_32to48bit": "",
+      "blk_mem_gen_0": "",
+      "dds_compiler_testsource": "",
+      "util_vector_OR_TXgate": "",
+      "util_vector_TXgate1": "",
+      "xlconst_amplQ": ""
     },
     "interface_ports": {
       "S_AXI_keyerBRAM": {
@@ -140,6 +140,166 @@
           "minimum": "0x00000000",
           "maximum": "0x00007FFF",
           "width": "15"
+        },
+        "port_maps": {
+          "ARADDR": {
+            "physical_name": "S_AXI_keyerBRAM_araddr",
+            "direction": "I",
+            "left": "11",
+            "right": "0"
+          },
+          "ARBURST": {
+            "physical_name": "S_AXI_keyerBRAM_arburst",
+            "direction": "I",
+            "left": "1",
+            "right": "0"
+          },
+          "ARCACHE": {
+            "physical_name": "S_AXI_keyerBRAM_arcache",
+            "direction": "I",
+            "left": "3",
+            "right": "0"
+          },
+          "ARLEN": {
+            "physical_name": "S_AXI_keyerBRAM_arlen",
+            "direction": "I",
+            "left": "7",
+            "right": "0"
+          },
+          "ARLOCK": {
+            "physical_name": "S_AXI_keyerBRAM_arlock",
+            "direction": "I"
+          },
+          "ARPROT": {
+            "physical_name": "S_AXI_keyerBRAM_arprot",
+            "direction": "I",
+            "left": "2",
+            "right": "0"
+          },
+          "ARREADY": {
+            "physical_name": "S_AXI_keyerBRAM_arready",
+            "direction": "O"
+          },
+          "ARSIZE": {
+            "physical_name": "S_AXI_keyerBRAM_arsize",
+            "direction": "I",
+            "left": "2",
+            "right": "0"
+          },
+          "ARVALID": {
+            "physical_name": "S_AXI_keyerBRAM_arvalid",
+            "direction": "I"
+          },
+          "AWADDR": {
+            "physical_name": "S_AXI_keyerBRAM_awaddr",
+            "direction": "I",
+            "left": "11",
+            "right": "0"
+          },
+          "AWBURST": {
+            "physical_name": "S_AXI_keyerBRAM_awburst",
+            "direction": "I",
+            "left": "1",
+            "right": "0"
+          },
+          "AWCACHE": {
+            "physical_name": "S_AXI_keyerBRAM_awcache",
+            "direction": "I",
+            "left": "3",
+            "right": "0"
+          },
+          "AWLEN": {
+            "physical_name": "S_AXI_keyerBRAM_awlen",
+            "direction": "I",
+            "left": "7",
+            "right": "0"
+          },
+          "AWLOCK": {
+            "physical_name": "S_AXI_keyerBRAM_awlock",
+            "direction": "I"
+          },
+          "AWPROT": {
+            "physical_name": "S_AXI_keyerBRAM_awprot",
+            "direction": "I",
+            "left": "2",
+            "right": "0"
+          },
+          "AWREADY": {
+            "physical_name": "S_AXI_keyerBRAM_awready",
+            "direction": "O"
+          },
+          "AWSIZE": {
+            "physical_name": "S_AXI_keyerBRAM_awsize",
+            "direction": "I",
+            "left": "2",
+            "right": "0"
+          },
+          "AWVALID": {
+            "physical_name": "S_AXI_keyerBRAM_awvalid",
+            "direction": "I"
+          },
+          "BREADY": {
+            "physical_name": "S_AXI_keyerBRAM_bready",
+            "direction": "I"
+          },
+          "BRESP": {
+            "physical_name": "S_AXI_keyerBRAM_bresp",
+            "direction": "O",
+            "left": "1",
+            "right": "0"
+          },
+          "BVALID": {
+            "physical_name": "S_AXI_keyerBRAM_bvalid",
+            "direction": "O"
+          },
+          "RDATA": {
+            "physical_name": "S_AXI_keyerBRAM_rdata",
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "RLAST": {
+            "physical_name": "S_AXI_keyerBRAM_rlast",
+            "direction": "O"
+          },
+          "RREADY": {
+            "physical_name": "S_AXI_keyerBRAM_rready",
+            "direction": "I"
+          },
+          "RRESP": {
+            "physical_name": "S_AXI_keyerBRAM_rresp",
+            "direction": "O",
+            "left": "1",
+            "right": "0"
+          },
+          "RVALID": {
+            "physical_name": "S_AXI_keyerBRAM_rvalid",
+            "direction": "O"
+          },
+          "WDATA": {
+            "physical_name": "S_AXI_keyerBRAM_wdata",
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "WLAST": {
+            "physical_name": "S_AXI_keyerBRAM_wlast",
+            "direction": "I"
+          },
+          "WREADY": {
+            "physical_name": "S_AXI_keyerBRAM_wready",
+            "direction": "O"
+          },
+          "WSTRB": {
+            "physical_name": "S_AXI_keyerBRAM_wstrb",
+            "direction": "I",
+            "left": "3",
+            "right": "0"
+          },
+          "WVALID": {
+            "physical_name": "S_AXI_keyerBRAM_wvalid",
+            "direction": "I"
+          }
         }
       },
       "TX_IQ_in": {
@@ -188,6 +348,22 @@
           },
           "TUSER_WIDTH": {
             "value": "0"
+          }
+        },
+        "port_maps": {
+          "TDATA": {
+            "physical_name": "TX_IQ_in_tdata",
+            "direction": "I",
+            "left": "47",
+            "right": "0"
+          },
+          "TVALID": {
+            "physical_name": "TX_IQ_in_tvalid",
+            "direction": "I"
+          },
+          "TREADY": {
+            "physical_name": "TX_IQ_in_tready",
+            "direction": "O"
           }
         }
       },
@@ -247,6 +423,50 @@
             "value": "1",
             "value_src": "auto_prop"
           }
+        },
+        "port_maps": {
+          "TID": {
+            "physical_name": "m_axis_TXMod_tid",
+            "direction": "O",
+            "left": "7",
+            "right": "0"
+          },
+          "TDEST": {
+            "physical_name": "m_axis_TXMod_tdest",
+            "direction": "O",
+            "left": "7",
+            "right": "0"
+          },
+          "TDATA": {
+            "physical_name": "m_axis_TXMod_tdata",
+            "direction": "O",
+            "left": "47",
+            "right": "0"
+          },
+          "TKEEP": {
+            "physical_name": "m_axis_TXMod_tkeep",
+            "direction": "O",
+            "left": "0",
+            "right": "0"
+          },
+          "TLAST": {
+            "physical_name": "m_axis_TXMod_tlast",
+            "direction": "O"
+          },
+          "TUSER": {
+            "physical_name": "m_axis_TXMod_tuser",
+            "direction": "O",
+            "left": "0",
+            "right": "0"
+          },
+          "TVALID": {
+            "physical_name": "m_axis_TXMod_tvalid",
+            "direction": "O"
+          },
+          "TREADY": {
+            "physical_name": "m_axis_TXMod_tready",
+            "direction": "I"
+          }
         }
       },
       "m_axis_envelope": {
@@ -305,6 +525,22 @@
             "value": "0",
             "value_src": "const_prop"
           }
+        },
+        "port_maps": {
+          "TDATA": {
+            "physical_name": "m_axis_envelope_tdata",
+            "direction": "O",
+            "left": "47",
+            "right": "0"
+          },
+          "TVALID": {
+            "physical_name": "m_axis_envelope_tvalid",
+            "direction": "O"
+          },
+          "TREADY": {
+            "physical_name": "m_axis_envelope_tready",
+            "direction": "I"
+          }
         }
       },
       "m_axis_sidetoneampl": {
@@ -362,6 +598,18 @@
           "TUSER_WIDTH": {
             "value": "0",
             "value_src": "const_prop"
+          }
+        },
+        "port_maps": {
+          "TDATA": {
+            "physical_name": "m_axis_sidetoneampl_tdata",
+            "direction": "O",
+            "left": "15",
+            "right": "0"
+          },
+          "TVALID": {
+            "physical_name": "m_axis_sidetoneampl_tvalid",
+            "direction": "O"
           }
         }
       }
@@ -492,155 +740,6 @@
       }
     },
     "components": {
-      "axi_bram_ctrl_0": {
-        "vlnv": "xilinx.com:ip:axi_bram_ctrl:4.1",
-        "xci_name": "IQ_Modulation_Select_axi_bram_ctrl_0_0",
-        "xci_path": "ip\\IQ_Modulation_Select_axi_bram_ctrl_0_0\\IQ_Modulation_Select_axi_bram_ctrl_0_0.xci",
-        "inst_hier_path": "axi_bram_ctrl_0",
-        "parameters": {
-          "SINGLE_PORT_BRAM": {
-            "value": "1"
-          }
-        }
-      },
-      "axis_subset_converter_32to48bit": {
-        "vlnv": "xilinx.com:ip:axis_subset_converter:1.1",
-        "xci_name": "IQ_Modulation_Select_axis_subset_converter_32to48bit_0",
-        "xci_path": "ip\\IQ_Modulation_Select_axis_subset_converter_32to48bit_0\\IQ_Modulation_Select_axis_subset_converter_32to48bit_0.xci",
-        "inst_hier_path": "axis_subset_converter_32to48bit",
-        "parameters": {
-          "M_TDATA_NUM_BYTES": {
-            "value": "6"
-          },
-          "S_TDATA_NUM_BYTES": {
-            "value": "4"
-          },
-          "TDATA_REMAP": {
-            "value": "tdata[31:16],8'b00000000,tdata[15:0], 8'b00000000"
-          }
-        }
-      },
-      "blk_mem_gen_0": {
-        "vlnv": "xilinx.com:ip:blk_mem_gen:8.4",
-        "xci_name": "IQ_Modulation_Select_blk_mem_gen_0_0",
-        "xci_path": "ip\\IQ_Modulation_Select_blk_mem_gen_0_0\\IQ_Modulation_Select_blk_mem_gen_0_0.xci",
-        "inst_hier_path": "blk_mem_gen_0",
-        "parameters": {
-          "EN_SAFETY_CKT": {
-            "value": "false"
-          },
-          "Enable_32bit_Address": {
-            "value": "true"
-          },
-          "Enable_B": {
-            "value": "Use_ENB_Pin"
-          },
-          "Memory_Type": {
-            "value": "True_Dual_Port_RAM"
-          },
-          "Port_A_Write_Rate": {
-            "value": "50"
-          },
-          "Port_B_Clock": {
-            "value": "100"
-          },
-          "Port_B_Enable_Rate": {
-            "value": "100"
-          },
-          "Port_B_Write_Rate": {
-            "value": "50"
-          },
-          "Read_Width_A": {
-            "value": "32"
-          },
-          "Read_Width_B": {
-            "value": "32"
-          },
-          "Register_PortA_Output_of_Memory_Primitives": {
-            "value": "false"
-          },
-          "Use_RSTA_Pin": {
-            "value": "true"
-          },
-          "Use_RSTB_Pin": {
-            "value": "true"
-          },
-          "Write_Width_A": {
-            "value": "32"
-          },
-          "Write_Width_B": {
-            "value": "32"
-          },
-          "use_bram_block": {
-            "value": "BRAM_Controller"
-          }
-        }
-      },
-      "dds_compiler_testsource": {
-        "vlnv": "xilinx.com:ip:dds_compiler:6.0",
-        "xci_name": "IQ_Modulation_Select_dds_compiler_testsource_0",
-        "xci_path": "ip\\IQ_Modulation_Select_dds_compiler_testsource_0\\IQ_Modulation_Select_dds_compiler_testsource_0.xci",
-        "inst_hier_path": "dds_compiler_testsource",
-        "parameters": {
-          "Amplitude_Mode": {
-            "value": "Full_Range"
-          },
-          "DATA_Has_TLAST": {
-            "value": "Not_Required"
-          },
-          "DDS_Clock_Rate": {
-            "value": "122.88"
-          },
-          "Frequency_Resolution": {
-            "value": "0.4"
-          },
-          "Has_ARESETn": {
-            "value": "true"
-          },
-          "Has_Phase_Out": {
-            "value": "false"
-          },
-          "Has_TREADY": {
-            "value": "true"
-          },
-          "Latency": {
-            "value": "13"
-          },
-          "M_DATA_Has_TUSER": {
-            "value": "Not_Required"
-          },
-          "Negative_Cosine": {
-            "value": "false"
-          },
-          "Noise_Shaping": {
-            "value": "None"
-          },
-          "Output_Frequency1": {
-            "value": "0"
-          },
-          "Output_Width": {
-            "value": "16"
-          },
-          "PINC1": {
-            "value": "0"
-          },
-          "Parameter_Entry": {
-            "value": "Hardware_Parameters"
-          },
-          "Phase_Increment": {
-            "value": "Streaming"
-          },
-          "Phase_Width": {
-            "value": "32"
-          },
-          "S_PHASE_Has_TUSER": {
-            "value": "Not_Required"
-          },
-          "Spurious_Free_Dynamic_Range": {
-            "value": "45"
-          }
-        }
-      },
       "util_reduced_logic_0": {
         "vlnv": "xilinx.com:ip:util_reduced_logic:2.0",
         "xci_name": "IQ_Modulation_Select_util_reduced_logic_0_0",
@@ -649,48 +748,6 @@
         "parameters": {
           "C_SIZE": {
             "value": "2"
-          }
-        }
-      },
-      "util_vector_OR_TXgate": {
-        "vlnv": "xilinx.com:ip:util_vector_logic:2.0",
-        "xci_name": "IQ_Modulation_Select_util_vector_OR_TXgate_0",
-        "xci_path": "ip\\IQ_Modulation_Select_util_vector_OR_TXgate_0\\IQ_Modulation_Select_util_vector_OR_TXgate_0.xci",
-        "inst_hier_path": "util_vector_OR_TXgate",
-        "parameters": {
-          "C_OPERATION": {
-            "value": "or"
-          },
-          "C_SIZE": {
-            "value": "1"
-          }
-        }
-      },
-      "util_vector_TXgate1": {
-        "vlnv": "xilinx.com:ip:util_vector_logic:2.0",
-        "xci_name": "IQ_Modulation_Select_util_vector_TXgate1_0",
-        "xci_path": "ip\\IQ_Modulation_Select_util_vector_TXgate1_0\\IQ_Modulation_Select_util_vector_TXgate1_0.xci",
-        "inst_hier_path": "util_vector_TXgate1",
-        "parameters": {
-          "C_OPERATION": {
-            "value": "and"
-          },
-          "C_SIZE": {
-            "value": "1"
-          }
-        }
-      },
-      "xlconst_amplQ": {
-        "vlnv": "xilinx.com:ip:xlconstant:1.1",
-        "xci_name": "IQ_Modulation_Select_xlconst_amplQ_0",
-        "xci_path": "ip\\IQ_Modulation_Select_xlconst_amplQ_0\\IQ_Modulation_Select_xlconst_amplQ_0.xci",
-        "inst_hier_path": "xlconst_amplQ",
-        "parameters": {
-          "CONST_VAL": {
-            "value": "0x00007FFFFF"
-          },
-          "CONST_WIDTH": {
-            "value": "48"
           }
         }
       },
@@ -2187,6 +2244,197 @@
             "direction": "I"
           }
         }
+      },
+      "axi_bram_ctrl_0": {
+        "vlnv": "xilinx.com:ip:axi_bram_ctrl:4.1",
+        "xci_name": "IQ_Modulation_Select_axi_bram_ctrl_0_0",
+        "xci_path": "ip\\IQ_Modulation_Select_axi_bram_ctrl_0_0\\IQ_Modulation_Select_axi_bram_ctrl_0_0.xci",
+        "inst_hier_path": "axi_bram_ctrl_0",
+        "parameters": {
+          "SINGLE_PORT_BRAM": {
+            "value": "1"
+          }
+        }
+      },
+      "axis_subset_converter_32to48bit": {
+        "vlnv": "xilinx.com:ip:axis_subset_converter:1.1",
+        "xci_name": "IQ_Modulation_Select_axis_subset_converter_32to48bit_0",
+        "xci_path": "ip\\IQ_Modulation_Select_axis_subset_converter_32to48bit_0\\IQ_Modulation_Select_axis_subset_converter_32to48bit_0.xci",
+        "inst_hier_path": "axis_subset_converter_32to48bit",
+        "parameters": {
+          "M_TDATA_NUM_BYTES": {
+            "value": "6"
+          },
+          "S_TDATA_NUM_BYTES": {
+            "value": "4"
+          },
+          "TDATA_REMAP": {
+            "value": "tdata[31:16],8'b00000000,tdata[15:0], 8'b00000000"
+          }
+        }
+      },
+      "blk_mem_gen_0": {
+        "vlnv": "xilinx.com:ip:blk_mem_gen:8.4",
+        "xci_name": "IQ_Modulation_Select_blk_mem_gen_0_0",
+        "xci_path": "ip\\IQ_Modulation_Select_blk_mem_gen_0_0\\IQ_Modulation_Select_blk_mem_gen_0_0.xci",
+        "inst_hier_path": "blk_mem_gen_0",
+        "parameters": {
+          "EN_SAFETY_CKT": {
+            "value": "false"
+          },
+          "Enable_32bit_Address": {
+            "value": "true"
+          },
+          "Enable_B": {
+            "value": "Use_ENB_Pin"
+          },
+          "Memory_Type": {
+            "value": "True_Dual_Port_RAM"
+          },
+          "Port_A_Write_Rate": {
+            "value": "50"
+          },
+          "Port_B_Clock": {
+            "value": "100"
+          },
+          "Port_B_Enable_Rate": {
+            "value": "100"
+          },
+          "Port_B_Write_Rate": {
+            "value": "50"
+          },
+          "Read_Width_A": {
+            "value": "32"
+          },
+          "Read_Width_B": {
+            "value": "32"
+          },
+          "Register_PortA_Output_of_Memory_Primitives": {
+            "value": "false"
+          },
+          "Use_RSTA_Pin": {
+            "value": "true"
+          },
+          "Use_RSTB_Pin": {
+            "value": "true"
+          },
+          "Write_Width_A": {
+            "value": "32"
+          },
+          "Write_Width_B": {
+            "value": "32"
+          },
+          "use_bram_block": {
+            "value": "BRAM_Controller"
+          }
+        }
+      },
+      "dds_compiler_testsource": {
+        "vlnv": "xilinx.com:ip:dds_compiler:6.0",
+        "xci_name": "IQ_Modulation_Select_dds_compiler_testsource_0",
+        "xci_path": "ip\\IQ_Modulation_Select_dds_compiler_testsource_0\\IQ_Modulation_Select_dds_compiler_testsource_0.xci",
+        "inst_hier_path": "dds_compiler_testsource",
+        "parameters": {
+          "Amplitude_Mode": {
+            "value": "Full_Range"
+          },
+          "DATA_Has_TLAST": {
+            "value": "Not_Required"
+          },
+          "DDS_Clock_Rate": {
+            "value": "122.88"
+          },
+          "Frequency_Resolution": {
+            "value": "0.4"
+          },
+          "Has_ARESETn": {
+            "value": "true"
+          },
+          "Has_Phase_Out": {
+            "value": "false"
+          },
+          "Has_TREADY": {
+            "value": "true"
+          },
+          "Latency": {
+            "value": "13"
+          },
+          "M_DATA_Has_TUSER": {
+            "value": "Not_Required"
+          },
+          "Negative_Cosine": {
+            "value": "false"
+          },
+          "Noise_Shaping": {
+            "value": "None"
+          },
+          "Output_Frequency1": {
+            "value": "0"
+          },
+          "Output_Width": {
+            "value": "16"
+          },
+          "PINC1": {
+            "value": "0"
+          },
+          "Parameter_Entry": {
+            "value": "Hardware_Parameters"
+          },
+          "Phase_Increment": {
+            "value": "Streaming"
+          },
+          "Phase_Width": {
+            "value": "32"
+          },
+          "S_PHASE_Has_TUSER": {
+            "value": "Not_Required"
+          },
+          "Spurious_Free_Dynamic_Range": {
+            "value": "45"
+          }
+        }
+      },
+      "util_vector_OR_TXgate": {
+        "vlnv": "xilinx.com:ip:util_vector_logic:2.0",
+        "xci_name": "IQ_Modulation_Select_util_vector_OR_TXgate_0",
+        "xci_path": "ip\\IQ_Modulation_Select_util_vector_OR_TXgate_0\\IQ_Modulation_Select_util_vector_OR_TXgate_0.xci",
+        "inst_hier_path": "util_vector_OR_TXgate",
+        "parameters": {
+          "C_OPERATION": {
+            "value": "or"
+          },
+          "C_SIZE": {
+            "value": "1"
+          }
+        }
+      },
+      "util_vector_TXgate1": {
+        "vlnv": "xilinx.com:ip:util_vector_logic:2.0",
+        "xci_name": "IQ_Modulation_Select_util_vector_TXgate1_0",
+        "xci_path": "ip\\IQ_Modulation_Select_util_vector_TXgate1_0\\IQ_Modulation_Select_util_vector_TXgate1_0.xci",
+        "inst_hier_path": "util_vector_TXgate1",
+        "parameters": {
+          "C_OPERATION": {
+            "value": "and"
+          },
+          "C_SIZE": {
+            "value": "1"
+          }
+        }
+      },
+      "xlconst_amplQ": {
+        "vlnv": "xilinx.com:ip:xlconstant:1.1",
+        "xci_name": "IQ_Modulation_Select_xlconst_amplQ_0",
+        "xci_path": "ip\\IQ_Modulation_Select_xlconst_amplQ_0\\IQ_Modulation_Select_xlconst_amplQ_0.xci",
+        "inst_hier_path": "xlconst_amplQ",
+        "parameters": {
+          "CONST_VAL": {
+            "value": "0x00007FFFFF"
+          },
+          "CONST_WIDTH": {
+            "value": "48"
+          }
+        }
       }
     },
     "interface_nets": {
@@ -2298,16 +2546,16 @@
       "Net1": {
         "ports": [
           "clk122",
-          "axi_bram_ctrl_0/s_axi_aclk",
-          "axis_subset_converter_32to48bit/aclk",
-          "blk_mem_gen_0/clka",
-          "dds_compiler_testsource/aclk",
           "AXIS_Deinterleaver_0/aclk",
           "axis_constant_1/aclk",
           "axis_mux_4_0/clk",
           "cw_key_ramp_0/aclk",
           "reg_to_axis_0/aclk",
-          "byteswap_48_0/aclk"
+          "byteswap_48_0/aclk",
+          "axi_bram_ctrl_0/s_axi_aclk",
+          "axis_subset_converter_32to48bit/aclk",
+          "blk_mem_gen_0/clka",
+          "dds_compiler_testsource/aclk"
         ]
       },
       "TX_ENABLE_1": {
@@ -2376,13 +2624,13 @@
       "resetn_1": {
         "ports": [
           "resetn",
-          "axi_bram_ctrl_0/s_axi_aresetn",
-          "axis_subset_converter_32to48bit/aresetn",
-          "dds_compiler_testsource/aresetn",
           "AXIS_Deinterleaver_0/aresetn",
           "axis_mux_4_0/rstn",
           "cw_key_ramp_0/aresetn",
-          "byteswap_48_0/aresetn"
+          "byteswap_48_0/aresetn",
+          "axi_bram_ctrl_0/s_axi_aresetn",
+          "axis_subset_converter_32to48bit/aresetn",
+          "dds_compiler_testsource/aresetn"
         ]
       },
       "util_reduced_logic_0_Res": {
