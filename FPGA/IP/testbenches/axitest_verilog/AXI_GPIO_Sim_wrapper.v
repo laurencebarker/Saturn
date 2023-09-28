@@ -28,6 +28,8 @@ module AXI_GPIO_Sim_wrapper
     fifo3_overflow,
     fifo4_count,
     fifo4_overflow,
+    test_fifo_tvalid,
+    test_fifo_tdata,
     int1_out,
     int2_out,
     int3_out,
@@ -53,6 +55,8 @@ module AXI_GPIO_Sim_wrapper
   input fifo3_overflow;
   input [15:0]fifo4_count;
   input fifo4_overflow;
+  input test_fifo_tvalid;
+  input [7:0]test_fifo_tdata;
   output int1_out;
   output int2_out;
   output int3_out;
@@ -79,6 +83,8 @@ module AXI_GPIO_Sim_wrapper
   wire fifo3_overflow;
   wire [15:0]fifo4_count;
   wire fifo4_overflow;
+  wire test_fifo_tdata;
+  wire [7:0] test_fifo_tdata;
   wire int1_out;
   wire int2_out;
   wire int3_out;
@@ -106,6 +112,8 @@ module AXI_GPIO_Sim_wrapper
         .fifo3_overflow(fifo3_overflow),
         .fifo4_count(fifo4_count),
         .fifo4_overflow(fifo4_overflow),
+        .test_fifo_tvalid(test_fifo_tvalid),
+        .test_fifo_tdata(test_fifo_tdata),
         .int1_out(int1_out),
         .int2_out(int2_out),
         .int3_out(int3_out),

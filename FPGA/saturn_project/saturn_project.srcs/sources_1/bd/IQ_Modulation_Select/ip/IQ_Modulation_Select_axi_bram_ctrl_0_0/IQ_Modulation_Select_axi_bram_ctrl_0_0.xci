@@ -1,228 +1,259 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<spirit:design xmlns:xilinx="http://www.xilinx.com" xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <spirit:vendor>xilinx.com</spirit:vendor>
-  <spirit:library>xci</spirit:library>
-  <spirit:name>unknown</spirit:name>
-  <spirit:version>1.0</spirit:version>
-  <spirit:componentInstances>
-    <spirit:componentInstance>
-      <spirit:instanceName>IQ_Modulation_Select_axi_bram_ctrl_0_0</spirit:instanceName>
-      <spirit:componentRef spirit:vendor="xilinx.com" spirit:library="ip" spirit:name="axi_bram_ctrl" spirit:version="4.1"/>
-      <spirit:configurableElementValues>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.BRAM_PORTA.MEM_ECC">NONE</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.BRAM_PORTA.MEM_SIZE">4096</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.BRAM_PORTA.MEM_WIDTH">32</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.BRAM_PORTA.READ_LATENCY">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.BRAM_PORTA.READ_WRITE_MODE">READ_WRITE</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.BRAM_PORTB.MEM_ECC">NONE</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.BRAM_PORTB.MEM_SIZE">8192</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.BRAM_PORTB.MEM_WIDTH">32</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.BRAM_PORTB.READ_LATENCY">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.BRAM_PORTB.READ_WRITE_MODE"/>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.CLKIF.ASSOCIATED_PORT"/>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.CLKIF.CLK_DOMAIN">IQ_Modulation_Select_clk122</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.CLKIF.FREQ_HZ">122880000</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.CLKIF.FREQ_TOLERANCE_HZ">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.CLKIF.INSERT_VIP">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.CLKIF.PHASE">0.0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.INTERRUPTIF.PortWidth">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.RSTIF.INSERT_VIP">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.ADDR_WIDTH">12</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.ARUSER_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.AWUSER_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.BUSER_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.CLK_DOMAIN">IQ_Modulation_Select_clk122</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.DATA_WIDTH">32</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.FREQ_HZ">122880000</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_BRESP">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_BURST">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_CACHE">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_LOCK">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_PROT">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_QOS">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_REGION">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_RRESP">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_WSTRB">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.ID_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.INSERT_VIP">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.MAX_BURST_LENGTH">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.NUM_READ_OUTSTANDING">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.NUM_READ_THREADS">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.NUM_WRITE_OUTSTANDING">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.NUM_WRITE_THREADS">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.PHASE">0.0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.PROTOCOL">AXI4</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.READ_WRITE_MODE">READ_WRITE</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.RUSER_BITS_PER_BYTE">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.RUSER_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.SUPPORTS_NARROW_BURST">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.WUSER_BITS_PER_BYTE">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.WUSER_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.ADDR_WIDTH">32</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.ARUSER_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.AWUSER_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.BUSER_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.CLK_DOMAIN"/>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.DATA_WIDTH">32</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.FREQ_HZ">100000000</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.HAS_BRESP">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.HAS_BURST">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.HAS_CACHE">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.HAS_LOCK">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.HAS_PROT">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.HAS_QOS">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.HAS_REGION">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.HAS_RRESP">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.HAS_WSTRB">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.ID_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.INSERT_VIP">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.MAX_BURST_LENGTH">256</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.NUM_READ_OUTSTANDING">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.NUM_READ_THREADS">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.NUM_WRITE_OUTSTANDING">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.NUM_WRITE_THREADS">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.PHASE">0.0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.PROTOCOL">AXI4</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.READ_WRITE_MODE">READ_WRITE</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.RUSER_BITS_PER_BYTE">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.RUSER_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.SUPPORTS_NARROW_BURST">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.WUSER_BITS_PER_BYTE">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI_CTRL.WUSER_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_BRAM_ADDR_WIDTH">10</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_BRAM_INST_MODE">EXTERNAL</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ECC">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ECC_ONOFF_RESET_VALUE">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ECC_TYPE">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_FAMILY">artix7</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_FAULT_INJECT">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_MEMORY_DEPTH">1024</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RD_CMD_OPTIMIZATION">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_READ_LATENCY">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_SINGLE_PORT_BRAM">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_S_AXI_ADDR_WIDTH">12</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_S_AXI_CTRL_ADDR_WIDTH">32</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_S_AXI_CTRL_DATA_WIDTH">32</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_S_AXI_DATA_WIDTH">32</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_S_AXI_ID_WIDTH">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_S_AXI_PROTOCOL">AXI4</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_S_AXI_SUPPORTS_NARROW_BURST">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.BMG_INSTANCE">EXTERNAL</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.Component_Name">IQ_Modulation_Select_axi_bram_ctrl_0_0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.DATA_WIDTH">32</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.ECC_ONOFF_RESET_VALUE">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.ECC_TYPE">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.FAULT_INJECT">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.ID_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.MEM_DEPTH">1024</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.PROTOCOL">AXI4</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.RD_CMD_OPTIMIZATION">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.READ_LATENCY">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.SINGLE_PORT_BRAM">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.SUPPORTS_NARROW_BURST">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.USE_ECC">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.ARCHITECTURE">artix7</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.BASE_BOARD_PART"/>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.BOARD_CONNECTIONS"/>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.DEVICE">xc7a200t</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.PACKAGE">fbg676</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.PREFHDL">VERILOG</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.SILICON_REVISION"/>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.SIMULATOR_LANGUAGE">MIXED</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.SPEEDGRADE">-2</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.STATIC_POWER"/>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.TEMPERATURE_GRADE"/>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.USE_RDI_CUSTOMIZATION">TRUE</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.USE_RDI_GENERATION">TRUE</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.IPCONTEXT">IP_Integrator</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.IPREVISION">6</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.MANAGED">TRUE</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.OUTPUTDIR">../../../../../../saturn_project.gen/sources_1/bd/IQ_Modulation_Select/ip/IQ_Modulation_Select_axi_bram_ctrl_0_0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.SELECTEDSIMMODEL"/>
-        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.SHAREDDIR">../../ipshared</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.SWVERSION">2021.2</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.SYNTHESISFLOW">OUT_OF_CONTEXT</spirit:configurableElementValue>
-      </spirit:configurableElementValues>
-      <spirit:vendorExtensions>
-        <xilinx:componentInstanceExtensions>
-          <xilinx:configElementInfos>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.BRAM_PORTA.MEM_ECC" xilinx:valueSource="user" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.BRAM_PORTA.MEM_SIZE" xilinx:valueSource="propagated" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.BRAM_PORTA.MEM_WIDTH" xilinx:valueSource="propagated" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.BRAM_PORTA.READ_LATENCY" xilinx:valueSource="user" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.BRAM_PORTA.READ_WRITE_MODE" xilinx:valueSource="propagated" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.BRAM_PORTB.MEM_ECC" xilinx:valueSource="user" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.BRAM_PORTB.MEM_SIZE" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.BRAM_PORTB.MEM_WIDTH" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.BRAM_PORTB.READ_LATENCY" xilinx:valueSource="user" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.BRAM_PORTB.READ_WRITE_MODE" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.CLKIF.ASSOCIATED_PORT" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.CLKIF.CLK_DOMAIN" xilinx:valueSource="default_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.CLKIF.FREQ_HZ" xilinx:valueSource="user_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.CLKIF.FREQ_TOLERANCE_HZ" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.CLKIF.PHASE" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.ADDR_WIDTH" xilinx:valueSource="auto" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.ARUSER_WIDTH" xilinx:valueSource="constant" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.AWUSER_WIDTH" xilinx:valueSource="constant" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.BUSER_WIDTH" xilinx:valueSource="constant" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.CLK_DOMAIN" xilinx:valueSource="default_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.DATA_WIDTH" xilinx:valueSource="auto" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.FREQ_HZ" xilinx:valueSource="user_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_BRESP" xilinx:valueSource="constant" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_BURST" xilinx:valueSource="user_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_CACHE" xilinx:valueSource="user_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_LOCK" xilinx:valueSource="user_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_PROT" xilinx:valueSource="constant" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_QOS" xilinx:valueSource="constant" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_REGION" xilinx:valueSource="constant" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_RRESP" xilinx:valueSource="constant" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_WSTRB" xilinx:valueSource="constant" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.ID_WIDTH" xilinx:valueSource="user_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.MAX_BURST_LENGTH" xilinx:valueSource="user_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.NUM_READ_OUTSTANDING" xilinx:valueSource="user_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.NUM_READ_THREADS" xilinx:valueSource="user_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.NUM_WRITE_OUTSTANDING" xilinx:valueSource="user_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.NUM_WRITE_THREADS" xilinx:valueSource="user_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.PHASE" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.PROTOCOL" xilinx:valueSource="auto" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.READ_WRITE_MODE" xilinx:valueSource="constant" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.RUSER_BITS_PER_BYTE" xilinx:valueSource="user_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.RUSER_WIDTH" xilinx:valueSource="constant" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.SUPPORTS_NARROW_BURST" xilinx:valueSource="user_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.WUSER_BITS_PER_BYTE" xilinx:valueSource="user_prop" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.WUSER_WIDTH" xilinx:valueSource="constant" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.BMG_INSTANCE" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.ECC_TYPE" xilinx:valueSource="user"/>
-            <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.ID_WIDTH" xilinx:valueSource="propagated" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.MEM_DEPTH" xilinx:valueSource="propagated" xilinx:valuePermission="bd"/>
-            <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.SINGLE_PORT_BRAM" xilinx:valueSource="user"/>
-            <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.SUPPORTS_NARROW_BURST" xilinx:valueSource="propagated" xilinx:valuePermission="bd_and_user"/>
-          </xilinx:configElementInfos>
-          <xilinx:boundaryDescriptionInfo>
-            <xilinx:boundaryDescription xilinx:boundaryDescriptionJSON="{&quot;ip_boundary&quot;:{&quot;ports&quot;:{&quot;bram_addr_a&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;11&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;bram_clk_a&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;bram_en_a&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;bram_rddata_a&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;31&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;bram_rst_a&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;bram_we_a&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;3&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;bram_wrdata_a&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;31&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_aclk&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_araddr&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;11&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_arburst&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;1&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_arc
-ache&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;3&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_aresetn&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_arlen&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;7&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_arlock&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_arprot&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;2&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_arready&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_arsize&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;2&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_arvalid&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_awaddr&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;11&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_awburst&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;1&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_awcache&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;phy
-sical_left&quot;:&quot;3&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_awlen&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;7&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_awlock&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_awprot&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;2&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_awready&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_awsize&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;2&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_awvalid&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_bready&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_bresp&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;1&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_bvalid&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_rdata&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;31&quot;,&quot;physical_righ
-t&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_rlast&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_rready&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_rresp&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;1&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_rvalid&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_wdata&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;31&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_wlast&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_wready&quot;:[{&quot;direction&quot;:&quot;out&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}],&quot;s_axi_wstrb&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;3&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;true&quot;}],&quot;s_axi_wvalid&quot;:[{&quot;direction&quot;:&quot;in&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;is_vector&quot;:&quot;false&quot;}]},&quot;interfaces&quot;:{&quot;BRAM_PORTA&quot;:{&quot;vlnv&quot;:&quot;xilinx.com:interface:bram:1.0&quot;,&quot;abstraction_type&quot;:&quot;xilinx.com:in
-terface:bram_rtl:1.0&quot;,&quot;mode&quot;:&quot;master&quot;,&quot;parameters&quot;:{&quot;MASTER_TYPE&quot;:[{&quot;value&quot;:&quot;BRAM_CTRL&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;immediate&quot;,&quot;format&quot;:&quot;string&quot;,&quot;usage&quot;:&quot;all&quot;,&quot;is_ips_inferred&quot;:false,&quot;is_static_object&quot;:true}],&quot;MEM_ECC&quot;:[{&quot;value&quot;:&quot;NONE&quot;,&quot;value_src&quot;:&quot;user&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;string&quot;,&quot;usage&quot;:&quot;none&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;MEM_SIZE&quot;:[{&quot;value&quot;:&quot;4096&quot;,&quot;value_src&quot;:&quot;propagated&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;none&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;MEM_WIDTH&quot;:[{&quot;value&quot;:&quot;32&quot;,&quot;value_src&quot;:&quot;propagated&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;none&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;READ_LATENCY&quot;:[{&quot;value&quot;:&quot;1&quot;,&quot;value_src&quot;:&quot;user&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;none&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;READ_WRITE_MODE&quot;:[{&quot;value
-&quot;:&quot;READ_WRITE&quot;,&quot;value_src&quot;:&quot;propagated&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;string&quot;,&quot;usage&quot;:&quot;none&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}]},&quot;port_maps&quot;:{&quot;ADDR&quot;:[{&quot;physical_name&quot;:&quot;bram_addr_a&quot;,&quot;physical_left&quot;:&quot;11&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;11&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;CLK&quot;:[{&quot;physical_name&quot;:&quot;bram_clk_a&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;DIN&quot;:[{&quot;physical_name&quot;:&quot;bram_wrdata_a&quot;,&quot;physical_left&quot;:&quot;31&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;31&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;DOUT&quot;:[{&quot;physical_name&quot;:&quot;bram_rddata_a&quot;,&quot;physical_left&quot;:&quot;31&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;31&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;EN&quot;:[{&quot;physical_name&quot;:&quot;bram_en_a&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;RST&quot;:[{&quot;physical_name&quot;:&quot;bram_rst_a&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logi
-cal_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;WE&quot;:[{&quot;physical_name&quot;:&quot;bram_we_a&quot;,&quot;physical_left&quot;:&quot;3&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;3&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}]}},&quot;CLKIF&quot;:{&quot;vlnv&quot;:&quot;xilinx.com:signal:clock:1.0&quot;,&quot;abstraction_type&quot;:&quot;xilinx.com:signal:clock_rtl:1.0&quot;,&quot;mode&quot;:&quot;slave&quot;,&quot;parameters&quot;:{&quot;ASSOCIATED_BUSIF&quot;:[{&quot;value&quot;:&quot;S_AXI:S_AXI_CTRL&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;immediate&quot;,&quot;format&quot;:&quot;string&quot;,&quot;usage&quot;:&quot;all&quot;,&quot;is_ips_inferred&quot;:false,&quot;is_static_object&quot;:true}],&quot;ASSOCIATED_PORT&quot;:[{&quot;value&quot;:&quot;&quot;,&quot;value_src&quot;:&quot;default&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;string&quot;,&quot;usage&quot;:&quot;none&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;ASSOCIATED_RESET&quot;:[{&quot;value&quot;:&quot;s_axi_aresetn&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;immediate&quot;,&quot;format&quot;:&quot;string&quot;,&quot;usage&quot;:&quot;all&quot;,&quot;is_ips_inferred&quot;:false,&quot;is_static_object&quot;:true}],&quot;CLK_DOMAIN&quot;:[{&quot;value&quot;:&quot;IQ_Modulation_Select_clk122&quot;,&quot;value_src&quot;:&quot;default_pr
-op&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;string&quot;,&quot;usage&quot;:&quot;none&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;FREQ_HZ&quot;:[{&quot;value&quot;:&quot;122880000&quot;,&quot;value_src&quot;:&quot;user_prop&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;user&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;all&quot;,&quot;is_ips_inferred&quot;:false,&quot;is_static_object&quot;:true}],&quot;FREQ_TOLERANCE_HZ&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_src&quot;:&quot;default&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;none&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;INSERT_VIP&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_src&quot;:&quot;default&quot;,&quot;value_permission&quot;:&quot;user&quot;,&quot;resolve_type&quot;:&quot;user&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.rtl&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;PHASE&quot;:[{&quot;value&quot;:&quot;0.0&quot;,&quot;value_src&quot;:&quot;default&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;float&quot;,&quot;usage&quot;:&quot;none&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}]},&quot;port_maps&quot;:{&quot;CLK&quot;:[{&quot;physical_name&quot;:&quot;s_axi_aclk&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_righ
-t&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}]}},&quot;RSTIF&quot;:{&quot;vlnv&quot;:&quot;xilinx.com:signal:reset:1.0&quot;,&quot;abstraction_type&quot;:&quot;xilinx.com:signal:reset_rtl:1.0&quot;,&quot;mode&quot;:&quot;slave&quot;,&quot;parameters&quot;:{&quot;INSERT_VIP&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_src&quot;:&quot;default&quot;,&quot;value_permission&quot;:&quot;user&quot;,&quot;resolve_type&quot;:&quot;user&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.rtl&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;POLARITY&quot;:[{&quot;value&quot;:&quot;ACTIVE_LOW&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;immediate&quot;,&quot;format&quot;:&quot;string&quot;,&quot;usage&quot;:&quot;all&quot;,&quot;is_ips_inferred&quot;:false,&quot;is_static_object&quot;:true}]},&quot;port_maps&quot;:{&quot;RST&quot;:[{&quot;physical_name&quot;:&quot;s_axi_aresetn&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}]}},&quot;S_AXI&quot;:{&quot;vlnv&quot;:&quot;xilinx.com:interface:aximm:1.0&quot;,&quot;abstraction_type&quot;:&quot;xilinx.com:interface:aximm_rtl:1.0&quot;,&quot;mode&quot;:&quot;slave&quot;,&quot;memory_map_ref&quot;:&quot;S_AXI&quot;,&quot;parameters&quot;:{&quot;ADDR_WIDTH&quot;:[{&quot;value&quot;:&quot;12&quot;,&quot;value_src&quot;:&quot;auto&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm
-&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;ARUSER_WIDTH&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;AWUSER_WIDTH&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;BUSER_WIDTH&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;CLK_DOMAIN&quot;:[{&quot;value&quot;:&quot;IQ_Modulation_Select_clk122&quot;,&quot;value_src&quot;:&quot;default_prop&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;string&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;DATA_WIDTH&quot;:[{&quot;value&quot;:&quot;32&quot;,&quot;value_src&quot;:&quot;auto&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is
-_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;FREQ_HZ&quot;:[{&quot;value&quot;:&quot;122880000&quot;,&quot;value_src&quot;:&quot;user_prop&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;HAS_BRESP&quot;:[{&quot;value&quot;:&quot;1&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;HAS_BURST&quot;:[{&quot;value&quot;:&quot;1&quot;,&quot;value_src&quot;:&quot;user_prop&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;HAS_CACHE&quot;:[{&quot;value&quot;:&quot;1&quot;,&quot;value_src&quot;:&quot;user_prop&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;HAS_LOCK&quot;:[{&quot;value&quot;:&quot;1&quot;,&quot;value_src&quot;:&quot;user_prop&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_obje
-ct&quot;:false}],&quot;HAS_PROT&quot;:[{&quot;value&quot;:&quot;1&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;HAS_QOS&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;HAS_REGION&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;HAS_RRESP&quot;:[{&quot;value&quot;:&quot;1&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;HAS_WSTRB&quot;:[{&quot;value&quot;:&quot;1&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;ID_WIDTH&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_sr
-c&quot;:&quot;user_prop&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;INSERT_VIP&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_src&quot;:&quot;default&quot;,&quot;value_permission&quot;:&quot;user&quot;,&quot;resolve_type&quot;:&quot;user&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.rtl&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;MAX_BURST_LENGTH&quot;:[{&quot;value&quot;:&quot;1&quot;,&quot;value_src&quot;:&quot;user_prop&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;NUM_READ_OUTSTANDING&quot;:[{&quot;value&quot;:&quot;1&quot;,&quot;value_src&quot;:&quot;user_prop&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;NUM_READ_THREADS&quot;:[{&quot;value&quot;:&quot;1&quot;,&quot;value_src&quot;:&quot;user_prop&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;NUM_WRITE_OUTSTANDING&quot;:[{&quot;value&quot;:&quot;1&quot;,&quot;value_src&quot;:&quot;us
-er_prop&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;NUM_WRITE_THREADS&quot;:[{&quot;value&quot;:&quot;1&quot;,&quot;value_src&quot;:&quot;user_prop&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;PHASE&quot;:[{&quot;value&quot;:&quot;0.0&quot;,&quot;value_src&quot;:&quot;default&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;float&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;PROTOCOL&quot;:[{&quot;value&quot;:&quot;AXI4&quot;,&quot;value_src&quot;:&quot;auto&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;string&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;READ_WRITE_MODE&quot;:[{&quot;value&quot;:&quot;READ_WRITE&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;string&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;RUSER_BITS_PER_BYTE&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_src&quot;:&quot;user_prop&quot;,
-&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;RUSER_WIDTH&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;SUPPORTS_NARROW_BURST&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_src&quot;:&quot;user_prop&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;WUSER_BITS_PER_BYTE&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_src&quot;:&quot;user_prop&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}],&quot;WUSER_WIDTH&quot;:[{&quot;value&quot;:&quot;0&quot;,&quot;value_src&quot;:&quot;constant&quot;,&quot;value_permission&quot;:&quot;bd&quot;,&quot;resolve_type&quot;:&quot;generated&quot;,&quot;format&quot;:&quot;long&quot;,&quot;usage&quot;:&quot;simulation.tlm&quot;,&quot;is_ips_inferred&quot;:true,&quot;is_static_object&quot;:false}]},&quot;port_maps&quot;:{&quot;ARADDR&quot;:[{&quot;physical_name&quot;:&quot;s_axi_araddr&quot;,&quot;physical
-_left&quot;:&quot;11&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;11&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;ARBURST&quot;:[{&quot;physical_name&quot;:&quot;s_axi_arburst&quot;,&quot;physical_left&quot;:&quot;1&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;1&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;ARCACHE&quot;:[{&quot;physical_name&quot;:&quot;s_axi_arcache&quot;,&quot;physical_left&quot;:&quot;3&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;3&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;ARID&quot;:[{&quot;physical_name&quot;:&quot;s_axi_arid&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;ARLEN&quot;:[{&quot;physical_name&quot;:&quot;s_axi_arlen&quot;,&quot;physical_left&quot;:&quot;7&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;7&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;ARLOCK&quot;:[{&quot;physical_name&quot;:&quot;s_axi_arlock&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;ARPROT&quot;:[{&quot;physical_name&quot;:&quot;s_axi_arprot&quot;,&quot;physical_left&quot;:&quot;2&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;2&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;ARREADY&quot;:[{&quot;p
-hysical_name&quot;:&quot;s_axi_arready&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;ARSIZE&quot;:[{&quot;physical_name&quot;:&quot;s_axi_arsize&quot;,&quot;physical_left&quot;:&quot;2&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;2&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;ARVALID&quot;:[{&quot;physical_name&quot;:&quot;s_axi_arvalid&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;AWADDR&quot;:[{&quot;physical_name&quot;:&quot;s_axi_awaddr&quot;,&quot;physical_left&quot;:&quot;11&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;11&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;AWBURST&quot;:[{&quot;physical_name&quot;:&quot;s_axi_awburst&quot;,&quot;physical_left&quot;:&quot;1&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;1&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;AWCACHE&quot;:[{&quot;physical_name&quot;:&quot;s_axi_awcache&quot;,&quot;physical_left&quot;:&quot;3&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;3&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;AWID&quot;:[{&quot;physical_name&quot;:&quot;s_axi_awid&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;
-0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;AWLEN&quot;:[{&quot;physical_name&quot;:&quot;s_axi_awlen&quot;,&quot;physical_left&quot;:&quot;7&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;7&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;AWLOCK&quot;:[{&quot;physical_name&quot;:&quot;s_axi_awlock&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;AWPROT&quot;:[{&quot;physical_name&quot;:&quot;s_axi_awprot&quot;,&quot;physical_left&quot;:&quot;2&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;2&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;AWREADY&quot;:[{&quot;physical_name&quot;:&quot;s_axi_awready&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;AWSIZE&quot;:[{&quot;physical_name&quot;:&quot;s_axi_awsize&quot;,&quot;physical_left&quot;:&quot;2&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;2&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;AWVALID&quot;:[{&quot;physical_name&quot;:&quot;s_axi_awvalid&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;BID&quot;:[{&quot;physical_name&quot;:&quot;s_axi_bid&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;lo
-gical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;BREADY&quot;:[{&quot;physical_name&quot;:&quot;s_axi_bready&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;BRESP&quot;:[{&quot;physical_name&quot;:&quot;s_axi_bresp&quot;,&quot;physical_left&quot;:&quot;1&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;1&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;BVALID&quot;:[{&quot;physical_name&quot;:&quot;s_axi_bvalid&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;RDATA&quot;:[{&quot;physical_name&quot;:&quot;s_axi_rdata&quot;,&quot;physical_left&quot;:&quot;31&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;31&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;RID&quot;:[{&quot;physical_name&quot;:&quot;s_axi_rid&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;RLAST&quot;:[{&quot;physical_name&quot;:&quot;s_axi_rlast&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;RREADY&quot;:[{&quot;physical_name&quot;:&quot;s_axi_rready&quot;,&quot;physical_left&quot;:&quot;
-0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;RRESP&quot;:[{&quot;physical_name&quot;:&quot;s_axi_rresp&quot;,&quot;physical_left&quot;:&quot;1&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;1&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;RVALID&quot;:[{&quot;physical_name&quot;:&quot;s_axi_rvalid&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;WDATA&quot;:[{&quot;physical_name&quot;:&quot;s_axi_wdata&quot;,&quot;physical_left&quot;:&quot;31&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;31&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;WLAST&quot;:[{&quot;physical_name&quot;:&quot;s_axi_wlast&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;WREADY&quot;:[{&quot;physical_name&quot;:&quot;s_axi_wready&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;WSTRB&quot;:[{&quot;physical_name&quot;:&quot;s_axi_wstrb&quot;,&quot;physical_left&quot;:&quot;3&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;3&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}],&quot;WVALID&quot;:[{&quot;physical_name&quot;:&quot;
-s_axi_wvalid&quot;,&quot;physical_left&quot;:&quot;0&quot;,&quot;physical_right&quot;:&quot;0&quot;,&quot;logical_left&quot;:&quot;0&quot;,&quot;logical_right&quot;:&quot;0&quot;,&quot;port_maps_used&quot;:&quot;none&quot;}]}}},&quot;memory_maps&quot;:{&quot;S_AXI&quot;:{&quot;address_blocks&quot;:{&quot;Mem0&quot;:[{&quot;base_address&quot;:&quot;0&quot;,&quot;range&quot;:&quot;4096&quot;,&quot;display_name&quot;:&quot;Mem0&quot;,&quot;description&quot;:&quot;RegisterBlock&quot;,&quot;usage&quot;:&quot;memory&quot;,&quot;access&quot;:&quot;read-write&quot;}]}}}}}"/>
-          </xilinx:boundaryDescriptionInfo>
-        </xilinx:componentInstanceExtensions>
-      </spirit:vendorExtensions>
-    </spirit:componentInstance>
-  </spirit:componentInstances>
-</spirit:design>
+{
+  "schema": "xilinx.com:schema:json_instance:1.0",
+  "ip_inst": {
+    "xci_name": "IQ_Modulation_Select_axi_bram_ctrl_0_0",
+    "cell_name": "axi_bram_ctrl_0",
+    "component_reference": "xilinx.com:ip:axi_bram_ctrl:4.1",
+    "ip_revision": "8",
+    "gen_directory": "../../../../../../saturn_project.gen/sources_1/bd/IQ_Modulation_Select/ip/IQ_Modulation_Select_axi_bram_ctrl_0_0",
+    "parameters": {
+      "component_parameters": {
+        "DATA_WIDTH": [ { "value": "32", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "ID_WIDTH": [ { "value": "0", "value_src": "propagated", "value_permission": "bd", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "PROTOCOL": [ { "value": "AXI4", "resolve_type": "user", "usage": "all" } ],
+        "SUPPORTS_NARROW_BURST": [ { "value": "0", "value_src": "propagated", "value_permission": "bd_and_user", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "SINGLE_PORT_BRAM": [ { "value": "1", "value_src": "user", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "ECC_TYPE": [ { "value": "0", "value_src": "user", "resolve_type": "user", "enabled": false, "usage": "all" } ],
+        "USE_ECC": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "FAULT_INJECT": [ { "value": "0", "resolve_type": "user", "format": "long", "enabled": false, "usage": "all" } ],
+        "ECC_ONOFF_RESET_VALUE": [ { "value": "0", "resolve_type": "user", "format": "long", "enabled": false, "usage": "all" } ],
+        "Component_Name": [ { "value": "IQ_Modulation_Select_axi_bram_ctrl_0_0", "resolve_type": "user", "usage": "all" } ],
+        "BMG_INSTANCE": [ { "value": "EXTERNAL", "value_permission": "bd", "resolve_type": "user", "usage": "all" } ],
+        "MEM_DEPTH": [ { "value": "1024", "value_src": "propagated", "value_permission": "bd", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "READ_LATENCY": [ { "value": "1", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "RD_CMD_OPTIMIZATION": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "all" } ]
+      },
+      "model_parameters": {
+        "C_BRAM_INST_MODE": [ { "value": "EXTERNAL", "resolve_type": "generated", "usage": "all" } ],
+        "C_MEMORY_DEPTH": [ { "value": "1024", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_BRAM_ADDR_WIDTH": [ { "value": "10", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_S_AXI_ADDR_WIDTH": [ { "value": "12", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_S_AXI_DATA_WIDTH": [ { "value": "32", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_S_AXI_ID_WIDTH": [ { "value": "1", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_S_AXI_PROTOCOL": [ { "value": "AXI4", "resolve_type": "generated", "usage": "all" } ],
+        "C_S_AXI_SUPPORTS_NARROW_BURST": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_SINGLE_PORT_BRAM": [ { "value": "1", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_FAMILY": [ { "value": "artix7", "resolve_type": "generated", "usage": "all" } ],
+        "C_READ_LATENCY": [ { "value": "1", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_RD_CMD_OPTIMIZATION": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_S_AXI_CTRL_ADDR_WIDTH": [ { "value": "32", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_S_AXI_CTRL_DATA_WIDTH": [ { "value": "32", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_ECC": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_ECC_TYPE": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_FAULT_INJECT": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_ECC_ONOFF_RESET_VALUE": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ]
+      },
+      "project_parameters": {
+        "ARCHITECTURE": [ { "value": "artix7" } ],
+        "BASE_BOARD_PART": [ { "value": "" } ],
+        "BOARD_CONNECTIONS": [ { "value": "" } ],
+        "DEVICE": [ { "value": "xc7a200t" } ],
+        "PACKAGE": [ { "value": "fbg676" } ],
+        "PREFHDL": [ { "value": "VERILOG" } ],
+        "SILICON_REVISION": [ { "value": "" } ],
+        "SIMULATOR_LANGUAGE": [ { "value": "MIXED" } ],
+        "SPEEDGRADE": [ { "value": "-2" } ],
+        "STATIC_POWER": [ { "value": "" } ],
+        "TEMPERATURE_GRADE": [ { "value": "" } ],
+        "USE_RDI_CUSTOMIZATION": [ { "value": "TRUE" } ],
+        "USE_RDI_GENERATION": [ { "value": "TRUE" } ]
+      },
+      "runtime_parameters": {
+        "IPCONTEXT": [ { "value": "IP_Integrator" } ],
+        "IPREVISION": [ { "value": "8" } ],
+        "MANAGED": [ { "value": "TRUE" } ],
+        "OUTPUTDIR": [ { "value": "../../../../../../saturn_project.gen/sources_1/bd/IQ_Modulation_Select/ip/IQ_Modulation_Select_axi_bram_ctrl_0_0" } ],
+        "SELECTEDSIMMODEL": [ { "value": "" } ],
+        "SHAREDDIR": [ { "value": "../../ipshared" } ],
+        "SWVERSION": [ { "value": "2023.1" } ],
+        "SYNTHESISFLOW": [ { "value": "OUT_OF_CONTEXT" } ]
+      }
+    },
+    "boundary": {
+      "ports": {
+        "s_axi_aclk": [ { "direction": "in" } ],
+        "s_axi_aresetn": [ { "direction": "in" } ],
+        "s_axi_awaddr": [ { "direction": "in", "size_left": "11", "size_right": "0", "driver_value": "0" } ],
+        "s_axi_awlen": [ { "direction": "in", "size_left": "7", "size_right": "0", "driver_value": "0" } ],
+        "s_axi_awsize": [ { "direction": "in", "size_left": "2", "size_right": "0", "driver_value": "0" } ],
+        "s_axi_awburst": [ { "direction": "in", "size_left": "1", "size_right": "0", "driver_value": "0" } ],
+        "s_axi_awlock": [ { "direction": "in", "driver_value": "0" } ],
+        "s_axi_awcache": [ { "direction": "in", "size_left": "3", "size_right": "0", "driver_value": "0" } ],
+        "s_axi_awprot": [ { "direction": "in", "size_left": "2", "size_right": "0", "driver_value": "0" } ],
+        "s_axi_awvalid": [ { "direction": "in", "driver_value": "0" } ],
+        "s_axi_awready": [ { "direction": "out" } ],
+        "s_axi_wdata": [ { "direction": "in", "size_left": "31", "size_right": "0", "driver_value": "0" } ],
+        "s_axi_wstrb": [ { "direction": "in", "size_left": "3", "size_right": "0", "driver_value": "0" } ],
+        "s_axi_wlast": [ { "direction": "in", "driver_value": "0" } ],
+        "s_axi_wvalid": [ { "direction": "in", "driver_value": "0" } ],
+        "s_axi_wready": [ { "direction": "out" } ],
+        "s_axi_bresp": [ { "direction": "out", "size_left": "1", "size_right": "0" } ],
+        "s_axi_bvalid": [ { "direction": "out" } ],
+        "s_axi_bready": [ { "direction": "in", "driver_value": "0" } ],
+        "s_axi_araddr": [ { "direction": "in", "size_left": "11", "size_right": "0", "driver_value": "0" } ],
+        "s_axi_arlen": [ { "direction": "in", "size_left": "7", "size_right": "0", "driver_value": "0" } ],
+        "s_axi_arsize": [ { "direction": "in", "size_left": "2", "size_right": "0", "driver_value": "0" } ],
+        "s_axi_arburst": [ { "direction": "in", "size_left": "1", "size_right": "0", "driver_value": "0" } ],
+        "s_axi_arlock": [ { "direction": "in", "driver_value": "0" } ],
+        "s_axi_arcache": [ { "direction": "in", "size_left": "3", "size_right": "0", "driver_value": "0" } ],
+        "s_axi_arprot": [ { "direction": "in", "size_left": "2", "size_right": "0", "driver_value": "0" } ],
+        "s_axi_arvalid": [ { "direction": "in", "driver_value": "0" } ],
+        "s_axi_arready": [ { "direction": "out" } ],
+        "s_axi_rdata": [ { "direction": "out", "size_left": "31", "size_right": "0" } ],
+        "s_axi_rresp": [ { "direction": "out", "size_left": "1", "size_right": "0" } ],
+        "s_axi_rlast": [ { "direction": "out", "driver_value": "0" } ],
+        "s_axi_rvalid": [ { "direction": "out" } ],
+        "s_axi_rready": [ { "direction": "in", "driver_value": "0" } ],
+        "bram_rst_a": [ { "direction": "out" } ],
+        "bram_clk_a": [ { "direction": "out" } ],
+        "bram_en_a": [ { "direction": "out" } ],
+        "bram_we_a": [ { "direction": "out", "size_left": "3", "size_right": "0" } ],
+        "bram_addr_a": [ { "direction": "out", "size_left": "11", "size_right": "0" } ],
+        "bram_wrdata_a": [ { "direction": "out", "size_left": "31", "size_right": "0" } ],
+        "bram_rddata_a": [ { "direction": "in", "size_left": "31", "size_right": "0", "driver_value": "0" } ]
+      },
+      "interfaces": {
+        "S_AXI": {
+          "vlnv": "xilinx.com:interface:aximm:1.0",
+          "abstraction_type": "xilinx.com:interface:aximm_rtl:1.0",
+          "mode": "slave",
+          "memory_map_ref": "S_AXI",
+          "parameters": {
+            "DATA_WIDTH": [ { "value": "32", "value_src": "auto", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "PROTOCOL": [ { "value": "AXI4", "value_src": "auto", "value_permission": "bd", "resolve_type": "generated", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "FREQ_HZ": [ { "value": "122880000", "value_src": "user_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "ID_WIDTH": [ { "value": "0", "value_src": "user_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "ADDR_WIDTH": [ { "value": "12", "value_src": "auto", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "AWUSER_WIDTH": [ { "value": "0", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "ARUSER_WIDTH": [ { "value": "0", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "WUSER_WIDTH": [ { "value": "0", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "RUSER_WIDTH": [ { "value": "0", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "BUSER_WIDTH": [ { "value": "0", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "READ_WRITE_MODE": [ { "value": "READ_WRITE", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "HAS_BURST": [ { "value": "1", "value_src": "user_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "HAS_LOCK": [ { "value": "1", "value_src": "user_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "HAS_PROT": [ { "value": "1", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "HAS_CACHE": [ { "value": "1", "value_src": "user_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "HAS_QOS": [ { "value": "0", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "HAS_REGION": [ { "value": "0", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "HAS_WSTRB": [ { "value": "1", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "HAS_BRESP": [ { "value": "1", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "HAS_RRESP": [ { "value": "1", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "SUPPORTS_NARROW_BURST": [ { "value": "0", "value_src": "user_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "NUM_READ_OUTSTANDING": [ { "value": "1", "value_src": "user_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "NUM_WRITE_OUTSTANDING": [ { "value": "1", "value_src": "user_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "MAX_BURST_LENGTH": [ { "value": "1", "value_src": "user_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "PHASE": [ { "value": "0.0", "value_permission": "bd", "resolve_type": "generated", "format": "float", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "CLK_DOMAIN": [ { "value": "IQ_Modulation_Select_clk122", "value_src": "default_prop", "value_permission": "bd", "resolve_type": "generated", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "NUM_READ_THREADS": [ { "value": "1", "value_src": "user_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "NUM_WRITE_THREADS": [ { "value": "1", "value_src": "user_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "RUSER_BITS_PER_BYTE": [ { "value": "0", "value_src": "user_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "WUSER_BITS_PER_BYTE": [ { "value": "0", "value_src": "user_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "usage": "simulation.tlm", "is_ips_inferred": true, "is_static_object": false } ],
+            "INSERT_VIP": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "simulation.rtl", "is_ips_inferred": true, "is_static_object": false } ]
+          },
+          "port_maps": {
+            "ARADDR": [ { "physical_name": "s_axi_araddr" } ],
+            "ARBURST": [ { "physical_name": "s_axi_arburst" } ],
+            "ARCACHE": [ { "physical_name": "s_axi_arcache" } ],
+            "ARLEN": [ { "physical_name": "s_axi_arlen" } ],
+            "ARLOCK": [ { "physical_name": "s_axi_arlock" } ],
+            "ARPROT": [ { "physical_name": "s_axi_arprot" } ],
+            "ARREADY": [ { "physical_name": "s_axi_arready" } ],
+            "ARSIZE": [ { "physical_name": "s_axi_arsize" } ],
+            "ARVALID": [ { "physical_name": "s_axi_arvalid" } ],
+            "AWADDR": [ { "physical_name": "s_axi_awaddr" } ],
+            "AWBURST": [ { "physical_name": "s_axi_awburst" } ],
+            "AWCACHE": [ { "physical_name": "s_axi_awcache" } ],
+            "AWLEN": [ { "physical_name": "s_axi_awlen" } ],
+            "AWLOCK": [ { "physical_name": "s_axi_awlock" } ],
+            "AWPROT": [ { "physical_name": "s_axi_awprot" } ],
+            "AWREADY": [ { "physical_name": "s_axi_awready" } ],
+            "AWSIZE": [ { "physical_name": "s_axi_awsize" } ],
+            "AWVALID": [ { "physical_name": "s_axi_awvalid" } ],
+            "BREADY": [ { "physical_name": "s_axi_bready" } ],
+            "BRESP": [ { "physical_name": "s_axi_bresp" } ],
+            "BVALID": [ { "physical_name": "s_axi_bvalid" } ],
+            "RDATA": [ { "physical_name": "s_axi_rdata" } ],
+            "RLAST": [ { "physical_name": "s_axi_rlast" } ],
+            "RREADY": [ { "physical_name": "s_axi_rready" } ],
+            "RRESP": [ { "physical_name": "s_axi_rresp" } ],
+            "RVALID": [ { "physical_name": "s_axi_rvalid" } ],
+            "WDATA": [ { "physical_name": "s_axi_wdata" } ],
+            "WLAST": [ { "physical_name": "s_axi_wlast" } ],
+            "WREADY": [ { "physical_name": "s_axi_wready" } ],
+            "WSTRB": [ { "physical_name": "s_axi_wstrb" } ],
+            "WVALID": [ { "physical_name": "s_axi_wvalid" } ]
+          }
+        },
+        "BRAM_PORTA": {
+          "vlnv": "xilinx.com:interface:bram:1.0",
+          "abstraction_type": "xilinx.com:interface:bram_rtl:1.0",
+          "mode": "master",
+          "parameters": {
+            "MASTER_TYPE": [ { "value": "BRAM_CTRL", "value_src": "constant", "value_permission": "bd", "usage": "all" } ],
+            "MEM_SIZE": [ { "value": "4096", "value_src": "propagated", "value_permission": "bd", "resolve_type": "generated", "format": "long", "is_ips_inferred": true, "is_static_object": false } ],
+            "MEM_WIDTH": [ { "value": "32", "value_src": "propagated", "value_permission": "bd", "resolve_type": "generated", "format": "long", "is_ips_inferred": true, "is_static_object": false } ],
+            "MEM_ECC": [ { "value": "NONE", "value_src": "user", "value_permission": "bd", "resolve_type": "generated", "is_ips_inferred": true, "is_static_object": false } ],
+            "READ_WRITE_MODE": [ { "value": "READ_WRITE", "value_src": "propagated", "value_permission": "bd", "resolve_type": "generated", "is_ips_inferred": true, "is_static_object": false } ],
+            "READ_LATENCY": [ { "value": "1", "value_src": "user", "value_permission": "bd", "resolve_type": "generated", "format": "long", "is_ips_inferred": true, "is_static_object": false } ]
+          },
+          "port_maps": {
+            "ADDR": [ { "physical_name": "bram_addr_a" } ],
+            "CLK": [ { "physical_name": "bram_clk_a" } ],
+            "DIN": [ { "physical_name": "bram_wrdata_a" } ],
+            "DOUT": [ { "physical_name": "bram_rddata_a" } ],
+            "EN": [ { "physical_name": "bram_en_a" } ],
+            "RST": [ { "physical_name": "bram_rst_a" } ],
+            "WE": [ { "physical_name": "bram_we_a" } ]
+          }
+        },
+        "RSTIF": {
+          "vlnv": "xilinx.com:signal:reset:1.0",
+          "abstraction_type": "xilinx.com:signal:reset_rtl:1.0",
+          "mode": "slave",
+          "parameters": {
+            "POLARITY": [ { "value": "ACTIVE_LOW", "value_src": "constant", "value_permission": "bd", "usage": "all" } ],
+            "INSERT_VIP": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "simulation.rtl", "is_ips_inferred": true, "is_static_object": false } ]
+          },
+          "port_maps": {
+            "RST": [ { "physical_name": "s_axi_aresetn" } ]
+          }
+        },
+        "CLKIF": {
+          "vlnv": "xilinx.com:signal:clock:1.0",
+          "abstraction_type": "xilinx.com:signal:clock_rtl:1.0",
+          "mode": "slave",
+          "parameters": {
+            "ASSOCIATED_BUSIF": [ { "value": "S_AXI:S_AXI_CTRL", "value_src": "constant", "value_permission": "bd", "usage": "all" } ],
+            "ASSOCIATED_RESET": [ { "value": "s_axi_aresetn", "value_src": "constant", "value_permission": "bd", "usage": "all" } ],
+            "FREQ_HZ": [ { "value": "122880000", "value_src": "user_prop", "value_permission": "bd", "resolve_type": "user", "format": "long", "usage": "all" } ],
+            "FREQ_TOLERANCE_HZ": [ { "value": "0", "value_permission": "bd", "resolve_type": "generated", "format": "long", "is_ips_inferred": true, "is_static_object": false } ],
+            "PHASE": [ { "value": "0.0", "value_permission": "bd", "resolve_type": "generated", "format": "float", "is_ips_inferred": true, "is_static_object": false } ],
+            "CLK_DOMAIN": [ { "value": "IQ_Modulation_Select_clk122", "value_src": "default_prop", "value_permission": "bd", "resolve_type": "generated", "is_ips_inferred": true, "is_static_object": false } ],
+            "ASSOCIATED_PORT": [ { "value": "", "value_permission": "bd", "resolve_type": "generated", "is_ips_inferred": true, "is_static_object": false } ],
+            "INSERT_VIP": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "simulation.rtl", "is_ips_inferred": true, "is_static_object": false } ]
+          },
+          "port_maps": {
+            "CLK": [ { "physical_name": "s_axi_aclk" } ]
+          }
+        }
+      },
+      "memory_maps": {
+        "S_AXI": {
+          "display_name": "S_AXI_MEM",
+          "description": "Memory Map for S_AXI",
+          "address_blocks": {
+            "Mem0": {
+              "base_address": "0",
+              "range": "4096",
+              "display_name": "Mem0",
+              "description": "Register Block",
+              "usage": "memory",
+              "access": "read-write"
+            }
+          }
+        }
+      }
+    }
+  }
+}
