@@ -166,10 +166,10 @@ unsigned int GCodecAnaloguePath;                    // value written in Codec an
 //
 uint32_t DMAFIFODepths[VNUMDMAFIFO] =
 {
-  8192,             //  eRXDDCDMA,		selects RX
-  1024,             //  eTXDUCDMA,		selects TX
+  16384,            //  eRXDDCDMA,		selects RX
+  2048,             //  eTXDUCDMA,		selects TX
   256,              //  eMicCodecDMA,	selects mic samples
-  256               //  eSpkCodecDMA	selects speaker samples
+  1024              //  eSpkCodecDMA	selects speaker samples
 };
 
 

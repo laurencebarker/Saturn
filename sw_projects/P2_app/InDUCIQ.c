@@ -36,6 +36,7 @@
 #define VALIGNMENT 4096                             // buffer alignment
 #define VBASE 0x1000								// DMA start at 4K into buffer
 #define VDMATRANSFERSIZE 1440                       // write 1 message at a time
+#define VSTARTUPDELAY 100                           // 100 messages (~100ms) before reporting under or overflows
 
 //
 // listener thread for incoming DUC I/Q packets
@@ -67,6 +68,9 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     uint32_t Cntr;                                          // sample counter
     uint8_t* SrcPtr;                                        // pointer to data from Thetis
     uint8_t* DestPtr;                                       // pointer to DMA buffer data
+    unsigned int Current;                                   // current occupied locations in FIFO
+    unsigned int StartupCount;                              // used to delay reporting of under & overflows
+    bool PrevSDRActive;                                     // used to detect change of state
 
     ThreadData = (struct ThreadSocketData *)arg;
     ThreadData->Active = true;
@@ -111,6 +115,10 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
   //
     while(1)
     {
+        if(SDRActive & !PrevSDRActive)                      // detect SDRActive has been asserted
+            StartupCount = VSTARTUPDELAY;
+        PrevSDRActive = SDRActive;
+
         memset(&iovecinst, 0, sizeof(struct iovec));
         memset(&datagram, 0, sizeof(datagram));
         iovecinst.iov_base = &UDPInBuffer;                  // set buffer for incoming message number i
@@ -127,20 +135,22 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
         }
         if(size == VDUCIQSIZE)
         {
+            if(StartupCount != 0)                                   // decrement startup message count
+                StartupCount--;
             NewMessageReceived = true;
-            Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);           // read the FIFO free locations
-            if(FIFOOverThreshold)
-                printf("TX DUC FIFO Overthreshold, depth now = %d\n", Depth);
-            if(FIFOUnderflow)
-                printf("TX DUC FIFO Underflowed, depth now = %d\n", Depth);
+            Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);           // read the FIFO free locations
+            if((StartupCount == 0) && FIFOOverThreshold)
+                printf("TX DUC FIFO Overthreshold, depth now = %d\n", Current);
+            if((StartupCount == 0) && FIFOUnderflow)
+                printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
             while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {
                 usleep(500);								                    // 0.5ms wait
-                Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);       // read the FIFO free locations
-                if(FIFOOverThreshold)
-                    printf("TX DUC FIFO Overthreshold, depth now = %d\n", Depth);
-                if(FIFOUnderflow)
-                    printf("TX DUC FIFO Underflowed, depth now = %d\n", Depth);
+                Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);       // read the FIFO free locations
+                if((StartupCount == 0) && FIFOOverThreshold)
+                    printf("TX DUC FIFO Overthreshold, depth now = %d\n", Current);
+                if((StartupCount == 0) && FIFOUnderflow)
+                    printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
             }
             // copy data from UDP Buffer & DMA write it
 //            memcpy(IQBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);                // copy out I/Q samples

@@ -34,6 +34,7 @@
 #define VALIGNMENT 4096                             // buffer alignment
 #define VBASE 0x1000                                // offset into I/Q buffer for DMA to start
 #define VDMATRANSFERSIZE 128                        // read 1 message at a time
+#define VSTARTUPDELAY 100                           // 100 messages (~100ms) before reporting under or overflows
 
 
 
@@ -67,9 +68,12 @@ void *OutgoingMicSamples(void *arg)
     unsigned char* MicHeadPtr;								// ptr to 1st free location in mic memory
     unsigned char* MicBasePtr;								// ptr to DMA location in mic memory
     uint32_t Depth = 0;
-    int DMAReadfile_fd = -1;									// DMA read file device
+    int DMAReadfile_fd = -1;								// DMA read file device
     uint32_t RegisterValue;
     bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;
+    unsigned int Current;                                   // current occupied locations in FIFO
+    unsigned int StartupCount;                              // used to delay reporting of under & overflows
+
 
 
 //
@@ -112,7 +116,7 @@ void *OutgoingMicSamples(void *arg)
   //
     SetupFIFOMonitorChannel(eMicCodecDMA, false);
     ResetDMAStreamFIFO(eMicCodecDMA);
-    RegisterValue = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);				// read the FIFO Depth register
+    RegisterValue = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);				// read the FIFO Depth register
     printf("mic FIFO Depth register = %08x (should be ~0)\n", RegisterValue);
     Depth = 0;
 
@@ -140,6 +144,7 @@ void *OutgoingMicSamples(void *arg)
     // initialise outgoing data packet
     //
         printf("starting activity on mic thread\n");
+        StartupCount = VSTARTUPDELAY;
         SequenceCounter = 0;
         memcpy(&DestAddr, &reply_addr, sizeof(struct sockaddr_in));           // create local copy of PC destination address
         memset(&iovecinst, 0, sizeof(struct iovec));
@@ -156,21 +161,21 @@ void *OutgoingMicSamples(void *arg)
             //
             // now wait until there is data, then DMA it
             //
-            Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);			// read the FIFO Depth register. 4 mic words per 64 bit word.
-            if(FIFOOverThreshold)
-                printf("Codec Mic FIFO Overthreshold, depth now = %d\n", Depth);
+            Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);			// read the FIFO Depth register. 4 mic words per 64 bit word.
+            if((StartupCount == 0) && FIFOOverThreshold)
+                printf("Codec Mic FIFO Overthreshold, depth now = %d\n", Current);
 // note this would often generate a message because we deliberately read it down to zero.
 // this isn't a problem as we can send the data on without the code becoming blocked.
-//            if(FIFOUnderflow)
-//                printf("Codec Mic FIFO Underflowed, depth now = %d\n", Depth);
+//            if((StartupCount == 0) && FIFOUnderflow)
+//                printf("Codec Mic FIFO Underflowed, depth now = %d\n", Current);
             while (Depth < (VMICSAMPLESPERFRAME/4))			        // 16 locations = 64 samples
             {
                 usleep(1000);								        // 1ms wait
-                Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);				// read the FIFO Depth register
-                if(FIFOOverThreshold)
-                    printf("Codec Mic FIFO Overthreshold, depth now = %d\n", Depth);
-//                if(FIFOUnderflow)
-//                    printf("Codec Mic FIFO Underflowed, depth now = %d\n", Depth);
+                Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);				// read the FIFO Depth register
+                if((StartupCount == 0) && FIFOOverThreshold)
+                    printf("Codec Mic FIFO Overthreshold, depth now = %d\n", Current);
+//                if((StartupCount == 0) && FIFOUnderflow)
+//                    printf("Codec Mic FIFO Underflowed, depth now = %d\n", Current);
             }
 
             DMAReadFromFPGA(DMAReadfile_fd, MicBasePtr, VDMATRANSFERSIZE, VADDRMICSTREAMREAD);
@@ -179,6 +184,8 @@ void *OutgoingMicSamples(void *arg)
             *(uint32_t*)UDPBuffer = htonl(SequenceCounter++);        // add sequence count
             memcpy(UDPBuffer+4, MicBasePtr, VDMATRANSFERSIZE);       // copy in mic samples
             Error = sendmsg(ThreadData -> Socketid, &datagram, 0);
+            if(StartupCount != 0)                                   // decrement startup message count
+                StartupCount--;
             if(Error == -1)
             {
                 perror("sendmsg, Mic Audio");

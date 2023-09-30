@@ -36,7 +36,7 @@ void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt);
 
 
 //
-// uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed);
+// uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed, bool* OverThreshold, bool* Underflowed,  unsigned int* Current);
 //
 // Read number of locations in a FIFO
 // for a read FIFO: returns the number of occupied locations available to read
@@ -45,8 +45,9 @@ void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt);
 //   Overflowed:		true if an overflow has occurred. Reading clears the overflow bit.
 //   OverThreshold:		true if overflow occurred  measures by threshold. Cleared by read.
 //   Underflowed:       true if underflow has occurred. Cleared by read.
+//   Current:           number of locations occupied (in either FIFO type)
 //
-uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed, bool* OverThreshold, bool* Underflowed);
+uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed, bool* OverThreshold, bool* Underflowed, unsigned int* Current);
 
 
 //

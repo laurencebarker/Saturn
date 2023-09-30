@@ -36,6 +36,7 @@
 #define VALIGNMENT 4096                             // buffer alignment
 #define VBASE 0x1000								// DMA start at 4K into buffer
 #define VDMATRANSFERSIZE 256                        // write 1 message at a time
+#define VSTARTUPDELAY 100                           // 100 messages (~100ms) before reporting under or overflows
 
 
 //
@@ -66,6 +67,10 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
     int DMAWritefile_fd = -1;								// DMA read file device
     bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;
     uint32_t RegVal;
+    unsigned int Current;                                   // current occupied locations in FIFO
+    unsigned int StartupCount;                              // used to delay reporting of under & overflows
+    bool PrevSDRActive;                                     // used to detect change of state
+
 
     ThreadData = (struct ThreadSocketData *)arg;
     ThreadData->Active = true;
@@ -99,9 +104,17 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
 
   //
   // main processing loop
+  // modified to have the same structure as outgoing threads; capable of being stopped and started.
   //
     while(1)
     {
+        //
+        // now released to start processing. Setup buffers.
+        //
+        if(SDRActive & !PrevSDRActive)                      // detect SDRActive has been asserted
+            StartupCount = VSTARTUPDELAY;
+        PrevSDRActive = SDRActive;
+
         memset(&iovecinst, 0, sizeof(struct iovec));            // clear buffers
         memset(&datagram, 0, sizeof(datagram));
         iovecinst.iov_base = &UDPInBuffer;                      // set buffer for incoming message number i
@@ -110,6 +123,9 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
         datagram.msg_iovlen = 1;
         datagram.msg_name = &addr_from;
         datagram.msg_namelen = sizeof(addr_from);
+        //
+        // receive operation thread
+        //
         size = recvmsg(ThreadData->Socketid, &datagram, 0);     // get one message. If it times out, sets size=-1
         if(size < 0 && errno != EAGAIN)
         {
@@ -118,27 +134,29 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
         }
         if(size == VSPEAKERAUDIOSIZE)                           // we have received a packet!
         {
+            if(StartupCount != 0)                                   // decrement startup message count
+                StartupCount--;
             NewMessageReceived = true;
             RegVal += 1;            //debug
-            Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);        // read the FIFO free locations
-            if(FIFOOverThreshold)
-                printf("Codec speaker FIFO Overthreshold, depth now = %d\n", Depth);
-            if(FIFOUnderflow)
-                printf("Codec Speaker FIFO Underflowed, depth now = %d\n", Depth);
-//            printf("speaker packet received; depth = %d\n", Depth);
+            Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);        // read the FIFO free locations
+            if((StartupCount == 0) && FIFOOverThreshold)
+                printf("Codec speaker FIFO Overthreshold, depth now = %d\n", Current);
+            if((StartupCount == 0) && FIFOUnderflow)
+                printf("Codec Speaker FIFO Underflowed, depth now = %d\n", Current);
+    //            printf("speaker packet received; depth = %d\n", Depth);
             while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {
                 usleep(1000);								                    // 1ms wait
-                Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow);    // read the FIFO free locations
-                if(FIFOOverThreshold)
-                    printf("Codec speaker FIFO Overthreshold, depth now = %d\n", Depth);
-                if(FIFOUnderflow)
-                    printf("Codec Speaker FIFO Underflowed, depth now = %d\n", Depth);
+                Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);    // read the FIFO free locations
+                if((StartupCount == 0) && FIFOOverThreshold)
+                    printf("Codec speaker FIFO Overthreshold, depth now = %d\n", Current);
+                if((StartupCount == 0) && FIFOUnderflow)
+                    printf("Codec Speaker FIFO Underflowed, depth now = %d\n", Current);
             }
-            // copy sata from UDP Buffer & DMA write it
+                // copy sata from UDP Buffer & DMA write it
             memcpy(SpkBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);              // copy out spk samples
-//            if(RegVal == 100)
-//                DumpMemoryBuffer(SpkBasePtr, VDMATRANSFERSIZE);
+    //        if(RegVal == 100)
+    //            DumpMemoryBuffer(SpkBasePtr, VDMATRANSFERSIZE);
             DMAWriteToFPGA(DMAWritefile_fd, SpkBasePtr, VDMATRANSFERSIZE, VADDRSPKRSTREAMWRITE);
         }
     }
