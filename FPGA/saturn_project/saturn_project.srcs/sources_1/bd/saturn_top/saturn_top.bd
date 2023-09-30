@@ -3410,7 +3410,7 @@
             "inst_hier_path": "FIFO_Interfaces/axis_data_fifo_DDC0",
             "parameters": {
               "FIFO_DEPTH": {
-                "value": "8192"
+                "value": "16384"
               },
               "HAS_AFULL": {
                 "value": "0"
@@ -3436,7 +3436,7 @@
             "inst_hier_path": "FIFO_Interfaces/axis_data_fifo_DUC",
             "parameters": {
               "FIFO_DEPTH": {
-                "value": "1024"
+                "value": "2048"
               },
               "HAS_WR_DATA_COUNT": {
                 "value": "1"
@@ -3476,7 +3476,7 @@
             "inst_hier_path": "FIFO_Interfaces/axis_data_fifo_codecspk",
             "parameters": {
               "FIFO_DEPTH": {
-                "value": "256"
+                "value": "1024"
               },
               "HAS_WR_DATA_COUNT": {
                 "value": "1"
@@ -9479,7 +9479,7 @@
             "inst_hier_path": "PCIe/xlconstant_swversion",
             "parameters": {
               "CONST_VAL": {
-                "value": "9"
+                "value": "10"
               },
               "CONST_WIDTH": {
                 "value": "16"
