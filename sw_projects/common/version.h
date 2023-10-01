@@ -20,6 +20,36 @@
 
 
 //
+// define types for product responses
+//
+typedef enum 
+{
+    eInvalidProduct,                // productid = 1
+    eSaturn                         // productid=Saturn
+} EProductId;
+
+typedef enum 
+{
+    ePrototype1,                // productid = 1
+    eProductionV1                         // productid=Saturn
+} EProductVersion;
+
+typedef enum
+{
+    eInvalidSWID,
+    e1stProtoFirmware,
+    e2ndProtofirmware,
+    eFallback,
+    eFullFunction
+} ESoftwareID;
+
+
+//
+// function call to get firmware ID and version
+//
+unsigned int GetFirmwareVersion(ESoftwareID* ID);
+
+//
 // prints version information from the registers
 //
 void PrintVersionInfo(void);

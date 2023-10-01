@@ -22,6 +22,7 @@
 
 sem_t DDCResetFIFOMutex;
 
+bool GFIFOSizesInitialised = false;
 
 
 
@@ -38,6 +39,11 @@ void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt)
 	uint32_t Address;							// register address
 	uint32_t Data;								// register content
 
+	if (!GFIFOSizesInitialised)
+	{
+			InitialiseFIFOSizes();				// load FIFO size table, if not already done
+			GFIFOSizesInitialised = true;
+	}
 	Address = VADDRFIFOMONBASE + 4 * Channel + 0x10;			// config register address
 	Data = DMAFIFODepths[(int)Channel];							// memory depth
 	if (EnableInterrupt)

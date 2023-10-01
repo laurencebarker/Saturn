@@ -456,7 +456,7 @@ void *OutgoingDDCIQ(void *arg)
             //		printf("read: depth = %d\n", Depth);
             while(Depth < (DMATransferSize/8U))			// 8 bytes per location
             {
-                usleep(1000);								// 1ms wait
+                usleep(500);								// 1ms wait
                 Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);				// read the FIFO Depth register
                 if((StartupCount == 0) && FIFOOverThreshold)
                     printf("RX DDC FIFO Overthreshold, depth now = %d\n", Current);

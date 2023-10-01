@@ -177,6 +177,15 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us);
 //
 void InitialiseDACAttenROMs(void);
 
+//
+// InitialiseFIFOSizes(void)
+// initialise the FIFO size table, which is FPGA version dependent
+//
+void InitialiseFIFOSizes(void);
+
+
+
+
 
 //
 // SetByteSwap(bool)
@@ -783,6 +792,7 @@ unsigned int GetAnalogueIn(unsigned int AnalogueSelect);
 // initialise the CODEC, with the register values that don't normally change
 //
 void CodecInitialise(void);
+
 
 
 //

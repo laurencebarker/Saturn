@@ -62,7 +62,7 @@ char* SWIDStrings[] =
 	"Saturn prototype, board test code",
 	"Saturn prototype, with DSP",
 	"Fallback Golden image",
-	"Saturn prototype, full function"
+	"Saturn, full function"
 };
 
 char* ClockStrings[] =
@@ -180,5 +180,20 @@ void PrintVersionInfo(void)
 	}
 }
 
+
+
+//
+// function call to get firmware ID and version
+//
+unsigned int GetFirmwareVersion(ESoftwareID* ID)
+{
+	unsigned int Version = 0;
+	uint32_t SoftwareInformation;			// swid & version
+
+	SoftwareInformation = RegisterRead(VADDRSWVERSIONREG);
+	Version = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version
+	*ID = (ESoftwareID)(SoftwareInformation >> 20);						// 12 bit software ID
+	return Version;
+}
 
 

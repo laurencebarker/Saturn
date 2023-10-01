@@ -22,8 +22,6 @@
 #include "../P2_app/InDUCIQ.h"
 
 
-
-
 //
 // void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt);
 //

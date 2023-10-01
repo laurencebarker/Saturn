@@ -21,6 +21,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <semaphore.h>
+#include "version.h"
 
 //
 // semaphores to protect registers that are accessed from several threads
@@ -163,13 +164,14 @@ unsigned int GCodecAnaloguePath;                    // value written in Codec an
 //
 // DMA FIFO depths
 // this is the number of 64 bit FIFO locations
+// this is now version dependent, and updated by InitialiseFIFOSizes()
 //
 uint32_t DMAFIFODepths[VNUMDMAFIFO] =
 {
-  16384,            //  eRXDDCDMA,		selects RX
-  2048,             //  eTXDUCDMA,		selects TX
+  8192,             //  eRXDDCDMA,		selects RX
+  1024,             //  eTXDUCDMA,		selects TX
   256,              //  eMicCodecDMA,	selects mic samples
-  1024              //  eSpkCodecDMA	selects speaker samples
+  256               //  eSpkCodecDMA	selects speaker samples
 };
 
 
@@ -277,6 +279,28 @@ uint32_t DDCRegisters[VNUMDDC] =
 #define VTXCONFIGMUXRESETBIT 29
 #define VTXCONFIGIQDEINTERLEAVEBIT 30
 #define VTXCONFIGIQSTREAMENABLED 31
+
+
+
+
+//
+// InitialiseFIFOSizes(void)
+// initialise the FIFO size table, which is FPGA version dependent
+//
+void InitialiseFIFOSizes(void)
+{
+	ESoftwareID ID;
+	unsigned int Version = 0;
+    Version = GetFirmwareVersion(&ID);
+    if(Version >= 10)
+    {
+        printf("loading new FIFO sizes for updated firmware\n");
+        DMAFIFODepths[0] = 16384;       //  eRXDDCDMA,		selects RX
+        DMAFIFODepths[1] = 2048;        //  eTXDUCDMA,		selects TX
+        DMAFIFODepths[2] = 256;         //  eMicCodecDMA,	selects mic samples
+        DMAFIFODepths[3] = 1024;        //  eSpkCodecDMA	selects speaker samples
+    }
+}
 
 
 
