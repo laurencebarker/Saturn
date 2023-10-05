@@ -181,7 +181,8 @@ void CreateSpkTestData(char* MemPtr, uint32_t Samples, float StartFreq, float Fr
 void DMAWriteToCodec(char* MemPtr, uint32_t Length)
 {
 	uint32_t Depth = 0;
-	bool FIFOOverflow;
+	uint32_t Spare;
+	bool FIFOOverflow, OverThreshold, Underflow;
 	uint32_t DMACount;
 	uint32_t  TotalDMACount;
 
@@ -190,12 +191,12 @@ void DMAWriteToCodec(char* MemPtr, uint32_t Length)
 
 	for(DMACount = 0; DMACount < TotalDMACount; DMACount++)
 	{
-		Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow);        // read the FIFO free locations
+		Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &OverThreshold, &Underflow, &Spare);        // read the FIFO free locations
 //		printf("FIFO monitor read; depth = %d\n", Depth);
 		while (Depth < VDMAWORDSPERDMA)       // loop till space available
 		{
 			usleep(1000);								                    // 1ms wait
-			Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow);    // read the FIFO free locations
+			Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &OverThreshold, &Underflow, &Spare);    // read the FIFO free locations
 		}
 		// DMA write next batch
 		DMAWriteToFPGA(DMAWritefile_fd, MemPtr, VDMATRANSFERSIZE, AXIBaseAddress);
@@ -242,7 +243,8 @@ void CopyMicToSpeaker(char* Read, char *Write, uint32_t Length)
 void DMAReadFromCodec(char* MemPtr, uint32_t Length)
 {
 	uint32_t Depth = 0;
-	bool FIFOOverflow;
+	uint32_t Spare;
+	bool FIFOOverflow, OverThreshold, Underflow;
 	uint32_t DMACount;
 	uint32_t  TotalDMACount;
 	int16_t *MicReadPtr;
@@ -258,12 +260,12 @@ void DMAReadFromCodec(char* MemPtr, uint32_t Length)
 
 	for(DMACount = 0; DMACount < TotalDMACount; DMACount++)
 	{
-		Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow);        // read the FIFO free locations
+		Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &OverThreshold, &Underflow, &Spare);        // read the FIFO free locations
 		//printf("FIFO monitor read; depth = %d\n", Depth);
 		while (Depth < VDMAWORDSPERDMA)       // loop till enough data available
 		{
 			usleep(2000);								                    // 2ms wait
-			Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow);    // read the FIFO free locations
+			Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &OverThreshold, &Underflow, &Spare);    // read the FIFO free locations
 		}
 		// DMA read next batch of 16 bit mic samples
 		// then update mic amplitude
