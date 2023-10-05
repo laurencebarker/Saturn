@@ -139,18 +139,18 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
             NewMessageReceived = true;
             RegVal += 1;            //debug
             Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);        // read the FIFO free locations
-            if((StartupCount == 0) && FIFOOverThreshold)
+            if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
                 printf("Codec speaker FIFO Overthreshold, depth now = %d\n", Current);
-            if((StartupCount == 0) && FIFOUnderflow)
+            if((StartupCount == 0) && FIFOUnderflow && UseDebug)
                 printf("Codec Speaker FIFO Underflowed, depth now = %d\n", Current);
     //            printf("speaker packet received; depth = %d\n", Depth);
             while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {
                 usleep(1000);								                    // 1ms wait
                 Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);    // read the FIFO free locations
-                if((StartupCount == 0) && FIFOOverThreshold)
+                if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
                     printf("Codec speaker FIFO Overthreshold, depth now = %d\n", Current);
-                if((StartupCount == 0) && FIFOUnderflow)
+                if((StartupCount == 0) && FIFOUnderflow && UseDebug)
                     printf("Codec Speaker FIFO Underflowed, depth now = %d\n", Current);
             }
                 // copy sata from UDP Buffer & DMA write it

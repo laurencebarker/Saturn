@@ -70,6 +70,7 @@ bool NewMessageReceived = false;            // set whenever a message is receive
 bool ExitRequested = false;                 // true if "exit checking" thread requests shutdown
 bool SkipExitCheck = false;                 // true to skip "exit checking", if running as a service
 bool ThreadError = false;                   // true if a thread reports an error
+bool UseDebug = false;                      // true if to enable debugging
 
 
 #define SDRBOARDID 1                        // Hermes
@@ -389,7 +390,7 @@ int main(int argc, char *argv[])
 // option string needs a colon after each option letter that has a parameter after it
 // and it has a leading colon to suppress error messages
 //
-  while((CmdOption = getopt(argc, argv, ":i:f:h:m:s")) != -1)
+  while((CmdOption = getopt(argc, argv, ":i:f:h:m:sd")) != -1)
   {
     switch(CmdOption)
     {
@@ -457,6 +458,9 @@ int main(int argc, char *argv[])
         printf ("Skipping check for exit keys\n");                  
         SkipExitCheck = true;
         break;
+
+      case 'd':
+        UseDebug = true;
     }
   }
   printf("\n");

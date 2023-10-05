@@ -29,6 +29,7 @@
 #include "../common/hwaccess.h"
 
 
+
 #define VIQSAMPLESPERFRAME 240                      // samples per UDP frame
 #define VMEMWORDSPERFRAME 180                       // memory writes per UDP frame
 #define VBYTESPERSAMPLE 6							// 24 bit + 24 bit samples
@@ -139,17 +140,17 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
                 StartupCount--;
             NewMessageReceived = true;
             Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);           // read the FIFO free locations
-            if((StartupCount == 0) && FIFOOverThreshold)
+            if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
                 printf("TX DUC FIFO Overthreshold, depth now = %d\n", Current);
-            if((StartupCount == 0) && FIFOUnderflow)
+            if((StartupCount == 0) && FIFOUnderflow && UseDebug)
                 printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
             while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {
                 usleep(500);								                    // 0.5ms wait
                 Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);       // read the FIFO free locations
-                if((StartupCount == 0) && FIFOOverThreshold)
+                if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
                     printf("TX DUC FIFO Overthreshold, depth now = %d\n", Current);
-                if((StartupCount == 0) && FIFOUnderflow)
+                if((StartupCount == 0) && FIFOUnderflow && UseDebug)
                     printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
             }
             // copy data from UDP Buffer & DMA write it
