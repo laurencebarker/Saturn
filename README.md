@@ -29,7 +29,7 @@ This script is not relocatable. We recommend you use the same directory structur
 open it in path: c:/xilinxdesigns/Saturn/FPGA          (case sensitive!)
 
 To use this repository:
-1. Install vivado 2021.2
+1. Install vivado 2023.1
 2. Copy this repository to c:\xilinxdesigns\saturn
 3. Open vivado and find the TCL command line
 4. type: cd c:/xilinxdesigns/Saturn/FPGA

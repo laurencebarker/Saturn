@@ -21,6 +21,8 @@
 #include <stdint.h>
 #include "../common/saturntypes.h"
 
+extern bool HW_Timer_Enable;
+
 //
 // protocol 2 handler for General Packet to SDR
 // parameter is a pointer to the UDP message buffer.
