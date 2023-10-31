@@ -21,7 +21,7 @@
 #include "../common/saturnregisters.h"
 
 
-
+bool HW_Timer_Enable = true;
 
 //
 // protocol 2 handler for General Packet to SDR
@@ -91,6 +91,9 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
   EnableTimeStamp((bool)(Byte&1));
   EnableVITA49((bool)(Byte&2));
   SetFreqPhaseWord((bool)(Byte&8));
+
+  Byte = *(uint8_t*)(PacketBuffer+38);                // enable timeout
+  HW_Timer_Enable = ((bool)(Byte&1));
   
   Byte = *(uint8_t*)(PacketBuffer+58);                // flag bits
   SetPAEnabled((bool)(Byte&1));
@@ -99,6 +102,6 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
   Byte = *(uint8_t*)(PacketBuffer+59);                // Alex enable bits
   SetAlexEnabled(Byte);
 
-  return NULL;
+  return 0;
 }
 
