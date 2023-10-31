@@ -465,6 +465,15 @@ void *OutgoingDDCIQ(void *arg)
 //                    printf("RX DDC FIFO Underflowed, depth now = %d\n", Current);
              }
 //            printf("DDC DMA read %d bytes from destination to base\n", DMATransferSize);
+            if(Depth > 4096)
+                DMATransferSize = 32768;
+            else if(Depth > 2048)
+                DMATransferSize = 16384;
+            else if(Depth > 1024)
+                DMATransferSize = 8192;
+            else
+                DMATransferSize = 4096;
+
             DMAReadFromFPGA(IQReadfile_fd, DMAHeadPtr, DMATransferSize, VADDRDDCSTREAMREAD);
             DMAHeadPtr += DMATransferSize;
             //
