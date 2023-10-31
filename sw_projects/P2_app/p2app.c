@@ -259,11 +259,11 @@ void* CheckForActivity(void *arg)
   bool PreviouslyActiveState;               
   while(1)
   {
-    sleep(1);                               // wait for 1 second
-    PreviouslyActiveState = SDRActive;      // see if active on entry
-    if (!NewMessageReceived)                // if no messages received,
+    sleep(1);                                   // wait for 1 second
+    PreviouslyActiveState = SDRActive;          // see if active on entry
+    if (!NewMessageReceived && HW_Timer_Enable) // if no messages received,
     {
-      SDRActive = false;                    // set back to inactive
+      SDRActive = false;                        // set back to inactive
       SetTXEnable(false);
       EnableCW(false, false);
       ReplyAddressSet = false;
