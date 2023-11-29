@@ -2158,6 +2158,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWID": {
                     "physical_name": "s_axi_awid",
@@ -2589,6 +2590,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWID": {
                     "physical_name": "s_axi_awid",
@@ -4541,6 +4543,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -5066,6 +5069,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -5342,6 +5346,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -5584,6 +5589,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -5842,6 +5848,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -6094,6 +6101,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -6346,6 +6354,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -6648,6 +6657,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -10499,6 +10509,10 @@
                       "PHASE": {
                         "value": "0.0",
                         "value_src": "ip_prop"
+                      },
+                      "CLK_DOMAIN": {
+                        "value": "saturn_top_clk_wiz_0_0_clk_out1",
+                        "value_src": "default_prop"
                       }
                     }
                   },
@@ -12565,6 +12579,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -13249,9 +13264,7 @@
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -13316,15 +13329,11 @@
                     "port_maps": {
                       "TID": {
                         "physical_name": "LOIQIn_tid",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDEST": {
                         "physical_name": "LOIQIn_tdest",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDATA": {
                         "physical_name": "LOIQIn_tdata",
@@ -13334,9 +13343,7 @@
                       },
                       "TKEEP": {
                         "physical_name": "LOIQIn_tkeep",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TLAST": {
                         "physical_name": "LOIQIn_tlast",
@@ -13344,9 +13351,7 @@
                       },
                       "TUSER": {
                         "physical_name": "LOIQIn_tuser",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TVALID": {
                         "physical_name": "LOIQIn_tvalid",
@@ -13622,15 +13627,11 @@
                     "port_maps": {
                       "TDATA": {
                         "physical_name": "LOIQOut_tdata",
-                        "direction": "O",
-                        "left": "31",
-                        "right": "0"
+                        "direction": "O"
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -14793,6 +14794,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -15084,6 +15086,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -15481,9 +15484,7 @@
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -15548,15 +15549,11 @@
                     "port_maps": {
                       "TID": {
                         "physical_name": "LOIQIn_tid",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDEST": {
                         "physical_name": "LOIQIn_tdest",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDATA": {
                         "physical_name": "LOIQIn_tdata",
@@ -15566,9 +15563,7 @@
                       },
                       "TKEEP": {
                         "physical_name": "LOIQIn_tkeep",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TLAST": {
                         "physical_name": "LOIQIn_tlast",
@@ -15576,9 +15571,7 @@
                       },
                       "TUSER": {
                         "physical_name": "LOIQIn_tuser",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TVALID": {
                         "physical_name": "LOIQIn_tvalid",
@@ -15854,15 +15847,11 @@
                     "port_maps": {
                       "TDATA": {
                         "physical_name": "LOIQOut_tdata",
-                        "direction": "O",
-                        "left": "31",
-                        "right": "0"
+                        "direction": "O"
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -17029,9 +17018,7 @@
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -17096,15 +17083,11 @@
                     "port_maps": {
                       "TID": {
                         "physical_name": "LOIQIn_tid",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDEST": {
                         "physical_name": "LOIQIn_tdest",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDATA": {
                         "physical_name": "LOIQIn_tdata",
@@ -17114,9 +17097,7 @@
                       },
                       "TKEEP": {
                         "physical_name": "LOIQIn_tkeep",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TLAST": {
                         "physical_name": "LOIQIn_tlast",
@@ -17124,9 +17105,7 @@
                       },
                       "TUSER": {
                         "physical_name": "LOIQIn_tuser",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TVALID": {
                         "physical_name": "LOIQIn_tvalid",
@@ -17402,15 +17381,11 @@
                     "port_maps": {
                       "TDATA": {
                         "physical_name": "LOIQOut_tdata",
-                        "direction": "O",
-                        "left": "31",
-                        "right": "0"
+                        "direction": "O"
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -18577,9 +18552,7 @@
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -18644,15 +18617,11 @@
                     "port_maps": {
                       "TID": {
                         "physical_name": "LOIQIn_tid",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDEST": {
                         "physical_name": "LOIQIn_tdest",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDATA": {
                         "physical_name": "LOIQIn_tdata",
@@ -18662,9 +18631,7 @@
                       },
                       "TKEEP": {
                         "physical_name": "LOIQIn_tkeep",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TLAST": {
                         "physical_name": "LOIQIn_tlast",
@@ -18672,9 +18639,7 @@
                       },
                       "TUSER": {
                         "physical_name": "LOIQIn_tuser",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TVALID": {
                         "physical_name": "LOIQIn_tvalid",
@@ -18950,15 +18915,11 @@
                     "port_maps": {
                       "TDATA": {
                         "physical_name": "LOIQOut_tdata",
-                        "direction": "O",
-                        "left": "31",
-                        "right": "0"
+                        "direction": "O"
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -20125,9 +20086,7 @@
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -20192,15 +20151,11 @@
                     "port_maps": {
                       "TID": {
                         "physical_name": "LOIQIn_tid",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDEST": {
                         "physical_name": "LOIQIn_tdest",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDATA": {
                         "physical_name": "LOIQIn_tdata",
@@ -20210,9 +20165,7 @@
                       },
                       "TKEEP": {
                         "physical_name": "LOIQIn_tkeep",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TLAST": {
                         "physical_name": "LOIQIn_tlast",
@@ -20220,9 +20173,7 @@
                       },
                       "TUSER": {
                         "physical_name": "LOIQIn_tuser",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TVALID": {
                         "physical_name": "LOIQIn_tvalid",
@@ -20498,15 +20449,11 @@
                     "port_maps": {
                       "TDATA": {
                         "physical_name": "LOIQOut_tdata",
-                        "direction": "O",
-                        "left": "31",
-                        "right": "0"
+                        "direction": "O"
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -21737,6 +21684,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
