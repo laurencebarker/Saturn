@@ -3,7 +3,7 @@
    "Default View_ScaleFactor":"0.864646",
    "Default View_TopLeft":"-594,-20",
    "ExpandedHierarchyInLayout":"",
-   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
+   "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
 preplace port s_axi_alex -pg 1 -lvl 0 -x 0 -y 520 -defaultsOSRD
 preplace port port-id_ADC1_ATTEN_CLK -pg 1 -lvl 3 -x 970 -y 190 -defaultsOSRD
@@ -46,10 +46,10 @@ preplace portBus status_out -pg 1 -lvl 3 -x 970 -y 710 -defaultsOSRD
 preplace inst AttenDrivers -pg 1 -lvl 2 -x 760 -y 260 -defaultsOSRD
 preplace inst Strobes -pg 1 -lvl 1 -x 420 -y 100 -defaultsOSRD
 preplace inst debounce -pg 1 -lvl 2 -x 760 -y 710 -defaultsOSRD
+preplace inst AXILite_Alex_SPI_0 -pg 1 -lvl 2 -x 760 -y 550 -defaultsOSRD
 preplace inst util_vector_logic_0 -pg 1 -lvl 2 -x 760 -y 420 -defaultsOSRD
 preplace inst xlconstant_drive0 -pg 1 -lvl 2 -x 760 -y 830 -defaultsOSRD
 preplace inst xlconstant_drive1 -pg 1 -lvl 2 -x 760 -y 930 -defaultsOSRD
-preplace inst AXILite_Alex_SPI_0 -pg 1 -lvl 2 -x 760 -y 550 -defaultsOSRD
 preplace netloc AXILite_Alex_SPI_0_Rx_load_strobe 1 2 1 N 560
 preplace netloc AXILite_Alex_SPI_0_SPI_ck 1 2 1 N 540
 preplace netloc AXILite_Alex_SPI_0_SPI_data 1 2 1 N 520
@@ -74,13 +74,13 @@ preplace netloc debounce_status_out 1 2 1 930J 680n
 preplace netloc keyer_PTT_1 1 0 1 NJ 110
 preplace netloc regmux_2_1_1_dout 1 2 1 NJ 310
 preplace netloc rstn_1 1 0 2 NJ 560 610
-preplace netloc status_in_1 1 0 2 NJ 720 590J
+preplace netloc status_in_1 1 0 2 NJ 720 570J
 preplace netloc util_reduced_logic_1_Res 1 1 2 590 130 NJ
 preplace netloc util_reduced_logic_2_Res 1 1 2 NJ 90 NJ
 preplace netloc util_reduced_logic_3_Res 1 1 1 580 150n
 preplace netloc util_vector_logic_0_Res 1 2 1 NJ 420
-preplace netloc xlconstant_0_dout 1 2 1 930J 910n
-preplace netloc xlconstant_1_dout 1 2 1 930J 750n
+preplace netloc xlconstant_0_dout 1 2 1 910J 910n
+preplace netloc xlconstant_1_dout 1 2 1 950J 750n
 preplace netloc xlslice_0_Dout 1 1 2 NJ 110 NJ
 preplace netloc xlslice_5_Dout 1 1 2 NJ 70 NJ
 preplace netloc Conn1 1 0 2 NJ 520 N
