@@ -16,13 +16,13 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="14,325.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="15,000.001 ns"></ZoomEndTime>
-      <Cursor1Time time="3,000,000.000 ns"></Cursor1Time>
+      <ZoomStartTime time="195.235040 us"></ZoomStartTime>
+      <ZoomEndTime time="208.815041 us"></ZoomEndTime>
+      <Cursor1Time time="0.681544 us"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="223"></NameColumnWidth>
-      <ValueColumnWidth column_width="98"></ValueColumnWidth>
+      <ValueColumnWidth column_width="90"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="66" />
    <wave_markers>
@@ -59,6 +59,22 @@
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/aresetn" type="logic">
       <obj_property name="ElementShortName">aresetn</obj_property>
       <obj_property name="ObjectShortName">aresetn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/SPI_ck" type="logic">
+      <obj_property name="ElementShortName">SPI_ck</obj_property>
+      <obj_property name="ObjectShortName">SPI_ck</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/SPI_data" type="logic">
+      <obj_property name="ElementShortName">SPI_data</obj_property>
+      <obj_property name="ObjectShortName">SPI_data</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/Rx_load_strobe" type="logic">
+      <obj_property name="ElementShortName">Rx_load_strobe</obj_property>
+      <obj_property name="ObjectShortName">Rx_load_strobe</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/Tx_load_strobe" type="logic">
+      <obj_property name="ElementShortName">Tx_load_strobe</obj_property>
+      <obj_property name="ObjectShortName">Tx_load_strobe</obj_property>
    </wvobject>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/m_axi_awaddr" type="array">
       <obj_property name="ElementShortName">m_axi_awaddr[31:0]</obj_property>
@@ -249,22 +265,6 @@
    <wvobject fp_name="/AXI_GPIO_tb/UUT/TX_Strobe" type="logic">
       <obj_property name="ElementShortName">TX_Strobe</obj_property>
       <obj_property name="ObjectShortName">TX_Strobe</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/SPI_ck" type="logic">
-      <obj_property name="ElementShortName">SPI_ck</obj_property>
-      <obj_property name="ObjectShortName">SPI_ck</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/SPI_data" type="logic">
-      <obj_property name="ElementShortName">SPI_data</obj_property>
-      <obj_property name="ObjectShortName">SPI_data</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/Rx_load_strobe" type="logic">
-      <obj_property name="ElementShortName">Rx_load_strobe</obj_property>
-      <obj_property name="ObjectShortName">Rx_load_strobe</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/Tx_load_strobe" type="logic">
-      <obj_property name="ElementShortName">Tx_load_strobe</obj_property>
-      <obj_property name="ObjectShortName">Tx_load_strobe</obj_property>
    </wvobject>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXILite_Alex_SPI_0/inst/axiTXdatareg" type="array">
       <obj_property name="ElementShortName">axiTXdatareg[31:0]</obj_property>

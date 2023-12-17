@@ -150,7 +150,7 @@ initial begin
     test_fifo_tvalid = 0;
     test_fifo_tdata = 0;
     fifo_tready=0;
-    #340ns
+    #10us
     // Release the reset
     aresetn = 1;
 end
@@ -172,17 +172,18 @@ master_agent = new("master vip agent",UUT.AXI_GPIO_Sim_i.axi_vip_0.inst.IF);
 // Step 5 - Start the agent
 master_agent.start_master();
     
+	#10us
     
     //Wait for the reset to be released
     wait (aresetn == 1'b1);
-	#200ns
+	#10us
 	
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
 // now test the FIFO monitor
 // write control reg1-4; then read them back
-#100ns
+#50us
 addr = 32'h00030010;
 data = 32'hC0000200;        // FIFO threshold =512, int enabled, read FIFO
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
@@ -389,7 +390,7 @@ $display("read SPI ADC read register, AIN6: data = 0x%x", data);
 //
 $display("AXILite Alex data writer test");    
 $display("writing 0x55FF to TX data register");
-#100ns
+#50us
 addr = 32'h00040000;
 data = 32'h000055FF;
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
