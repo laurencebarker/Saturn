@@ -146,10 +146,10 @@ module AXILite_Alex_SPI #
   reg [AXI_DATA_WIDTH-1:0] wdatareg;        // AXI data register
   reg arreadyreg;                           // false when write address has been latched
   reg rvalidreg;                            // true when read data out is valid
-  reg awreadyreg;                            // false when write address has been latched
-  reg wreadyreg;                             // false when write data has been latched
-  reg bvalidreg;                             // goes true when address and data completed
-
+  reg awreadyreg;                           // false when write address has been latched
+  reg wreadyreg;                            // false when write data has been latched
+  reg bvalidreg;                            // goes true when address and data completed
+  reg prev_aresetn = 1;                     // previous state of aresetn 
 //
 // read transaction strategy:
 // 1. at reset, assert arready, to be able to accept address transfers 
@@ -197,114 +197,116 @@ module AXILite_Alex_SPI #
 // Alex data shifter
 //
   always @ (posedge aclk)
-// on reset, initialise states and force a shify of both RX and TX data
-  if (!aresetn)
   begin
-    rx_needed <= 1;                          // TX and RX both to be shifted with zeros
-    tx_needed <= 1;
-    previous_Rx_data <= 32'h00000000;
-    previous_Tx_data <= 16'h0000;
-    spi_state <= 0;                         // initial sequencer state
-    TXdatareg <= 0;
-    Tx_load_strobe <= 0;
-    Rx_load_strobe <= 0;
-    SPI_data <= 0;
-    SPI_ck <= 0;
-  end
-  else if(DivideCount == 0)                       // only process every N clocks
-  begin
+    prev_aresetn <= aresetn;                 // store state
+// on the first cycle of reset, initialise states and force a shift of both RX and TX data
+    if (prev_aresetn && !aresetn)
+    begin
+        rx_needed <= 1;                          // TX and RX both to be shifted with zeros
+        tx_needed <= 1;
+        previous_Rx_data <= 32'h00000000;
+        previous_Tx_data <= 16'h0000;
+        spi_state <= 0;                         // initial sequencer state
+        TXdatareg <= 0;
+        Tx_load_strobe <= 0;
+        Rx_load_strobe <= 0;
+        SPI_data <= 0;
+        SPI_ck <= 0;
+    end
+    else if(DivideCount == 0)                       // only process every N clocks
+    begin
 
 //
 // first see if RX data or TX data have changed
 // RX data is shifted from the AXI register data
 // TX data needs bit 11 replaced by TX strobe input
 //
-    TXdatareg <= {axiTXdatareg[31:12], TX_Strobe, axiTXdatareg[10:0]};
-
-    if (axiRXdatareg != previous_Rx_data)
-    begin
-        previous_Rx_data <= axiRXdatareg;
-        rx_needed <= 1;
-    end
+        TXdatareg <= {axiTXdatareg[31:12], TX_Strobe, axiTXdatareg[10:0]};
     
-    if (TXdatareg != previous_Tx_data)
-    begin
-        previous_Tx_data <= TXdatareg;
-        tx_needed <= 1;
-    end
-
-//
-// now the sequencer acts on the tx or rx needed flags
-//
-    case (spi_state)
-    0:	begin                                    // idle state - see if triggered to start
-            if (tx_needed)
-            begin
-                data_count <= 15;
-                shifting_rx <= 0;
-                tx_needed <= 0;                 // clear now so new data can be registered
-                shiftregister[31:16] <= TXdatareg[15:0]; 
-                spi_state <= 1;
-            end
-            else if (rx_needed)
-            begin
-                data_count <= 31;
-                shifting_rx <= 1;
-                rx_needed <= 0;                 // clear now so new data can be registered
-                shiftregister[31:0] <= axiRXdatareg[31:0]; 
-                spi_state <= 1;
-            end
-            else spi_state <= 0; 			      // wait for trigger
-        end		
-    
-    1:	begin                                    // assert data bit
-           SPI_data <= shiftregister[31];	        // shift a bit
-           shiftregister <= shiftregister << 1;
-           spi_state <= 2;
+        if (axiRXdatareg != previous_Rx_data)
+        begin
+            previous_Rx_data <= axiRXdatareg;
+            rx_needed <= 1;
+        end
+        
+        if (TXdatareg != previous_Tx_data)
+        begin
+            previous_Tx_data <= TXdatareg;
+            tx_needed <= 1;
         end
     
-    2:	begin
-           SPI_ck <= 1'b1;					// set clock high
-           spi_state <= 3;
-        end
-    
-    3:	begin
-           SPI_ck <= 1'b0;					// set clock low
-           spi_state <= 4;
-        end
-    
-    4:	begin                                // see if end of shift
-            if(data_count == 0) begin
-                if (shifting_rx)                // assertt a strobe & clear "shift needed
+    //
+    // now the sequencer acts on the tx or rx needed flags
+    //
+        case (spi_state)
+        0:	begin                                    // idle state - see if triggered to start
+                if (tx_needed)
                 begin
-                    Rx_load_strobe <= 1'b1;
-                    spi_state <= 5;
+                    data_count <= 15;
+                    shifting_rx <= 0;
+                    tx_needed <= 0;                 // clear now so new data can be registered
+                    shiftregister[31:16] <= TXdatareg[15:0]; 
+                    spi_state <= 1;
                 end
+                else if (rx_needed)
+                begin
+                    data_count <= 31;
+                    shifting_rx <= 1;
+                    rx_needed <= 0;                 // clear now so new data can be registered
+                    shiftregister[31:0] <= axiRXdatareg[31:0]; 
+                    spi_state <= 1;
+                end
+                else spi_state <= 0; 			      // wait for trigger
+            end		
+        
+        1:	begin                                    // assert data bit
+               SPI_data <= shiftregister[31];	        // shift a bit
+               shiftregister <= shiftregister << 1;
+               spi_state <= 2;
+            end
+        
+        2:	begin
+               SPI_ck <= 1'b1;					// set clock high
+               spi_state <= 3;
+            end
+        
+        3:	begin
+               SPI_ck <= 1'b0;					// set clock low
+               spi_state <= 4;
+            end
+        
+        4:	begin                                // see if end of shift
+                if(data_count == 0) begin
+                    if (shifting_rx)                // assertt a strobe & clear "shift needed
+                    begin
+                        Rx_load_strobe <= 1'b1;
+                        spi_state <= 5;
+                    end
+                    else
+                    begin
+                        Tx_load_strobe <= 1'b1;
+                        spi_state <= 5;
+                    end	       	
+                end 
                 else
                 begin
-                    Tx_load_strobe <= 1'b1;
-                    spi_state <= 5;
-                end	       	
-            end 
-            else
-            begin
-                data_count <= data_count - 1'b1;
-                spi_state <= 1;
+                    data_count <= data_count - 1'b1;
+                    spi_state <= 1;
+                end
             end
-        end
-        
-    5:	begin
-           Tx_load_strobe <= 1'b0;				// reset Tx strobe
-           Rx_load_strobe <= 1'b0;				// reset Rx strobe
-           spi_state <= 0;						// now do Rx data
-        end
-        
-    default: begin
-                spi_state <= 0;						// initial state   
-             end
-    endcase
-end
-
+            
+        5:	begin
+               Tx_load_strobe <= 1'b0;				// reset Tx strobe
+               Rx_load_strobe <= 1'b0;				// reset Rx strobe
+               spi_state <= 0;						// now do Rx data
+            end
+            
+        default: begin
+                    spi_state <= 0;						// initial state   
+                 end
+        endcase
+    end
+  end    
 
 //
 // AXI4 Lite transactions

@@ -1228,8 +1228,8 @@
         "C_AXI_WUSER_WIDTH": [ { "value": "1", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_AXI_RUSER_WIDTH": [ { "value": "1", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_AXI_BUSER_WIDTH": [ { "value": "1", "resolve_type": "generated", "format": "long", "usage": "all" } ],
-        "C_M_AXI_WRITE_CONNECTIVITY": [ { "value": "0xFFFFFFFFFFFFFFFF", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
-        "C_M_AXI_READ_CONNECTIVITY": [ { "value": "0xFFFFFFFFFFFFFFFF", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
+        "C_M_AXI_WRITE_CONNECTIVITY": [ { "value": "0x0000000100000001", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
+        "C_M_AXI_READ_CONNECTIVITY": [ { "value": "0x0000000100000001", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
         "C_R_REGISTER": [ { "value": "1", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_S_AXI_SINGLE_THREAD": [ { "value": "0x00000001", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
         "C_S_AXI_WRITE_ACCEPTANCE": [ { "value": "0x00000001", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
@@ -1237,7 +1237,7 @@
         "C_M_AXI_WRITE_ISSUING": [ { "value": "0x0000000100000001", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
         "C_M_AXI_READ_ISSUING": [ { "value": "0x0000000100000001", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
         "C_S_AXI_ARB_PRIORITY": [ { "value": "0x00000000", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
-        "C_M_AXI_SECURE": [ { "value": "0x00000000", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
+        "C_M_AXI_SECURE": [ { "value": "0x0000000000000000", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
         "C_CONNECTIVITY_MODE": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ]
       },
       "project_parameters": {

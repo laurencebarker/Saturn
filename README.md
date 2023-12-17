@@ -2,7 +2,7 @@
 Saturn SDR project FPGA amd other files
 This repository holds the source for the Xilinx Artix-7 FPGA created using Vivado
 
-Current version create using Vivado 2021.2; you **must** use the same version of vivado.
+Current version create using Vivado 2023.1; you **must** use the same version of vivado.
 
 The file structure is:
 

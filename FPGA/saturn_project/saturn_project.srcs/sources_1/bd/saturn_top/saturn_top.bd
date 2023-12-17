@@ -171,7 +171,8 @@
           "xlslice_7": "",
           "xlslice_8": "",
           "xlslice_9": "",
-          "util_vector_logic_0": ""
+          "util_vector_logic_0": "",
+          "PTTATUGate_0": ""
         },
         "debounce": {
           "xlconcat_0": "",
@@ -192,12 +193,14 @@
           "debounce_4": "",
           "debounce_5": "",
           "debounce_6": "",
-          "debounce_8": ""
+          "debounce_8": "",
+          "debounce_9": "",
+          "xlslice_9": ""
         },
-        "AXILite_Alex_SPI_0": "",
         "util_vector_logic_0": "",
         "xlconstant_drive0": "",
-        "xlconstant_drive1": ""
+        "xlconstant_drive1": "",
+        "AXILite_Alex_SPI_0": ""
       },
       "Receiver": {
         "dualDDC10": {
@@ -2158,6 +2161,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWID": {
                     "physical_name": "s_axi_awid",
@@ -2589,6 +2593,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWID": {
                     "physical_name": "s_axi_awid",
@@ -4541,6 +4546,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -5066,6 +5072,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -5342,6 +5349,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -5584,6 +5592,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -5842,6 +5851,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -6094,6 +6104,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -6346,6 +6357,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -6648,6 +6660,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -9479,7 +9492,7 @@
             "inst_hier_path": "PCIe/xlconstant_swversion",
             "parameters": {
               "CONST_VAL": {
-                "value": "10"
+                "value": "11"
               },
               "CONST_WIDTH": {
                 "value": "16"
@@ -10273,6 +10286,9 @@
           },
           "IO8": {
             "direction": "O"
+          },
+          "Driver_PA_En": {
+            "direction": "O"
           }
         },
         "components": {
@@ -10499,6 +10515,10 @@
                       "PHASE": {
                         "value": "0.0",
                         "value_src": "ip_prop"
+                      },
+                      "CLK_DOMAIN": {
+                        "value": "saturn_top_clk_wiz_0_0_clk_out1",
+                        "value_src": "default_prop"
                       }
                     }
                   },
@@ -11190,6 +11210,18 @@
                 "direction": "I",
                 "left": "0",
                 "right": "0"
+              },
+              "Driver_PA_En": {
+                "direction": "O"
+              },
+              "ATU_Tune_Req": {
+                "direction": "I"
+              },
+              "aclk": {
+                "direction": "I"
+              },
+              "rstn": {
+                "direction": "I"
               }
             },
             "components": {
@@ -11451,9 +11483,95 @@
                     "value": "1"
                   }
                 }
+              },
+              "PTTATUGate_0": {
+                "vlnv": "xilinx.com:module_ref:PTTATUGate:1.0",
+                "xci_name": "saturn_top_PTTATUGate_0_0",
+                "xci_path": "ip\\saturn_top_PTTATUGate_0_0\\saturn_top_PTTATUGate_0_0.xci",
+                "inst_hier_path": "RF_interfaces/Strobes/PTTATUGate_0",
+                "reference_info": {
+                  "ref_type": "hdl",
+                  "ref_name": "PTTATUGate",
+                  "boundary_crc": "0x0"
+                },
+                "ports": {
+                  "PTTIn": {
+                    "direction": "I",
+                    "parameters": {
+                      "PortType": {
+                        "value": "undef",
+                        "value_src": "ip_prop"
+                      },
+                      "PortType.PROP_SRC": {
+                        "value": "false",
+                        "value_src": "ip_prop"
+                      }
+                    }
+                  },
+                  "ATURequest": {
+                    "direction": "I"
+                  },
+                  "aclk": {
+                    "type": "clk",
+                    "direction": "I",
+                    "parameters": {
+                      "ASSOCIATED_RESET": {
+                        "value": "aresetn",
+                        "value_src": "constant"
+                      },
+                      "FREQ_HZ": {
+                        "value": "122880000",
+                        "value_src": "ip_prop"
+                      },
+                      "PHASE": {
+                        "value": "0.0",
+                        "value_src": "ip_prop"
+                      },
+                      "CLK_DOMAIN": {
+                        "value": "saturn_top_clk_wiz_0_0_clk_out1",
+                        "value_src": "default_prop"
+                      }
+                    }
+                  },
+                  "PTTOut": {
+                    "direction": "O",
+                    "parameters": {
+                      "PortType": {
+                        "value": "undef",
+                        "value_src": "ip_prop"
+                      },
+                      "PortType.PROP_SRC": {
+                        "value": "false",
+                        "value_src": "ip_prop"
+                      }
+                    }
+                  },
+                  "aresetn": {
+                    "type": "rst",
+                    "direction": "I",
+                    "parameters": {
+                      "POLARITY": {
+                        "value": "ACTIVE_LOW",
+                        "value_src": "constant"
+                      }
+                    }
+                  }
+                }
               }
             },
             "nets": {
+              "ATU_Tune_Req_1": {
+                "ports": [
+                  "ATU_Tune_Req",
+                  "PTTATUGate_0/ATURequest"
+                ]
+              },
+              "PTTATUGate_0_PTTOut": {
+                "ports": [
+                  "PTTATUGate_0/PTTOut",
+                  "MOX_strobe"
+                ]
+              },
               "RF_GPIO_1": {
                 "ports": [
                   "RF_GPIO",
@@ -11467,10 +11585,22 @@
                   "xlslice_9/Din"
                 ]
               },
+              "aclk_1": {
+                "ports": [
+                  "aclk",
+                  "PTTATUGate_0/aclk"
+                ]
+              },
               "keyer_PTT_1": {
                 "ports": [
                   "keyer_PTT",
                   "xlconcat_0/In0"
+                ]
+              },
+              "rstn_1": {
+                "ports": [
+                  "rstn",
+                  "PTTATUGate_0/aresetn"
                 ]
               },
               "util_reduced_logic_0_Res": {
@@ -11482,9 +11612,10 @@
               "util_reduced_logic_1_Res": {
                 "ports": [
                   "util_reduced_logic_1/Res",
-                  "MOX_strobe",
                   "xlconcat_2/In1",
-                  "xlconcat_3/In1"
+                  "xlconcat_3/In1",
+                  "Driver_PA_En",
+                  "PTTATUGate_0/PTTIn"
                 ]
               },
               "util_reduced_logic_2_Res": {
@@ -11613,6 +11744,9 @@
               },
               "IO8": {
                 "direction": "O"
+              },
+              "ATU_Tune_Req": {
+                "direction": "O"
               }
             },
             "components": {
@@ -11622,11 +11756,8 @@
                 "xci_path": "ip\\saturn_top_xlconcat_0_2\\saturn_top_xlconcat_0_2.xci",
                 "inst_hier_path": "RF_interfaces/debounce/xlconcat_0",
                 "parameters": {
-                  "IN8_WIDTH": {
-                    "value": "2"
-                  },
                   "NUM_PORTS": {
-                    "value": "9"
+                    "value": "10"
                   }
                 }
               },
@@ -11794,7 +11925,7 @@
                 "inst_hier_path": "RF_interfaces/debounce/xlslice_8",
                 "parameters": {
                   "DIN_FROM": {
-                    "value": "9"
+                    "value": "8"
                   },
                   "DIN_TO": {
                     "value": "8"
@@ -11803,7 +11934,7 @@
                     "value": "10"
                   },
                   "DOUT_WIDTH": {
-                    "value": "2"
+                    "value": "1"
                   }
                 }
               },
@@ -12276,6 +12407,71 @@
                     "direction": "O"
                   }
                 }
+              },
+              "debounce_9": {
+                "vlnv": "xilinx.com:module_ref:debounce:1.0",
+                "xci_name": "saturn_top_debounce_7_0",
+                "xci_path": "ip\\saturn_top_debounce_7_0\\saturn_top_debounce_7_0.xci",
+                "inst_hier_path": "RF_interfaces/debounce/debounce_9",
+                "parameters": {
+                  "debounce_count": {
+                    "value": "10"
+                  }
+                },
+                "reference_info": {
+                  "ref_type": "hdl",
+                  "ref_name": "debounce",
+                  "boundary_crc": "0x0"
+                },
+                "ports": {
+                  "aclk": {
+                    "type": "clk",
+                    "direction": "I",
+                    "parameters": {
+                      "FREQ_HZ": {
+                        "value": "12288000",
+                        "value_src": "ip_prop"
+                      },
+                      "PHASE": {
+                        "value": "0.0",
+                        "value_src": "ip_prop"
+                      },
+                      "CLK_DOMAIN": {
+                        "value": "saturn_top_clk_wiz_0_0_clk_out1",
+                        "value_src": "ip_prop"
+                      }
+                    }
+                  },
+                  "ce_n": {
+                    "direction": "I"
+                  },
+                  "pb_in": {
+                    "direction": "I"
+                  },
+                  "clean_pb": {
+                    "direction": "O"
+                  },
+                  "clean_pbn": {
+                    "direction": "O"
+                  }
+                }
+              },
+              "xlslice_9": {
+                "vlnv": "xilinx.com:ip:xlslice:1.0",
+                "xci_name": "saturn_top_xlslice_9_1",
+                "xci_path": "ip\\saturn_top_xlslice_9_1\\saturn_top_xlslice_9_1.xci",
+                "inst_hier_path": "RF_interfaces/debounce/xlslice_9",
+                "parameters": {
+                  "DIN_FROM": {
+                    "value": "9"
+                  },
+                  "DIN_TO": {
+                    "value": "9"
+                  },
+                  "DIN_WIDTH": {
+                    "value": "10"
+                  }
+                }
               }
             },
             "nets": {
@@ -12289,7 +12485,8 @@
                   "debounce_4/ce_n",
                   "debounce_5/ce_n",
                   "debounce_6/ce_n",
-                  "debounce_8/ce_n"
+                  "debounce_8/ce_n",
+                  "debounce_9/ce_n"
                 ]
               },
               "Net3": {
@@ -12303,7 +12500,8 @@
                   "xlslice_5/Din",
                   "xlslice_6/Din",
                   "xlslice_7/Din",
-                  "xlslice_8/Din"
+                  "xlslice_8/Din",
+                  "xlslice_9/Din"
                 ]
               },
               "clk_1": {
@@ -12317,7 +12515,8 @@
                   "debounce_4/aclk",
                   "debounce_5/aclk",
                   "debounce_6/aclk",
-                  "debounce_8/aclk"
+                  "debounce_8/aclk",
+                  "debounce_9/aclk"
                 ]
               },
               "debounce_0_clean_pbn": {
@@ -12374,6 +12573,18 @@
                 "ports": [
                   "debounce_8/clean_pbn",
                   "IO8"
+                ]
+              },
+              "debounce_9_clean_pb": {
+                "ports": [
+                  "debounce_9/clean_pb",
+                  "xlconcat_0/In9"
+                ]
+              },
+              "debounce_9_clean_pbn": {
+                "ports": [
+                  "debounce_9/clean_pbn",
+                  "ATU_Tune_Req"
                 ]
               },
               "rstn_1": {
@@ -12441,8 +12652,45 @@
                   "xlslice_8/Dout",
                   "xlconcat_0/In8"
                 ]
+              },
+              "xlslice_9_Dout": {
+                "ports": [
+                  "xlslice_9/Dout",
+                  "debounce_9/pb_in"
+                ]
               }
             }
+          },
+          "util_vector_logic_0": {
+            "vlnv": "xilinx.com:ip:util_vector_logic:2.0",
+            "xci_name": "saturn_top_util_vector_logic_0_2",
+            "xci_path": "ip\\saturn_top_util_vector_logic_0_2\\saturn_top_util_vector_logic_0_2.xci",
+            "inst_hier_path": "RF_interfaces/util_vector_logic_0",
+            "parameters": {
+              "C_OPERATION": {
+                "value": "not"
+              },
+              "C_SIZE": {
+                "value": "1"
+              }
+            }
+          },
+          "xlconstant_drive0": {
+            "vlnv": "xilinx.com:ip:xlconstant:1.1",
+            "xci_name": "saturn_top_xlconstant_drive0_0",
+            "xci_path": "ip\\saturn_top_xlconstant_drive0_0\\saturn_top_xlconstant_drive0_0.xci",
+            "inst_hier_path": "RF_interfaces/xlconstant_drive0",
+            "parameters": {
+              "CONST_VAL": {
+                "value": "0"
+              }
+            }
+          },
+          "xlconstant_drive1": {
+            "vlnv": "xilinx.com:ip:xlconstant:1.1",
+            "xci_name": "saturn_top_xlconstant_drive1_0",
+            "xci_path": "ip\\saturn_top_xlconstant_drive1_0\\saturn_top_xlconstant_drive1_0.xci",
+            "inst_hier_path": "RF_interfaces/xlconstant_drive1"
           },
           "AXILite_Alex_SPI_0": {
             "vlnv": "xilinx.com:module_ref:AXILite_Alex_SPI:1.0",
@@ -12565,6 +12813,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -12708,37 +12957,6 @@
                 }
               }
             }
-          },
-          "util_vector_logic_0": {
-            "vlnv": "xilinx.com:ip:util_vector_logic:2.0",
-            "xci_name": "saturn_top_util_vector_logic_0_2",
-            "xci_path": "ip\\saturn_top_util_vector_logic_0_2\\saturn_top_util_vector_logic_0_2.xci",
-            "inst_hier_path": "RF_interfaces/util_vector_logic_0",
-            "parameters": {
-              "C_OPERATION": {
-                "value": "not"
-              },
-              "C_SIZE": {
-                "value": "1"
-              }
-            }
-          },
-          "xlconstant_drive0": {
-            "vlnv": "xilinx.com:ip:xlconstant:1.1",
-            "xci_name": "saturn_top_xlconstant_drive0_0",
-            "xci_path": "ip\\saturn_top_xlconstant_drive0_0\\saturn_top_xlconstant_drive0_0.xci",
-            "inst_hier_path": "RF_interfaces/xlconstant_drive0",
-            "parameters": {
-              "CONST_VAL": {
-                "value": "0"
-              }
-            }
-          },
-          "xlconstant_drive1": {
-            "vlnv": "xilinx.com:ip:xlconstant:1.1",
-            "xci_name": "saturn_top_xlconstant_drive1_0",
-            "xci_path": "ip\\saturn_top_xlconstant_drive1_0\\saturn_top_xlconstant_drive1_0.xci",
-            "inst_hier_path": "RF_interfaces/xlconstant_drive1"
           }
         },
         "interface_nets": {
@@ -12840,11 +13058,19 @@
               "ADC_Randomise"
             ]
           },
+          "Strobes_Driver_PA_En": {
+            "ports": [
+              "Strobes/Driver_PA_En",
+              "Driver_PA_En",
+              "AttenDrivers/tx_strobe"
+            ]
+          },
           "aclk_1": {
             "ports": [
               "aclk",
+              "AttenDrivers/clk122",
               "AXILite_Alex_SPI_0/aclk",
-              "AttenDrivers/clk122"
+              "Strobes/aclk"
             ]
           },
           "clk_1": {
@@ -12852,6 +13078,12 @@
               "codec_clk",
               "AttenDrivers/clk",
               "debounce/clk"
+            ]
+          },
+          "debounce_ATU_Tune_Req": {
+            "ports": [
+              "debounce/ATU_Tune_Req",
+              "Strobes/ATU_Tune_Req"
             ]
           },
           "debounce_Debounced_Key_Dash": {
@@ -12895,7 +13127,8 @@
               "rstn",
               "AttenDrivers/rstn",
               "debounce/rstn",
-              "AXILite_Alex_SPI_0/aresetn"
+              "AXILite_Alex_SPI_0/aresetn",
+              "Strobes/rstn"
             ]
           },
           "status_in_1": {
@@ -12907,8 +13140,7 @@
           "util_reduced_logic_1_Res": {
             "ports": [
               "Strobes/MOX_strobe",
-              "MOX_strobe",
-              "AttenDrivers/tx_strobe"
+              "MOX_strobe"
             ]
           },
           "util_reduced_logic_2_Res": {
@@ -12920,8 +13152,8 @@
           "util_reduced_logic_3_Res": {
             "ports": [
               "Strobes/TXRX_RELAY",
-              "AXILite_Alex_SPI_0/TX_Strobe",
-              "util_vector_logic_0/Op1"
+              "util_vector_logic_0/Op1",
+              "AXILite_Alex_SPI_0/TX_Strobe"
             ]
           },
           "util_vector_logic_0_Res": {
@@ -13249,9 +13481,7 @@
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -13316,15 +13546,11 @@
                     "port_maps": {
                       "TID": {
                         "physical_name": "LOIQIn_tid",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDEST": {
                         "physical_name": "LOIQIn_tdest",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDATA": {
                         "physical_name": "LOIQIn_tdata",
@@ -13334,9 +13560,7 @@
                       },
                       "TKEEP": {
                         "physical_name": "LOIQIn_tkeep",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TLAST": {
                         "physical_name": "LOIQIn_tlast",
@@ -13344,9 +13568,7 @@
                       },
                       "TUSER": {
                         "physical_name": "LOIQIn_tuser",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TVALID": {
                         "physical_name": "LOIQIn_tvalid",
@@ -13622,15 +13844,11 @@
                     "port_maps": {
                       "TDATA": {
                         "physical_name": "LOIQOut_tdata",
-                        "direction": "O",
-                        "left": "31",
-                        "right": "0"
+                        "direction": "O"
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -14793,6 +15011,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -15084,6 +15303,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -15481,9 +15701,7 @@
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -15548,15 +15766,11 @@
                     "port_maps": {
                       "TID": {
                         "physical_name": "LOIQIn_tid",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDEST": {
                         "physical_name": "LOIQIn_tdest",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDATA": {
                         "physical_name": "LOIQIn_tdata",
@@ -15566,9 +15780,7 @@
                       },
                       "TKEEP": {
                         "physical_name": "LOIQIn_tkeep",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TLAST": {
                         "physical_name": "LOIQIn_tlast",
@@ -15576,9 +15788,7 @@
                       },
                       "TUSER": {
                         "physical_name": "LOIQIn_tuser",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TVALID": {
                         "physical_name": "LOIQIn_tvalid",
@@ -15854,15 +16064,11 @@
                     "port_maps": {
                       "TDATA": {
                         "physical_name": "LOIQOut_tdata",
-                        "direction": "O",
-                        "left": "31",
-                        "right": "0"
+                        "direction": "O"
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -17029,9 +17235,7 @@
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -17096,15 +17300,11 @@
                     "port_maps": {
                       "TID": {
                         "physical_name": "LOIQIn_tid",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDEST": {
                         "physical_name": "LOIQIn_tdest",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDATA": {
                         "physical_name": "LOIQIn_tdata",
@@ -17114,9 +17314,7 @@
                       },
                       "TKEEP": {
                         "physical_name": "LOIQIn_tkeep",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TLAST": {
                         "physical_name": "LOIQIn_tlast",
@@ -17124,9 +17322,7 @@
                       },
                       "TUSER": {
                         "physical_name": "LOIQIn_tuser",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TVALID": {
                         "physical_name": "LOIQIn_tvalid",
@@ -17402,15 +17598,11 @@
                     "port_maps": {
                       "TDATA": {
                         "physical_name": "LOIQOut_tdata",
-                        "direction": "O",
-                        "left": "31",
-                        "right": "0"
+                        "direction": "O"
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -18577,9 +18769,7 @@
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -18644,15 +18834,11 @@
                     "port_maps": {
                       "TID": {
                         "physical_name": "LOIQIn_tid",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDEST": {
                         "physical_name": "LOIQIn_tdest",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDATA": {
                         "physical_name": "LOIQIn_tdata",
@@ -18662,9 +18848,7 @@
                       },
                       "TKEEP": {
                         "physical_name": "LOIQIn_tkeep",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TLAST": {
                         "physical_name": "LOIQIn_tlast",
@@ -18672,9 +18856,7 @@
                       },
                       "TUSER": {
                         "physical_name": "LOIQIn_tuser",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TVALID": {
                         "physical_name": "LOIQIn_tvalid",
@@ -18950,15 +19132,11 @@
                     "port_maps": {
                       "TDATA": {
                         "physical_name": "LOIQOut_tdata",
-                        "direction": "O",
-                        "left": "31",
-                        "right": "0"
+                        "direction": "O"
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -20125,9 +20303,7 @@
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -20192,15 +20368,11 @@
                     "port_maps": {
                       "TID": {
                         "physical_name": "LOIQIn_tid",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDEST": {
                         "physical_name": "LOIQIn_tdest",
-                        "direction": "I",
-                        "left": "7",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TDATA": {
                         "physical_name": "LOIQIn_tdata",
@@ -20210,9 +20382,7 @@
                       },
                       "TKEEP": {
                         "physical_name": "LOIQIn_tkeep",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TLAST": {
                         "physical_name": "LOIQIn_tlast",
@@ -20220,9 +20390,7 @@
                       },
                       "TUSER": {
                         "physical_name": "LOIQIn_tuser",
-                        "direction": "I",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "I"
                       },
                       "TVALID": {
                         "physical_name": "LOIQIn_tvalid",
@@ -20498,15 +20666,11 @@
                     "port_maps": {
                       "TDATA": {
                         "physical_name": "LOIQOut_tdata",
-                        "direction": "O",
-                        "left": "31",
-                        "right": "0"
+                        "direction": "O"
                       },
                       "TVALID": {
                         "physical_name": "LOIQOut_tvalid",
-                        "direction": "O",
-                        "left": "0",
-                        "right": "0"
+                        "direction": "O"
                       }
                     }
                   },
@@ -21737,6 +21901,7 @@
                     "value_src": "default_prop"
                   }
                 },
+                "memory_map_ref": "s_axi",
                 "port_maps": {
                   "AWADDR": {
                     "physical_name": "s_axi_awaddr",
@@ -27478,10 +27643,23 @@
           "IambicKeyer/Key_Dot"
         ]
       },
+      "RF_interfaces_Driver_PA_En": {
+        "ports": [
+          "RF_interfaces/Driver_PA_En",
+          "DRIVER_PA_EN",
+          "Transmitter/TXStrobe"
+        ]
+      },
       "RF_interfaces_IO8": {
         "ports": [
           "RF_interfaces/IO8",
           "IambicKeyer/IO8"
+        ]
+      },
+      "RF_interfaces_MOX_strobe": {
+        "ports": [
+          "RF_interfaces/MOX_strobe",
+          "MOX_strobe"
         ]
       },
       "RF_interfaces_status_out": {
@@ -27746,14 +27924,6 @@
         "ports": [
           "clock_generator/pll_cr",
           "pll_cr"
-        ]
-      },
-      "util_reduced_logic_1_Res": {
-        "ports": [
-          "RF_interfaces/MOX_strobe",
-          "DRIVER_PA_EN",
-          "MOX_strobe",
-          "Transmitter/TXStrobe"
         ]
       },
       "util_reduced_logic_2_Res": {
