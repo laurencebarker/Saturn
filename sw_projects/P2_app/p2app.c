@@ -54,6 +54,16 @@
 #include "OutHighPriority.h"
 
 #define P2APPVERSION 14
+//------------------------------------------------------------------------------------------
+// VERSION History
+// V14:              added ATU tune request to IO6 bit position; FIFO under and overflow detection;
+//                   changed FIFO sizes; debug can be enabled as runtime setting; enable/disable ext speaker;
+//                   network timeout
+// V13, 18/8/2023:   inverted IO8 sense for piHPSDR-initiaited CW
+// V12, 29/7/2023:   CW changes to set RX attenuation on TX from protocol bytes 58, 59;
+//                   CW breakin properly enabled; CW peyer disabled if p2app not active;
+//                   CW changes to minimise delay reporting to prototol 2
+
 
 extern sem_t DDCInSelMutex;                 // protect access to shared DDC input select register
 extern sem_t DDCResetFIFOMutex;             // protect access to FIFO reset register
