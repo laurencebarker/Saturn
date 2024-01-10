@@ -183,6 +183,7 @@ master_agent.start_master();
 //
 // now test the FIFO monitor
 // write control reg1-4; then read them back
+$display("Testing FIFO monitor:");
 #50us
 addr = 32'h00030010;
 data = 32'hC0000200;        // FIFO threshold =512, int enabled, read FIFO
@@ -317,6 +318,7 @@ $display("(should be 511) read FIFO monitor status 1 reg: data = 0x%x", data);
 ////////////////////////////////////////////////////////////////////////////////
 //
 // ADC overrange latch
+$display("Testing ADC Overrange latch:");
     
 #100ns
 addr = 32'h00050000;
@@ -348,6 +350,8 @@ $display("3nd read ADC overrange latch, ovr2 set: data = 0x%x", data);
 //
 // now test the SPI ADC reader
 // write control reg1-4; then read them back
+$display("Testing SPI ADC reader:");
+
 #100ns
 addr = 32'h00020000;
 data = 32'b0;
@@ -389,10 +393,17 @@ $display("read SPI ADC read register, AIN6: data = 0x%x", data);
 // AXI Alex Writer
 //
 $display("AXILite Alex data writer test");    
-$display("writing 0x55FF to TX data register");
+$display("TX strobe = 0 initially");
+$display("writing 0x55FF to TX filter/RX ant data register");
 #50us
 addr = 32'h00040000;
 data = 32'h000055FF;
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+
+$display("writing 0x1234 to TX filter/TX ant data register");
+#50us
+addr = 32'h00040008;
+data = 32'h00001234;
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
 
 #60us
@@ -401,10 +412,32 @@ addr = 32'h00040004;
 data = 32'h5500FF00;
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
 
+
+#100ns
+addr = 32'h00040000;
+data = 32'b0;
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("read TX filter/RX ant data register: data = 0x%x", data);    
+
+#100ns
+addr = 32'h00040008;
+data = 32'b0;
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("read TX filter/TX ant data register: data = 0x%x", data);  
+
+#100ns
+addr = 32'h00040004;
+data = 32'b0;
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("read RX filter data register: data = 0x%x", data);  
+
 #60us
 $display("setting TX strobe");
 TX_Strobe=1;
 
+#20us
+$display("clearing TX strobe");
+TX_Strobe=0;
      
 end
 

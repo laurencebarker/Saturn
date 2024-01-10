@@ -14,12 +14,19 @@
 // AXILite bus interface to RF SPI Alex interface
 //
 // Registers:
-//  addr 0         TX Data (bits 15:0)
+//  addr 0         TX filter & RX antenna Data (bits 15:0)
 //  addr 4         RX data (bits 31:0)
+//  addr 8:        TX filter & TX antenna data (bits 156:0)
 
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
+//
+// revision 1.0: changed to do initial shift at the sTART of reset, not after released
+// revision 1.1: 2nd 16 bit register to hold the settings shifted if TX is asserted; 
+//               1st register (addr 0) holds the settings used for RX
+//               for backward compatibility: if TX ant bits don't contain a 1, load 
+//               the same data as used for RX ( this means older thetis/piHPSDR will work) 
 // 
 // Modified from original Alex interface code
 // Copyright 2006,2007 Phil Harman VK6APH
@@ -139,7 +146,8 @@ module AXILite_Alex_SPI #
 
   reg [AXI_ADDR_WIDTH-1:0] raddrreg;        // AXI read address register
   reg [AXI_ADDR_WIDTH-1:0] waddrreg;        // AXI write address register
-  reg [AXI_DATA_WIDTH-1:0] axiTXdatareg;    // TX shift data register
+  reg [AXI_DATA_WIDTH-1:0] axiTXdatareg;    // TX filter/RX ant shift data register
+  reg [AXI_DATA_WIDTH-1:0] axiTXdatareg2;   // TX filter & ant shift data register
   reg [AXI_DATA_WIDTH-1:0] TXdatareg;       // TX shift data register, with TX strobe
   reg [AXI_DATA_WIDTH-1:0] axiRXdatareg;    // RX shift data register
   reg [AXI_DATA_WIDTH-1:0] rdatareg;        // AXI data register
@@ -219,19 +227,22 @@ module AXILite_Alex_SPI #
 //
 // first see if RX data or TX data have changed
 // RX data is shifted from the AXI register data
-// TX data needs bit 11 replaced by TX strobe input
+// ant  TX filter data needs bit 11 replaced by TX strobe input  & choose the TX or RX version
 //
-        TXdatareg <= {axiTXdatareg[31:12], TX_Strobe, axiTXdatareg[10:0]};
-    
+        if(TX_Strobe == 1)
+            TXdatareg <= {axiTXdatareg2[31:12], TX_Strobe, axiTXdatareg2[10:0]};
+        else
+            TXdatareg <= {axiTXdatareg[31:12], TX_Strobe, axiTXdatareg[10:0]};
+
         if (axiRXdatareg != previous_Rx_data)
         begin
-            previous_Rx_data <= axiRXdatareg;
+            //previous_Rx_data <= axiRXdatareg;  set later
             rx_needed <= 1;
         end
         
         if (TXdatareg != previous_Tx_data)
         begin
-            previous_Tx_data <= TXdatareg;
+            //previous_Tx_data <= TXdatareg;
             tx_needed <= 1;
         end
     
@@ -246,6 +257,7 @@ module AXILite_Alex_SPI #
                     shifting_rx <= 0;
                     tx_needed <= 0;                 // clear now so new data can be registered
                     shiftregister[31:16] <= TXdatareg[15:0]; 
+                    previous_Tx_data[15:0] <= TXdatareg[15:0];
                     spi_state <= 1;
                 end
                 else if (rx_needed)
@@ -254,6 +266,7 @@ module AXILite_Alex_SPI #
                     shifting_rx <= 1;
                     rx_needed <= 0;                 // clear now so new data can be registered
                     shiftregister[31:0] <= axiRXdatareg[31:0]; 
+                    previous_Rx_data[31:0] <= axiRXdatareg[31:0];
                     spi_state <= 1;
                 end
                 else spi_state <= 0; 			      // wait for trigger
@@ -315,6 +328,7 @@ module AXILite_Alex_SPI #
   if(!aresetn)				// if reset
     begin
       axiTXdatareg <= {(AXI_DATA_WIDTH){1'b0}};
+      axiTXdatareg2 <= {(AXI_DATA_WIDTH){1'b0}};
       axiRXdatareg <= {(AXI_DATA_WIDTH){1'b0}};
       arreadyreg <= 1'b1;                           // ready for address transfer
       rvalidreg <= 1'b0;                            // not ready to transfer read data
@@ -335,10 +349,14 @@ module AXILite_Alex_SPI #
       if(!arreadyreg)         // address complete
       begin
         rvalidreg <= 1'b1;                                  // signal ready to complete data
-	if(raddrreg[2] == 0)        				// if TX data register
-	  rdatareg <= axiTXdatareg;
-	else
-	  rdatareg <= axiRXdatareg;
+
+        case(raddrreg[3:2])
+          0: rdatareg <= axiTXdatareg;
+          1: rdatareg <= axiRXdatareg;
+          2: rdatareg <= axiTXdatareg2;
+          3: rdatareg <= axiTXdatareg2;
+        endcase 
+
       end
 // read step 4. When rvalid and rready, terminate the transaction & clear data.
       if(rvalidreg & s_axi_rready)
@@ -377,10 +395,13 @@ module AXILite_Alex_SPI #
         bvalidreg <= 1'b0;                                  // clear valid when done
         awreadyreg <= 1'b1;                                 // and reassert the readys
         wreadyreg <= 1'b1;
-	if(waddrreg[2] == 0)        				// if TX data register
-	  axiTXdatareg <= wdatareg;
-	else
-	  axiRXdatareg <= wdatareg;
+
+        case(waddrreg[3:2])
+          0: axiTXdatareg <= wdatareg;
+          1: axiRXdatareg <= wdatareg;
+          2: axiTXdatareg2 <= wdatareg;
+          3: axiTXdatareg2 <= wdatareg;
+        endcase 
       end 
     end
 
