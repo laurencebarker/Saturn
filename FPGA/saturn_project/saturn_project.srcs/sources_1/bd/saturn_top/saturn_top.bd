@@ -9492,7 +9492,7 @@
             "inst_hier_path": "PCIe/xlconstant_swversion",
             "parameters": {
               "CONST_VAL": {
-                "value": "11"
+                "value": "12"
               },
               "CONST_WIDTH": {
                 "value": "16"
@@ -13069,8 +13069,8 @@
             "ports": [
               "aclk",
               "AttenDrivers/clk122",
-              "AXILite_Alex_SPI_0/aclk",
-              "Strobes/aclk"
+              "Strobes/aclk",
+              "AXILite_Alex_SPI_0/aclk"
             ]
           },
           "clk_1": {
@@ -13127,8 +13127,8 @@
               "rstn",
               "AttenDrivers/rstn",
               "debounce/rstn",
-              "AXILite_Alex_SPI_0/aresetn",
-              "Strobes/rstn"
+              "Strobes/rstn",
+              "AXILite_Alex_SPI_0/aresetn"
             ]
           },
           "status_in_1": {
