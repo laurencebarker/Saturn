@@ -33,14 +33,14 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <semaphore.h>
-#include<signal.h>
+#include <signal.h>
 
 #include "../common/saturntypes.h"
 #include "../common/hwaccess.h"                     // access to PCIe read & write
 #include "../common/saturnregisters.h"              // register I/O for Saturn
 #include "../common/codecwrite.h"                   // codec register I/O for Saturn
 #include "../common/version.h"                      // version I/O for Saturn
-#include "../common/auxadc.h"                      // version I/O for Saturn
+#include "../common/auxadc.h"                       // version I/O for Saturn
 
 #include "threaddata.h"
 #include "generalpacket.h"
@@ -53,15 +53,17 @@
 #include "OutDDCIQ.h"
 #include "OutHighPriority.h"
 
-#define P2APPVERSION 14
+#define P2APPVERSION 15
 //------------------------------------------------------------------------------------------
 // VERSION History
-// V14:              added ATU tune request to IO6 bit position; FIFO under and overflow detection;
+// V15: 09/01/2024:  added specific TXant bits from revised protocol 2 high priority message to resolve CW
+//                   TX power generated momentarily into RX antenna if different
+// V14: 17/12/2023:  added ATU tune request to IO6 bit position; FIFO under and overflow detection;
 //                   changed FIFO sizes; debug can be enabled as runtime setting; enable/disable ext speaker;
 //                   network timeout
 // V13, 18/8/2023:   inverted IO8 sense for piHPSDR-initiaited CW
 // V12, 29/7/2023:   CW changes to set RX attenuation on TX from protocol bytes 58, 59;
-//                   CW breakin properly enabled; CW peyer disabled if p2app not active;
+//                   CW breakin properly enabled; CW keyer disabled if p2app not active;
 //                   CW changes to minimise delay reporting to prototol 2
 
 

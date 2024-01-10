@@ -389,8 +389,10 @@ void DisableAlexTRRelay(bool IsDisabled);
 // AlexManualTXFilters(unsigned int Bits)
 // P2: provides a 16 bit word with all of the Alex settings for TX
 // must be formatted according to the Alex specification
+// FPGA V12 onwards: uses an additional regoster with TX ant settings
+// HasTXAntExplicitly true if data is for the new TXfilter, TX ant register
 //
-void AlexManualTXFilters(unsigned int Bits);
+void AlexManualTXFilters(unsigned int Bits, bool HasTXAntExplicitly);
 
 
 //

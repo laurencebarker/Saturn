@@ -69,7 +69,8 @@ bool GPPSEnabled;                                   // NOT CURRENTLY USED - trie
 uint32_t GTXDACCtrl;                                // TX DAC current setting & atten
 uint32_t GRXADCCtrl;                                // RX1 & 2 attenuations
 bool GAlexRXOut;                                    // P1 RX output bit (NOT USED)
-uint32_t GAlexTXRegister;                           // 16 bit used of 32 
+uint32_t GAlexTXFiltRegister;                       // 16 bit used of 32 
+uint32_t GAlexTXAntRegister;                        // 16 bit used of 32 
 uint32_t GAlexRXRegister;                           // 32 bit RX register 
 bool GRX2GroundDuringTX;                            // true if RX2 grounded while in TX
 uint32_t GAlexCoarseAttenuatorBits;                 // Alex coarse atten NOT USED  
@@ -200,8 +201,9 @@ uint32_t DDCRegisters[VNUMDDC] =
 //
 // ALEX SPI registers
 //
-#define VOFFSETALEXTXREG 0                              // offset addr in IP core
+#define VOFFSETALEXTXFILTREG 0                          // offset addr in IP core: TX filt, RX ant
 #define VOFFSETALEXRXREG 4                              // offset addr in IP core
+#define VOFFSETALEXTXANTREG 8                           // offset addr in IP core: TX filt, TX ant
 
 
 //
@@ -852,12 +854,13 @@ void SetAlexRXOut(bool Enable)
 // P1: set the Alex TX antenna bits.
 // bits=00: ant1; 01: ant2; 10: ant3; other: chooses ant1
 // set bits 10-8 in Alex TX reg
+// NOTE a new explicit setRXant will now be needed too from FPGA V12
 //
 void SetAlexTXAnt(unsigned int Bits)
 {
     uint32_t Register;                                  // modified register
 
-    Register = GAlexTXRegister;                         // copy original register
+    Register = GAlexTXAntRegister;                         // copy original register
     Register &= 0xFCFF;                                 // turn off all affected bits
 
     switch(Bits)
@@ -876,9 +879,9 @@ void SetAlexTXAnt(unsigned int Bits)
             Register |=0x0400;                          // turn on ANT3
             break;
     }
-    if(Register != GAlexTXRegister)                     // write back if changed
+    if(Register != GAlexTXAntRegister)                     // write back if changed
     {
-        GAlexTXRegister = Register;
+        GAlexTXAntRegister = Register;
 //        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXREG, Register);  // and write to it
     }
 }
@@ -949,20 +952,33 @@ void SetRX2GroundDuringTX(bool IsGrounded)
 // SetAlexTXFilters(unsigned int Bits)
 // P1: set the Alex bits for TX LPF filter selection
 // Bits follows the P1 protocol format. C0=0x12, byte C4 has TX
+// from FPGA V12, the same data needs to go into the TXfilter/TX antenna register
+// because the filter settings are in both
 //
 void SetAlexTXFilters(unsigned int Bits)
 {
     uint32_t Register;                                          // modified register
     if(GAlexManualFilterSelect)
     {
-        Register = GAlexTXRegister;                         // copy original register
+        Register = GAlexTXFiltRegister;                         // copy original register
         Register &= 0x1F0F;                                 // turn off all affected bits
         Register |= (Bits & 0x0F)<<4;                       // bits 3-0, moved up
         Register |= (Bits & 0x1C)<<9;                      // bits 6-4, moved up
 
-        if(Register != GAlexTXRegister)                     // write back if changed
+        if(Register != GAlexTXFiltRegister)                     // write back if changed
         {
-            GAlexTXRegister = Register;
+            GAlexTXFiltRegister = Register;
+    //        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXREG, Register);  // and write to it
+        }
+
+        Register = GAlexTXAntRegister;                         // copy original register
+        Register &= 0x1F0F;                                 // turn off all affected bits
+        Register |= (Bits & 0x0F)<<4;                       // bits 3-0, moved up
+        Register |= (Bits & 0x1C)<<9;                      // bits 6-4, moved up
+
+        if(Register != GAlexTXAntRegister)                     // write back if changed
+        {
+            GAlexTXAntRegister = Register;
     //        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXREG, Register);  // and write to it
         }
     }
@@ -1027,17 +1043,24 @@ void DisableAlexTRRelay(bool IsDisabled)
 // P2: provides a 16 bit word with all of the Alex settings for TX
 // must be formatted according to the Alex specification
 // must be enabled by calling EnableAlexManualFilterSelect(true) first!
+// FPGA V12 onwards: uses an additional register with TX ant settings
+// HasTXAntExplicitly true if data is for the new TXfilter, TX ant register
 //
-void AlexManualTXFilters(unsigned int Bits)
+void AlexManualTXFilters(unsigned int Bits, bool HasTXAntExplicitly)
 {
     uint32_t Register;                                  // modified register
     if(GAlexManualFilterSelect)
     {
         Register = Bits;                         // new setting
-        if(Register != GAlexTXRegister)                     // write back if changed
+        if(HasTXAntExplicitly && (Register != GAlexTXAntRegister))
         {
-            GAlexTXRegister = Register;
-            RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXREG, Register);  // and write to it
+            GAlexTXAntRegister = Register;
+            RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXANTREG, Register);  // and write to it
+        }
+        else if(!HasTXAntExplicitly &&(Register != GAlexTXFiltRegister))                     // write back if changed
+        {
+            GAlexTXFiltRegister = Register;
+            RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXFILTREG, Register);  // and write to it
         }
     }
 }
