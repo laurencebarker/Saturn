@@ -3,7 +3,7 @@
    "Default View_Layers":"",
    "Default View_Layout":"",
    "Default View_ScaleFactor":"0.680275",
-   "Default View_TopLeft":"2771,-260",
+   "Default View_TopLeft":"978,-260",
    "ExpandedHierarchyInLayout":"",
    "comment_0":"unused pins for PCIe bus configuration",
    "comment_1":"unused pins for PCIe bus configuration",
@@ -162,6 +162,7 @@ preplace netloc RF_interfaces_Dbounced_Key_Dash 1 6 1 3170 30n
 preplace netloc RF_interfaces_Debounced_Key_Dot 1 6 1 3190 50n
 preplace netloc RF_interfaces_Driver_PA_En 1 5 6 2697 770 3230 420 NJ 420 NJ 420 NJ 420 NJ
 preplace netloc RF_interfaces_IO8 1 6 1 3210 130n
+preplace netloc RF_interfaces_MOX_strobe 1 6 5 3568 400 NJ 400 NJ 400 NJ 400 5820J
 preplace netloc RF_interfaces_status_out 1 3 4 1230 1680 N 1680 N 1680 3120
 preplace netloc RX_FIFO_aresetn_1 1 4 5 1710J 1210 2587J 1200 NJ 1200 3960 1400 4740
 preplace netloc SPI_0_Rx_load_strobe 1 6 5 3200 450 N 450 N 450 N 450 5780
@@ -213,7 +214,6 @@ preplace netloc xlslice_2_Dout 1 5 3 2220 650 3578 720 4188
 preplace netloc xlslice_3_Dout 1 5 1 2280 410n
 preplace netloc xlslice_4_Dout 1 5 5 2647 820 NJ 820 N 820 N 820 N
 preplace netloc xlslice_5_Dout 1 6 5 N 200 N 200 N 200 N 200 5830
-preplace netloc RF_interfaces_MOX_strobe 1 6 5 3568 400 NJ 400 NJ 400 NJ 400 5820J
 preplace netloc FIFO_Interfaces_M_AXIS_codec 1 7 3 4208 1550 N 1550 5240
 preplace netloc PCIe_M03_AXI_0 1 4 5 NJ 800 NJ 800 3170 810 N 810 4740
 preplace netloc PCIe_M08_AXI_0 1 4 2 NJ 820 2617
