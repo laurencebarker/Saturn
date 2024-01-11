@@ -53,6 +53,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
   ThreadData->Active = true;
   printf("spinning up high priority incoming thread with port %d\n", ThreadData->Portid);
   FPGAVersion = GetFirmwareVersion(&FPGASWID);          // get version of FPGA code
+  bool PAEnable;
 
   //
   // main processing loop
@@ -147,13 +148,17 @@ void *IncomingHighPriority(void *arg)                   // listener thread
         //printf("new FPGA code, new client data\n");
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1428));      // copy word with TX ant settings to filt/TXant register
         AlexManualTXFilters(Word, true);
+        PAEnable = (bool)((Word >> 11)&1);
+        printf("new FPGA code, legacy client data, PA enable = %d\n", (int)PAEnable);
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with RX ant settings to filt/RXant register
         AlexManualTXFilters(Word, false);
       }
       else if(FPGAVersion >= 12)                            // new hardware but no client app support
       {
-        //printf("new FPGA code, legacy client data\n");
+        //printf("new FPGA code, new client data\n");
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with TX/RX ant settings to both registers
+        PAEnable = (bool)((Word >> 11)&1);
+        printf("new FPGA code, legacy client data, PA enable = %d\n", (int)PAEnable);
         AlexManualTXFilters(Word, true);
         AlexManualTXFilters(Word, false);
       }
@@ -161,8 +166,11 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       {
         //printf("old FPGA code\n");
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with TX/RX ant settings to original register
+        PAEnable = (bool)((Word >> 11)&1);
+        printf("old FPGA code, PA enable = %d\n", (int)PAEnable);
         AlexManualTXFilters(Word, false);
       }
+      SetPAEnabled(PAEnable);                               // activate PA if client app wants it
       // RX filters
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1430));
       AlexManualRXFilters(Word, 2);
