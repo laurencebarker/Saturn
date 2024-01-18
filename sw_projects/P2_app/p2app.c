@@ -56,8 +56,9 @@
 #define P2APPVERSION 15
 //------------------------------------------------------------------------------------------
 // VERSION History
-// V15: 09/01/2024:  added specific TXant bits from revised protocol 2 high priority message to resolve CW
+// V15: 16/01/2024:  added specific TXant bits from revised protocol 2 high priority message to resolve CW
 //                   TX power generated momentarily into RX antenna if different
+//                   reads CAT over TCP/IP port number
 // V14: 17/12/2023:  added ATU tune request to IO6 bit position; FIFO under and overflow detection;
 //                   changed FIFO sizes; debug can be enabled as runtime setting; enable/disable ext speaker;
 //                   network timeout

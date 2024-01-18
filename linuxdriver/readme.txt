@@ -119,6 +119,14 @@ Directory and file description:
 		data transfers to the Xilinx FPGA PCIe endpoint device.
 
 Usage:
+  - get the kernel headers so the kernel module can compile: 
+    (note if this fails you will need to use an older OS release, or rebuild the kernel 
+     by following the instructions at https://www.raspberrypi.org/documentation/linux/kernel/building.md)
+
+
+        sudo apt install raspberrypi-kernel-headers
+
+
   - If you are updating: unload the previous driver from memory.
         sudo rmmod -s xdma
   
@@ -126,7 +134,8 @@ Usage:
         cd xdma
 
   - Compile and install the kernel module driver.
-        sudo make install
+        make
+		sudo make install
 
   - Load the kernel module driver:
 	sudo modprobe xdma

@@ -122,14 +122,12 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       LongWord = ntohl(*(uint32_t *)(UDPInBuffer+329));
       SetDUCFrequency(LongWord, true);
       Byte = (uint8_t)(UDPInBuffer[345]);
-      printf("drive level = %d\n", Byte);
       SetTXDriveLevel(Byte);
       //
       // CAT port (if set)
       //
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1398));
-      printf("CAT over TCP port = %x\n", Word);
-
+      
       //
       // transverter, speaker mute, open collector, user outputs
       //
@@ -148,7 +146,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       // this is to allow safe operation with legacy client apps
       // 1st read bytes and see if a TX ant bit is set
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1428));
-      printf("Alex 1 TX word = 0x%x\n", Word);
+      //printf("Alex 1 TX word = 0x%x\n", Word);
       Word = (Word >> 8) & 0x0007;                          // new data TX ant bits. if not set, must be legacy client app
       
       if((FPGAVersion >= 12) && (Word != 0))                // if new firmware && client app supports it
@@ -157,7 +155,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1428));      // copy word with TX ant settings to filt/TXant register
         AlexManualTXFilters(Word, true);
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with RX ant settings to filt/RXant register
-        printf("Alex 0 TX word = 0x%x\n", Word);
+        //printf("Alex 0 TX word = 0x%x\n", Word);
         AlexManualTXFilters(Word, false);
       }
       else if(FPGAVersion >= 12)                            // new hardware but no client app support
@@ -176,10 +174,10 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       // RX filters
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1430));
       AlexManualRXFilters(Word, 2);
-      printf("Alex 1 RX word = 0x%x\n", Word);
+      //printf("Alex 1 RX word = 0x%x\n", Word);
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1434));
       AlexManualRXFilters(Word, 0);
-      printf("Alex 0 RX word = 0x%x\n", Word);
+      //printf("Alex 0 RX word = 0x%x\n", Word);
       //
       // RX atten during TX and RX
       // this should be just on RX now, because TX settings are in the DUC specific packet bytes 58&59
