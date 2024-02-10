@@ -297,6 +297,7 @@ void* CheckForActivity(void *arg)
 //
 void Shutdown()
 {
+  ShutdownCATHandler();                                   // close CAT connection socket
   close(SocketData[0].Socketid);                          // close incoming data socket
   sem_destroy(&DDCInSelMutex);
   sem_destroy(&DDCResetFIFOMutex);

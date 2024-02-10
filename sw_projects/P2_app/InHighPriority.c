@@ -26,6 +26,7 @@
 #include "../common/saturnregisters.h"
 #include "../common/hwaccess.h"                   // low level access
 #include "../common/version.h"
+#include "cathandler.h"
 
 
 
@@ -82,7 +83,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
     {
       NewMessageReceived = true;
       LongWord = ntohl(*(uint32_t *)(UDPInBuffer));
-      printf("high priority packet received, seq number = %d\n", LongWord);
+      printf("high priority packet received\n");
       Byte = (uint8_t)(UDPInBuffer[4]);
       RunBit = (bool)(Byte&1);
       if(RunBit)
@@ -127,7 +128,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       // CAT port (if set)
       //
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1398));
-      
+      SetupCATPort(Word);
       //
       // transverter, speaker mute, open collector, user outputs
       //
