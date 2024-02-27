@@ -2004,7 +2004,8 @@ unsigned int GetADCOverflow(void)
 unsigned int GetUserIOBits(void)
 {
     unsigned int Result = 0;
-    Result = ((GStatusRegister >> VUSERIO4) & 0b1011);                       // get usder input 4/5/-/8
+    Result = ((GStatusRegister >> VUSERIO4) & 0b1011);                       // get user input 4/5/-/8
+    Result = Result ^ 0x8;                                                   // invert IO8 (should be active low)
     Result |= ((GStatusRegister >> 7) & 0b0100);                             // get ATU bit into IO6 location
     return Result;
 }

@@ -192,12 +192,14 @@ void InitCATHandler()
 {
   int CmdCntr;
   unsigned long MatchWord;
+
 // initialise the matching 32 bit words to hold a version of each CAT command
   for(CmdCntr=0; CmdCntr < VNUMCATCMDS; CmdCntr++)
   {
     MatchWord = Make32BitStr(GCATCommands[CmdCntr].CATString);
     GCATMatch[CmdCntr] = MatchWord;
   }
+  CATPort = 0;                        // set port not assigned
 }
 
 
@@ -310,11 +312,12 @@ void ParseCATCmd(char* Buffer)
   }
   if (ValidResult == true)
   {
+    // debug: print the match found
     printf("match= %s ; parameter=", GCATCommands[MatchedCAT].CATString);
     switch(ParsedType)
     {
       case eStr: 
-        printf("\n");
+        printf("%s\n", ParsedString);
         break;
       case eNum:
         ParsedInt = constrain(ParsedInt, StructPtr->MinParamValue, StructPtr->MaxParamValue);
@@ -536,7 +539,7 @@ void* CATHandlerThread(void *arg)
     int ReadResult;
     char ReadBuffer[1024] = {0};
     char SendBuffer[1024] = {0};
-    bool MessageSent = false;
+//    bool MessageSent = false;
 
     //
     // loop, creating then using socket
@@ -594,11 +597,13 @@ void* CATHandlerThread(void *arg)
           {
               ParseCATCmd(ReadBuffer);
               memset(ReadBuffer, 0, sizeof(ReadBuffer));
-              if(MessageSent == false)
-              {
-                  MakeCATMessageNoParam(eZZFA);
-                  MessageSent=true;
-              }
+// debug - send a CAT command on 1st connect
+//              if(MessageSent == false)
+//              {
+//                  MakeCATMessageNoParam(eZZFA);
+//                  MessageSent=true;
+//              }
+
           }
           //
           // if there are CAT messages available, send them
@@ -617,6 +622,7 @@ void* CATHandlerThread(void *arg)
     }
       ThreadActive = false;
       ThreadError = false;
+      CATPort = 0;                                            // set port not assigned
       return NULL;
 }
 
@@ -625,22 +631,24 @@ void* CATHandlerThread(void *arg)
 //
 // function to setup a CAT port handler
 // save port number, and create a thread if needed
-//
+// note this will be called a lot of times: every time a high priority command message received. 
+// only process this if the port is not yet assigned
 void SetupCATPort(int Port)
 {
-    CATPort = Port;
-    InitCATHandler();
-    if((!ThreadActive) && SDRActive)
+    if (CATPort == 0)
     {
+        CATPort = Port;
+        if((!ThreadActive) && SDRActive)
+        {
 
-       if(pthread_create(&CATThread, NULL, CATHandlerThread, NULL) < 0)
-       {
-           perror("pthread_create CAT handler");
-           return;
-       }
-       pthread_detach(CATThread);
-    }
-    
+          if(pthread_create(&CATThread, NULL, CATHandlerThread, NULL) < 0)
+          {
+              perror("pthread_create CAT handler");
+              return;
+          }
+          pthread_detach(CATThread);
+        }
+    }  
 }
 
 

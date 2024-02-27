@@ -78,6 +78,12 @@ extern SCATCommands GCATCommands[];
 
 
 //
+// initialise CAT handler
+// load up the match strings with either valid commands or debug commands
+//
+void InitCATHandler();
+
+//
 // create CAT message:
 // this creates a "basic" CAT command with no parameter
 // (for example to send a "get" command)

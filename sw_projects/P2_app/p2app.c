@@ -52,6 +52,7 @@
 #include "OutMicAudio.h"
 #include "OutDDCIQ.h"
 #include "OutHighPriority.h"
+#include "cathandler.h"
 
 #define P2APPVERSION 15
 //------------------------------------------------------------------------------------------
@@ -386,6 +387,7 @@ int main(int argc, char *argv[])
   // SetTXEnable(true);                                             // now only enabled if SDR active
   EnableAlexManualFilterSelect(true);
   SetBalancedMicInput(false);
+  InitCATHandler();
 
   if (signal(SIGINT, sig_handler) == SIG_ERR)
     printf("\ncan't catch SIGINT\n");
