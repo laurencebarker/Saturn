@@ -42,6 +42,7 @@
 // CAT handlers pick up their parameters from global values
 // (this is done because then one jump table can be used for all)
 // the parsed result will be in ParsedString, ParsedInt or ParsedBool as set in message table
+//
 
 //
 // VFO A frequency 
@@ -52,32 +53,64 @@ void HandleZZFA(void)
 }
 
 
+//
+// VFO step down
+//
 void HandleZZZD(void)
 {
-
+    printf("eZZZD\n");
 }
 
+
+//
+// VFO step up
+//
 void HandleZZZU(void)
 {
-
+    printf("eZZZU\n");
 }
 
+
+//
+// encoder step
+//
 void HandleZZZE(void)
 {
-
+    printf("eZZZE\n");
 }
 
+
+//
+// pushbutton event
+//
 void HandleZZZP(void)
 {
-
+    printf("eZZZP\n");
 }
 
+
+//
+// set indicator
+//
 void HandleZZZI(void)
 {
-
+    printf("eZZZI\n");
 }
 
+
+//
+// S/W version
+//
 void HandleZZZS(void)
 {
+    printf("eZZZS\n");
+}
 
+
+//
+// TUNE
+//
+void HandleZZTU(void)
+{
+    printf("eZZTU\n");
 }

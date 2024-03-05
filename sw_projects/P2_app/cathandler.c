@@ -68,7 +68,7 @@ int CATReadPtr = 0;                         // pointer to next string to read
 // array of records. This must exactly match the enum ECATCommands in tiger.h
 // and the number of commands defined here must be correct
 // (not including the final eNoCommand)
-#define VNUMCATCMDS 7
+#define VNUMCATCMDS 8
 
 SCATCommands GCATCommands[VNUMCATCMDS] = 
 {
@@ -78,7 +78,8 @@ SCATCommands GCATCommands[VNUMCATCMDS] =
   {"ZZZP", eNum, 0, 999, 3, false, HandleZZZP},                       // pushbutton
   {"ZZZI", eNum, 0, 999, 3, false, HandleZZZI},                       // indicator
   {"ZZZS", eNum, 0, 9999999, 7, false, HandleZZZS},                   // s/w version
-  {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA}                         // VFO frequency
+  {"ZZTU", eBool, 0, 1, 1, false, HandleZZTU},                        // tune
+  {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA},                        // VFO frequency
 };
 
 
@@ -324,7 +325,7 @@ void ParseCATCmd(char* Buffer)
         printf("%d\n", ParsedInt);
         break;
       case eBool:
-        if(ParsedBool = true)
+        if(ParsedBool == true)
           printf("true\n");
         else
           printf("false\n");

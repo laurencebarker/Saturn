@@ -32,7 +32,7 @@ extern char ParsedString[20];                    // if string expected, it goes 
 
 //
 // firstly an enumerated list of all of the CAT commands
-// ordered as per documentation, not alphsabetically!
+// ordered as per documentation, not alphabetically!
 // this list must match exactly the table GCATCommands
 //
 typedef enum 
@@ -43,7 +43,8 @@ typedef enum
   eZZZP,                          // pushbutton
   eZZZI,                          // indicator
   eZZZS,                          // s/w version
-  eZZFA,
+  eZZTU,                          // tune
+  eZZFA,                          // frequency
   eNoCommand                      // this is an exception condition
 }ECATCommands;
 

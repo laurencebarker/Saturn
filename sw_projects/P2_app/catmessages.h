@@ -23,12 +23,13 @@
 void HandleZZFA(void);
 
 
-void HandleZZZD(void);
-void HandleZZZU(void);
-void HandleZZZE(void);
-void HandleZZZP(void);
-void HandleZZZI(void);
-void HandleZZZS(void);
+void HandleZZZD(void);                          // VFO freq down
+void HandleZZZU(void);                          // VFO freq up
+void HandleZZZE(void);                          // encoder
+void HandleZZZP(void);                          // pushbutton
+void HandleZZZI(void);                          // indicator
+void HandleZZZS(void);                          // s/w version
+void HandleZZTU(void);                          // TUNE
 
 
 #endif  //#ifndef

@@ -53,6 +53,7 @@
 #include "OutDDCIQ.h"
 #include "OutHighPriority.h"
 #include "cathandler.h"
+#include "LDGATU.h"
 
 #define P2APPVERSION 15
 //------------------------------------------------------------------------------------------
@@ -63,7 +64,7 @@
 // V14: 17/12/2023:  added ATU tune request to IO6 bit position; FIFO under and overflow detection;
 //                   changed FIFO sizes; debug can be enabled as runtime setting; enable/disable ext speaker;
 //                   network timeout
-// V13, 18/8/2023:   inverted IO8 sense for piHPSDR-initiaited CW
+// V13, 18/8/2023:   inverted IO8 sense for piHPSDR-initiated CW
 // V12, 29/7/2023:   CW changes to set RX attenuation on TX from protocol bytes 58, 59;
 //                   CW breakin properly enabled; CW keyer disabled if p2app not active;
 //                   CW changes to minimise delay reporting to prototol 2
@@ -85,6 +86,8 @@ bool ExitRequested = false;                 // true if "exit checking" thread re
 bool SkipExitCheck = false;                 // true to skip "exit checking", if running as a service
 bool ThreadError = false;                   // true if a thread reports an error
 bool UseDebug = false;                      // true if to enable debugging
+bool UseControlPanel = false;               // true if to use a control panel
+bool UseLDGATU = false;                     // true if to use an LDG ATU via CAT
 
 
 #define SDRBOARDID 1                        // Hermes
@@ -406,20 +409,37 @@ int main(int argc, char *argv[])
 // option string needs a colon after each option letter that has a parameter after it
 // and it has a leading colon to suppress error messages
 //
-  while((CmdOption = getopt(argc, argv, ":i:f:h:m:sd")) != -1)
+  while((CmdOption = getopt(argc, argv, ":a:i:f:m:sdph")) != -1)
   {
     switch(CmdOption)
     {
       case 'h':
         printf("usage: ./p2app <optional arguments>\n");
         printf("optional arguments:\n");
+        printf("-a LDG        control TUNE for LDG ATU\n");
         printf("-f <frequency in Hz> turns on test source for all DDCs\n");
         printf("-i saturn     board responds as board id = Saturn\n");
         printf("-i orionmk2   board responds as board id = Orion mk 2\n");
         printf("-m xlr        selects balanced XLR microphone input\n");
         printf("-m jack       selects unbalanced 3.5mm microphone input\n");
-        printf("-s skip checking for exit keys, run as service\n");
+        printf("-s            skip checking for exit keys, run as service\n");
+        printf("-d            print additional debug\n");
+        printf("-p            drive G2 control panel\n");
         return EXIT_SUCCESS;
+        break;
+
+      case 'a':
+        if(strcmp(optarg,"LDG") == 0)
+        {
+          printf("TUNE command for LDG ATU via CAT\n");
+          UseLDGATU = true;
+        }
+        else
+        {
+          printf("error parsing ATU type. Command is case sensitive\n");
+          printf("-a LDG    selects LDG ATU\n");
+          return EXIT_SUCCESS;
+        }
         break;
 
       case 'i':
@@ -476,7 +496,13 @@ int main(int argc, char *argv[])
         break;
 
       case 'd':
+        printf ("Enhanced debug enabled\n");                  
         UseDebug = true;
+        break;
+
+      case 'p':
+        printf ("Control panel enabled\n");                  
+        UseControlPanel = true;
     }
   }
   printf("\n");
