@@ -3,7 +3,7 @@
    "Default View_Layers":"",
    "Default View_Layout":"",
    "Default View_ScaleFactor":"0.680275",
-   "Default View_TopLeft":"978,-260",
+   "Default View_TopLeft":"1657,-238",
    "ExpandedHierarchyInLayout":"",
    "comment_0":"unused pins for PCIe bus configuration",
    "comment_1":"unused pins for PCIe bus configuration",
@@ -118,116 +118,116 @@ preplace netloc ADC2_CLKin_P_1 1 0 1 -300 1120n
 preplace netloc ADC2_In_N_1 1 0 1 N 1150
 preplace netloc ADC2_In_P_1 1 0 1 -300 1170n
 preplace netloc ADC2_Overrange_1 1 1 3 NJ 1140 N 1140 970
-preplace netloc ADC_Ctrl_1 1 4 2 1600 250 N
+preplace netloc ADC_Ctrl_1 1 4 2 1610 250 N
 preplace netloc ADC_LVDS_Pins_ADC1_SingleEnded 1 1 5 340 1330 N 1330 970 1660 N 1660 2240
 preplace netloc ADC_LVDS_Pins_ADC2_SingleEnded 1 1 5 300 1340 N 1340 960 1670 N 1670 2220
 preplace netloc ADC_MISO_0_1 1 0 4 -290J 930 NJ 930 NJ 930 990
 preplace netloc BUFF_Alex_Pin1_0_1 1 0 6 NJ 610 NJ 610 NJ 610 960 600 NJ 600 2230J
 preplace netloc BUFF_Alex_Pin8_0_1 1 0 6 NJ 640 NJ 640 NJ 640 970 610 NJ 610 2250J
-preplace netloc Byteswap_1 1 4 4 N 1360 2687 1250 N 1250 3930
-preplace netloc CodecConfig_1 1 4 4 1700 1070 N 1070 N 1070 3910
-preplace netloc CodecMicResetn_1 1 4 5 1740J 1280 2657J 1260 NJ 1260 3900 1410 N
-preplace netloc CodecSpkResetn_1 1 4 5 NJ 1420 2647J 1230 3220J 1270 3890 1420 4610
-preplace netloc DAC_Ctrl_1 1 4 2 1630 580 2240
+preplace netloc Byteswap_1 1 4 4 N 1360 2697 1250 N 1250 3930
+preplace netloc CodecConfig_1 1 4 4 1710 1070 N 1070 N 1070 3910
+preplace netloc CodecMicResetn_1 1 4 5 1750J 1280 2667J 1260 NJ 1260 3900 1410 N
+preplace netloc CodecSpkResetn_1 1 4 5 NJ 1420 2657J 1230 3210J 1270 3890 1420 4600
+preplace netloc DAC_Ctrl_1 1 4 2 1640 580 2240
 preplace netloc DAC_LVDS_Pins_DAC_Out_N 1 10 1 5760 770n
 preplace netloc DAC_LVDS_Pins_DAC_Out_P 1 10 1 5840 800n
-preplace netloc DAC_SingleEnded_1 1 6 4 3190 800 N 800 N 800 N
+preplace netloc DAC_SingleEnded_1 1 6 4 3180 800 N 800 N 800 N
 preplace netloc EMC_CLK_1 1 0 2 N 580 310
-preplace netloc IambicConfig_1 1 4 3 1660J -30 NJ -30 3100
-preplace netloc IambicKeyer_CW_Key_Down 1 5 3 2707 1090 NJ 1090 3880
-preplace netloc PCIe_ADC_CLK 1 4 7 1570J -70 NJ -70 NJ -70 N -70 N -70 N -70 5770J
-preplace netloc PCIe_ADC_MOSI 1 4 7 NJ 980 NJ 980 NJ 980 N 980 4580 960 5310 1030 5800J
-preplace netloc PCIe_FPGA_CM4_EN 1 4 7 NJ 1040 NJ 1040 NJ 1040 N 1040 4620 970 5250 1040 5760J
-preplace netloc PCIe_LEDDrivers 1 4 7 1590 -60 N -60 NJ -60 N -60 N -60 N -60 5790J
-preplace netloc PCIe_PCIECLKREQN 1 4 7 NJ 1100 NJ 1100 NJ 1100 3900 1060 4700 1600 5280 1090 NJ
-preplace netloc PCIe_PCI_LINK_LED 1 4 7 1650 1130 NJ 1130 NJ 1130 3940 1100 4580 1560 5290 1510 NJ
-preplace netloc PCIe_RFGPIOData 1 4 2 1640 590 2260
-preplace netloc PCIe_TXTestFreqData 1 4 2 1630 1230 2290
+preplace netloc IambicConfig_1 1 4 3 1670J -30 NJ -30 3090
+preplace netloc IambicKeyer_CW_Key_Down 1 5 3 2717 1090 NJ 1090 3880
+preplace netloc PCIe_ADC_CLK 1 4 7 1580J -70 NJ -70 NJ -70 N -70 N -70 N -70 5770J
+preplace netloc PCIe_ADC_MOSI 1 4 7 NJ 980 NJ 980 NJ 980 N 980 4570 960 5310 1030 5800J
+preplace netloc PCIe_FPGA_CM4_EN 1 4 7 NJ 1040 NJ 1040 NJ 1040 N 1040 4610 970 5250 1040 5760J
+preplace netloc PCIe_LEDDrivers 1 4 7 1600 -60 N -60 NJ -60 N -60 N -60 N -60 5790J
+preplace netloc PCIe_PCIECLKREQN 1 4 7 NJ 1100 NJ 1100 NJ 1100 3900 1060 4690 1600 5280 1090 NJ
+preplace netloc PCIe_PCI_LINK_LED 1 4 7 1660 1130 NJ 1130 NJ 1130 3940 1100 4570 1560 5290 1510 NJ
+preplace netloc PCIe_RFGPIOData 1 4 2 1650 590 2260
+preplace netloc PCIe_TXTestFreqData 1 4 2 1640 1230 2290
 preplace netloc PCIe_T_SMBCLK_0_1 1 0 4 -300J 1510 280J 1310 NJ 1310 990
-preplace netloc PCIe_T_SMBDAT_0_1 1 0 4 -290J 1520 390J 1320 NJ 1320 1000
-preplace netloc PCIe_aresetn12 1 4 5 1560J 1250 2677J 1180 N 1180 4198 1150 4690
-preplace netloc PCIe_axi_aclk_125 1 1 8 400 1620 N 1620 1030 1580 1720J 1190 NJ 1190 N 1190 4208 1160 4680
-preplace netloc PCIe_axi_resetn 1 4 1 1620 40n
-preplace netloc PCIe_codec_cs 1 4 7 1680J 1110 NJ 1110 NJ 1110 3930 1080 4720 1570 5270 1240 N
-preplace netloc PCIe_codecspiclk 1 4 7 1670J 1140 NJ 1140 NJ 1140 3950 1110 4630 1630 5310 1640 NJ
-preplace netloc PCIe_codecspidata 1 4 7 1700J 1150 NJ 1150 NJ 1150 3960 1120 4620 1620 N 1620 NJ
-preplace netloc PCIe_nADC_CS 1 4 7 1690J 1160 NJ 1160 NJ 1160 3970 1130 4650 1580 5300 1480 NJ
-preplace netloc PWM_DAC_0_DAC_bit 1 6 5 3150 510 N 510 N 510 N 510 5760
+preplace netloc PCIe_T_SMBDAT_0_1 1 0 4 -290J 1520 380J 1320 NJ 1320 1000
+preplace netloc PCIe_aresetn12 1 4 5 1570J 1250 2687J 1180 N 1180 4208 1150 4680
+preplace netloc PCIe_axi_aclk_125 1 1 8 390 1620 N 1620 1030 1580 1730J 1190 NJ 1190 N 1190 4218 1160 4670
+preplace netloc PCIe_axi_resetn 1 4 1 1630 40n
+preplace netloc PCIe_codec_cs 1 4 7 1690J 1110 NJ 1110 NJ 1110 3930 1080 4710 1570 5270 1240 N
+preplace netloc PCIe_codecspiclk 1 4 7 1680J 1140 NJ 1140 NJ 1140 3950 1110 4620 1630 5310 1640 NJ
+preplace netloc PCIe_codecspidata 1 4 7 1710J 1150 NJ 1150 NJ 1150 3960 1120 4610 1620 N 1620 NJ
+preplace netloc PCIe_nADC_CS 1 4 7 1700J 1160 NJ 1160 NJ 1160 3970 1130 4640 1580 5300 1480 NJ
+preplace netloc PWM_DAC_0_DAC_bit 1 6 5 3140 510 N 510 N 510 N 510 5760
 preplace netloc RF_interfaces_BUF_Out_FPGA 1 6 5 N 220 N 220 N 220 5310 240 5790J
 preplace netloc RF_interfaces_Dac_Atten_Clk 1 6 5 N 280 N 280 N 280 5310 300 5780J
 preplace netloc RF_interfaces_Dac_Atten_Data 1 6 5 N 300 N 300 N 300 5240 310 5840J
 preplace netloc RF_interfaces_Dac_Atten_LE 1 6 5 N 320 N 320 N 320 N 320 5820J
-preplace netloc RF_interfaces_Dac_Atten_Mode 1 6 5 3200 330 N 330 N 330 N 330 NJ
-preplace netloc RF_interfaces_Dbounced_Key_Dash 1 6 1 3170 30n
-preplace netloc RF_interfaces_Debounced_Key_Dot 1 6 1 3190 50n
-preplace netloc RF_interfaces_Driver_PA_En 1 5 6 2697 770 3230 420 NJ 420 NJ 420 NJ 420 NJ
-preplace netloc RF_interfaces_IO8 1 6 1 3210 130n
+preplace netloc RF_interfaces_Dac_Atten_Mode 1 6 5 3190 330 N 330 N 330 N 330 NJ
+preplace netloc RF_interfaces_Dbounced_Key_Dash 1 6 1 3160 30n
+preplace netloc RF_interfaces_Debounced_Key_Dot 1 6 1 3180 50n
+preplace netloc RF_interfaces_Driver_PA_En 1 5 6 2707 770 3220 420 NJ 420 NJ 420 NJ 420 NJ
+preplace netloc RF_interfaces_IO8 1 6 1 3200 130n
 preplace netloc RF_interfaces_MOX_strobe 1 6 5 3568 400 NJ 400 NJ 400 NJ 400 5820J
-preplace netloc RF_interfaces_status_out 1 3 4 1230 1680 N 1680 N 1680 3120
-preplace netloc RX_FIFO_aresetn_1 1 4 5 1710J 1210 2587J 1200 NJ 1200 3960 1400 4740
-preplace netloc SPI_0_Rx_load_strobe 1 6 5 3200 450 N 450 N 450 N 450 5780
-preplace netloc SPI_0_SPI_clock 1 6 5 3220 410 N 410 N 410 N 410 5810
-preplace netloc SPI_0_SPI_data 1 6 5 3220 430 N 430 N 430 N 430 5800
-preplace netloc SPI_0_Tx_load_strobe 1 6 5 3200 470 N 470 N 470 N 470 5770
-preplace netloc SerialAtten_0_ATTN_CLK 1 6 5 3090 -190 N -190 N -190 N -190 N
-preplace netloc SerialAtten_0_ATTN_DATA 1 6 5 3110 -160 N -160 N -160 N -160 N
-preplace netloc SerialAtten_0_ATTN_LE 1 6 5 3120 -90 N -90 N -90 N -90 5770
-preplace netloc SerialAtten_1_ATTN_CLK 1 6 5 3140 -80 N -80 N -80 N -80 5830
-preplace netloc SerialAtten_1_ATTN_DATA 1 6 5 3150 -50 N -50 N -50 N -50 5780
-preplace netloc SerialAtten_1_ATTN_LE 1 6 5 3160 -40 N -40 N -40 N -40 N
-preplace netloc TXConfig_1 1 4 2 1650 1200 2577
-preplace netloc TXLOTune_1 1 4 2 1640 1220 2310
-preplace netloc TX_ENABLE_0_1 1 0 6 NJ 770 NJ 770 N 770 1180 1530 1760J 1450 NJ
-preplace netloc TX_FIFO_aresetn_1 1 4 5 1730J 1240 2607J 1220 3230J 1280 3880 1430 4730
-preplace netloc Transmitter_cw_ptt1 1 3 4 1240 1540 1750 1260 2597 1210 3110
-preplace netloc Transmitter_txmux_reset 1 6 3 NJ 1520 N 1520 4740
-preplace netloc aclk_1 1 1 9 290 690 NJ 690 N 690 1700J 740 NJ 740 NJ 740 N 740 N 740 5240
-preplace netloc adcrand_1 1 0 7 -160 1650 NJ 1650 NJ 1650 N 1650 NJ 1650 NJ 1650 3140
-preplace netloc aresetn_125_1 1 1 8 410 1610 N 1610 990 1570 1560J 1270 2637J 1240 3210 1440 N 1440 4590
-preplace netloc audio_codec_0_BCLK 1 8 3 4660 980 5240 1050 5840
-preplace netloc audio_codec_0_LRCLK 1 8 3 4640 950 N 950 N
-preplace netloc audio_codec_0_MCLK 1 8 3 4570 1610 5310 1120 NJ
-preplace netloc audio_codec_0_i2stxd 1 8 3 4600 1590 5260 1060 NJ
-preplace netloc clk_wiz_0_clk_out2 1 1 8 370J 1370 630 1380 1210 1560 N 1560 2667 760 3558 760 4158 1090 4730
+preplace netloc RF_interfaces_status_out 1 3 4 1220 1680 N 1680 N 1680 3110
+preplace netloc RX_FIFO_aresetn_1 1 4 5 1720J 1210 2597J 1200 NJ 1200 3960 1400 4730
+preplace netloc SPI_0_Rx_load_strobe 1 6 5 3190 450 N 450 N 450 N 450 5780
+preplace netloc SPI_0_SPI_clock 1 6 5 3210 410 N 410 N 410 N 410 5810
+preplace netloc SPI_0_SPI_data 1 6 5 3210 430 N 430 N 430 N 430 5800
+preplace netloc SPI_0_Tx_load_strobe 1 6 5 3190 470 N 470 N 470 N 470 5770
+preplace netloc SerialAtten_0_ATTN_CLK 1 6 5 3080 -190 N -190 N -190 N -190 N
+preplace netloc SerialAtten_0_ATTN_DATA 1 6 5 3100 -160 N -160 N -160 N -160 N
+preplace netloc SerialAtten_0_ATTN_LE 1 6 5 3110 -90 N -90 N -90 N -90 5770
+preplace netloc SerialAtten_1_ATTN_CLK 1 6 5 3130 -80 N -80 N -80 N -80 5830
+preplace netloc SerialAtten_1_ATTN_DATA 1 6 5 3140 -50 N -50 N -50 N -50 5780
+preplace netloc SerialAtten_1_ATTN_LE 1 6 5 3150 -40 N -40 N -40 N -40 N
+preplace netloc TXConfig_1 1 4 2 1660 1200 2587
+preplace netloc TXLOTune_1 1 4 2 1650 1220 2310
+preplace netloc TX_ENABLE_0_1 1 0 6 NJ 770 NJ 770 N 770 1170 1530 1770J 1450 NJ
+preplace netloc TX_FIFO_aresetn_1 1 4 5 1740J 1240 2617J 1220 3220J 1280 3880 1430 4720
+preplace netloc Transmitter_cw_ptt1 1 3 4 1230 1540 1760 1260 2607 1210 3100
+preplace netloc Transmitter_txmux_reset 1 6 3 NJ 1520 N 1520 4730
+preplace netloc aclk_1 1 1 9 290 690 NJ 690 N 690 1710J 740 NJ 740 NJ 740 N 740 N 740 5240
+preplace netloc adcrand_1 1 0 7 -160 1650 NJ 1650 NJ 1650 N 1650 NJ 1650 NJ 1650 3130
+preplace netloc aresetn_125_1 1 1 8 400 1610 N 1610 990 1570 1570J 1270 2647J 1240 3200 1440 N 1440 4580
+preplace netloc audio_codec_0_BCLK 1 8 3 4650 980 5240 1050 5840
+preplace netloc audio_codec_0_LRCLK 1 8 3 4630 950 N 950 N
+preplace netloc audio_codec_0_MCLK 1 8 3 4560 1610 5310 1120 NJ
+preplace netloc audio_codec_0_i2stxd 1 8 3 4590 1590 5260 1060 NJ
+preplace netloc clk_wiz_0_clk_out2 1 1 8 360J 1370 640 1380 1200 1560 N 1560 2677 760 3558 760 4168 1090 4720
 preplace netloc clock_122_1 1 0 1 -150J 1350n
 preplace netloc clock_122_in_n_1 1 0 1 -140J 1300n
-preplace netloc clock_generator_clock_122_out 1 0 9 -120 1540 360 1360 640 1370 1220 1550 N 1550 2567 1170 N 1170 4178 1140 4710
+preplace netloc clock_generator_clock_122_out 1 0 9 -120 1540 350 1360 650 1370 1210 1550 N 1550 2577 1170 N 1170 4188 1140 4700
 preplace netloc clock_generator_clock_122_out_ADC 1 0 2 -130 1550 260
-preplace netloc clock_generator_pll_lock 1 1 3 380J 1350 N 1350 1190
-preplace netloc clock_mon_1 1 2 2 650J 1360 1200
-preplace netloc clock_monitor_0_LED 1 2 1 630 1490n
-preplace netloc is2rxd_1 1 0 8 NJ 740 280 700 N 700 N 700 1680 750 N 750 N 750 4168
-preplace netloc keyer_config_1 1 4 2 1680 1080 2320
+preplace netloc clock_generator_pll_lock 1 1 3 370J 1350 N 1350 1180
+preplace netloc clock_mon_1 1 2 2 660J 1360 1190
+preplace netloc clock_monitor_0_LED 1 2 1 640 1490n
+preplace netloc is2rxd_1 1 0 8 NJ 740 280 700 N 700 N 700 1690 750 N 750 N 750 4178
+preplace netloc keyer_config_1 1 4 2 1690 1080 2320
 preplace netloc ref_in_10_1 1 0 2 -170J 1530 270
 preplace netloc regmux_2_1_1_dout 1 6 5 N 260 N 260 N 260 N 260 5820
 preplace netloc reset_rtl_0_1 1 0 4 NJ 880 N 880 N 880 1010
-preplace netloc status_in_1 1 0 6 NJ 550 N 550 N 550 N 550 1700 570 2270
-preplace netloc tx_samples_1 1 5 2 2727 1670 3100
+preplace netloc status_in_1 1 0 6 NJ 550 N 550 N 550 N 550 1710 570 2270
+preplace netloc tx_samples_1 1 5 2 2737 1670 3090
 preplace netloc util_reduced_logic_0_Res 1 1 10 270 -220 N -220 N -220 N -220 N -220 NJ -220 N -220 N -220 N -220 N
 preplace netloc util_reduced_logic_2_Res 1 6 5 N 240 N 240 N 240 5240 250 5830
-preplace netloc util_reduced_logic_3_Res 1 6 5 3180 490 N 490 N 490 N 490 5790
-preplace netloc util_vector_logic_0_Res 1 3 8 980J -20 NJ -20 NJ -20 3130J -30 N -30 N -30 N -30 5780
+preplace netloc util_reduced_logic_3_Res 1 6 5 3170 490 N 490 N 490 N 490 5790
+preplace netloc util_vector_logic_0_Res 1 3 8 980J -20 NJ -20 NJ -20 3120J -30 N -30 N -30 N -30 5780
 preplace netloc xlslice_0_Dout 1 6 5 N 360 N 360 N 360 N 360 5770
-preplace netloc xlslice_0_Dout1 1 5 1 2697 40n
-preplace netloc xlslice_1_Dout1 1 5 4 2627 1660 3260 1490 N 1490 4740
-preplace netloc xlslice_2_Dout 1 5 3 2220 650 3578 720 4188
+preplace netloc xlslice_0_Dout1 1 5 1 2707 40n
+preplace netloc xlslice_1_Dout1 1 5 4 2637 1660 3250 1490 N 1490 4730
+preplace netloc xlslice_2_Dout 1 5 3 2220 650 3578 720 4198
 preplace netloc xlslice_3_Dout 1 5 1 2280 410n
-preplace netloc xlslice_4_Dout 1 5 5 2647 820 NJ 820 N 820 N 820 N
+preplace netloc xlslice_4_Dout 1 5 5 2657 820 NJ 820 N 820 N 820 N
 preplace netloc xlslice_5_Dout 1 6 5 N 200 N 200 N 200 N 200 5830
-preplace netloc FIFO_Interfaces_M_AXIS_codec 1 7 3 4208 1550 N 1550 5240
-preplace netloc PCIe_M03_AXI_0 1 4 5 NJ 800 NJ 800 3170 810 N 810 4740
-preplace netloc PCIe_M08_AXI_0 1 4 2 NJ 820 2617
+preplace netloc FIFO_Interfaces_M_AXIS_codec 1 7 3 4218 1550 N 1550 5240
+preplace netloc PCIe_M03_AXI_0 1 4 5 NJ 800 NJ 800 3160 810 N 810 4730
+preplace netloc PCIe_M08_AXI_0 1 4 2 NJ 820 2627
 preplace netloc PCIe_M09_AXI 1 4 2 N 920 2250
-preplace netloc PCIe_M_AXI_Alex 1 4 2 1580 230 NJ
-preplace netloc PCIe_M_AXI_full_0 1 4 5 NJ 860 NJ 860 N 860 N 860 4730
-preplace netloc PCIe_SPI_0_0 1 4 7 1610J 730 NJ 730 NJ 730 N 730 N 730 5310 660 NJ
-preplace netloc PCIe_pcie_7x_mgt_rtl_0 1 4 7 1560 -100 N -100 N -100 N -100 N -100 N -100 5820
-preplace netloc Receiver_RX_Data 1 6 3 3240 1120 3920 1070 N
-preplace netloc S_AXIS_codec_1 1 8 1 4670 1100n
-preplace netloc TX_IQ_In_1 1 5 5 2727 1640 NJ 1640 N 1640 N 1640 5250
-preplace netloc Transmitter_m_axis_sidetoneampl 1 5 2 2717 1270 3090
-preplace netloc axis_data_fifo_0_M_AXIS 1 6 2 3250 1240 N
-preplace netloc diff_clock_rtl_0_1 1 0 4 NJ 800 N 800 N 800 1230
+preplace netloc PCIe_M_AXI_Alex 1 4 2 1590 230 NJ
+preplace netloc PCIe_M_AXI_full_0 1 4 5 NJ 860 NJ 860 N 860 N 860 4720
+preplace netloc PCIe_SPI_0_0 1 4 7 1620J 730 NJ 730 NJ 730 N 730 N 730 5310 660 NJ
+preplace netloc PCIe_pcie_7x_mgt_rtl_0 1 4 7 1570 -100 N -100 N -100 N -100 N -100 N -100 5820
+preplace netloc Receiver_RX_Data 1 6 3 3230 1120 3920 1070 N
+preplace netloc S_AXIS_codec_1 1 8 1 4660 1100n
+preplace netloc TX_IQ_In_1 1 5 5 2737 1640 NJ 1640 N 1640 N 1640 5250
+preplace netloc Transmitter_m_axis_sidetoneampl 1 5 2 2727 1270 3080
+preplace netloc axis_data_fifo_0_M_AXIS 1 6 2 3240 1240 N
+preplace netloc diff_clock_rtl_0_1 1 0 4 NJ 800 N 800 N 800 1220
 preplace netloc s_axi_0_1 1 4 2 NJ 760 2330
 preplace netloc s_axi_1_1 1 4 2 NJ 780 2300
 preplace cgraphic comment_3 place left 328 -10 textcolor 4 linecolor 3
