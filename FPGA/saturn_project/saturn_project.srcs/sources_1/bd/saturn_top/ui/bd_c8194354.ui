@@ -39,15 +39,15 @@ preplace netloc Net3 1 0 4 140 660 370 550 610 1140 NJ
 preplace netloc clk_1 1 0 4 N 720 380 600 640 560 860
 preplace netloc debounce_0_clean_pbn 1 4 1 1110 340n
 preplace netloc debounce_1_clean_pbn 1 4 1 1120 80n
-preplace netloc debounce_2_clean_pbn 1 3 3 N 650 1160 230 N
-preplace netloc debounce_3_clean_pbn 1 3 3 N 480 1170J 260 N
+preplace netloc debounce_2_clean_pbn 1 3 3 N 650 1150 230 N
+preplace netloc debounce_3_clean_pbn 1 3 3 N 480 1160J 260 N
 preplace netloc debounce_4_clean_pb 1 4 1 1100 720n
 preplace netloc debounce_5_clean_pb 1 4 1 1120 740n
 preplace netloc debounce_6_clean_pb 1 4 1 1140 760n
 preplace netloc debounce_8_clean_pb 1 4 1 1130 780n
 preplace netloc debounce_8_clean_pbn 1 4 2 1160 910 NJ
 preplace netloc debounce_9_clean_pb 1 2 3 640 820 880J 660 1110J
-preplace netloc debounce_9_clean_pbn 1 2 4 620 250 NJ 250 NJ 250 1350J
+preplace netloc debounce_9_clean_pbn 1 2 4 620 250 NJ 250 NJ 250 1360J
 preplace netloc rstn_1 1 0 2 NJ 810 N
 preplace netloc xlconcat_0_dout 1 5 1 NJ 730
 preplace netloc xlslice_0_Dout 1 3 1 NJ 350

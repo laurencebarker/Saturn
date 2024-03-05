@@ -3,3 +3,4 @@
 bdtest
 .Xil
 vivado.*
+*.prm
