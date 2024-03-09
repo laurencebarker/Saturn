@@ -45,15 +45,6 @@
 //
 
 //
-// VFO A frequency 
-//
-void HandleZZFA(void)
-{
-    printf("eZZFA: Frequency = %s\n", ParsedString);
-}
-
-
-//
 // VFO step down
 //
 void HandleZZZD(void)
@@ -115,10 +106,4 @@ void HandleZZTU(void)
     printf("eZZTU\n");
 }
 
-//
-// Noise blanker
-//
-void HandleZZNA(void)
-{
-    printf("eZZNA\n");
-}
+

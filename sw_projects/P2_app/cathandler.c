@@ -78,9 +78,7 @@ SCATCommands GCATCommands[VNUMCATCMDS] =
   {"ZZZP", eNum, 0, 999, 3, false, HandleZZZP},                       // pushbutton
   {"ZZZI", eNum, 0, 999, 3, false, HandleZZZI},                       // indicator
   {"ZZZS", eNum, 0, 9999999, 7, false, HandleZZZS},                   // s/w version
-  {"ZZTU", eBool, 0, 1, 1, false, HandleZZTU},                        // tune
-  {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA},                        // VFO frequency
-  {"ZZNA", eBool, 0, 1, 1, false, HandleZZNA}                        // tune
+  {"ZZTU", eBool, 0, 1, 1, false, HandleZZTU}                        // tune
 };
 
 
@@ -324,7 +322,7 @@ void ParseCATCmd(char* Buffer)
         break;
       case eNum:
         ParsedInt = constrain(ParsedInt, StructPtr->MinParamValue, StructPtr->MaxParamValue);
-        printf("%d\n", ParsedInt);
+        printf("%ld\n", ParsedInt);
         break;
       case eBool:
         if(ParsedBool == true)

@@ -20,9 +20,6 @@
 //
 // VFO A frequency 
 //
-void HandleZZFA(void);
-
-
 void HandleZZZD(void);                          // VFO freq down
 void HandleZZZU(void);                          // VFO freq up
 void HandleZZZE(void);                          // encoder
@@ -30,7 +27,6 @@ void HandleZZZP(void);                          // pushbutton
 void HandleZZZI(void);                          // indicator
 void HandleZZZS(void);                          // s/w version
 void HandleZZTU(void);                          // TUNE
-void HandleZZNA(void);                          // Noise Blanker
 
 
 #endif  //#ifndef
