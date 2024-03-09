@@ -54,10 +54,16 @@
 #include "OutHighPriority.h"
 #include "cathandler.h"
 #include "LDGATU.h"
+#include "g2panel.h"
 
-#define P2APPVERSION 15
+
+#define P2APPVERSION 16
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V16: 6/3/2024:    added interface for LDG ATU via CAT, requesting tune power when needed by ATU
+//                   bare bones interface for G2 front panel
+//                     
+
 // V15: 16/01/2024:  added specific TXant bits from revised protocol 2 high priority message to resolve CW
 //                   TX power generated momentarily into RX antenna if different
 //                   reads CAT over TCP/IP port number
@@ -506,6 +512,19 @@ int main(int argc, char *argv[])
     }
   }
   printf("\n");
+
+
+//
+// startup ATU handler if needed
+//
+  if(UseLDGATU)
+    InitialiseLDGHandler();
+
+//
+// startup G2 front panel handler if needed
+//
+  if(UseControlPanel)
+    InitialiseG2PanelHandler();
 
 //
 // start up thread for exit command checking

@@ -25,6 +25,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include "../common/saturnregisters.h"
+#include "LDGATU.h"
 
 
 
@@ -50,6 +51,7 @@ void *OutgoingHighPriority(void *arg)
   int Error;
   uint8_t Byte;                                   // data being encoded
   uint16_t Word;                                  // data being encoded
+  bool ATUTuneRequest = false;
 
 //
 // initialise. Create memory buffers and open DMA file devices
@@ -129,6 +131,12 @@ void *OutgoingHighPriority(void *arg)
       Byte = (uint8_t)GetUserIOBits();                  // user I/O bits
       *(uint8_t *)(UDPBuffer+59) = Byte;
       Error = sendmsg(ThreadData -> Socketid, &datagram, 0);
+      //
+      // get ATU bit and offer to LDG ATU handler
+      // power requested if bit 2 is zero
+      Byte = ((Byte >> 2) & 1) ^1;
+      ATUTuneRequest = (bool)Byte;
+      RequestATUTune(ATUTuneRequest);
 
       if(Error == -1)
       {

@@ -114,3 +114,11 @@ void HandleZZTU(void)
 {
     printf("eZZTU\n");
 }
+
+//
+// Noise blanker
+//
+void HandleZZNA(void)
+{
+    printf("eZZNA\n");
+}

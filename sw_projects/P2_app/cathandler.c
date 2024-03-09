@@ -80,6 +80,7 @@ SCATCommands GCATCommands[VNUMCATCMDS] =
   {"ZZZS", eNum, 0, 9999999, 7, false, HandleZZZS},                   // s/w version
   {"ZZTU", eBool, 0, 1, 1, false, HandleZZTU},                        // tune
   {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA},                        // VFO frequency
+  {"ZZNA", eBool, 0, 1, 1, false, HandleZZNA}                        // tune
 };
 
 
@@ -201,6 +202,7 @@ void InitCATHandler()
     GCATMatch[CmdCntr] = MatchWord;
   }
   CATPort = 0;                        // set port not assigned
+  CATPortAssigned = false;
 }
 
 
@@ -365,6 +367,8 @@ void SendCATMessage(char* Msg)
   if(GetCATOPBufferUsed() <= (VNUMOPSTRINGS - 1))
   {
     strcpy(OutputStrings[CATWritePtr++], Msg);
+    printf("Sent CAT msg %s\n", Msg);
+
     if(CATWritePtr >= VNUMOPSTRINGS)
       CATWritePtr = 0;
   }
@@ -540,7 +544,8 @@ void* CATHandlerThread(void *arg)
     int ReadResult;
     char ReadBuffer[1024] = {0};
     char SendBuffer[1024] = {0};
-//    bool MessageSent = false;
+    unsigned int TXMessageLength;
+//    bool DebugMessageSent = false;
 
     //
     // loop, creating then using socket
@@ -583,6 +588,8 @@ void* CATHandlerThread(void *arg)
           return NULL;
       }
       ThreadActive = true;
+      CATPortAssigned = true;
+
       printf("connected to CAT\n");
 
 
@@ -599,34 +606,34 @@ void* CATHandlerThread(void *arg)
               ParseCATCmd(ReadBuffer);
               memset(ReadBuffer, 0, sizeof(ReadBuffer));
 // debug - send a CAT command on 1st connect
-//              if(MessageSent == false)
+//              if(DebugMessageSent == false)
 //              {
 //                  MakeCATMessageNoParam(eZZFA);
-//                  MessageSent=true;
+//                  DebugMessageSent=true;
 //              }
-
           }
           //
           // if there are CAT messages available, send them
           //
           while(GetCATOPBufferUsed() != 0)
           {
+            TXMessageLength = strlen(OutputStrings[CATReadPtr]);
             strcpy(SendBuffer, OutputStrings[CATReadPtr++]);
-            send(CATSocketid, SendBuffer, 5, 0);
             if(CATReadPtr >= VNUMOPSTRINGS)
               CATReadPtr = 0;
+            send(CATSocketid, SendBuffer, TXMessageLength, 0);
           }
 
       }                                                       // end of thread main loop
       close(CATSocketid);
       ActiveCATPort = 0;
     }
-      ThreadActive = false;
-      ThreadError = false;
-      CATPort = 0;                                            // set port not assigned
-      return NULL;
+    ThreadActive = false;
+    ThreadError = false;
+    CATPort = 0;                                            // set port not assigned
+    CATPortAssigned = false;
+    return NULL;
 }
-
 
 
 //

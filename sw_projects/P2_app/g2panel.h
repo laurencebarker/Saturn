@@ -7,27 +7,23 @@
 // copyright Laurence Barker November 2021
 // licenced under GNU GPL3
 //
-// LDGATU.h:
+// g2panel.h:
 //
-// interface an LDG ATU, sending CAT command to request TUNE if required
+// interface G2 front panel using GPIO and I2C
 //
 //////////////////////////////////////////////////////////////
 
-#ifndef __LDGATU_h
-#define __LDGATU_h
+#ifndef __G2PANEL_h
+#define __G2PANEL_h
 
 
 //
 // function to initialise a connection to the  ATU; call if selected as a command line option
 //
-void InitialiseLDGHandler(void);
+void InitialiseG2PanelHandler(void);
 
 
-//
-// function to request TUNE power
-// paramter true to request tune power provision
-//
-void RequestATUTune(bool TuneRequested);
+
 
 
 

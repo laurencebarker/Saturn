@@ -30,6 +30,7 @@ void HandleZZZP(void);                          // pushbutton
 void HandleZZZI(void);                          // indicator
 void HandleZZZS(void);                          // s/w version
 void HandleZZTU(void);                          // TUNE
+void HandleZZNA(void);                          // Noise Blanker
 
 
 #endif  //#ifndef
