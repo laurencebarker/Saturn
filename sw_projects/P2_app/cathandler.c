@@ -68,7 +68,7 @@ int CATReadPtr = 0;                         // pointer to next string to read
 // array of records. This must exactly match the enum ECATCommands in tiger.h
 // and the number of commands defined here must be correct
 // (not including the final eNoCommand)
-#define VNUMCATCMDS 8
+#define VNUMCATCMDS 7
 
 SCATCommands GCATCommands[VNUMCATCMDS] = 
 {

@@ -44,8 +44,6 @@ typedef enum
   eZZZI,                          // indicator
   eZZZS,                          // s/w version
   eZZTU,                          // tune
-  eZZFA,                          // frequency
-  eZZNA,                          // noise blanker
   eNoCommand                      // this is an exception condition
 }ECATCommands;
 
