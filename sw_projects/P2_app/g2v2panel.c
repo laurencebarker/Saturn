@@ -9,11 +9,11 @@
 //
 // g2panel.c:
 //
-// interface G2 front panel using GPIO and I2C
+// interface G2V2 front panel using I2C
 //
 //////////////////////////////////////////////////////////////
 
-#include "g2panel.h"
+#include "g2v2panel.h"
 #include "threaddata.h"
 #include <stdint.h>
 #include "../common/saturntypes.h"
@@ -38,13 +38,12 @@
 #include "cathandler.h"
 
 
-bool G2PanelControlled = false;
+bool G2V2PanelControlled = false;
 
 //
-// function to initialise a connection to the G2 front panel; call if selected as a command line option
+// function to initialise a connection to the G2 V2 front panel; call if selected as a command line option
 //
-void InitialiseG2PanelHandler(void)
+void InitialiseG2V2PanelHandler(void)
 {
 }
-
 

@@ -18,7 +18,7 @@
 
 
 //
-// function to initialise a connection to the  ATU; call if selected as a command line option
+// function to initialise a connection to the G2 front panel; call if selected as a command line option
 //
 void InitialiseG2PanelHandler(void);
 

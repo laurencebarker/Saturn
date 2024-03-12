@@ -54,7 +54,7 @@
 #include "OutHighPriority.h"
 #include "cathandler.h"
 #include "LDGATU.h"
-#include "g2panel.h"
+#include "frontpanelhandler.h"
 
 
 #define P2APPVERSION 16
@@ -524,7 +524,7 @@ int main(int argc, char *argv[])
 // startup G2 front panel handler if needed
 //
   if(UseControlPanel)
-    InitialiseG2PanelHandler();
+    InitialiseFrontPanelHandler();
 
 //
 // start up thread for exit command checking

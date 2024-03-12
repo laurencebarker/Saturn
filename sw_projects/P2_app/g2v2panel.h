@@ -7,20 +7,24 @@
 // copyright Laurence Barker November 2021
 // licenced under GNU GPL3
 //
-// frontpanelhandler.h:
+// g2v2panel.h:
 //
-// handle interface to front panel controls
+// interface G2V2 front panel using I2C
 //
 //////////////////////////////////////////////////////////////
 
-#ifndef __frontpanelhandler_h
-#define __frontpanelhandler_h
+#ifndef __G2V2PANEL_h
+#define __G2V2PANEL_h
+
 
 //
-// function to initialise a connection to the front panel; call if selected as a command line option
-// establish which if any front panel is attached, and get it set up.
+// function to initialise a connection to the G2 V2 front panel; call if selected as a command line option
 //
-void InitialiseFrontPanelHandler(void);
+void InitialiseG2V2PanelHandler(void);
 
 
-#endif  //#ifndef
+
+
+
+
+#endif      // file sentry
