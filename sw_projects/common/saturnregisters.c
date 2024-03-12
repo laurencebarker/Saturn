@@ -119,7 +119,9 @@ ETXModulationSource GTXModulationSource;            // values added to register
 bool GTXProtocolP2;                                 // true if P2
 uint32_t TXModulationTestReg;                       // modulation test DDS
 bool GEnableTimeStamping;                           // true if timestamps to be added to data. NOT IMPLEMENTED YET
-bool GEnableVITA49;                                 // true if tyo enable VITA49 formatting. NOT SUPPORTED YET
+bool GEnableVITA49;                                 // true if to enable VITA49 formatting. NOT SUPPORTED YET
+unsigned int GCWKeyerRampms = 0;                    // ramp length for keyer, in ms
+bool GCWKeyerRamp_IsP2 = false;                     // true if ramp initialised for protocol 2
 
 unsigned int DACCurrentROM[256];                    // used for residual attenuation
 unsigned int DACStepAttenROM[256];                  // provides most atten setting
@@ -1447,13 +1449,17 @@ void SetRXDDCEnabled(bool IsEnabled)
 }
 
 
+#define VMINCWRAMPDURATION 3000                     // 3ms min
+#define VMAXCWRAMPDURATION 10000                    // 10ms max
+
 
 //
 // InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
 // calculates an "S" shape ramp curve and loads into RAM
 // needs to be called before keyer enabled!
-// parameter is length in microseconds; typically 1000-5000
-// setup ramp memory and rampl length fields
+// parameter is length in microseconds; typically 5000-10000
+// setup ramp memory and ramp length fields
+// only calculate if paramters have changed!
 //
 void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
 {
@@ -1471,46 +1477,57 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
     uint32_t Sample;                        // ramp sample value
     uint32_t Register;
 
-// work out required length    
-    if(Protocol2)
-        SamplePeriod = 1000.0/192.0;
-    else
-        SamplePeriod = 1000.0/48.0;
-    RampLength = (uint32_t)(((double)Length_us / SamplePeriod) + 1);
-//
-// calculate basic ramp shape
-// see "CW shaping in DSP software" by Alex Shovkoplyas VE3NEA)
-//
-    RampSample[0] = 0.0;
-    for(Cntr=1; Cntr < RampLength; Cntr++)
+    // first find out if the length is OK and clip if not
+    if(Length_us < VMINCWRAMPDURATION)
+        Length_us = VMINCWRAMPDURATION;
+    if(Length_us > VMAXCWRAMPDURATION)
+        Length_us = VMAXCWRAMPDURATION;
+    // now apply that ramp length
+    if((Length_us != GCWKeyerRampms) || (Protocol2 != GCWKeyerRamp_IsP2)) 
     {
-        Fraction = (double)Cntr / (double)RampLength;
-        RampSample[Cntr] = RampSample[Cntr-1] +a0 +a1*cos(2.0*M_PI*Fraction) 
-                           +a2*cos(4.0*M_PI*Fraction) +a3*cos(6.0*M_PI*Fraction);
-    }
-    LargestSample = RampSample[RampLength-1];
-//
-// now go through and rescale to 2^23-1 max
-// that's the peak amplitude for I/Q in Saturn, either protocol
-//
-    for(Cntr=0; Cntr < RampLength; Cntr++)
-    {
-        Sample = (uint32_t)((RampSample[Cntr]/LargestSample) * 8388607.0);
-        RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, Sample);
-//        printf("sample: %d = %d\n", Cntr, Sample);
-    }
-    for(Cntr = RampLength; Cntr < VRAMPSIZE; Cntr++)
-        RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, 8388607);
+        GCWKeyerRampms = Length_us;
+        GCWKeyerRamp_IsP2 = Protocol2;
+        printf("calculating new CW ramp, length = %d us\n", Length_us);
+    // work out required length in samples
+        if(Protocol2)
+            SamplePeriod = 1000.0/192.0;
+        else
+            SamplePeriod = 1000.0/48.0;
+        RampLength = (uint32_t)(((double)Length_us / SamplePeriod) + 1);
+    //
+    // calculate basic ramp shape
+    // see "CW shaping in DSP software" by Alex Shovkoplyas VE3NEA)
+    //
+        RampSample[0] = 0.0;
+        for(Cntr=1; Cntr < RampLength; Cntr++)
+        {
+            Fraction = (double)Cntr / (double)RampLength;
+            RampSample[Cntr] = RampSample[Cntr-1] +a0 +a1*cos(2.0*M_PI*Fraction) 
+                            +a2*cos(4.0*M_PI*Fraction) +a3*cos(6.0*M_PI*Fraction);
+        }
+        LargestSample = RampSample[RampLength-1];
+    //
+    // now go through and rescale to 2^23-1 max
+    // that's the peak amplitude for I/Q in Saturn, either protocol
+    //
+        for(Cntr=0; Cntr < RampLength; Cntr++)
+        {
+            Sample = (uint32_t)((RampSample[Cntr]/LargestSample) * 8388607.0);
+            RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, Sample);
+    //        printf("sample: %d = %d\n", Cntr, Sample);
+        }
+        for(Cntr = RampLength; Cntr < VRAMPSIZE; Cntr++)
+            RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, 8388607);
 
-//
-// finally write the ramp length
-//
-    Register = GCWKeyerSetup;                    // get current settings
-    Register &= 0x8003FFFF;                      // strip out ramp bits
-    Register |= ((RampLength << 2) << VCWKEYERRAMP);        // byte end address
-    GCWKeyerSetup = Register;                    // store it back
-    RegisterWrite(VADDRKEYERCONFIGREG, Register);  // and write to it
-
+    //
+    // finally write the ramp length
+    //
+        Register = GCWKeyerSetup;                    // get current settings
+        Register &= 0x8003FFFF;                      // strip out ramp bits
+        Register |= ((RampLength << 2) << VCWKEYERRAMP);        // byte end address
+        GCWKeyerSetup = Register;                    // store it back
+        RegisterWrite(VADDRKEYERCONFIGREG, Register);  // and write to it
+    }
 }
 
 
