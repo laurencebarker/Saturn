@@ -57,9 +57,11 @@
 #include "g2panel.h"
 
 
-#define P2APPVERSION 16
+#define P2APPVERSION 17
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V17: 13/3/2024:   CW ramp period is settable by client application.
+//
 // V16: 6/3/2024:    added interface for LDG ATU via CAT, requesting tune power when needed by ATU
 //                   bare bones interface for G2 front panel
 //                     
