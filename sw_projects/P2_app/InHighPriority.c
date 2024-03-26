@@ -128,7 +128,8 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       // CAT port (if set)
       //
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1398));
-      SetupCATPort(Word);
+      if(Word != 0)
+        SetupCATPort(Word);
       //
       // transverter, speaker mute, open collector, user outputs
       //
