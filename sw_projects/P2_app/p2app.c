@@ -107,7 +107,7 @@ bool UseLDGATU = false;                     // true if to use an LDG ATU via CAT
 #define VDISCOVERYREPLYSIZE 60              // reply packet
 #define VWIDEBANDSIZE 1028                  // wideband scalar samples
 #define VCONSTTXAMPLSCALEFACTOR 0x0001FFFF  // 18 bit scale value - set to 1/2 of full scale
-#define VCONSTTXAMPLSCALEFACTOR_13 0x0008000  // 18 bit scale value - set to 1/8 of full scale FWV13+
+#define VCONSTTXAMPLSCALEFACTOR_13 0x0002000  // 18 bit scale value - set to 1/32 of full scale FWV13+
 
 struct ThreadSocketData SocketData[VPORTTABLESIZE] =
 {
