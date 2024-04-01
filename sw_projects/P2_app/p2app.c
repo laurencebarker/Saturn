@@ -57,9 +57,12 @@
 #include "g2panel.h"
 
 
-#define P2APPVERSION 17
+#define P2APPVERSION 18
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V18: 1/4/2024:    matching updates for FW V 13. DUC FIFO =4096 depth; 
+//                   TX scaling factor changed aster DUC firmware adjusted for TX noise improvement 
+//
 // V17: 13/3/2024:   CW ramp period is settable by client application.
 //
 // V16: 6/3/2024:    added interface for LDG ATU via CAT, requesting tune power when needed by ATU
@@ -104,6 +107,7 @@ bool UseLDGATU = false;                     // true if to use an LDG ATU via CAT
 #define VDISCOVERYREPLYSIZE 60              // reply packet
 #define VWIDEBANDSIZE 1028                  // wideband scalar samples
 #define VCONSTTXAMPLSCALEFACTOR 0x0001FFFF  // 18 bit scale value - set to 1/2 of full scale
+#define VCONSTTXAMPLSCALEFACTOR_13 0x0008000  // 18 bit scale value - set to 1/8 of full scale FWV13+
 
 struct ThreadSocketData SocketData[VPORTTABLESIZE] =
 {
@@ -364,6 +368,8 @@ int main(int argc, char *argv[])
   uint32_t TestFrequency;                                           // test source DDS freq
   int CmdOption;                                                    // command line option
   char BuildDate[]=GIT_DATE;
+	ESoftwareID ID;
+	unsigned int Version = 0;
 
   //
   // initialise register access semaphores
@@ -394,7 +400,13 @@ int main(int argc, char *argv[])
   HandlerSetEERMode(false);                                         // no EER
   SetByteSwapping(true);                                            // h/w to generate network byte order
   SetSpkrMute(false);
-  SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR);
+
+  Version = GetFirmwareVersion(&ID);                                // TX scaling changed at FW V13
+  if(Version < 13)
+    SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR);
+  else
+    SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR_13);
+
   // SetTXEnable(true);                                             // now only enabled if SDR active
   EnableAlexManualFilterSelect(true);
   SetBalancedMicInput(false);

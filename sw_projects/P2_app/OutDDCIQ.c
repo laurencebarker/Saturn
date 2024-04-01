@@ -448,8 +448,13 @@ void *OutgoingDDCIQ(void *arg)
             // the latter approach seems easier!
             //
             Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);				// read the FIFO Depth register
-            if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
-                printf("RX DDC FIFO Overthreshold, depth now = %d\n", Current);
+
+            if((StartupCount == 0) && FIFOOverThreshold)
+            {
+                GlobalFIFOOverflows |= 0b00000001;
+                if(UseDebug)
+                    printf("RX DDC FIFO Overthreshold, depth now = %d\n", Current);
+            }
 // note this could often generate a message at low sample rate because we deliberately read it down to zero.
 // this isn't a problem as we can send the data on without the code becoming blocked. so not a useful trap.
 //            if((StartupCount == 0) && FIFOUnderflow)
@@ -459,8 +464,12 @@ void *OutgoingDDCIQ(void *arg)
             {
                 usleep(500);								// 1ms wait
                 Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);				// read the FIFO Depth register
-                if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
-                    printf("RX DDC FIFO Overthreshold, depth now = %d\n", Current);
+                if((StartupCount == 0) && FIFOOverThreshold)
+                {
+                    GlobalFIFOOverflows |= 0b00000001;
+                    if(UseDebug)
+                        printf("RX DDC FIFO Overthreshold, depth now = %d\n", Current);
+                }
 //                if((StartupCount == 0) && FIFOUnderflow)
 //                    printf("RX DDC FIFO Underflowed, depth now = %d\n", Current);
              }

@@ -163,8 +163,13 @@ void *OutgoingMicSamples(void *arg)
             // now wait until there is data, then DMA it
             //
             Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);			// read the FIFO Depth register. 4 mic words per 64 bit word.
-            if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
-                printf("Codec Mic FIFO Overthreshold, depth now = %d\n", Current);
+            if((StartupCount == 0) && FIFOOverThreshold)
+            {
+                GlobalFIFOOverflows |= 0b00000010;
+                if(UseDebug)
+                    printf("Codec Mic FIFO Overthreshold, depth now = %d\n", Current);
+            }
+
 // note this would often generate a message because we deliberately read it down to zero.
 // this isn't a problem as we can send the data on without the code becoming blocked.
 //            if((StartupCount == 0) && FIFOUnderflow)
@@ -173,8 +178,12 @@ void *OutgoingMicSamples(void *arg)
             {
                 usleep(1000);								        // 1ms wait
                 Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);				// read the FIFO Depth register
-                if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
-                    printf("Codec Mic FIFO Overthreshold, depth now = %d\n", Current);
+                if((StartupCount == 0) && FIFOOverThreshold)
+                {
+                    GlobalFIFOOverflows |= 0b00000010;
+                    if(UseDebug)
+                        printf("Codec Mic FIFO Overthreshold, depth now = %d\n", Current);
+                }
 //                if((StartupCount == 0) && FIFOUnderflow)
 //                    printf("Codec Mic FIFO Underflowed, depth now = %d\n", Current);
             }

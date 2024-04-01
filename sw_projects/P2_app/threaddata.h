@@ -76,6 +76,7 @@ extern bool StartBitReceived;                       // true when "run" bit has b
 extern bool NewMessageReceived;                     // set whenever a message is received
 extern bool ThreadError;                            // set true if a thread reports an error
 extern bool UseDebug;                               // true if debugging enabled
+extern uint8_t GlobalFIFOOverflows;                 // FIFO overflow words
 
 #define VBITCHANGEPORT 1                        // if set, thread must close its socket and open a new one on different port
 #define VBITINTERLEAVE 2                        // if set, DDC threads should interleave data
