@@ -196,10 +196,8 @@ set_false_path -from [get_ports pcie_reset_n]
 # asynchronous TX enable input
 set_false_path -from [get_ports TX_ENABLE]
 
-
-set_false_path -from [get_ports CODEC_SPI_CLK]
+# codec SPI is output only
 set_false_path -to [get_ports CODEC_SPI_CLK]
-set_false_path -from [get_ports CODEC_SPI_DATA]
 set_false_path -to [get_ports CODEC_SPI_DATA]
 
 ##
@@ -209,8 +207,14 @@ set_false_path -from [get_pins saturn_top_i/clock_generator/clk_wiz_0/inst/mmcm_
 set_false_path -from [get_ports EMC_CLK] -to [get_pins saturn_top_i/clock_monitor_0/inst/ck2_rega_reg/D]
 set_false_path -from [get_pins saturn_top_i/clock_generator/clk_wiz_0/inst/mmcm_adv_inst/CLKOUT0] -to [get_pins saturn_top_i/clock_monitor_0/inst/ck0_rega_reg/D]
 
-
-
+#
+# pcb version number path
+# these are wired constant inputs
+#
+set_false_path -from [get_ports {pcb_version_id[0]}]
+set_false_path -from [get_ports {pcb_version_id[1]}]
+set_false_path -from [get_ports {pcb_version_id[2]}]
+set_false_path -from [get_ports {pcb_version_id[3]}]
 
 
 

@@ -43,7 +43,7 @@ xlim([0 52]);
 ylim([-160 0]);
 xlabel("frequency (MHz)");
 ylabel("amplitude (dB)");
-title('DUC passband, 18 bit DDS');
+title('DUC passband, V12+random rounding');
 text(30, -10,sprintf("freq=%f MHz", freqoflargest));
 grid on;
 
@@ -67,6 +67,6 @@ yticks (-160:20:0);
 ylim([-160 0]);
 xlabel("frequency (KHz)");
 ylabel("amplitude (dB)");
-title('zoomed in DUC passband, 18 bit DDS');
+title('zoomed in DUC passband, baseline FW V12');
 text(30, -10,sprintf("freq=%f MHz", freqoflargest));
 grid on;
