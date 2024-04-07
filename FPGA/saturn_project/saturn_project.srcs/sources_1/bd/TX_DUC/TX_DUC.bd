@@ -11,6 +11,7 @@
       "validated": "true"
     },
     "design_tree": {
+      "xlconstant_16x0": "",
       "xlslice_2": "",
       "xlslice_3": "",
       "D_register_2": "",
@@ -29,7 +30,7 @@
       "dds_compiler_txfreq": "",
       "fir_compiler_0": "",
       "mult_gen_0": "",
-      "xlconstant_16x0": ""
+      "LFSR_Random_Number_G_0": ""
     },
     "interface_ports": {
       "S_AXIS": {
@@ -175,10 +176,24 @@
       }
     },
     "components": {
+      "xlconstant_16x0": {
+        "vlnv": "xilinx.com:ip:xlconstant:1.1",
+        "xci_name": "TX_DUC_xlconstant_16x0_1",
+        "xci_path": "ip\\TX_DUC_xlconstant_16x0_1\\TX_DUC_xlconstant_16x0_1.xci",
+        "inst_hier_path": "xlconstant_16x0",
+        "parameters": {
+          "CONST_VAL": {
+            "value": "0"
+          },
+          "CONST_WIDTH": {
+            "value": "16"
+          }
+        }
+      },
       "xlslice_2": {
         "vlnv": "xilinx.com:ip:xlslice:1.0",
-        "xci_name": "TX_DUC_xlslice_2_0",
-        "xci_path": "ip\\TX_DUC_xlslice_2_0\\TX_DUC_xlslice_2_0.xci",
+        "xci_name": "TX_DUC_xlslice_2_1",
+        "xci_path": "ip\\TX_DUC_xlslice_2_1\\TX_DUC_xlslice_2_1.xci",
         "inst_hier_path": "xlslice_2",
         "parameters": {
           "DIN_FROM": {
@@ -197,8 +212,8 @@
       },
       "xlslice_3": {
         "vlnv": "xilinx.com:ip:xlslice:1.0",
-        "xci_name": "TX_DUC_xlslice_3_0",
-        "xci_path": "ip\\TX_DUC_xlslice_3_0\\TX_DUC_xlslice_3_0.xci",
+        "xci_name": "TX_DUC_xlslice_3_1",
+        "xci_path": "ip\\TX_DUC_xlslice_3_1\\TX_DUC_xlslice_3_1.xci",
         "inst_hier_path": "xlslice_3",
         "parameters": {
           "DIN_FROM": {
@@ -214,8 +229,8 @@
       },
       "D_register_2": {
         "vlnv": "xilinx.com:module_ref:D_register:1.0",
-        "xci_name": "TX_DUC_D_register_2_0",
-        "xci_path": "ip\\TX_DUC_D_register_2_0\\TX_DUC_D_register_2_0.xci",
+        "xci_name": "TX_DUC_D_register_2_1",
+        "xci_path": "ip\\TX_DUC_D_register_2_1\\TX_DUC_D_register_2_1.xci",
         "inst_hier_path": "D_register_2",
         "parameters": {
           "DATA_WIDTH": {
@@ -282,8 +297,8 @@
       },
       "axis_constant_0": {
         "vlnv": "xilinx.com:module_ref:axis_constant:1.0",
-        "xci_name": "TX_DUC_axis_constant_0_0",
-        "xci_path": "ip\\TX_DUC_axis_constant_0_0\\TX_DUC_axis_constant_0_0.xci",
+        "xci_name": "TX_DUC_axis_constant_0_1",
+        "xci_path": "ip\\TX_DUC_axis_constant_0_1\\TX_DUC_axis_constant_0_1.xci",
         "inst_hier_path": "axis_constant_0",
         "reference_info": {
           "ref_type": "hdl",
@@ -379,8 +394,8 @@
       },
       "axis_variable_0": {
         "vlnv": "xilinx.com:module_ref:axis_variable:1.0",
-        "xci_name": "TX_DUC_axis_variable_0_0",
-        "xci_path": "ip\\TX_DUC_axis_variable_0_0\\TX_DUC_axis_variable_0_0.xci",
+        "xci_name": "TX_DUC_axis_variable_0_1",
+        "xci_path": "ip\\TX_DUC_axis_variable_0_1\\TX_DUC_axis_variable_0_1.xci",
         "inst_hier_path": "axis_variable_0",
         "parameters": {
           "AXIS_TDATA_WIDTH": {
@@ -499,8 +514,8 @@
       },
       "axis_variable_1": {
         "vlnv": "xilinx.com:module_ref:axis_variable:1.0",
-        "xci_name": "TX_DUC_axis_variable_1_0",
-        "xci_path": "ip\\TX_DUC_axis_variable_1_0\\TX_DUC_axis_variable_1_0.xci",
+        "xci_name": "TX_DUC_axis_variable_1_1",
+        "xci_path": "ip\\TX_DUC_axis_variable_1_1\\TX_DUC_axis_variable_1_1.xci",
         "inst_hier_path": "axis_variable_1",
         "parameters": {
           "AXIS_TDATA_WIDTH": {
@@ -619,8 +634,8 @@
       },
       "cvt_offset_binary_0": {
         "vlnv": "xilinx.com:module_ref:cvt_offset_binary:1.0",
-        "xci_name": "TX_DUC_cvt_offset_binary_0_0",
-        "xci_path": "ip\\TX_DUC_cvt_offset_binary_0_0\\TX_DUC_cvt_offset_binary_0_0.xci",
+        "xci_name": "TX_DUC_cvt_offset_binary_0_1",
+        "xci_path": "ip\\TX_DUC_cvt_offset_binary_0_1\\TX_DUC_cvt_offset_binary_0_1.xci",
         "inst_hier_path": "cvt_offset_binary_0",
         "reference_info": {
           "ref_type": "hdl",
@@ -656,8 +671,8 @@
       },
       "regmux_2_1_0": {
         "vlnv": "xilinx.com:module_ref:regmux_2_1:1.0",
-        "xci_name": "TX_DUC_regmux_2_1_0_0",
-        "xci_path": "ip\\TX_DUC_regmux_2_1_0_0\\TX_DUC_regmux_2_1_0_0.xci",
+        "xci_name": "TX_DUC_regmux_2_1_0_1",
+        "xci_path": "ip\\TX_DUC_regmux_2_1_0_1\\TX_DUC_regmux_2_1_0_1.xci",
         "inst_hier_path": "regmux_2_1_0",
         "parameters": {
           "DATA_WIDTH": {
@@ -732,39 +747,39 @@
       },
       "axis_broadcaster_cic_path_split": {
         "vlnv": "xilinx.com:ip:axis_broadcaster:1.1",
-        "xci_name": "TX_DUC_axis_broadcaster_cic_path_split_0",
-        "xci_path": "ip\\TX_DUC_axis_broadcaster_cic_path_split_0\\TX_DUC_axis_broadcaster_cic_path_split_0.xci",
+        "xci_name": "TX_DUC_axis_broadcaster_cic_path_split_1",
+        "xci_path": "ip\\TX_DUC_axis_broadcaster_cic_path_split_1\\TX_DUC_axis_broadcaster_cic_path_split_1.xci",
         "inst_hier_path": "axis_broadcaster_cic_path_split",
         "parameters": {
           "M00_TDATA_REMAP": {
-            "value": "tdata[23:0]"
+            "value": "tdata[31:0]"
           },
           "M01_TDATA_REMAP": {
-            "value": "tdata[47:24]"
+            "value": "tdata[63:32]"
           },
           "M_TDATA_NUM_BYTES": {
-            "value": "3"
+            "value": "4"
           },
           "S_TDATA_NUM_BYTES": {
-            "value": "6"
+            "value": "8"
           }
         }
       },
       "axis_combiner_0": {
         "vlnv": "xilinx.com:ip:axis_combiner:1.1",
-        "xci_name": "TX_DUC_axis_combiner_0_0",
-        "xci_path": "ip\\TX_DUC_axis_combiner_0_0\\TX_DUC_axis_combiner_0_0.xci",
+        "xci_name": "TX_DUC_axis_combiner_0_1",
+        "xci_path": "ip\\TX_DUC_axis_combiner_0_1\\TX_DUC_axis_combiner_0_1.xci",
         "inst_hier_path": "axis_combiner_0",
         "parameters": {
           "TDATA_NUM_BYTES": {
-            "value": "3"
+            "value": "4"
           }
         }
       },
       "axis_dwidth_converter_0": {
         "vlnv": "xilinx.com:ip:axis_dwidth_converter:1.1",
-        "xci_name": "TX_DUC_axis_dwidth_converter_0_0",
-        "xci_path": "ip\\TX_DUC_axis_dwidth_converter_0_0\\TX_DUC_axis_dwidth_converter_0_0.xci",
+        "xci_name": "TX_DUC_axis_dwidth_converter_0_1",
+        "xci_path": "ip\\TX_DUC_axis_dwidth_converter_0_1\\TX_DUC_axis_dwidth_converter_0_1.xci",
         "inst_hier_path": "axis_dwidth_converter_0",
         "parameters": {
           "HAS_TKEEP": {
@@ -792,22 +807,22 @@
       },
       "axis_dwidth_converter_fir_to_IQ": {
         "vlnv": "xilinx.com:ip:axis_dwidth_converter:1.1",
-        "xci_name": "TX_DUC_axis_dwidth_converter_fir_to_IQ_0",
-        "xci_path": "ip\\TX_DUC_axis_dwidth_converter_fir_to_IQ_0\\TX_DUC_axis_dwidth_converter_fir_to_IQ_0.xci",
+        "xci_name": "TX_DUC_axis_dwidth_converter_fir_to_IQ_1",
+        "xci_path": "ip\\TX_DUC_axis_dwidth_converter_fir_to_IQ_1\\TX_DUC_axis_dwidth_converter_fir_to_IQ_1.xci",
         "inst_hier_path": "axis_dwidth_converter_fir_to_IQ",
         "parameters": {
           "M_TDATA_NUM_BYTES": {
-            "value": "6"
+            "value": "8"
           },
           "S_TDATA_NUM_BYTES": {
-            "value": "3"
+            "value": "4"
           }
         }
       },
       "cic_compiler_0": {
         "vlnv": "xilinx.com:ip:cic_compiler:4.0",
-        "xci_name": "TX_DUC_cic_compiler_0_0",
-        "xci_path": "ip\\TX_DUC_cic_compiler_0_0\\TX_DUC_cic_compiler_0_0.xci",
+        "xci_name": "TX_DUC_cic_compiler_0_1",
+        "xci_path": "ip\\TX_DUC_cic_compiler_0_1\\TX_DUC_cic_compiler_0_1.xci",
         "inst_hier_path": "cic_compiler_0",
         "parameters": {
           "Clock_Frequency": {
@@ -823,7 +838,7 @@
             "value": "false"
           },
           "Input_Data_Width": {
-            "value": "24"
+            "value": "27"
           },
           "Input_Sample_Frequency": {
             "value": "1.536"
@@ -838,7 +853,7 @@
             "value": "6"
           },
           "Output_Data_Width": {
-            "value": "24"
+            "value": "32"
           },
           "Quantization": {
             "value": "Truncation"
@@ -856,8 +871,8 @@
       },
       "cic_compiler_1": {
         "vlnv": "xilinx.com:ip:cic_compiler:4.0",
-        "xci_name": "TX_DUC_cic_compiler_1_0",
-        "xci_path": "ip\\TX_DUC_cic_compiler_1_0\\TX_DUC_cic_compiler_1_0.xci",
+        "xci_name": "TX_DUC_cic_compiler_1_1",
+        "xci_path": "ip\\TX_DUC_cic_compiler_1_1\\TX_DUC_cic_compiler_1_1.xci",
         "inst_hier_path": "cic_compiler_1",
         "parameters": {
           "Clock_Frequency": {
@@ -873,7 +888,7 @@
             "value": "false"
           },
           "Input_Data_Width": {
-            "value": "24"
+            "value": "27"
           },
           "Input_Sample_Frequency": {
             "value": "1.536"
@@ -888,7 +903,7 @@
             "value": "6"
           },
           "Output_Data_Width": {
-            "value": "24"
+            "value": "32"
           },
           "Quantization": {
             "value": "Truncation"
@@ -906,34 +921,34 @@
       },
       "cmpy_0": {
         "vlnv": "xilinx.com:ip:cmpy:6.0",
-        "xci_name": "TX_DUC_cmpy_0_0",
-        "xci_path": "ip\\TX_DUC_cmpy_0_0\\TX_DUC_cmpy_0_0.xci",
+        "xci_name": "TX_DUC_cmpy_0_1",
+        "xci_path": "ip\\TX_DUC_cmpy_0_1\\TX_DUC_cmpy_0_1.xci",
         "inst_hier_path": "cmpy_0",
         "parameters": {
           "APortWidth": {
-            "value": "24"
+            "value": "32"
           },
           "BPortWidth": {
-            "value": "16"
+            "value": "19"
           },
           "FlowControl": {
             "value": "NonBlocking"
           },
           "MinimumLatency": {
-            "value": "6"
+            "value": "9"
           },
           "OutputWidth": {
-            "value": "20"
+            "value": "24"
           },
           "RoundMode": {
-            "value": "Truncate"
+            "value": "Random_Rounding"
           }
         }
       },
       "dds_compiler_txfreq": {
         "vlnv": "xilinx.com:ip:dds_compiler:6.0",
-        "xci_name": "TX_DUC_dds_compiler_txfreq_0",
-        "xci_path": "ip\\TX_DUC_dds_compiler_txfreq_0\\TX_DUC_dds_compiler_txfreq_0.xci",
+        "xci_name": "TX_DUC_dds_compiler_txfreq_1",
+        "xci_path": "ip\\TX_DUC_dds_compiler_txfreq_1\\TX_DUC_dds_compiler_txfreq_1.xci",
         "inst_hier_path": "dds_compiler_txfreq",
         "parameters": {
           "Amplitude_Mode": {
@@ -964,13 +979,13 @@
             "value": "Not_Required"
           },
           "Noise_Shaping": {
-            "value": "Auto"
+            "value": "Taylor_Series_Corrected"
           },
           "Output_Frequency1": {
             "value": "0"
           },
           "Output_Width": {
-            "value": "16"
+            "value": "19"
           },
           "PINC1": {
             "value": "0"
@@ -985,14 +1000,14 @@
             "value": "Not_Required"
           },
           "Spurious_Free_Dynamic_Range": {
-            "value": "96"
+            "value": "108"
           }
         }
       },
       "fir_compiler_0": {
         "vlnv": "xilinx.com:ip:fir_compiler:7.2",
-        "xci_name": "TX_DUC_fir_compiler_0_0",
-        "xci_path": "ip\\TX_DUC_fir_compiler_0_0\\TX_DUC_fir_compiler_0_0.xci",
+        "xci_name": "TX_DUC_fir_compiler_0_1",
+        "xci_path": "ip\\TX_DUC_fir_compiler_0_1\\TX_DUC_fir_compiler_0_1.xci",
         "inst_hier_path": "fir_compiler_0",
         "parameters": {
           "BestPrecision": {
@@ -1059,10 +1074,10 @@
             "value": "2"
           },
           "Output_Rounding_Mode": {
-            "value": "Truncate_LSBs"
+            "value": "Non_Symmetric_Rounding_Down"
           },
           "Output_Width": {
-            "value": "24"
+            "value": "27"
           },
           "Quantization": {
             "value": "Quantize_Only"
@@ -1086,8 +1101,8 @@
       },
       "mult_gen_0": {
         "vlnv": "xilinx.com:ip:mult_gen:12.0",
-        "xci_name": "TX_DUC_mult_gen_0_0",
-        "xci_path": "ip\\TX_DUC_mult_gen_0_0\\TX_DUC_mult_gen_0_0.xci",
+        "xci_name": "TX_DUC_mult_gen_0_1",
+        "xci_path": "ip\\TX_DUC_mult_gen_0_1\\TX_DUC_mult_gen_0_1.xci",
         "inst_hier_path": "mult_gen_0",
         "parameters": {
           "MultType": {
@@ -1119,23 +1134,121 @@
           }
         }
       },
-      "xlconstant_16x0": {
-        "vlnv": "xilinx.com:ip:xlconstant:1.1",
-        "xci_name": "TX_DUC_xlconstant_16x0_0",
-        "xci_path": "ip\\TX_DUC_xlconstant_16x0_0\\TX_DUC_xlconstant_16x0_0.xci",
-        "inst_hier_path": "xlconstant_16x0",
-        "parameters": {
-          "CONST_VAL": {
-            "value": "0"
+      "LFSR_Random_Number_G_0": {
+        "vlnv": "xilinx.com:module_ref:LFSR_Random_Number_Generator:1.0",
+        "xci_name": "TX_DUC_LFSR_Random_Number_G_0_0",
+        "xci_path": "ip\\TX_DUC_LFSR_Random_Number_G_0_0\\TX_DUC_LFSR_Random_Number_G_0_0.xci",
+        "inst_hier_path": "LFSR_Random_Number_G_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "LFSR_Random_Number_Generator",
+          "boundary_crc": "0x0"
+        },
+        "interface_ports": {
+          "m_axis": {
+            "mode": "Master",
+            "vlnv_bus_definition": "xilinx.com:interface:axis:1.0",
+            "vlnv": "xilinx.com:interface:axis_rtl:1.0",
+            "parameters": {
+              "TDATA_NUM_BYTES": {
+                "value": "1",
+                "value_src": "constant"
+              },
+              "TDEST_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "TID_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "TUSER_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TREADY": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TSTRB": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TKEEP": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TLAST": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "user_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "TX_DUC_clk122",
+                "value_src": "default_prop"
+              }
+            },
+            "port_maps": {
+              "TDATA": {
+                "physical_name": "m_axis_tdata",
+                "direction": "O",
+                "left": "7",
+                "right": "0"
+              },
+              "TVALID": {
+                "physical_name": "m_axis_tvalid",
+                "direction": "O"
+              }
+            }
+          }
+        },
+        "ports": {
+          "aclk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_BUSIF": {
+                "value": "m_axis",
+                "value_src": "constant"
+              },
+              "ASSOCIATED_RESET": {
+                "value": "aresetn",
+                "value_src": "constant"
+              },
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "user_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "TX_DUC_clk122",
+                "value_src": "default_prop"
+              }
+            }
           },
-          "CONST_WIDTH": {
-            "value": "16"
+          "aresetn": {
+            "type": "rst",
+            "direction": "I",
+            "parameters": {
+              "POLARITY": {
+                "value": "ACTIVE_LOW",
+                "value_src": "constant"
+              }
+            }
           }
         }
       }
     },
     "interface_nets": {
-      "IQ_Modulation_Select_output_axis": {
+      "LFSR_Random_Number_G_0_m_axis": {
+        "interface_ports": [
+          "LFSR_Random_Number_G_0/m_axis",
+          "cmpy_0/S_AXIS_CTRL"
+        ]
+      },
+      "S_AXIS_1": {
         "interface_ports": [
           "S_AXIS",
           "axis_dwidth_converter_0/S_AXIS"
@@ -1245,7 +1358,8 @@
           "cmpy_0/aclk",
           "dds_compiler_txfreq/aclk",
           "fir_compiler_0/aclk",
-          "mult_gen_0/CLK"
+          "mult_gen_0/CLK",
+          "LFSR_Random_Number_G_0/aclk"
         ]
       },
       "TXConfig_1": {
@@ -1306,7 +1420,8 @@
           "cic_compiler_0/aresetn",
           "cic_compiler_1/aresetn",
           "dds_compiler_txfreq/aresetn",
-          "fir_compiler_0/aresetn"
+          "fir_compiler_0/aresetn",
+          "LFSR_Random_Number_G_0/aresetn"
         ]
       },
       "xlconstant_16x0_dout": {

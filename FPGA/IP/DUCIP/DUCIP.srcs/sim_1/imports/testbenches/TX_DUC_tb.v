@@ -39,12 +39,13 @@ module tx_duc_tb( );
 
 //
 // debug data write variables
+// (set required samples counts etc just afer "initial begin", not here)
 //
   reg RecordDiskFile = 0;
-  reg [31:0] fd_w;                   // file handle
-  reg [31:0] SampleCount = 0; // sample counter for file write
-  reg [31:0] RequiredSampleCount = 0;
-  reg [31:0] DiscardSampleCount = 0;
+  reg [31:0] fd_w;                          // file handle
+  reg [31:0] SampleCount = 0;               // sample counter for file write
+  reg [31:0] RequiredSampleCount = 0;       // sample size to collect
+  reg [31:0] DiscardSampleCount = 0;        // start sample (to allow initialise)
 
 
 TX_DUC UUT
@@ -79,7 +80,7 @@ initial begin
 //
     RecordDiskFile = 1;                 // enable file write
     DiscardSampleCount = 100000;        // samples to be discarded before starting to record (filter initialising)
-    RequiredSampleCount = 4096;
+    RequiredSampleCount = 262144;
     if(RecordDiskFile == 1)
     begin
         fd_w = $fopen("./ducdata.txt", "w");
@@ -96,19 +97,19 @@ initial begin
     resetn1 = 0;
     S_AXIS_tdata = 47'h0000007FFFFF;                // 1, 0
     S_AXIS_tvalid = 1;
-    TXConfig = 32'h801FFFF8;                        // half of full scale amplitude
-//    TXConfig = 32'h802AFFF8;                        // half of full scale amplitude
+//    TXConfig = 32'h801FFFF8;                        // half of full scale amplitude - before refactoring complex multiply
+    TXConfig = 32'h80020008;                        // half of full scale amplitude after comple mult changed
     cic_rate = 16'h80;
     sel = 1;                                        // select data out
 //
 // select DDS frequency
 //
-//    TXLOTune = 32'h03F55555;                        // 1.9MHz
+    TXLOTune = 32'h03F55555;                        // 1.9MHz
 //    TXLOTune = 32'h07EAAAAA;                        // 3.8MHz
 //    TXLOTune = 32'h0ECAAAAA;                        // 7.1MHz
 //    TXLOTune = 32'h1D600000;                        // 14.1MHz
 //    TXLOTune = 32'h2BF55555;                        // 21.1MHz
-    TXLOTune = 32'h3A8AAAAA;                        // 28.1MHz
+//    TXLOTune = 32'h3A8AAAAA;                        // 28.1MHz
 //    TXLOTune = 32'h68600000;                        // 50.1MHz
     #1000
     // Release the reset
@@ -126,7 +127,7 @@ always @(posedge clk122)
         SampleCount = SampleCount + 1;
         if(SampleCount > DiscardSampleCount)
             $fwrite(fd_w, "%d\n", $signed(TXSamplesToRX));
-        $display("Samples collected = %d\n",SampleCount);
+        $display("Sample number = %d\n",SampleCount);
         if(SampleCount == (RequiredSampleCount + DiscardSampleCount))
         begin
             $fclose(fd_w);

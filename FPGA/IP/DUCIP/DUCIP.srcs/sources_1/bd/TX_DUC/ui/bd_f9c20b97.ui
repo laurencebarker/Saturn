@@ -1,67 +1,69 @@
 {
    "ActiveEmotionalView":"Default View",
-   "Default View_ScaleFactor":"0.541703",
-   "Default View_TopLeft":"-155,-316",
+   "Default View_ScaleFactor":"0.633367",
+   "Default View_TopLeft":"-379,-171",
    "ExpandedHierarchyInLayout":"",
-   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
+   "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
-preplace port S_AXIS -pg 1 -lvl 0 -x 0 -y 310 -defaultsOSRD
-preplace port port-id_clk122 -pg 1 -lvl 0 -x 0 -y 330 -defaultsOSRD
-preplace port port-id_resetn1 -pg 1 -lvl 0 -x 0 -y 350 -defaultsOSRD
-preplace port port-id_sel -pg 1 -lvl 0 -x 0 -y 830 -defaultsOSRD
-preplace portBus TXConfig -pg 1 -lvl 0 -x 0 -y 760 -defaultsOSRD
-preplace portBus TXDACData -pg 1 -lvl 12 -x 3090 -y 860 -defaultsOSRD
-preplace portBus TXLOTune -pg 1 -lvl 0 -x 0 -y 610 -defaultsOSRD
-preplace portBus TXSamplesToRX -pg 1 -lvl 12 -x 3090 -y 730 -defaultsOSRD
-preplace portBus cic_rate -pg 1 -lvl 0 -x 0 -y 100 -defaultsOSRD
-preplace inst axis_broadcaster_cic_path_split -pg 1 -lvl 4 -x 960 -y 390 -defaultsOSRD
-preplace inst axis_combiner_0 -pg 1 -lvl 6 -x 1650 -y 440 -defaultsOSRD
-preplace inst axis_dwidth_converter_0 -pg 1 -lvl 1 -x 140 -y 330 -defaultsOSRD
-preplace inst axis_dwidth_converter_fir_to_IQ -pg 1 -lvl 3 -x 680 -y 370 -defaultsOSRD
-preplace inst cic_compiler_0 -pg 1 -lvl 5 -x 1310 -y 270 -defaultsOSRD
-preplace inst cic_compiler_1 -pg 1 -lvl 5 -x 1310 -y 430 -defaultsOSRD
-preplace inst cmpy_0 -pg 1 -lvl 7 -x 1970 -y 620 -defaultsOSRD
-preplace inst dds_compiler_txfreq -pg 1 -lvl 6 -x 1650 -y 620 -defaultsOSRD
-preplace inst fir_compiler_0 -pg 1 -lvl 2 -x 410 -y 350 -defaultsOSRD
-preplace inst mult_gen_0 -pg 1 -lvl 9 -x 2460 -y 740 -defaultsOSRD
-preplace inst xlconstant_16x0 -pg 1 -lvl 9 -x 2460 -y 900 -defaultsOSRD
-preplace inst xlslice_2 -pg 1 -lvl 8 -x 2240 -y 630 -defaultsOSRD
-preplace inst xlslice_3 -pg 1 -lvl 8 -x 2240 -y 760 -defaultsOSRD
-preplace inst D_register_2 -pg 1 -lvl 11 -x 2950 -y 730 -defaultsOSRD
-preplace inst axis_constant_0 -pg 1 -lvl 5 -x 1310 -y 600 -defaultsOSRD
-preplace inst axis_variable_0 -pg 1 -lvl 4 -x 960 -y 80 -defaultsOSRD
-preplace inst axis_variable_1 -pg 1 -lvl 4 -x 960 -y 220 -defaultsOSRD
-preplace inst cvt_offset_binary_0 -pg 1 -lvl 11 -x 2950 -y 860 -defaultsOSRD
-preplace inst regmux_2_1_0 -pg 1 -lvl 10 -x 2700 -y 870 -defaultsOSRD
-preplace netloc D_register_2_dout 1 11 1 NJ 730
-preplace netloc IQ_Modulation_Select_TX_OPENABLE 1 0 10 NJ 830 NJ 830 NJ 830 NJ 830 NJ 830 NJ 830 NJ 830 NJ 830 NJ 830 NJ
-preplace netloc Net5 1 0 11 20 250 240 430 540 450 780 -10 1130 170 1470 700 1800 700 NJ 700 2350 820 2570 770 2830
-preplace netloc TXConfig_1 1 0 8 NJ 760 NJ 760 NJ 760 NJ 760 NJ 760 NJ 760 NJ 760 NJ
-preplace netloc TX_LO_Tune_1 1 0 5 NJ 610 NJ 610 NJ 610 NJ 610 NJ
-preplace netloc cmpy_0_m_axis_dout_tdata 1 7 1 NJ 630
-preplace netloc cvt_offset_binary_0_dout 1 11 1 NJ 860
-preplace netloc mult_gen_0_P 1 9 2 2550 750 NJ
-preplace netloc regmux_2_1_0_dout 1 10 1 N 870
-preplace netloc regmux_2_1_1_dout1 1 0 4 NJ 100 NJ 100 NJ 100 790
-preplace netloc resetn_2 1 0 11 20 410 250 440 550 460 800 0 1120 180 1450 710 NJ 710 2130J 690 2350J 660 2560 730 NJ
-preplace netloc xlconstant_16x0_dout 1 9 1 2570J 890n
-preplace netloc xlslice_2_Dout 1 8 1 2360 630n
-preplace netloc xlslice_3_Dout 1 8 1 NJ 760
-preplace netloc IQ_Modulation_Select_output_axis 1 0 1 NJ 310
-preplace netloc axis_broadcaster_0_M00_AXIS 1 4 1 1140 240n
-preplace netloc axis_broadcaster_0_M01_AXIS 1 4 1 N 400
-preplace netloc axis_combiner_0_M_AXIS 1 6 1 1800 440n
-preplace netloc axis_constant_0_m_axis 1 5 1 N 600
+preplace port S_AXIS -pg 1 -lvl 0 -x -240 -y 310 -defaultsOSRD
+preplace port port-id_clk122 -pg 1 -lvl 0 -x -240 -y 330 -defaultsOSRD
+preplace port port-id_resetn1 -pg 1 -lvl 0 -x -240 -y 350 -defaultsOSRD
+preplace port port-id_sel -pg 1 -lvl 0 -x -240 -y 830 -defaultsOSRD
+preplace portBus TXConfig -pg 1 -lvl 0 -x -240 -y 760 -defaultsOSRD
+preplace portBus TXDACData -pg 1 -lvl 9 -x 2350 -y 840 -defaultsOSRD
+preplace portBus TXLOTune -pg 1 -lvl 0 -x -240 -y 690 -defaultsOSRD
+preplace portBus TXSamplesToRX -pg 1 -lvl 9 -x 2350 -y 730 -defaultsOSRD
+preplace portBus cic_rate -pg 1 -lvl 0 -x -240 -y 100 -defaultsOSRD
+preplace inst xlconstant_16x0 -pg 1 -lvl 5 -x 1240 -y 930 -defaultsOSRD
+preplace inst xlslice_2 -pg 1 -lvl 5 -x 1240 -y 590 -defaultsOSRD
+preplace inst xlslice_3 -pg 1 -lvl 5 -x 1240 -y 830 -defaultsOSRD
+preplace inst D_register_2 -pg 1 -lvl 8 -x 2210 -y 680 -defaultsOSRD
+preplace inst axis_constant_0 -pg 1 -lvl 1 -x -70 -y 680 -defaultsOSRD
+preplace inst axis_variable_0 -pg 1 -lvl 5 -x 1240 -y 80 -defaultsOSRD
+preplace inst axis_variable_1 -pg 1 -lvl 5 -x 1240 -y 220 -defaultsOSRD
+preplace inst cvt_offset_binary_0 -pg 1 -lvl 8 -x 2210 -y 840 -defaultsOSRD
+preplace inst regmux_2_1_0 -pg 1 -lvl 7 -x 1920 -y 790 -defaultsOSRD
+preplace inst axis_broadcaster_cic_path_split -pg 1 -lvl 5 -x 1240 -y 390 -defaultsOSRD
+preplace inst axis_combiner_0 -pg 1 -lvl 7 -x 1920 -y 440 -defaultsOSRD
+preplace inst axis_dwidth_converter_0 -pg 1 -lvl 1 -x -70 -y 330 -defaultsOSRD
+preplace inst axis_dwidth_converter_fir_to_IQ -pg 1 -lvl 3 -x 590 -y 370 -defaultsOSRD
+preplace inst cic_compiler_0 -pg 1 -lvl 6 -x 1580 -y 270 -defaultsOSRD
+preplace inst cic_compiler_1 -pg 1 -lvl 6 -x 1580 -y 430 -defaultsOSRD
+preplace inst cmpy_0 -pg 1 -lvl 4 -x 900 -y 690 -defaultsOSRD
+preplace inst dds_compiler_txfreq -pg 1 -lvl 2 -x 280 -y 730 -defaultsOSRD
+preplace inst fir_compiler_0 -pg 1 -lvl 2 -x 280 -y 350 -defaultsOSRD
+preplace inst mult_gen_0 -pg 1 -lvl 6 -x 1580 -y 620 -defaultsOSRD
+preplace inst LFSR_Random_Number_G_0 -pg 1 -lvl 3 -x 590 -y 550 -defaultsOSRD
+preplace netloc D_register_2_dout 1 8 1 2330 680n
+preplace netloc IQ_Modulation_Select_TX_OPENABLE 1 0 7 NJ 830 60J 820 NJ 820 NJ 820 1090 750 NJ 750 N
+preplace netloc Net5 1 0 8 -200 420 130 260 470 290 720 290 1080 300 1430 540 1760 660 2090
+preplace netloc TXConfig_1 1 0 5 NJ 760 80J 830 NJ 830 NJ 830 N
+preplace netloc TX_LO_Tune_1 1 0 1 NJ 690
+preplace netloc cmpy_0_m_axis_dout_tdata 1 4 1 1070 590n
+preplace netloc cvt_offset_binary_0_dout 1 8 1 N 840
+preplace netloc mult_gen_0_P 1 6 2 1750 690 2070
+preplace netloc regmux_2_1_0_dout 1 7 1 2070 790n
+preplace netloc regmux_2_1_1_dout1 1 0 5 NJ 100 NJ 100 NJ 100 N 100 1070
+preplace netloc resetn_2 1 0 8 -210 410 140 270 480 270 N 270 1090 310 1440 520 1770 680 NJ
+preplace netloc xlconstant_16x0_dout 1 5 2 N 930 1770
+preplace netloc xlslice_2_Dout 1 5 1 1390 590n
+preplace netloc xlslice_3_Dout 1 5 1 1420 640n
+preplace netloc LFSR_Random_Number_G_0_m_axis 1 3 1 700 550n
+preplace netloc S_AXIS_1 1 0 1 N 310
+preplace netloc axis_broadcaster_0_M00_AXIS 1 5 1 1390 240n
+preplace netloc axis_broadcaster_0_M01_AXIS 1 5 1 N 400
+preplace netloc axis_combiner_0_M_AXIS 1 3 5 730 530 N 530 N 530 N 530 2070
+preplace netloc axis_constant_0_m_axis 1 1 1 60 680n
 preplace netloc axis_dwidth_converter_0_M_AXIS 1 1 1 N 330
-preplace netloc axis_dwidth_converter_fir_to_IQ_M_AXIS 1 3 1 N 370
-preplace netloc axis_variable_0_m_axis 1 4 1 1150 80n
-preplace netloc axis_variable_1_m_axis 1 4 1 1110 220n
-preplace netloc cic_compiler_0_M_AXIS_DATA 1 5 1 1460 270n
-preplace netloc cic_compiler_1_M_AXIS_DATA 1 5 1 N 430
-preplace netloc dds_compiler_txfreq_M_AXIS_DATA 1 6 1 N 620
+preplace netloc axis_dwidth_converter_fir_to_IQ_M_AXIS 1 3 2 N 370 N
+preplace netloc axis_variable_0_m_axis 1 5 1 1420 80n
+preplace netloc axis_variable_1_m_axis 1 5 1 1400 220n
+preplace netloc cic_compiler_0_M_AXIS_DATA 1 6 1 1740 270n
+preplace netloc cic_compiler_1_M_AXIS_DATA 1 6 1 N 430
+preplace netloc dds_compiler_txfreq_M_AXIS_DATA 1 2 2 N 730 730
 preplace netloc fir_compiler_0_M_AXIS_DATA 1 2 1 N 350
-levelinfo -pg 1 0 140 410 680 960 1310 1650 1970 2240 2460 2700 2950 3090
-pagesize -pg 1 -db -bbox -sgen -150 -20 3280 970
+levelinfo -pg 1 -240 -70 280 590 900 1240 1580 1920 2210 2350
+pagesize -pg 1 -db -bbox -sgen -400 -180 3290 1040
 "
 }
 0

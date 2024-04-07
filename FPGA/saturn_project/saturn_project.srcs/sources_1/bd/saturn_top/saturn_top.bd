@@ -3441,7 +3441,7 @@
             "inst_hier_path": "FIFO_Interfaces/axis_data_fifo_DUC",
             "parameters": {
               "FIFO_DEPTH": {
-                "value": "2048"
+                "value": "4096"
               },
               "HAS_WR_DATA_COUNT": {
                 "value": "1"
@@ -9492,7 +9492,7 @@
             "inst_hier_path": "PCIe/xlconstant_swversion",
             "parameters": {
               "CONST_VAL": {
-                "value": "12"
+                "value": "13"
               },
               "CONST_WIDTH": {
                 "value": "16"
@@ -24407,7 +24407,7 @@
             "variant_info": {
               "TX_DUC.bd": {
                 "scoped_diagram": "TX_DUC_inst_0.bd",
-                "design_checksum": "0xF00C10F8",
+                "design_checksum": "0xB013F054",
                 "ref_name": "TX_DUC",
                 "ref_subinst_path": "saturn_top_TX_DUC_0",
                 "ref_type": "Block Design",
