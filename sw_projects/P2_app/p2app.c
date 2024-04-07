@@ -57,9 +57,18 @@
 #include "g2panel.h"
 
 
-#define P2APPVERSION 18
+#define P2APPVERSION 19
+#define FIRMWARE_MIN_VERSION  8               // Minimum FPGA software version that this software requires
+#define FIRMWARE_MAX_VERSION 13               // Maximum FPGA software version that this software is tested on
+//
+// the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
+// it won't work with an old version. This means p2app will always need to be update dif the formware is updated. 
+// at minimum to update FIRMWARE_MAX_VERSION
+//
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V19: 7/4/2024:    PA disable bit supported. Checks for FPGA version: won't run with incompatible version
+//
 // V18: 1/4/2024:    matching updates for FW V 13. DUC FIFO =4096 depth; 
 //                   TX scaling factor changed aster DUC firmware adjusted for TX noise improvement 
 //
@@ -79,6 +88,7 @@
 // V12, 29/7/2023:   CW changes to set RX attenuation on TX from protocol bytes 58, 59;
 //                   CW breakin properly enabled; CW keyer disabled if p2app not active;
 //                   CW changes to minimise delay reporting to prototol 2
+
 
 
 extern sem_t DDCInSelMutex;                 // protect access to shared DDC input select register
@@ -346,7 +356,7 @@ int main(int argc, char *argv[])
     2,                                            // 2 if not active; 3 if active
     0,0,0,0,0,0,                                  // SDR (raspberry i) MAC address
     10,                                           // board type. changed from "orion mk2" to "saturn"
-    39,                                           // protocol version 3.8
+    43,                                           // protocol version 4.3
     20,                                           // this SDR firmware version. >17 to enable QSK
     0,0,0,0,0,0,                                  // Mercury, Metis, Penny version numbers
     4,                                            // 4DDC
@@ -370,6 +380,7 @@ int main(int argc, char *argv[])
   char BuildDate[]=GIT_DATE;
 	ESoftwareID ID;
 	unsigned int Version = 0;
+  bool IncompatibleFirmware = false;                                // becomes set if firmware is not compatible with this version
 
   //
   // initialise register access semaphores
@@ -406,6 +417,21 @@ int main(int argc, char *argv[])
     SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR);
   else
     SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR_13);
+
+
+  if (Version < FIRMWARE_MIN_VERSION || Version > FIRMWARE_MAX_VERSION)
+  {
+    printf("\n***************************************************************************\n");
+    printf("***************************************************************************\n");
+    printf("Incompatible Saturn FPGA firmware v%d; this version of p2app needs %d ... %d\n",
+             Version,
+             FIRMWARE_MIN_VERSION,
+             FIRMWARE_MAX_VERSION);
+    printf("You must update your copy of p2app to use that firmware version - see User manual\n");
+    printf("p2app will refuse a connection request until this is resolved!\n");
+    printf("\n\n\n***************************************************************************\n");
+    IncompatibleFirmware = true;
+  }
 
   // SetTXEnable(true);                                             // now only enabled if SDR active
   EnableAlexManualFilterSelect(true);
@@ -728,7 +754,7 @@ int main(int argc, char *argv[])
         //
         case 2:
           printf("P2 Discovery packet\n");
-          if(SDRActive)
+          if(SDRActive || IncompatibleFirmware)
             DiscoveryReply[4] = 3;                             // response 2 if not active, 3 if running
           else
             DiscoveryReply[4] = 2;                             // response 2 if not active, 3 if running
