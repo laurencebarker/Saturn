@@ -29,6 +29,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <linux/i2c-dev.h>
 
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
@@ -52,14 +53,43 @@ bool FoundG2V2Panel = false;
 //
 void InitialiseFrontPanelHandler(void)
 {
+    i2c_fd=open(pi_i2c_device, O_RDWR);
+    if(i2c_fd < 0)
+        printf("failed to open i2c device\n");
+    else
+    {
+        // check for G2 front panel
+        if(ioctl(i2c_fd, I2C_SLAVE, G2MCP23017) >= 0)
+        {
+            printf("found G2 front panel\n");
+            FoundG2Panel = true;
+            InitialiseG2PanelHandler();
+
+        }
+        else if(ioctl(i2c_fd, I2C_SLAVE, G2V2Arduino) >= 0)
+        {
+            printf("found G2 V2 front panel\n");
+            FoundG2V2Panel = true;
+            InitialiseG2V2PanelHandler();
+        }
+    }
 }
 
 
 //
-// function to initialise a connection to the front panel; call if selected as a command line option
-// establish which if any front panel is attached, and get it set up.
+// function to shutdown a connection to the front panel; call if selected as a command line option
+// establish which if any front panel is attached, and close it down.
 //
 void ShutdownFrontPanelHandler(void)
 {
+    if(FoundG2Panel)
+    {
+        ShutdownG2PanelHandler();
+    }
+    else if (FoundG2V2Panel)
+    {
+        ShutdownG2V2PanelHandler();
+    }
+    close(i2c_fd);
 }
 

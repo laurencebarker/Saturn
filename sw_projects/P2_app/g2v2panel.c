@@ -39,11 +39,22 @@
 
 
 bool G2V2PanelControlled = false;
+extern int i2c_fd;                                  // file reference
+
 
 //
 // function to initialise a connection to the G2 V2 front panel; call if selected as a command line option
 //
 void InitialiseG2V2PanelHandler(void)
 {
+    G2V2PanelControlled = true;
 }
 
+
+//
+// function to shutdown a connection to the G2 front panel; call if selected as a command line option
+//
+void ShutdownG2V2PanelHandler(void)
+{
+
+}

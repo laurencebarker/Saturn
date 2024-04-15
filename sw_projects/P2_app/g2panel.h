@@ -23,7 +23,10 @@
 void InitialiseG2PanelHandler(void);
 
 
-
+//
+// function to shutdown a connection to the G2 front panel; call if selected as a command line option
+//
+void ShutdownG2PanelHandler(void);
 
 
 
