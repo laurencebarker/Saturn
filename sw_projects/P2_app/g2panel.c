@@ -38,6 +38,8 @@
 #include "../common/hwaccess.h"
 #include "../common/debugaids.h"
 #include "cathandler.h"
+#include "i2cdriver.h"
+
 
 bool G2PanelControlled = false;
 extern int i2c_fd;                                  // file reference
@@ -52,6 +54,20 @@ uint16_t GDeltaCount;                    // count stored since last retrieved
 struct timespec ts = {1, 0};
 bool G2PanelActive = false;                         // true while panel active and threads should run
 
+#define VNUMGPIOPUSHBUTTONS 4
+#define VNUMMCPPUSHBUTTONS 16
+//
+// IO pins for encoder pushbutton inputs
+//
+uint32_t PBIOPins[VNUMGPIOPUSHBUTTONS] = { 22, 27, 23, 24};
+struct gpiod_line_bulk PBInLines;
+struct gpiod_line_request_config config = {"p2app", GPIOD_LINE_REQUEST_DIRECTION_INPUT, 0};
+int32_t IOPinValues[VNUMGPIOPUSHBUTTONS] = {-1, -1, -1, -1};
+uint8_t IOPinShifts [VNUMGPIOPUSHBUTTONS] = {0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t MCPPinShifts [VNUMMCPPUSHBUTTONS] = {0xFF, 0xFF, 0xFF, 0xFF, 
+                                             0xFF, 0xFF, 0xFF, 0xFF, 
+                                             0xFF, 0xFF, 0xFF, 0xFF,
+                                             0xFF, 0xFF, 0xFF, 0xFF};
 
 // GPIO pins used for G2 panel:
 // note switch inputs need pullups but encoders don't
@@ -92,7 +108,7 @@ bool G2PanelActive = false;                         // true while panel active a
 //
 // MCP23017 IO pins:
 // GPA0   SW6
-// GPA1   SW6
+// GPA1   SW7
 // GPA2   SW8
 // GPA3   SW9
 // GPA4   SW10
@@ -142,13 +158,7 @@ void VFOEventHandler(void *arg)
     while(G2PanelActive)
     {
         returnval = gpiod_line_event_wait(VFO1, &ts);
-        if(returnval < 0)
-          printf("gpiod wait error\n");
-        else if (returnval == 0)
-        {
-          printf("gpiod timeout\n");
-        }
-        else                              // valid edge event
+        if(returnval > 0)
         {
             returnval = gpiod_line_event_read(VFO1, &Event);            // undocumented: this is needed to clear the event
             DirectionBit = gpiod_line_get_value(VFO2);
@@ -162,19 +172,38 @@ void VFOEventHandler(void *arg)
 }
 
 
-
 //
 // periodic timestep
 //
 void G2PanelTick(void *arg)
 {
     int8_t Steps;
+    uint8_t PinCntr;
+    uint16_t MCPData;
 
     while(G2PanelActive)
     {
-        Steps = ReadOpticalEncoder();
-        if(Steps != 0)
-            printf("VFO encoder steps = %d\n", Steps);
+        gpiod_line_get_value_bulk(&PBInLines, IOPinValues);
+//        printf("IOPins are: %d %d %d %d\n", IOPinValues[0], IOPinValues[1], IOPinValues[2], IOPinValues[3]);
+        for(PinCntr=0; PinCntr < VNUMGPIOPUSHBUTTONS; PinCntr++)
+        {
+            IOPinShifts[PinCntr] = (IOPinShifts[PinCntr] << 1) | IOPinValues[PinCntr];
+            if(IOPinShifts[PinCntr] == 0b11111100)
+                printf("Pin %d pressed\n", PinCntr);
+            else if (IOPinShifts[PinCntr] == 0b00000011)
+                printf("Pin %d released\n", PinCntr);
+        }
+
+        MCPData = i2c_read_word_data(0x12);                  // read GPIOA, B
+        for(PinCntr=0; PinCntr < VNUMMCPPUSHBUTTONS; PinCntr++)
+        {
+            MCPPinShifts[PinCntr] = (MCPPinShifts[PinCntr] << 1) | (MCPData & 1);
+            MCPData = MCPData >> 1;
+            if(MCPPinShifts[PinCntr] == 0b11111100)
+                printf("MCP Pin %d pressed\n", PinCntr);
+            else if (MCPPinShifts[PinCntr] == 0b00000011)
+                printf("MCP Pin %d released\n", PinCntr);
+        }
         usleep(10000);                                                  // 10ms period
     }
 }
@@ -188,6 +217,8 @@ void G2PanelTick(void *arg)
 //
 void SetupG2PanelGPIO(void)
 {
+    struct gpiod_line_request_config PBConfig;
+
     chip = NULL;
 
     //
@@ -215,10 +246,13 @@ void SetupG2PanelGPIO(void)
         printf("%s: G2 panel GPIO device=%s\n", __FUNCTION__, gpio_device);
         VFO1 = gpiod_chip_get_line(chip, 17);
         VFO2 = gpiod_chip_get_line(chip, 18);
-        printf("assigning line inputs\n");
+        printf("assigning line inputs for VFO encoder\n");
         gpiod_line_request_rising_edge_events(VFO1, "VFO 1");
         gpiod_line_request_input(VFO2, "VFO 2");
 
+        printf("assigning line inputs for pushbuttons\n");
+        gpiod_chip_get_lines(chip, PBIOPins, 4, &PBInLines);
+        gpiod_line_request_bulk(&PBInLines, &config, &IOPinValues);
     }
 }
 
@@ -230,7 +264,39 @@ void SetupG2PanelGPIO(void)
 //
 void SetupG2PanelI2C(void)
 {
+  int flags;
 
+  // setup IOCONA, B
+  if (i2c_write_byte_data(0x0A, 0x00) < 0) { return; }
+  if (i2c_write_byte_data(0x0B, 0x00) < 0) { return; }
+
+  // GPINTENA, B: disable interrupt
+  if (i2c_write_byte_data(0x04, 0x00) < 0) { return; }
+  if (i2c_write_byte_data(0x05, 0x00) < 0) { return; }
+
+  // DEFVALA, B: clear defaults
+  if (i2c_write_byte_data(0x06, 0x00) < 0) { return; }
+  if (i2c_write_byte_data(0x07, 0x00) < 0) { return; }
+
+  // OLATA, B: no output data
+  if (i2c_write_byte_data(0x14, 0x00) < 0) { return; }
+  if (i2c_write_byte_data(0x15, 0x00) < 0) { return; }
+
+  // set GPIOA, B to have pullups
+  if (i2c_write_byte_data(0x0C, 0xFF) < 0) { return; }
+  if (i2c_write_byte_data(0x0D, 0xFF) < 0) { return; }
+
+  // IOPOLA, B: non inverted polarity polarity
+  if (i2c_write_byte_data(0x02, 0x00) < 0) { return; }
+  if (i2c_write_byte_data(0x03, 0x00) < 0) { return; }
+
+  // IODIRA, B: set GPIOA/B for input
+  if (i2c_write_byte_data(0x00, 0xFF) < 0) { return; }
+  if (i2c_write_byte_data(0x01, 0xFF) < 0) { return; }
+
+  // INTCONA, B
+  if (i2c_write_byte_data(0x08, 0x00) < 0) { return; }
+  if (i2c_write_byte_data(0x09, 0x00) < 0) { return; }
 }
 
 
@@ -271,6 +337,7 @@ void ShutdownG2PanelHandler(void)
         sleep(2);                                       // wait 2s to allow threads to close
         gpiod_line_release(VFO1);
         gpiod_line_release(VFO2);
+        gpiod_line_release_bulk(&PBInLines);
         gpiod_chip_close(chip);
     }
 }

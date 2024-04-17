@@ -42,7 +42,7 @@
 char* pi_i2c_device = "/dev/i2c-1";
 unsigned int G2MCP23017 = 0x20;                     // i2c slave address of MCP23017 on G2 panel
 unsigned int G2V2Arduino = 0x15;                    // i2c slave address of Arduino on G2V2
-static int i2c_fd;                                  // file reference
+int i2c_fd;                                  // file reference
 bool FoundG2Panel = false;
 bool FoundG2V2Panel = false;
 
