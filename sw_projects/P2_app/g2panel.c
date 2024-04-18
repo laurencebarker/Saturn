@@ -53,21 +53,35 @@ pthread_t G2PanelTickThread;                        // thread with periodic
 uint16_t GDeltaCount;                    // count stored since last retrieved
 struct timespec ts = {1, 0};
 bool G2PanelActive = false;                         // true while panel active and threads should run
+bool EncodersInitialised = false;                   // true after 1st scan
+
 
 #define VNUMGPIOPUSHBUTTONS 4
 #define VNUMMCPPUSHBUTTONS 16
+#define VNUMBUTTONS VNUMGPIOPUSHBUTTONS+VNUMMCPPUSHBUTTONS
+#define VNUMENCODERS 8
+#define VNUMGPIO 2*VNUMENCODERS +  VNUMGPIOPUSHBUTTONS
 //
-// IO pins for encoder pushbutton inputs
+// IO pins for encoder inputs then 4 pushbutton inputs
 //
-uint32_t PBIOPins[VNUMGPIOPUSHBUTTONS] = { 22, 27, 23, 24};
+uint32_t PBIOPins[VNUMGPIO] = {20, 26, 6, 5, 4, 21, 7, 9, 
+                               16, 19, 10, 11, 25, 8, 12, 13,
+                               22, 27, 23, 24};
 struct gpiod_line_bulk PBInLines;
 struct gpiod_line_request_config config = {"p2app", GPIOD_LINE_REQUEST_DIRECTION_INPUT, 0};
-int32_t IOPinValues[VNUMGPIOPUSHBUTTONS] = {-1, -1, -1, -1};
-uint8_t IOPinShifts [VNUMGPIOPUSHBUTTONS] = {0xFF, 0xFF, 0xFF, 0xFF};
-uint8_t MCPPinShifts [VNUMMCPPUSHBUTTONS] = {0xFF, 0xFF, 0xFF, 0xFF, 
-                                             0xFF, 0xFF, 0xFF, 0xFF, 
-                                             0xFF, 0xFF, 0xFF, 0xFF,
-                                             0xFF, 0xFF, 0xFF, 0xFF};
+int32_t IOPinValues[VNUMGPIO] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+
+//
+// pushbutton inputs: each has a byte, with new tick added at LSB. Supports simple debounce.
+//
+uint8_t PBPinShifts [VNUMBUTTONS] =    {0xFF, 0xFF, 0xFF, 0xFF,
+                                        0xFF, 0xFF, 0xFF, 0xFF, 
+                                        0xFF, 0xFF, 0xFF, 0xFF, 
+                                        0xFF, 0xFF, 0xFF, 0xFF,
+                                        0xFF, 0xFF, 0xFF, 0xFF};
+
+uint8_t EncoderStates[VNUMENCODERS];            // current and previous 2 bit state
+int8_t EncoderCounts[VNUMENCODERS];            // number of steps since last read
 
 // GPIO pins used for G2 panel:
 // note switch inputs need pullups but encoders don't
@@ -171,43 +185,91 @@ void VFOEventHandler(void *arg)
     }
 }
 
+int8_t EncoderStepTable[] =    {0,1,-1,2,
+                                -1,0,2, 1,
+                                1,2,0,-1,
+                                2,-1,1,0};
+
+//
+// Encoder tick
+// process its 2 new I/O inputs and update number of counts
+//
+void EncoderTick(uint32_t Enc, uint8_t Pin1, uint8_t Pin2)
+{
+    EncoderStates[Enc] = ((EncoderStates[Enc] << 2) | (Pin2 << 1) | Pin1) &0b1111;          // b0,1=new state; 2,3=prev state
+    if(EncodersInitialised)
+        EncoderCounts[Enc] += EncoderStepTable[EncoderStates[Enc]];
+}
+
+
+uint32_t TickCounter;
+#define VFASTTICKSPERSLOWTICK 3
+
+
+//
+// read mechanical encoder
+// step count needs to be halved because they advance 2 steps per click position
+//
+int8_t GetEncoderCount(uint8_t Enc)
+{
+    int8_t Result;
+
+    Result = EncoderCounts[Enc]/2;
+    EncoderCounts[Enc] = EncoderCounts[Enc]%2;
+    return Result;
+}
+
 
 //
 // periodic timestep
+// perform a "fast tick" and then "slow tick" every N
 //
 void G2PanelTick(void *arg)
 {
     int8_t Steps;
-    uint8_t PinCntr;
-    uint16_t MCPData;
+    uint8_t PinCntr;                            // interates IO pins
+    uint32_t MCPData;
+    uint32_t Cntr;
 
     while(G2PanelActive)
     {
+        TickCounter++;
         gpiod_line_get_value_bulk(&PBInLines, IOPinValues);
-//        printf("IOPins are: %d %d %d %d\n", IOPinValues[0], IOPinValues[1], IOPinValues[2], IOPinValues[3]);
-        for(PinCntr=0; PinCntr < VNUMGPIOPUSHBUTTONS; PinCntr++)
+//
+// process encoders
+//
+        for(Cntr=0; Cntr < VNUMENCODERS; Cntr++)
+            EncoderTick(Cntr, IOPinValues[2*Cntr], IOPinValues[2*Cntr+1]);
+        EncodersInitialised = true;
+//
+//
+//
+        if(TickCounter >= VFASTTICKSPERSLOWTICK)
         {
-            IOPinShifts[PinCntr] = (IOPinShifts[PinCntr] << 1) | IOPinValues[PinCntr];
-            if(IOPinShifts[PinCntr] == 0b11111100)
-                printf("Pin %d pressed\n", PinCntr);
-            else if (IOPinShifts[PinCntr] == 0b00000011)
-                printf("Pin %d released\n", PinCntr);
-        }
+            TickCounter=0;
+    //
+    // now read MCP I2C pushbuttons, and scan all pushbuttons
+    //
+            MCPData = i2c_read_word_data(0x12);                  // read GPIOA, B into bottom 16 bits
+            for (Cntr = 16; Cntr < 20; Cntr++)
+                MCPData |= (IOPinValues[Cntr] << Cntr);                     // add in PB IO pin
 
-        MCPData = i2c_read_word_data(0x12);                  // read GPIOA, B
-        for(PinCntr=0; PinCntr < VNUMMCPPUSHBUTTONS; PinCntr++)
-        {
-            MCPPinShifts[PinCntr] = (MCPPinShifts[PinCntr] << 1) | (MCPData & 1);
-            MCPData = MCPData >> 1;
-            if(MCPPinShifts[PinCntr] == 0b11111100)
-                printf("MCP Pin %d pressed\n", PinCntr);
-            else if (MCPPinShifts[PinCntr] == 0b00000011)
-                printf("MCP Pin %d released\n", PinCntr);
+            for(PinCntr=0; PinCntr < VNUMBUTTONS; PinCntr++)
+            {
+                PBPinShifts[PinCntr] = ((PBPinShifts[PinCntr] << 1) | (MCPData & 1)) & 0b00000111;           // most recent 3 samples
+                MCPData = MCPData >> 1;
+                if(PBPinShifts[PinCntr] == 0b00000100)
+                    printf("Pin %d pressed\n", PinCntr);
+                else if (PBPinShifts[PinCntr] == 0b00000011)
+                    printf("Pin %d released\n", PinCntr);
+            }
+            Steps = GetEncoderCount(0);
+            if(Steps != 0)
+                printf("cnt=%d\n", Steps);
         }
-        usleep(10000);                                                  // 10ms period
+        usleep(3333);                                                  // 3.3ms period
     }
 }
-
 
 
 
@@ -250,8 +312,8 @@ void SetupG2PanelGPIO(void)
         gpiod_line_request_rising_edge_events(VFO1, "VFO 1");
         gpiod_line_request_input(VFO2, "VFO 2");
 
-        printf("assigning line inputs for pushbuttons\n");
-        gpiod_chip_get_lines(chip, PBIOPins, 4, &PBInLines);
+        printf("assigning line inputs for pushbuttons & encoders\n");
+        gpiod_chip_get_lines(chip, PBIOPins, VNUMGPIO, &PBInLines);
         gpiod_line_request_bulk(&PBInLines, &config, &IOPinValues);
     }
 }
