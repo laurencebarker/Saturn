@@ -263,9 +263,12 @@ void G2PanelTick(void *arg)
                 else if (PBPinShifts[PinCntr] == 0b00000011)
                     printf("Pin %d released\n", PinCntr);
             }
-            Steps = GetEncoderCount(0);
-            if(Steps != 0)
-                printf("cnt=%d\n", Steps);
+            for(Cntr=0; Cntr < VNUMENCODERS; Cntr++)
+            {
+                Steps = GetEncoderCount(Cntr);
+                if(Steps != 0)
+                    printf("enc=%d  cnt=%d\n", Cntr, Steps);
+            }
         }
         usleep(3333);                                                  // 3.3ms period
     }
