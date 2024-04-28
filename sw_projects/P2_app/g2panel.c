@@ -39,6 +39,15 @@
 #include "../common/debugaids.h"
 #include "cathandler.h"
 #include "i2cdriver.h"
+#include "cathandler.h"
+
+
+//
+// paramters for eZZZS version string
+//
+#define HWVERSION 2                         // andromeda V2
+#define PRODUCTID 1                         // report as being an Andromeda panel
+
 
 
 bool G2PanelControlled = false;
@@ -54,6 +63,7 @@ uint16_t GDeltaCount;                    // count stored since last retrieved
 struct timespec ts = {1, 0};
 bool G2PanelActive = false;                         // true while panel active and threads should run
 bool EncodersInitialised = false;                   // true after 1st scan
+bool CATDetected = false;                           // true if panel ID message has been sent
 
 
 #define VNUMGPIOPUSHBUTTONS 4
@@ -82,6 +92,21 @@ uint8_t PBPinShifts [VNUMBUTTONS] =    {0xFF, 0xFF, 0xFF, 0xFF,
 
 uint8_t EncoderStates[VNUMENCODERS];            // current and previous 2 bit state
 int8_t EncoderCounts[VNUMENCODERS];            // number of steps since last read
+
+
+
+//
+// lookup table from h/w encoder numbers to Andromeda-like encoder numbers
+// (to give similar control settings in Thetis)
+//
+uint8_t LookupEncoderCode [] = {11, 12, 1, 2, 5, 6, 9, 10};
+
+//
+// lookup table from h/w pushbutton numbers to Andromeda-like button numbers
+// (to give similar control settings in Thetis)
+//
+uint8_t LookupButtonCode [] = {47, 50, 45, 44, 31, 32, 30, 34, 35, 33, 36, 37, 38, 21, 42, 43, 11, 1, 5, 9};
+
 
 // GPIO pins used for G2 panel:
 // note switch inputs need pullups but encoders don't
@@ -220,19 +245,36 @@ int8_t GetEncoderCount(uint8_t Enc)
 }
 
 
+
 //
 // periodic timestep
 // perform a "fast tick" and then "slow tick" every N
 //
 void G2PanelTick(void *arg)
 {
-    int8_t Steps;
+    int8_t Steps;                               // encoder strp count
+    uint8_t ScanCode;
     uint8_t PinCntr;                            // interates IO pins
     uint32_t MCPData;
     uint32_t Cntr;
+    uint32_t Version;
+    uint32_t CatParam;
 
     while(G2PanelActive)
     {
+        if(CATPortAssigned)                     // see if CAT has become available for the 1st time
+        {
+            if(CATDetected == false)
+            {
+                CATDetected = true;
+                Version = (PRODUCTID * 100000) + (HWVERSION*1000) + GetP2appVersion();
+                printf("sending version string\n");
+                MakeCATMessageNumeric(eZZZS, Version);
+                MakeCATMessageNoParam(eZZFA);
+            }
+        }
+        else
+            CATDetected = false;
         TickCounter++;
         gpiod_line_get_value_bulk(&PBInLines, IOPinValues);
 //
@@ -258,18 +300,54 @@ void G2PanelTick(void *arg)
             {
                 PBPinShifts[PinCntr] = ((PBPinShifts[PinCntr] << 1) | (MCPData & 1)) & 0b00000111;           // most recent 3 samples
                 MCPData = MCPData >> 1;
+                ScanCode = LookupButtonCode[PinCntr];
                 if(PBPinShifts[PinCntr] == 0b00000100)
-                    printf("Pin %d pressed\n", PinCntr);
+                {
+                    CatParam = ScanCode * 10 + 1;
+                    MakeCATMessageNumeric(eZZZP, CatParam);
+//                    printf("Pin %d pressed\n", PinCntr);
+                }
                 else if (PBPinShifts[PinCntr] == 0b00000011)
-                    printf("Pin %d released\n", PinCntr);
+                {
+                    CatParam = ScanCode * 10;
+                    MakeCATMessageNumeric(eZZZP, CatParam);
+//                    printf("Pin %d released\n", PinCntr);
+                }
             }
+            //
+            // read mechanical encoders
+            //
             for(Cntr=0; Cntr < VNUMENCODERS; Cntr++)
             {
+                ScanCode = LookupEncoderCode[Cntr];
                 Steps = GetEncoderCount(Cntr);
-                if(Steps != 0)
-                    printf("enc=%d  cnt=%d\n", Cntr, Steps);
+                if(Steps > 0)
+                {
+                    if (Steps > 9)                                  // limited to 9 steps
+                        Steps = 9;
+                    CatParam = (ScanCode * 10) + Steps;
+                    MakeCATMessageNumeric(eZZZE, CatParam);
+                }
+                else if(Steps < 0)
+                {
+                    Steps = -Steps;
+                    if (Steps > 9)                                  // limited to 9 steps
+                        Steps = 9;
+                    CatParam = (ScanCode * 10) +500 + Steps;
+                    MakeCATMessageNumeric(eZZZE, CatParam);
+                }
             }
+            //
+            // read optical encoder
+            //
+            Steps = ReadOpticalEncoder();
+            if (Steps<0)
+                MakeCATMessageNumeric(eZZZD, -Steps);
+            else if(Steps > 0)
+                MakeCATMessageNumeric(eZZZU, Steps);
         }
+
+
         usleep(3333);                                                  // 3.3ms period
     }
 }

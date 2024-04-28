@@ -151,6 +151,15 @@ pthread_t HighPriorityFromSDRThread;
 pthread_t CheckForExitThread;                 // thread looks for types "exit" command
 pthread_t CheckForNoActivityThread;           // thread looks for inactvity
 
+
+//
+// function ot get program version
+//
+uint32_t GetP2appVersion(void)
+{
+  return P2APPVERSION;
+}
+
 void sig_handler(int signo)
 {
     if (signo == SIGINT)

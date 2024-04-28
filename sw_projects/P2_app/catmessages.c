@@ -44,66 +44,13 @@
 // the parsed result will be in ParsedString, ParsedInt or ParsedBool as set in message table
 //
 
+
+
 //
-// VFO step down
+// ZZFA
+// only really here for test - not used operationally
 //
-void HandleZZZD(void)
+void HandleZZFA(void)
 {
-    printf("eZZZD\n");
+    printf("ZZFA: Frequency=%s\n", ParsedString);
 }
-
-
-//
-// VFO step up
-//
-void HandleZZZU(void)
-{
-    printf("eZZZU\n");
-}
-
-
-//
-// encoder step
-//
-void HandleZZZE(void)
-{
-    printf("eZZZE\n");
-}
-
-
-//
-// pushbutton event
-//
-void HandleZZZP(void)
-{
-    printf("eZZZP\n");
-}
-
-
-//
-// set indicator
-//
-void HandleZZZI(void)
-{
-    printf("eZZZI\n");
-}
-
-
-//
-// S/W version
-//
-void HandleZZZS(void)
-{
-    printf("eZZZS\n");
-}
-
-
-//
-// TUNE
-//
-void HandleZZTU(void)
-{
-    printf("eZZTU\n");
-}
-
-

@@ -68,17 +68,19 @@ int CATReadPtr = 0;                         // pointer to next string to read
 // array of records. This must exactly match the enum ECATCommands in tiger.h
 // and the number of commands defined here must be correct
 // (not including the final eNoCommand)
-#define VNUMCATCMDS 7
+// if there is no handler needed, set function pointer to NULL
+#define VNUMCATCMDS 8
 
 SCATCommands GCATCommands[VNUMCATCMDS] = 
 {
-  {"ZZZD", eNum, 0, 99, 2, false, HandleZZZD},                        // VFO down
-  {"ZZZU", eNum, 0, 99, 2, false, HandleZZZU},                        // VFO up
-  {"ZZZE", eNum, 0, 999, 3, false, HandleZZZE},                       // encoder
-  {"ZZZP", eNum, 0, 999, 3, false, HandleZZZP},                       // pushbutton
-  {"ZZZI", eNum, 0, 999, 3, false, HandleZZZI},                       // indicator
-  {"ZZZS", eNum, 0, 9999999, 7, false, HandleZZZS},                   // s/w version
-  {"ZZTU", eBool, 0, 1, 1, false, HandleZZTU}                        // tune
+  {"ZZZD", eNum, 0, 99, 2, false, NULL},                        // VFO down
+  {"ZZZU", eNum, 0, 99, 2, false, NULL},                        // VFO up
+  {"ZZZE", eNum, 0, 999, 3, false, NULL},                       // encoder
+  {"ZZZP", eNum, 0, 999, 3, false, NULL},                       // pushbutton
+  {"ZZZI", eNum, 0, 999, 3, false, NULL},                       // indicator
+  {"ZZZS", eNum, 0, 9999999, 7, false, NULL},                   // s/w version
+  {"ZZTU", eBool, 0, 1, 1, false, NULL},                        // tune
+  {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA}
 };
 
 
@@ -239,7 +241,7 @@ void ParseCATCmd(char* Buffer)
   int ByteCntr;
   char ch;
   bool ValidResult = true;                  // true if we get a valid parse result
-
+  void (*HandlerPtr)(void); 
   
   CharCnt = strlen(Buffer) - 1;
 //
@@ -335,7 +337,9 @@ void ParseCATCmd(char* Buffer)
         printf("\n");
         break;
     }
-    (*GCATCommands[MatchedCAT].handler)();
+    HandlerPtr = GCATCommands[MatchedCAT].handler;
+    if(HandlerPtr != NULL)
+      (*HandlerPtr)();
   }
   else
   {
@@ -644,7 +648,7 @@ void SetupCATPort(int Port)
     if (CATPort == 0)
     {
         CATPort = Port;
-        if((!ThreadActive) && SDRActive)
+        if((!ThreadActive) && SDRActive && (CATPort != 0))
         {
 
           if(pthread_create(&CATThread, NULL, CATHandlerThread, NULL) < 0)
