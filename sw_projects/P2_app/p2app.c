@@ -67,6 +67,9 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V20: 29/4/2024:   PA bit from Alex word 1 removed from code: wasn't being set by Thetis and 
+//                   "general packet to SDR" has PA disable bit too
+//
 // V19: 7/4/2024:    PA disable bit supported. Checks for FPGA version: won't run with incompatible version
 //
 // V18: 1/4/2024:    matching updates for FW V 13. DUC FIFO =4096 depth; 
