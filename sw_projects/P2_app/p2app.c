@@ -57,7 +57,7 @@
 #include "g2panel.h"
 
 
-#define P2APPVERSION 19
+#define P2APPVERSION 20
 #define FIRMWARE_MIN_VERSION  8               // Minimum FPGA software version that this software requires
 #define FIRMWARE_MAX_VERSION 13               // Maximum FPGA software version that this software is tested on
 //
