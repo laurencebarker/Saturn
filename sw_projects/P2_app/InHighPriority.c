@@ -157,7 +157,6 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       {
         //printf("new FPGA code, new client data\n");
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1428));      // copy word with TX ant settings to filt/TXant register
-        PAEnable = (bool)((Word >> 11) & 1);
         AlexManualTXFilters(Word, true);
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with RX ant settings to filt/RXant register
         //printf("Alex 0 TX word = 0x%x\n", Word);
@@ -167,7 +166,6 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       {
         //printf("new FPGA code, new client data\n");
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with TX/RX ant settings to both registers
-        PAEnable = (bool)((Word >> 11) & 1);
         AlexManualTXFilters(Word, true);
         AlexManualTXFilters(Word, false);
       }
@@ -175,10 +173,8 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       {
         //printf("old FPGA code\n");
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with TX/RX ant settings to original register
-        PAEnable = (bool)((Word >> 11) & 1);
         AlexManualTXFilters(Word, false);
       }
-      SetPAEnabled(PAEnable); // activate PA if client app wants it
 
       // RX filters
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1430));
