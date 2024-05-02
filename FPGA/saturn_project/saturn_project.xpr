@@ -322,27 +322,6 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/axi_stream_deinterleaver.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/axis_mux_4.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/cw_key_ramp.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
       <File Path="$PPRDIR/../sources/verilogmodules/axis_adder.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -386,6 +365,27 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../sources/verilogmodules/cvt_offsetbinary.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/axi_stream_deinterleaver.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/axis_mux_4.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/cw_key_ramp.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -440,29 +440,29 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_reg_to_axis_0_0/DDC_Block_reg_to_axis_0_0.xci">
-          <Proxy FileSetName="DDC_Block_reg_to_axis_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_Double_D_register_0_0/DDC_Block_Double_D_register_0_0.xci">
-          <Proxy FileSetName="DDC_Block_Double_D_register_0_0"/>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_byteswap_48_0_0/DDC_Block_byteswap_48_0_0.xci">
+          <Proxy FileSetName="DDC_Block_byteswap_48_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_regmux_8_1_0_0/DDC_Block_regmux_8_1_0_0.xci">
           <Proxy FileSetName="DDC_Block_regmux_8_1_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_variable_0_0/DDC_Block_axis_variable_0_0.xci">
-          <Proxy FileSetName="DDC_Block_axis_variable_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_reg_to_axis_1_0/DDC_Block_reg_to_axis_1_0.xci">
-          <Proxy FileSetName="DDC_Block_reg_to_axis_1_0"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_mux_2_0_0/DDC_Block_axis_mux_2_0_0.xci">
           <Proxy FileSetName="DDC_Block_axis_mux_2_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_variable_0_0/DDC_Block_axis_variable_0_0.xci">
+          <Proxy FileSetName="DDC_Block_axis_variable_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_variable_1_0/DDC_Block_axis_variable_1_0.xci">
           <Proxy FileSetName="DDC_Block_axis_variable_1_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_byteswap_48_0_0/DDC_Block_byteswap_48_0_0.xci">
-          <Proxy FileSetName="DDC_Block_byteswap_48_0_0"/>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_reg_to_axis_0_0/DDC_Block_reg_to_axis_0_0.xci">
+          <Proxy FileSetName="DDC_Block_reg_to_axis_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_reg_to_axis_1_0/DDC_Block_reg_to_axis_1_0.xci">
+          <Proxy FileSetName="DDC_Block_reg_to_axis_1_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_Double_D_register_0_0/DDC_Block_Double_D_register_0_0.xci">
+          <Proxy FileSetName="DDC_Block_Double_D_register_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_regmux_4_1_0_0/DDC_Block_regmux_4_1_0_0.xci">
           <Proxy FileSetName="DDC_Block_regmux_4_1_0_0"/>
@@ -740,6 +740,9 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
+        <CompFileExtendedInfo CompFileName="IQ_Modulation_Select_inst_0.bd" FileRelPathName="ip/IQ_Modulation_Select_inst_0_cw_key_ramp_0_0/IQ_Modulation_Select_inst_0_cw_key_ramp_0_0.xci">
+          <Proxy FileSetName="IQ_Modulation_Select_inst_0_cw_key_ramp_0_0"/>
+        </CompFileExtendedInfo>
       </File>
       <Config>
         <Option Name="TopModule" Val="IQ_Modulation_Select_inst_0"/>
@@ -829,6 +832,12 @@
     <FileSet Name="DDC_Block_byteswap_48_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/DDC_Block_byteswap_48_0_0" RelGenDir="$PGENDIR/DDC_Block_byteswap_48_0_0">
       <Config>
         <Option Name="TopModule" Val="DDC_Block_byteswap_48_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="IQ_Modulation_Select_inst_0_cw_key_ramp_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/IQ_Modulation_Select_inst_0_cw_key_ramp_0_0" RelGenDir="$PGENDIR/IQ_Modulation_Select_inst_0_cw_key_ramp_0_0">
+      <Config>
+        <Option Name="TopModule" Val="IQ_Modulation_Select_inst_0_cw_key_ramp_0_0"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -949,6 +958,18 @@
         <Step Id="synth_design"/>
       </Strategy>
       <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="IQ_Modulation_Select_inst_0_cw_key_ramp_0_0_synth_1" Type="Ft3:Synth" SrcSet="IQ_Modulation_Select_inst_0_cw_key_ramp_0_0" Part="xc7a200tfbg676-2" ConstrsSet="IQ_Modulation_Select_inst_0_cw_key_ramp_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/IQ_Modulation_Select_inst_0_cw_key_ramp_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/IQ_Modulation_Select_inst_0_cw_key_ramp_0_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/IQ_Modulation_Select_inst_0_cw_key_ramp_0_0_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023">
+          <Desc>Vivado Synthesis Defaults</Desc>
+        </StratHandle>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2023"/>
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
@@ -1145,6 +1166,25 @@
         <Step Id="write_bitstream"/>
       </Strategy>
       <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2021"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="IQ_Modulation_Select_inst_0_cw_key_ramp_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="IQ_Modulation_Select_inst_0_cw_key_ramp_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="IQ_Modulation_Select_inst_0_cw_key_ramp_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/IQ_Modulation_Select_inst_0_cw_key_ramp_0_0_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/IQ_Modulation_Select_inst_0_cw_key_ramp_0_0_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023">
+          <Desc>Default settings for Implementation.</Desc>
+        </StratHandle>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2023"/>
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
