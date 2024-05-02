@@ -62,7 +62,7 @@ module cw_key_ramp
     input wire key_down,                // true when key down; must be already debounced
     input wire [7:0] delay_time,        // delay in ms before starting ram (while TX turns on) (0=no delay)
     input wire [9:0] hang_time,         // period in ms before PTT dropped (0=no hang)
-    input wire [12:0] ramp_length,      // ramp length in bytes
+    input wire [12:0] ramp_length,      // ramp length in words (changed from bytes)
     input wire keyer_enable,            // =1 to enable keyer
     input wire protocol_2,              // = 1 for protocol 2
     output reg CW_PTT,                  // PTT output; true
@@ -82,7 +82,7 @@ module cw_key_ramp
 reg [3:0] ramp_state = 0;               // sequencer state
 reg [16:0] millis_count = 0;            // millisecond counter (14 bit/16384 max)
 reg [9:0] delay_count = 0;              // delay or hang counter
-reg [12:0] ramp_length_reg = 0;         // ramp length value
+reg [15:0] ramp_length_reg = 0;         // ramp length value
 reg [47:0] m0_axis_tdata_reg;           // I/Q data value
 reg [1:0] decimate_count = 0;           // reads to decimate; output codec ampl if zero
 reg [4:0] address_increment = 0;        // protocol dependent address increment (4 or 16)
@@ -141,7 +141,7 @@ begin
             m1_axis_tdata <= 0;
             if(key_down && keyer_enable)
             begin
-                ramp_length_reg <= ramp_length;
+                ramp_length_reg <= (ramp_length << 2);
                 if(protocol_2 == 1)
                     address_increment <= 4;             // 1 word steps for protocol 2
                 else 
