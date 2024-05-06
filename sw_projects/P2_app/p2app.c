@@ -57,17 +57,18 @@
 #include "g2panel.h"
 
 
-#define P2APPVERSION 21
+#define P2APPVERSION 22
 #define FIRMWARE_MIN_VERSION  8               // Minimum FPGA software version that this software requires
-#define FIRMWARE_MAX_VERSION 14               // Maximum FPGA software version that this software is tested on
+#define FIRMWARE_MAX_VERSION 15               // Maximum FPGA software version that this software is tested on
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
-// it won't work with an old version. This means p2app will always need to be update dif the formware is updated. 
+// it won't work with an old version. This means p2app will always need to be updated if the formware is updated. 
 // at minimum to update FIRMWARE_MAX_VERSION
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
-// V21: 02/05/2024:  max CW ramp lenth extended to 20ms. Needs firmware V14.
+// V22: 06/05/2024:  CW ramp calculated by different C code (same shape). Enabled firmware V15.
+// V21: 02/05/2024:  max CW ramp length extended to 20ms. Needs firmware V14.
 // V20: 29/4/2024:   PA bit from Alex word 1 removed from code: wasn't being set by Thetis and 
 //                   "general packet to SDR" has PA disable bit too
 //
