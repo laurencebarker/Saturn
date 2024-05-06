@@ -929,7 +929,7 @@
             "value": "32"
           },
           "BPortWidth": {
-            "value": "19"
+            "value": "21"
           },
           "FlowControl": {
             "value": "NonBlocking"
@@ -985,7 +985,7 @@
             "value": "0"
           },
           "Output_Width": {
-            "value": "19"
+            "value": "21"
           },
           "PINC1": {
             "value": "0"
@@ -1000,7 +1000,7 @@
             "value": "Not_Required"
           },
           "Spurious_Free_Dynamic_Range": {
-            "value": "108"
+            "value": "120"
           }
         }
       },
