@@ -929,7 +929,7 @@
             "value": "32"
           },
           "BPortWidth": {
-            "value": "21"
+            "value": "23"
           },
           "FlowControl": {
             "value": "NonBlocking"
@@ -941,7 +941,7 @@
             "value": "24"
           },
           "RoundMode": {
-            "value": "Random_Rounding"
+            "value": "Truncate"
           }
         }
       },
@@ -973,19 +973,19 @@
             "value": "false"
           },
           "Latency": {
-            "value": "8"
+            "value": "10"
           },
           "M_DATA_Has_TUSER": {
             "value": "Not_Required"
           },
           "Noise_Shaping": {
-            "value": "Taylor_Series_Corrected"
+            "value": "Auto"
           },
           "Output_Frequency1": {
             "value": "0"
           },
           "Output_Width": {
-            "value": "21"
+            "value": "23"
           },
           "PINC1": {
             "value": "0"
@@ -1000,7 +1000,7 @@
             "value": "Not_Required"
           },
           "Spurious_Free_Dynamic_Range": {
-            "value": "120"
+            "value": "130"
           }
         }
       },
@@ -1242,12 +1242,6 @@
       }
     },
     "interface_nets": {
-      "LFSR_Random_Number_G_0_m_axis": {
-        "interface_ports": [
-          "LFSR_Random_Number_G_0/m_axis",
-          "cmpy_0/S_AXIS_CTRL"
-        ]
-      },
       "S_AXIS_1": {
         "interface_ports": [
           "S_AXIS",

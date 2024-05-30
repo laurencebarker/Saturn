@@ -15,7 +15,8 @@ fs=122880000;
 freqvalues = (-N/2:N/2-1)*(fs/N)*1e-6;
 
 %window and FFT the data
-window = blackmanharris(N);
+%window = blackmanharris(N);
+window = hanning(N);
 windoweddata = window.*ducdata;
 result = fft(windoweddata);
 result = fftshift(result);
