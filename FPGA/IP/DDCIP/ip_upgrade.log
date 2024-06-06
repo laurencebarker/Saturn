@@ -1,0 +1,289 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.1 (win64) Build 3865809 Sun May  7 15:05:29 MDT 2023
+| Date         : Thu May 30 20:35:38 2024
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'dds_compiler_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of dds_compiler_0 (xilinx.com:ip:dds_compiler:6.0) from (Rev. 21) to (Rev. 22)
+
+
+
+
+
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.1 (win64) Build 3865809 Sun May  7 15:05:29 MDT 2023
+| Date         : Thu May 30 20:35:37 2024
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_fir_compiler_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of DDC_Block_fir_compiler_0_0 (xilinx.com:ip:fir_compiler:7.2) from (Rev. 17) to (Rev. 19)
+
+
+
+
+
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.1 (win64) Build 3865809 Sun May  7 15:05:29 MDT 2023
+| Date         : Thu May 30 20:35:37 2024
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_dds_compiler_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of DDC_Block_dds_compiler_0_0 (xilinx.com:ip:dds_compiler:6.0) from (Rev. 21) to (Rev. 22)
+
+
+
+
+
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.1 (win64) Build 3865809 Sun May  7 15:05:29 MDT 2023
+| Date         : Thu May 30 20:35:37 2024
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_cmpy_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of DDC_Block_cmpy_0_0 (xilinx.com:ip:cmpy:6.0) from (Rev. 20) to (Rev. 21)
+
+
+
+
+
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.1 (win64) Build 3865809 Sun May  7 15:05:29 MDT 2023
+| Date         : Thu May 30 20:35:37 2024
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_cic_compiler_1_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of DDC_Block_cic_compiler_1_0 (xilinx.com:ip:cic_compiler:4.0) from (Rev. 15) to (Rev. 16)
+
+
+
+
+
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.1 (win64) Build 3865809 Sun May  7 15:05:29 MDT 2023
+| Date         : Thu May 30 20:35:37 2024
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_cic_compiler_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of DDC_Block_cic_compiler_0_0 (xilinx.com:ip:cic_compiler:4.0) from (Rev. 15) to (Rev. 16)
+
+
+
+
+
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.1 (win64) Build 3865809 Sun May  7 15:05:29 MDT 2023
+| Date         : Thu May 30 20:35:37 2024
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_axis_subset_converter_1_1'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of DDC_Block_axis_subset_converter_1_1 (xilinx.com:ip:axis_subset_converter:1.1) from (Rev. 25) to (Rev. 28)
+
+
+
+
+
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.1 (win64) Build 3865809 Sun May  7 15:05:29 MDT 2023
+| Date         : Thu May 30 20:35:37 2024
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_axis_subset_converter_1_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of DDC_Block_axis_subset_converter_1_0 (xilinx.com:ip:axis_subset_converter:1.1) from (Rev. 25) to (Rev. 28)
+
+
+
+
+
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.1 (win64) Build 3865809 Sun May  7 15:05:29 MDT 2023
+| Date         : Thu May 30 20:35:37 2024
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_axis_subset_converter_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of DDC_Block_axis_subset_converter_0_0 (xilinx.com:ip:axis_subset_converter:1.1) from (Rev. 25) to (Rev. 28)
+
+
+
+
+
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.1 (win64) Build 3865809 Sun May  7 15:05:29 MDT 2023
+| Date         : Thu May 30 20:35:37 2024
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_axis_dwidth_converter_1_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of DDC_Block_axis_dwidth_converter_1_0 (xilinx.com:ip:axis_dwidth_converter:1.1) from (Rev. 24) to (Rev. 27)
+
+
+
+
+
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.1 (win64) Build 3865809 Sun May  7 15:05:29 MDT 2023
+| Date         : Thu May 30 20:35:37 2024
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_axis_dwidth_converter_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of DDC_Block_axis_dwidth_converter_0_0 (xilinx.com:ip:axis_dwidth_converter:1.1) from (Rev. 24) to (Rev. 27)
+
+
+
+
+
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.1 (win64) Build 3865809 Sun May  7 15:05:29 MDT 2023
+| Date         : Thu May 30 20:35:37 2024
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_axis_combiner_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of DDC_Block_axis_combiner_0_0 (xilinx.com:ip:axis_combiner:1.1) from (Rev. 23) to (Rev. 26)
+
+
+
+
+
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.1 (win64) Build 3865809 Sun May  7 15:05:29 MDT 2023
+| Date         : Thu May 30 20:35:37 2024
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_axis_broadcaster_1_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of DDC_Block_axis_broadcaster_1_0 (xilinx.com:ip:axis_broadcaster:1.1) from (Rev. 24) to (Rev. 27)
+
+
+
+
+
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.1 (win64) Build 3865809 Sun May  7 15:05:29 MDT 2023
+| Date         : Thu May 30 20:35:37 2024
+| Host         : CCLDesktop running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7a200tfbg676-2
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'DDC_Block_axis_broadcaster_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of DDC_Block_axis_broadcaster_0_0 (xilinx.com:ip:axis_broadcaster:1.1) from (Rev. 24) to (Rev. 27)
+
