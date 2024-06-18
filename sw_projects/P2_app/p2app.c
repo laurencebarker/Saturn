@@ -56,9 +56,9 @@
 #include "LDGATU.h"
 #include "g2panel.h"
 
-#define P2APPVERSION 23
+#define P2APPVERSION 24
 #define FIRMWARE_MIN_VERSION  8               // Minimum FPGA software version that this software requires
-#define FIRMWARE_MAX_VERSION 16               // Maximum FPGA software version that this software is tested on
+#define FIRMWARE_MAX_VERSION 17               // Maximum FPGA software version that this software is tested on
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
 // it won't work with an old version. This means p2app will always need to be updated if the formware is updated. 
@@ -66,6 +66,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V24: 17/6/2024:   support for V17 firmware (fixed latency CW ramp sidetone)
 // V23: 07/5/2024:   no functional change. Recognises firmware V16.
 // V22: 06/05/2024:  CW ramp calculated by different C code (same shape). Enabled firmware V15.
 // V21: 02/05/2024:  max CW ramp length extended to 20ms. Needs firmware V14.
@@ -123,6 +124,8 @@ bool UseLDGATU = false;                     // true if to use an LDG ATU via CAT
 #define VWIDEBANDSIZE 1028                  // wideband scalar samples
 #define VCONSTTXAMPLSCALEFACTOR 0x0001FFFF  // 18 bit scale value - set to 1/2 of full scale
 #define VCONSTTXAMPLSCALEFACTOR_13 0x0002000  // 18 bit scale value - set to 1/32 of full scale FWV13+
+#define VCONSTTXAMPLSCALEFACTOR_17 0x0002000  // 18 bit scale value - set to 1/32 of full scale FWV17+
+//#define VCONSTTXAMPLSCALEFACTOR_17 0x0002800  // 18 bit scale value - set to 1/32 of full scale FWV17+
 
 struct ThreadSocketData SocketData[VPORTTABLESIZE] =
 {
@@ -420,8 +423,11 @@ int main(int argc, char *argv[])
   Version = GetFirmwareVersion(&ID);                                // TX scaling changed at FW V13
   if(Version < 13)
     SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR);
-  else
+  else if (Version < 17)
     SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR_13);
+  else
+    SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR_17);
+  
 
 
   if (Version < FIRMWARE_MIN_VERSION || Version > FIRMWARE_MAX_VERSION)
