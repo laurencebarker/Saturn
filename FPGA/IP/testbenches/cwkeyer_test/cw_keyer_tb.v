@@ -79,8 +79,8 @@ cw_key_ramp UUT
 
 //
 // instantiate a clock divider to generate TReady
-// divide by 640 to get 192KHz for protocol 2 modulation Fs
-ClockDivider #(640) Div 
+// divide by 2560 to get 48KHz for protocol 1 modulation Fs
+ClockDivider #(2560) Div 
 (
     .aclk            (aclk),
     .resetn          (aresetn),
@@ -109,7 +109,7 @@ initial begin
 
 hang_time = 10;
 delay_time=3;
-protocol_2=1;
+protocol_2=0;
 keyer_enable=1;
 ramp_length = 3840;         // 960*4
 
