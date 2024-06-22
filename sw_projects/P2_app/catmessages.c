@@ -54,3 +54,11 @@ void HandleZZFA(void)
 {
     printf("ZZFA: Frequency=%s\n", ParsedString);
 }
+
+//
+// combined VFO status 
+//
+void HandleZZXV(void)                          // VFO status
+{
+    printf("ZZXV: param=%04x\n", ParsedInt);
+}

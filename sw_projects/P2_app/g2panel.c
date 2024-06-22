@@ -64,7 +64,7 @@ struct timespec ts = {1, 0};
 bool G2PanelActive = false;                         // true while panel active and threads should run
 bool EncodersInitialised = false;                   // true after 1st scan
 bool CATDetected = false;                           // true if panel ID message has been sent
-
+uint32_t VKeepAliveCount;                           // count of ticks for keepalive
 
 #define VNUMGPIOPUSHBUTTONS 4
 #define VNUMMCPPUSHBUTTONS 16
@@ -83,6 +83,7 @@ int32_t IOPinValues[VNUMGPIO] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 
 //
 // pushbutton inputs: each has a byte, with new tick added at LSB. Supports simple debounce.
+// initialised to 0xFF as buttons expected to be released (1 input) at startup
 //
 uint8_t PBPinShifts [VNUMBUTTONS] =    {0xFF, 0xFF, 0xFF, 0xFF,
                                         0xFF, 0xFF, 0xFF, 0xFF, 
@@ -90,10 +91,19 @@ uint8_t PBPinShifts [VNUMBUTTONS] =    {0xFF, 0xFF, 0xFF, 0xFF,
                                         0xFF, 0xFF, 0xFF, 0xFF,
                                         0xFF, 0xFF, 0xFF, 0xFF};
 
+//
+// long count tick counter for each button. If it reaches zero, a long press has occurred.
+//
+uint8_t PBLongCount [VNUMBUTTONS] =    {0x0, 0x0, 0x0, 0x0,
+                                        0x0, 0x0, 0x0, 0x0, 
+                                        0x0, 0x0, 0x0, 0x0, 
+                                        0x0, 0x0, 0x0, 0x0,
+                                        0x0, 0x0, 0x0, 0x0};
+
 uint8_t EncoderStates[VNUMENCODERS];            // current and previous 2 bit state
-int8_t EncoderCounts[VNUMENCODERS];            // number of steps since last read
-
-
+int8_t EncoderCounts[VNUMENCODERS];             // number of steps since last read
+#define VLONGPRESSCOUNT 100                     // 1s for long press
+#define VKEEPALIVECOUNT 1500                    // 15s period between keepalive requests
 
 //
 // lookup table from h/w encoder numbers to Andromeda-like encoder numbers
@@ -284,7 +294,7 @@ void G2PanelTick(void *arg)
             EncoderTick(Cntr, IOPinValues[2*Cntr], IOPinValues[2*Cntr+1]);
         EncodersInitialised = true;
 //
-//
+// execute slower code every 10ms
 //
         if(TickCounter >= VFASTTICKSPERSLOWTICK)
         {
@@ -292,7 +302,7 @@ void G2PanelTick(void *arg)
     //
     // now read MCP I2C pushbuttons, and scan all pushbuttons
     //
-            MCPData = i2c_read_word_data(0x12);                  // read GPIOA, B into bottom 16 bits
+            MCPData = i2c_read_word_data(0x12);                             // read GPIOA, B into bottom 16 bits
             for (Cntr = 16; Cntr < 20; Cntr++)
                 MCPData |= (IOPinValues[Cntr] << Cntr);                     // add in PB IO pin
 
@@ -305,13 +315,21 @@ void G2PanelTick(void *arg)
                 {
                     CatParam = ScanCode * 10 + 1;
                     MakeCATMessageNumeric(eZZZP, CatParam);
-//                    printf("Pin %d pressed\n", PinCntr);
+                    PBLongCount[PinCntr] = VLONGPRESSCOUNT;                 // set long press count
                 }
                 else if (PBPinShifts[PinCntr] == 0b00000011)
                 {
                     CatParam = ScanCode * 10;
                     MakeCATMessageNumeric(eZZZP, CatParam);
-//                    printf("Pin %d released\n", PinCntr);
+                    PBLongCount[PinCntr] = 0;                               // clear long press count
+                }
+                else if(PBLongCount[PinCntr] != 0)                          // if button pressed, and long press not yet declared
+                {
+                    if(--PBLongCount[PinCntr] == 0)
+                    {
+                        CatParam = ScanCode * 10 + 2;
+                        MakeCATMessageNumeric(eZZZP, CatParam);
+                    }
                 }
             }
             //
@@ -345,6 +363,15 @@ void G2PanelTick(void *arg)
                 MakeCATMessageNumeric(eZZZD, -Steps);
             else if(Steps > 0)
                 MakeCATMessageNumeric(eZZZU, Steps);
+            //
+            // check keepalive
+            //
+            if(VKeepAliveCount++ > VKEEPALIVECOUNT)
+            {
+                VKeepAliveCount = 0;
+                MakeCATMessageNoParam(eZZXV);
+            }
+
         }
 
 

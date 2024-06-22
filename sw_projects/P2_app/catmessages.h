@@ -22,5 +22,10 @@
 //
 void HandleZZFA(void);                          // frequency
 
+//
+// combined VFO status 
+//
+void HandleZZXV(void);                          // VFO status
+
 
 #endif  //#ifndef

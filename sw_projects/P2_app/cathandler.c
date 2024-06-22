@@ -69,7 +69,7 @@ int CATReadPtr = 0;                         // pointer to next string to read
 // and the number of commands defined here must be correct
 // (not including the final eNoCommand)
 // if there is no handler needed, set function pointer to NULL
-#define VNUMCATCMDS 8
+#define VNUMCATCMDS 9
 
 SCATCommands GCATCommands[VNUMCATCMDS] = 
 {
@@ -80,8 +80,9 @@ SCATCommands GCATCommands[VNUMCATCMDS] =
   {"ZZZI", eNum, 0, 999, 3, false, NULL},                       // indicator
   {"ZZZS", eNum, 0, 9999999, 7, false, NULL},                   // s/w version
   {"ZZTU", eBool, 0, 1, 1, false, NULL},                        // tune
-  {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA}
-};
+  {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA},
+  {"ZZXV", eNum, 0, 1023, 4, false, NULL}                       // VFO status
+  };
 
 
 
@@ -363,14 +364,16 @@ int GetCATOPBufferUsed(void)
 
 //
 // send a CAT command
+// only attempt send if an active CAT port exists
 //
 void SendCATMessage(char* Msg)
 {
-  if(GetCATOPBufferUsed() <= (VNUMOPSTRINGS - 1))
+  if((GetCATOPBufferUsed() <= (VNUMOPSTRINGS - 1))&&(CATPortAssigned == true))
   {
     strcpy(OutputStrings[CATWritePtr++], Msg);
-    printf("Sent CAT msg %s\n", Msg);
-
+    printf("Sent CAT msg %s\n", Msg);                       // debug
+    if(ThreadActive == false)
+      printf("Thread is not active\n");
     if(CATWritePtr >= VNUMOPSTRINGS)
       CATWritePtr = 0;
   }
@@ -623,17 +626,18 @@ void* CATHandlerThread(void *arg)
             strcpy(SendBuffer, OutputStrings[CATReadPtr++]);
             if(CATReadPtr >= VNUMOPSTRINGS)
               CATReadPtr = 0;
+            printf("sending CAT command\n");        //debug
             send(CATSocketid, SendBuffer, TXMessageLength, 0);
           }
 
       }                                                       // end of thread main loop
       close(CATSocketid);
       ActiveCATPort = 0;
+      CATPort = 0;                                            // set port not assigned
+      CATPortAssigned = false;
     }
     ThreadActive = false;
     ThreadError = false;
-    CATPort = 0;                                            // set port not assigned
-    CATPortAssigned = false;
     return NULL;
 }
 
