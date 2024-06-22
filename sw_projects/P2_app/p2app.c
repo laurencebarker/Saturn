@@ -54,7 +54,7 @@
 #include "OutHighPriority.h"
 #include "cathandler.h"
 #include "LDGATU.h"
-#include "g2panel.h"
+#include "frontpanelhandler.h"
 
 #define P2APPVERSION 24
 #define FIRMWARE_MIN_VERSION  8               // Minimum FPGA software version that this software requires
@@ -174,6 +174,15 @@ pthread_t MicThread;
 pthread_t HighPriorityFromSDRThread;
 pthread_t CheckForExitThread;                 // thread looks for types "exit" command
 pthread_t CheckForNoActivityThread;           // thread looks for inactvity
+
+
+//
+// function ot get program version
+//
+uint32_t GetP2appVersion(void)
+{
+  return P2APPVERSION;
+}
 
 void sig_handler(int signo)
 {
@@ -332,6 +341,9 @@ void* CheckForActivity(void *arg)
 void Shutdown()
 {
   ShutdownCATHandler();                                   // close CAT connection socket
+    if(UseControlPanel)
+    ShutdownFrontPanelHandler();
+
   close(SocketData[0].Socketid);                          // close incoming data socket
   sem_destroy(&DDCInSelMutex);
   sem_destroy(&DDCResetFIFOMutex);
@@ -575,7 +587,7 @@ int main(int argc, char *argv[])
 // startup G2 front panel handler if needed
 //
   if(UseControlPanel)
-    InitialiseG2PanelHandler();
+    InitialiseFrontPanelHandler();
 
 //
 // start up thread for exit command checking

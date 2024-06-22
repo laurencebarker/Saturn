@@ -7,12 +7,13 @@
 // copyright Laurence Barker November 2021
 // licenced under GNU GPL3
 //
-// catmessages.h:
+// g2panel.c:
 //
-// handle incoming CAT messages
+// interface G2V2 front panel using I2C
 //
 //////////////////////////////////////////////////////////////
 
+#include "g2v2panel.h"
 #include "threaddata.h"
 #include <stdint.h>
 #include "../common/saturntypes.h"
@@ -34,31 +35,26 @@
 #include "../common/saturndrivers.h"
 #include "../common/hwaccess.h"
 #include "../common/debugaids.h"
-#include "catmessages.h"
 #include "cathandler.h"
 
 
-//
-// CAT handlers pick up their parameters from global values
-// (this is done because then one jump table can be used for all)
-// the parsed result will be in ParsedString, ParsedInt or ParsedBool as set in message table
-//
-
+bool G2V2PanelControlled = false;
+extern int i2c_fd;                                  // file reference
 
 
 //
-// ZZFA
-// only really here for test - not used operationally
+// function to initialise a connection to the G2 V2 front panel; call if selected as a command line option
 //
-void HandleZZFA(void)
+void InitialiseG2V2PanelHandler(void)
 {
-    printf("ZZFA: Frequency=%s\n", ParsedString);
+    G2V2PanelControlled = true;
 }
 
+
 //
-// combined VFO status 
+// function to shutdown a connection to the G2 front panel; call if selected as a command line option
 //
-void HandleZZXV(void)                          // VFO status
+void ShutdownG2V2PanelHandler(void)
 {
-    printf("ZZXV: param=%04x\n", ParsedInt);
+
 }
