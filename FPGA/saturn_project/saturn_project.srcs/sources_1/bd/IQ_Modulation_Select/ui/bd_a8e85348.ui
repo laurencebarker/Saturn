@@ -1,92 +1,103 @@
 {
    "ActiveEmotionalView":"Default View",
-   "Default View_ScaleFactor":"0.661515",
-   "Default View_TopLeft":"-617,3",
+   "Default View_ScaleFactor":"1.02543",
+   "Default View_TopLeft":"841,-465",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
-preplace port S_AXI_keyerBRAM -pg 1 -lvl 0 -x -80 -y 60 -defaultsOSRD
+preplace port S_AXI_keyerBRAM -pg 1 -lvl 0 -x -80 -y 50 -defaultsOSRD
 preplace port TX_IQ_in -pg 1 -lvl 0 -x -80 -y 530 -defaultsOSRD
-preplace port m_axis_TXMod -pg 1 -lvl 5 -x 1640 -y 820 -defaultsOSRD
-preplace port m_axis_envelope -pg 1 -lvl 5 -x 1640 -y 630 -defaultsOSRD
-preplace port m_axis_sidetoneampl -pg 1 -lvl 5 -x 1640 -y 270 -defaultsOSRD
-preplace port port-id_CWSampleSelect -pg 1 -lvl 5 -x 1640 -y 1060 -defaultsOSRD
+preplace port m_axis_TXMod -pg 1 -lvl 7 -x 2290 -y 820 -defaultsOSRD
+preplace port m_axis_envelope -pg 1 -lvl 7 -x 2290 -y 630 -defaultsOSRD
+preplace port m_axis_sidetoneampl -pg 1 -lvl 7 -x 2290 -y 270 -defaultsOSRD
+preplace port port-id_CWSampleSelect -pg 1 -lvl 7 -x 2290 -y 1060 -defaultsOSRD
 preplace port port-id_Deinterleave -pg 1 -lvl 0 -x -80 -y 660 -defaultsOSRD
 preplace port port-id_IQEnable -pg 1 -lvl 0 -x -80 -y 680 -defaultsOSRD
 preplace port port-id_TX_ENABLE -pg 1 -lvl 0 -x -80 -y 1240 -defaultsOSRD
 preplace port port-id_TX_Strobe -pg 1 -lvl 0 -x -80 -y 1180 -defaultsOSRD
 preplace port port-id_clk122 -pg 1 -lvl 0 -x -80 -y 750 -defaultsOSRD
 preplace port port-id_cw_key_down -pg 1 -lvl 0 -x -80 -y 80 -defaultsOSRD
-preplace port port-id_cw_ptt -pg 1 -lvl 5 -x 1640 -y 290 -defaultsOSRD
+preplace port port-id_cw_ptt -pg 1 -lvl 7 -x 2290 -y 290 -defaultsOSRD
 preplace port port-id_protocol_2 -pg 1 -lvl 0 -x -80 -y 490 -defaultsOSRD
 preplace port port-id_resetn -pg 1 -lvl 0 -x -80 -y 590 -defaultsOSRD
 preplace port port-id_Byteswap -pg 1 -lvl 0 -x -80 -y 820 -defaultsOSRD
 preplace portBus Modulation_Setup -pg 1 -lvl 0 -x -80 -y 1060 -defaultsOSRD
 preplace portBus TXTestFreq -pg 1 -lvl 0 -x -80 -y 770 -defaultsOSRD
-preplace portBus TX_OUTPUTENABLE -pg 1 -lvl 5 -x 1640 -y 1230 -defaultsOSRD
+preplace portBus TX_OUTPUTENABLE -pg 1 -lvl 7 -x 2290 -y 1230 -defaultsOSRD
 preplace portBus keyer_config -pg 1 -lvl 0 -x -80 -y 130 -defaultsOSRD
-preplace inst util_reduced_logic_0 -pg 1 -lvl 4 -x 1470 -y 1060 -defaultsOSRD
-preplace inst xlslice_0 -pg 1 -lvl 2 -x 730 -y 330 -defaultsOSRD
-preplace inst xlslice_TXsel -pg 1 -lvl 3 -x 1100 -y 1060 -defaultsOSRD
-preplace inst xlslice_keyerdelay -pg 1 -lvl 2 -x 730 -y 130 -defaultsOSRD
-preplace inst xlslice_keyeren -pg 1 -lvl 2 -x 730 -y 430 -defaultsOSRD
-preplace inst xlslice_keyerhang -pg 1 -lvl 2 -x 730 -y 230 -defaultsOSRD
-preplace inst xlslice_opgate -pg 1 -lvl 2 -x 730 -y 1120 -defaultsOSRD
-preplace inst AXIS_Deinterleaver_0 -pg 1 -lvl 3 -x 1100 -y 620 -defaultsOSRD
-preplace inst axis_constant_1 -pg 1 -lvl 1 -x 410 -y 760 -defaultsOSRD
-preplace inst axis_mux_4_0 -pg 1 -lvl 4 -x 1470 -y 820 -defaultsOSRD
-preplace inst reg_to_axis_0 -pg 1 -lvl 3 -x 1100 -y 950 -defaultsOSRD
-preplace inst byteswap_48_0 -pg 1 -lvl 2 -x 730 -y 570 -defaultsOSRD
-preplace inst axi_bram_ctrl_0 -pg 1 -lvl 3 -x 1100 -y 80 -defaultsOSRD
-preplace inst axis_subset_converter_32to48bit -pg 1 -lvl 3 -x 1100 -y 800 -defaultsOSRD
-preplace inst blk_mem_gen_0 -pg 1 -lvl 4 -x 1470 -y 400 -defaultsOSRD
-preplace inst dds_compiler_testsource -pg 1 -lvl 2 -x 730 -y 780 -defaultsOSRD
-preplace inst util_vector_OR_TXgate -pg 1 -lvl 3 -x 1100 -y 1170 -defaultsOSRD
-preplace inst util_vector_TXgate1 -pg 1 -lvl 4 -x 1470 -y 1230 -defaultsOSRD
-preplace inst xlconst_amplQ -pg 1 -lvl 2 -x 730 -y 940 -defaultsOSRD
-preplace inst cw_key_ramp_0 -pg 1 -lvl 3 -x 1100 -y 310 -defaultsOSRD
-preplace netloc Byteswap_1 1 0 2 -60J 650 570
-preplace netloc Deinterleave_1 1 0 3 NJ 660 NJ 660 900J
-preplace netloc IQEnable_1 1 0 3 NJ 680 NJ 680 940J
-preplace netloc Net 1 0 3 NJ 1060 550 1060 NJ
-preplace netloc Net1 1 0 4 280 690 580 50 890 460 1300
-preplace netloc TX_ENABLE_1 1 0 4 NJ 1240 NJ 1240 NJ 1240 NJ
-preplace netloc TX_Strobe_1 1 0 3 NJ 1180 NJ 1180 NJ
+preplace inst util_reduced_logic_0 -pg 1 -lvl 6 -x 2117 -y 1060 -defaultsOSRD
+preplace inst xlslice_0 -pg 1 -lvl 2 -x 763 -y 330 -defaultsOSRD
+preplace inst xlslice_TXsel -pg 1 -lvl 3 -x 1200 -y 1080 -defaultsOSRD
+preplace inst xlslice_keyerdelay -pg 1 -lvl 2 -x 763 -y 130 -defaultsOSRD
+preplace inst xlslice_keyeren -pg 1 -lvl 2 -x 763 -y 430 -defaultsOSRD
+preplace inst xlslice_keyerhang -pg 1 -lvl 2 -x 763 -y 230 -defaultsOSRD
+preplace inst xlslice_opgate -pg 1 -lvl 2 -x 763 -y 1120 -defaultsOSRD
+preplace inst AXIS_Deinterleaver_0 -pg 1 -lvl 3 -x 1200 -y 640 -defaultsOSRD
+preplace inst axis_constant_1 -pg 1 -lvl 1 -x 423 -y 760 -defaultsOSRD
+preplace inst axis_mux_4_0 -pg 1 -lvl 6 -x 2117 -y 820 -defaultsOSRD
+preplace inst reg_to_axis_0 -pg 1 -lvl 3 -x 1200 -y 970 -defaultsOSRD
+preplace inst byteswap_48_0 -pg 1 -lvl 2 -x 763 -y 570 -defaultsOSRD
+preplace inst axi_bram_ctrl_0 -pg 1 -lvl 3 -x 1200 -y 100 -defaultsOSRD
+preplace inst axis_subset_converter_32to48bit -pg 1 -lvl 3 -x 1200 -y 820 -defaultsOSRD
+preplace inst blk_mem_gen_0 -pg 1 -lvl 6 -x 2117 -y 400 -defaultsOSRD
+preplace inst dds_compiler_testsource -pg 1 -lvl 2 -x 763 -y 780 -defaultsOSRD
+preplace inst util_vector_OR_TXgate -pg 1 -lvl 3 -x 1200 -y 1190 -defaultsOSRD
+preplace inst util_vector_TXgate1 -pg 1 -lvl 6 -x 2117 -y 1230 -defaultsOSRD
+preplace inst xlconst_amplQ -pg 1 -lvl 2 -x 763 -y 940 -defaultsOSRD
+preplace inst cw_key_ramp_0 -pg 1 -lvl 3 -x 1200 -y 330 -defaultsOSRD
+preplace inst cw_key_ramp_1 -pg 1 -lvl 3 -x 1200 -y -170 -defaultsOSRD
+preplace inst ClockDivider_0 -pg 1 -lvl 2 -x 763 -y -400 -defaultsOSRD
+preplace inst blk_mem_gen_1 -pg 1 -lvl 5 -x 1767 -y -230 -defaultsOSRD
+preplace inst xlconstant_0 -pg 1 -lvl 2 -x 763 -y -140 -defaultsOSRD
+preplace inst xlconstant_1 -pg 1 -lvl 2 -x 763 -y -40 -defaultsOSRD
+preplace netloc Byteswap_1 1 0 2 -60J 650 560
+preplace netloc ClockDivider_0_TC 1 2 2 NJ -400 1370
+preplace netloc Deinterleave_1 1 0 3 NJ 660 NJ 660 NJ
+preplace netloc IQEnable_1 1 0 3 NJ 680 NJ 680 NJ
+preplace netloc Net 1 0 3 NJ 1060 613 1060 1020J
+preplace netloc Net1 1 0 6 293 690 593 -250 940 20 1410 290 1657 290 1947
+preplace netloc TX_ENABLE_1 1 0 6 NJ 1240 NJ 1240 1020J 1260 NJ 1260 N 1260 1940
+preplace netloc TX_Strobe_1 1 0 3 NJ 1180 NJ 1180 920J
 preplace netloc TX_Test_Freq_1 1 0 1 NJ 770
-preplace netloc blk_mem_gen_0_douta 1 2 2 940 450 1260
-preplace netloc cw_key_down_1 1 0 3 -50J 70 NJ 70 930J
-preplace netloc cw_key_ramp_0_CW_PTT 1 3 2 1270J 280 1620J
-preplace netloc cw_key_ramp_0_bram_addr 1 3 1 1320 330n
-preplace netloc cw_key_ramp_0_bram_enable 1 3 1 1290 350n
-preplace netloc cw_key_ramp_0_bram_web 1 3 1 1270 370n
-preplace netloc keyer_config_1 1 0 2 NJ 130 570
-preplace netloc resetn_1 1 0 4 NJ 590 560 40 910 880 1310J
-preplace netloc util_reduced_logic_0_Res 1 4 1 NJ 1060
-preplace netloc util_vector_OR_TXgate_Res 1 3 1 1260 1170n
-preplace netloc util_vector_TXgate1_Res 1 4 1 NJ 1230
-preplace netloc xlconst_amplQ_dout 1 2 1 NJ 940
-preplace netloc xlslice_0_Dout 1 2 1 NJ 330
-preplace netloc xlslice_TXsel_Dout 1 3 1 1320 880n
-preplace netloc xlslice_keyerdelay_Dout 1 2 1 920J 130n
-preplace netloc xlslice_keyeren_Dout 1 2 1 880J 350n
-preplace netloc xlslice_keyerhang_Dout 1 2 1 880J 230n
-preplace netloc xlslice_opgate_Dout 1 2 1 880J 1120n
-preplace netloc xlslice_rate_Dout 1 0 3 -60J 30 NJ 30 940J
-preplace netloc AXIS_Deinterleaver_0_m00_axis 1 3 1 1260 610n
-preplace netloc Conn1 1 0 3 NJ 60 NJ 60 NJ
-preplace netloc Conn3 1 3 2 NJ 630 NJ
-preplace netloc TX_IQ_in_1 1 0 2 N 530 540
-preplace netloc axi_bram_ctrl_0_BRAM_PORTA 1 3 1 1310 80n
+preplace netloc blk_mem_gen_0_douta 1 2 4 1030 190 1390 310 N 310 1967
+preplace netloc cw_key_down_1 1 0 3 -60J 60 NJ 60 1000J
+preplace netloc cw_key_ramp_0_CW_PTT 1 3 4 1370J 330 N 330 1880 280 2270J
+preplace netloc cw_key_ramp_0_bram_addr 1 3 3 1430 360 N 360 N
+preplace netloc cw_key_ramp_0_bram_enable 1 3 3 1370 380 N 380 1880
+preplace netloc cw_key_ramp_0_bram_web 1 3 3 1430 400 N 400 1910
+preplace netloc cw_key_ramp_1_bram_enable 1 3 2 1420 280 1667
+preplace netloc keyer_config_1 1 0 2 NJ 130 613
+preplace netloc resetn_1 1 0 6 NJ 590 603 -230 980 740 NJ 740 N 740 1870
+preplace netloc util_reduced_logic_0_Res 1 6 1 NJ 1060
+preplace netloc util_vector_OR_TXgate_Res 1 3 3 N 1190 N 1190 1870
+preplace netloc util_vector_TXgate1_Res 1 6 1 NJ 1230
+preplace netloc xlconst_amplQ_dout 1 2 1 920J 940n
+preplace netloc xlconstant_0_dout 1 2 1 990 -140n
+preplace netloc xlconstant_1_dout 1 2 1 920 -150n
+preplace netloc xlslice_0_Dout 1 2 1 960J 330n
+preplace netloc xlslice_TXsel_Dout 1 3 3 N 1080 N 1080 1967
+preplace netloc xlslice_keyerdelay_Dout 1 2 1 1010J -190n
+preplace netloc xlslice_keyeren_Dout 1 2 1 950J -130n
+preplace netloc xlslice_keyerhang_Dout 1 2 1 1020J -170n
+preplace netloc xlslice_opgate_Dout 1 2 1 1020J 1120n
+preplace netloc xlslice_rate_Dout 1 0 3 -50J 70 NJ 70 970J
+preplace netloc blk_mem_gen_1_douta 1 2 3 1030 -310 NJ -310 1470
+preplace netloc cw_key_ramp_1_bram_addr 1 3 2 1420 -250 NJ
+preplace netloc AXIS_Deinterleaver_0_m00_axis 1 3 3 N 630 N 630 1880
+preplace netloc Conn1 1 0 3 NJ 50 NJ 50 990J
+preplace netloc Conn3 1 3 4 NJ 650 N 650 1890 630 NJ
+preplace netloc TX_IQ_in_1 1 0 2 N 530 560
+preplace netloc axi_bram_ctrl_0_BRAM_PORTA 1 3 3 1400 300 N 300 1957
 preplace netloc axis_constant_1_m_axis 1 1 1 N 760
-preplace netloc axis_mux_4_0_output_axis 1 4 1 NJ 820
-preplace netloc axis_subset_converter_32to48bit_M_AXIS 1 3 1 N 800
-preplace netloc byteswap_48_0_m_axis 1 2 1 880 570n
-preplace netloc cw_key_ramp_0_m0_axis 1 3 1 1280 250n
-preplace netloc cw_key_ramp_0_m1_axis 1 3 2 NJ 270 NJ
-preplace netloc dds_compiler_testsource_M_AXIS_DATA 1 2 1 N 780
-preplace netloc reg_to_axis_0_m_axis 1 3 1 1290 780n
-levelinfo -pg 1 -80 410 730 1100 1470 1640
-pagesize -pg 1 -db -bbox -sgen -280 -140 1860 1310
+preplace netloc axis_mux_4_0_output_axis 1 6 1 NJ 820
+preplace netloc axis_subset_converter_32to48bit_M_AXIS 1 3 3 1430 800 N 800 N
+preplace netloc byteswap_48_0_m_axis 1 2 1 920 570n
+preplace netloc cw_key_ramp_0_m0_axis 1 3 3 1380 320 N 320 1900
+preplace netloc cw_key_ramp_1_m1_axis 1 3 4 1430 270 NJ 270 NJ 270 NJ
+preplace netloc dds_compiler_testsource_M_AXIS_DATA 1 2 1 920 780n
+preplace netloc reg_to_axis_0_m_axis 1 3 3 1370 780 N 780 N
+levelinfo -pg 1 -80 423 763 1200 1450 1767 2117 2290
+pagesize -pg 1 -db -bbox -sgen -280 -550 2530 1380
 "
 }
 0

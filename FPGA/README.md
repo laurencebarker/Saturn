@@ -8,6 +8,8 @@ saturnprinaryxx.bin: primary config file for FPGA version XX. This should be pro
 
 Version history:
 
+V17: 20/6/2024: fixed edge rate sidetone added alongside the variable edge rate RF envelope
+V15, 16: experimental NOT RECOMMENDED builds investigating TX composite noise
 V14, 2/5/2024: maximum CW ramp length extended to 20ms. This is still an experimental release and **not recommended** for use yet.
 V13, 1/4/2024: revised TXZ chain to reduce overall TX noise level. This is an experimental release and **not recommended** for use yet.
 V12, Jan 9 2024:  Revised Alex SPI core with separate TX antenna bits to address CW keyer coupling energy to RX antennas
