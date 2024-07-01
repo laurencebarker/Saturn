@@ -103,6 +103,10 @@ void SetPort(uint32_t ThreadNum, uint16_t PortNum);
 //
 int MakeSocket(struct ThreadSocketData* Ptr, int DDCid);
 
+//
+// function ot get program version
+//
+uint32_t GetP2appVersion(void);
 
 
 

@@ -20,13 +20,12 @@
 //
 // VFO A frequency 
 //
-void HandleZZZD(void);                          // VFO freq down
-void HandleZZZU(void);                          // VFO freq up
-void HandleZZZE(void);                          // encoder
-void HandleZZZP(void);                          // pushbutton
-void HandleZZZI(void);                          // indicator
-void HandleZZZS(void);                          // s/w version
-void HandleZZTU(void);                          // TUNE
+void HandleZZFA(void);                          // frequency
+
+//
+// combined VFO status 
+//
+void HandleZZXV(void);                          // VFO status
 
 
 #endif  //#ifndef

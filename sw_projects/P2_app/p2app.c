@@ -54,9 +54,9 @@
 #include "OutHighPriority.h"
 #include "cathandler.h"
 #include "LDGATU.h"
-#include "g2panel.h"
+#include "frontpanelhandler.h"
 
-#define P2APPVERSION 24
+#define P2APPVERSION 25
 #define FIRMWARE_MIN_VERSION  8               // Minimum FPGA software version that this software requires
 #define FIRMWARE_MAX_VERSION 17               // Maximum FPGA software version that this software is tested on
 //
@@ -66,6 +66,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V25: 22/6/2024:   merged branch with beta code for G2 panel controls to communicate via CAT over TCP/IP
 // V24: 17/6/2024:   support for V17 firmware (fixed latency CW ramp sidetone)
 // V23: 07/5/2024:   no functional change. Recognises firmware V16.
 // V22: 06/05/2024:  CW ramp calculated by different C code (same shape). Enabled firmware V15.
@@ -174,6 +175,15 @@ pthread_t MicThread;
 pthread_t HighPriorityFromSDRThread;
 pthread_t CheckForExitThread;                 // thread looks for types "exit" command
 pthread_t CheckForNoActivityThread;           // thread looks for inactvity
+
+
+//
+// function ot get program version
+//
+uint32_t GetP2appVersion(void)
+{
+  return P2APPVERSION;
+}
 
 void sig_handler(int signo)
 {
@@ -332,6 +342,9 @@ void* CheckForActivity(void *arg)
 void Shutdown()
 {
   ShutdownCATHandler();                                   // close CAT connection socket
+    if(UseControlPanel)
+    ShutdownFrontPanelHandler();
+
   close(SocketData[0].Socketid);                          // close incoming data socket
   sem_destroy(&DDCInSelMutex);
   sem_destroy(&DDCResetFIFOMutex);
@@ -575,7 +588,7 @@ int main(int argc, char *argv[])
 // startup G2 front panel handler if needed
 //
   if(UseControlPanel)
-    InitialiseG2PanelHandler();
+    InitialiseFrontPanelHandler();
 
 //
 // start up thread for exit command checking
