@@ -16,6 +16,9 @@
 #ifndef __G2V2PANEL_h
 #define __G2V2PANEL_h
 
+#include <stdbool.h>
+#include <stdint.h>
+
 
 //
 // function to initialise a connection to the G2 V2 front panel; call if selected as a command line option
@@ -28,7 +31,22 @@ void InitialiseG2V2PanelHandler(void);
 //
 void ShutdownG2V2PanelHandler(void);
 
+//
+// receive ZZUT state
+//
+void SetG2V2ZZUTState(bool NewState);
 
+
+//
+// receive ZZYR state
+//
+void SetG2V2ZZYRState(bool NewState);
+
+
+//
+// receive ZZXV state
+//
+void SetG2V2ZZXVState(uint32_t NewState);
 
 
 #endif      // file sentry

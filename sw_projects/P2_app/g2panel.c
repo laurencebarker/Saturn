@@ -40,6 +40,7 @@
 #include "cathandler.h"
 #include "i2cdriver.h"
 #include "cathandler.h"
+#include "andromedacatmessages.h"
 
 
 //
@@ -269,6 +270,7 @@ void G2PanelTick(void *arg)
     uint32_t Cntr;
     uint32_t Version;
     uint32_t CatParam;
+    bool I2Cerror;
 
     while(G2PanelActive)
     {
@@ -277,10 +279,7 @@ void G2PanelTick(void *arg)
             if(CATDetected == false)
             {
                 CATDetected = true;
-                Version = (PRODUCTID * 100000) + (HWVERSION*1000) + GetP2appVersion();
-                printf("sending version string\n");
-                MakeCATMessageNumeric(eZZZS, Version);
-                MakeCATMessageNoParam(eZZFA);
+                MakeProductVersionCAT(PRODUCTID, HWVERSION, GetP2appVersion());
             }
         }
         else
@@ -302,7 +301,7 @@ void G2PanelTick(void *arg)
     //
     // now read MCP I2C pushbuttons, and scan all pushbuttons
     //
-            MCPData = i2c_read_word_data(0x12);                             // read GPIOA, B into bottom 16 bits
+            MCPData = i2c_read_word_data(0x12, &I2Cerror);                  // read GPIOA, B into bottom 16 bits
             for (Cntr = 16; Cntr < 20; Cntr++)
                 MCPData |= (IOPinValues[Cntr] << Cntr);                     // add in PB IO pin
 
@@ -311,24 +310,21 @@ void G2PanelTick(void *arg)
                 PBPinShifts[PinCntr] = ((PBPinShifts[PinCntr] << 1) | (MCPData & 1)) & 0b00000111;           // most recent 3 samples
                 MCPData = MCPData >> 1;
                 ScanCode = LookupButtonCode[PinCntr];
-                if(PBPinShifts[PinCntr] == 0b00000100)
+                if(PBPinShifts[PinCntr] == 0b00000100)                      // button press detected
                 {
-                    CatParam = ScanCode * 10 + 1;
-                    MakeCATMessageNumeric(eZZZP, CatParam);
+                    MakePushbuttonCAT(ScanCode, 1);
                     PBLongCount[PinCntr] = VLONGPRESSCOUNT;                 // set long press count
                 }
-                else if (PBPinShifts[PinCntr] == 0b00000011)
+                else if (PBPinShifts[PinCntr] == 0b00000011)                // button release detected
                 {
-                    CatParam = ScanCode * 10;
-                    MakeCATMessageNumeric(eZZZP, CatParam);
+                    MakePushbuttonCAT(ScanCode, 0);
                     PBLongCount[PinCntr] = 0;                               // clear long press count
                 }
                 else if(PBLongCount[PinCntr] != 0)                          // if button pressed, and long press not yet declared
                 {
                     if(--PBLongCount[PinCntr] == 0)
                     {
-                        CatParam = ScanCode * 10 + 2;
-                        MakeCATMessageNumeric(eZZZP, CatParam);
+                        MakePushbuttonCAT(ScanCode, 2);
                     }
                 }
             }
@@ -339,30 +335,13 @@ void G2PanelTick(void *arg)
             {
                 ScanCode = LookupEncoderCode[Cntr];
                 Steps = GetEncoderCount(Cntr);
-                if(Steps > 0)
-                {
-                    if (Steps > 9)                                  // limited to 9 steps
-                        Steps = 9;
-                    CatParam = (ScanCode * 10) + Steps;
-                    MakeCATMessageNumeric(eZZZE, CatParam);
-                }
-                else if(Steps < 0)
-                {
-                    Steps = -Steps;
-                    if (Steps > 9)                                  // limited to 9 steps
-                        Steps = 9;
-                    CatParam = (ScanCode * 10) +500 + Steps;
-                    MakeCATMessageNumeric(eZZZE, CatParam);
-                }
+                MakeEncoderCAT(Steps, ScanCode);
             }
             //
             // read optical encoder
             //
             Steps = ReadOpticalEncoder();
-            if (Steps<0)
-                MakeCATMessageNumeric(eZZZD, -Steps);
-            else if(Steps > 0)
-                MakeCATMessageNumeric(eZZZU, Steps);
+            MakeVFOEncoderCAT(Steps);
             //
             // check keepalive
             //
@@ -387,8 +366,6 @@ void G2PanelTick(void *arg)
 //
 void SetupG2PanelGPIO(void)
 {
-    struct gpiod_line_request_config PBConfig;
-
     chip = NULL;
 
     //
@@ -434,8 +411,6 @@ void SetupG2PanelGPIO(void)
 //
 void SetupG2PanelI2C(void)
 {
-  int flags;
-
   // setup IOCONA, B
   if (i2c_write_byte_data(0x0A, 0x00) < 0) { return; }
   if (i2c_write_byte_data(0x0B, 0x00) < 0) { return; }

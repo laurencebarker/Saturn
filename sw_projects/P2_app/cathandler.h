@@ -46,6 +46,8 @@ typedef enum
   eZZTU,                          // tune
   eZZFA,
   eZZXV,
+  eZZUT,
+  eZZYR,
   eNoCommand                      // this is an exception condition
 }ECATCommands;
 

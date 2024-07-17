@@ -69,7 +69,7 @@ int CATReadPtr = 0;                         // pointer to next string to read
 // and the number of commands defined here must be correct
 // (not including the final eNoCommand)
 // if there is no handler needed, set function pointer to NULL
-#define VNUMCATCMDS 9
+#define VNUMCATCMDS 11
 
 SCATCommands GCATCommands[VNUMCATCMDS] = 
 {
@@ -80,9 +80,11 @@ SCATCommands GCATCommands[VNUMCATCMDS] =
   {"ZZZI", eNum, 0, 999, 3, false, NULL},                       // indicator
   {"ZZZS", eNum, 0, 9999999, 7, false, NULL},                   // s/w version
   {"ZZTU", eBool, 0, 1, 1, false, NULL},                        // tune
-  {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA},
-  {"ZZXV", eNum, 0, 1023, 4, false, NULL}                       // VFO status
-  };
+  {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA},                  // VFO A frequency
+  {"ZZXV", eNum, 0, 1023, 4, false, HandleZZXV},                      // VFO status
+  {"ZZUT", eBool, 0, 1, 1, false, HandleZZUT},                        // 2 tone test
+  {"ZZYR", eBool, 0, 1, 1, false, HandleZZYR}                         // RX1/RX2 buttons
+};
 
 
 

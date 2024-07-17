@@ -27,5 +27,15 @@ void HandleZZFA(void);                          // frequency
 //
 void HandleZZXV(void);                          // VFO status
 
+//
+// 2 Tone test 
+//
+void HandleZZUT(void);                          // 2 tone test
+
+//
+// RX1/RX2
+//
+void HandleZZYR(void);                          // RX1/2
+
 
 #endif  //#ifndef

@@ -1,5 +1,5 @@
 /* Copyright (C)
-* 2017 - John Melton, G0ORX/N6LYT
+* 2024 - Laurence Barker G8NJJ
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -46,21 +46,54 @@ int i2c_write_byte_data(uint8_t reg, uint8_t data)
 }
 
 //
+// 16 bit write
+//
+int i2c_write_word_data(uint8_t reg, uint16_t data)
+{
+  int rc;
+
+  if ((rc = i2c_smbus_write_word_data(i2c_fd, reg, data & 0xFFFF)) < 0) 
+  {
+    printf("%s: 16 bit write i2c failed: addr=%02X\n", __FUNCTION__, reg);
+  }
+
+  return rc;
+}
+
+
+
+//
 // 8 bit read
 //
-uint8_t i2c_read_byte_data(uint8_t reg) 
+uint8_t i2c_read_byte_data(uint8_t reg, bool *error) 
 {
-  uint32_t data;
+  int32_t data;
+
+  *error = false;
   data = i2c_smbus_read_byte_data(i2c_fd, reg);
-  return data & 0xFF;
+  if(data < 0)
+  {
+    *error = true;
+    printf("error on i2c byte read, code=%d\n", data);
+  }
+  return (uint8_t) (data & 0xFF);
 }
+
 
 //
 // 16 bit read 
 //
-uint16_t i2c_read_word_data(uint8_t reg) 
+uint16_t i2c_read_word_data(uint8_t reg, bool *error) 
 {
-  uint32_t data;
+  int32_t data;
+
+
+  *error = false;
   data = i2c_smbus_read_word_data(i2c_fd, reg);
-  return data & 0xFFFF;
+  if(data < 0)
+  {
+    *error = true;
+    printf("error on i2c word read, code=%d\n", data);
+  }
+  return (uint16_t) (data & 0xFFFF);
 }

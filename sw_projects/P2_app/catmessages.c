@@ -7,7 +7,7 @@
 // copyright Laurence Barker November 2021
 // licenced under GNU GPL3
 //
-// catmessages.h:
+// catmessages.c:
 //
 // handle incoming CAT messages
 //
@@ -34,6 +34,7 @@
 #include "../common/saturndrivers.h"
 #include "../common/hwaccess.h"
 #include "../common/debugaids.h"
+#include "g2v2panel.h"
 #include "catmessages.h"
 #include "cathandler.h"
 
@@ -55,10 +56,32 @@ void HandleZZFA(void)
     printf("ZZFA: Frequency=%s\n", ParsedString);
 }
 
+
 //
 // combined VFO status 
 //
 void HandleZZXV(void)                          // VFO status
 {
+    SetG2V2ZZXVState((uint32_t)ParsedInt);
     printf("ZZXV: param=%04x\n", ParsedInt);
+}
+
+
+//
+// 2 Tone test 
+//
+void HandleZZUT(void)                          // 2 tone test
+{
+    SetG2V2ZZUTState(ParsedBool);
+    printf("ZZUT: param=%04x\n", (int)ParsedBool);
+}
+
+
+//
+// RX1/RX2
+//
+void HandleZZYR(void)                          // RX1/2
+{
+    SetG2V2ZZYRState(ParsedBool);
+    printf("ZZUT: param=%04x\n", (int)ParsedBool);
 }

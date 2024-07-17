@@ -17,10 +17,7 @@
 #define __saturntypes_h
 
 
-typedef int bool;
-#define true 1
-#define false 0
-
+#include <stdbool.h>
 
 
 #endif							// #ifndef __saturntypes_h
