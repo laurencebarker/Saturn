@@ -226,6 +226,7 @@ void G2V2PanelInterrupt(void *arg)
                                 
                         case VVFOSTEP:
                             Steps = (int8_t)(EventData);
+                            Steps |= ((Steps & 0x40) << 1);         // sign extend
                             MakeVFOEncoderCAT(Steps);
                             break;
 
@@ -273,7 +274,6 @@ void G2V2PanelInterrupt(void *arg)
             }
         }
     }
-    printf("exiting int handler for G2V2\n");
 }
 
 
