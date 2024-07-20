@@ -319,27 +319,26 @@ void ParseCATCmd(char* Buffer)
   if (ValidResult == true)
   {
     // debug: print the match found
-    printf("match= %s ; parameter=", GCATCommands[MatchedCAT].CATString);
-    switch(ParsedType)
-    {
-      case eStr: 
-        printf("%s\n", ParsedString);
-        break;
-      case eNum:
-        ParsedInt = constrain(ParsedInt, StructPtr->MinParamValue, StructPtr->MaxParamValue);
-        printf("%ld\n", ParsedInt);
-        break;
-      case eBool:
-        if(ParsedBool == true)
-          printf("true\n");
-        else
-          printf("false\n");
-
-        break;
-      case eNone:
-        printf("\n");
-        break;
-    }
+//    printf("match= %s ; parameter=", GCATCommands[MatchedCAT].CATString);
+//    switch(ParsedType)
+//    {
+//      case eStr: 
+//        printf("%s\n", ParsedString);
+//        break;
+//      case eNum:
+//        ParsedInt = constrain(ParsedInt, StructPtr->MinParamValue, StructPtr->MaxParamValue);
+//        printf("%ld\n", ParsedInt);
+//        break;
+//      case eBool:
+//        if(ParsedBool == true)
+//          printf("true\n");
+//        else
+//          printf("false\n");
+//        break;
+//      case eNone:
+//        printf("\n");
+//        break;
+//    }
     HandlerPtr = GCATCommands[MatchedCAT].handler;
     if(HandlerPtr != NULL)
       (*HandlerPtr)();
@@ -374,8 +373,6 @@ void SendCATMessage(char* Msg)
   {
     strcpy(OutputStrings[CATWritePtr++], Msg);
     printf("Sent CAT msg %s\n", Msg);                       // debug
-    if(ThreadActive == false)
-      printf("Thread is not active\n");
     if(CATWritePtr >= VNUMOPSTRINGS)
       CATWritePtr = 0;
   }
@@ -612,12 +609,6 @@ void* CATHandlerThread(void *arg)
           {
               ParseCATCmd(ReadBuffer);
               memset(ReadBuffer, 0, sizeof(ReadBuffer));
-// debug - send a CAT command on 1st connect
-//              if(DebugMessageSent == false)
-//              {
-//                  MakeCATMessageNoParam(eZZFA);
-//                  DebugMessageSent=true;
-//              }
           }
           //
           // if there are CAT messages available, send them
@@ -628,7 +619,6 @@ void* CATHandlerThread(void *arg)
             strcpy(SendBuffer, OutputStrings[CATReadPtr++]);
             if(CATReadPtr >= VNUMOPSTRINGS)
               CATReadPtr = 0;
-            printf("sending CAT command\n");        //debug
             send(CATSocketid, SendBuffer, TXMessageLength, 0);
           }
 

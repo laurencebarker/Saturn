@@ -152,7 +152,7 @@ uint8_t ScanCode2Thetis[] =
     30, 34, 35, 33, 36, 37, 38, 39, 
     40, 41, 0, 30, 31, 32, 33, 34, 
     35, 36, 37, 38, 39, 40, 41, 0, 
-    0, 0, 7
+    0, 7
 };
 
 
@@ -173,7 +173,7 @@ uint8_t GetThetisScanCode(uint8_t V2Code, bool* Shifted)
     return NewScanCode;
 }
 
-#define VTHETISSHIFTSCANCODE 36
+#define VTHETISSHIFTSCANCODE 29
 
 
 
@@ -251,13 +251,13 @@ void G2V2PanelInterrupt(void *arg)
 
                         case VPBLONGRESS:
                             ThetisScanCode = GetThetisScanCode(EventData, &ThetisPBShift);
-                            MakePushbuttonCAT(EventData, 2);
+                            MakePushbuttonCAT(ThetisScanCode, 2);
                             printf("Pushbutton longpress, scan code = %d; ", EventData);
                             break;
 
                         case VPBRELEASE:
                             ThetisScanCode = GetThetisScanCode(EventData, &ThetisPBShift);
-                            MakePushbuttonCAT(EventData, 0);
+                            MakePushbuttonCAT(ThetisScanCode, 0);
                             printf("Pushbutton release, scan code = %d; ", EventData);
                             break;
 

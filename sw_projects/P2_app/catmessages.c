@@ -63,7 +63,7 @@ void HandleZZFA(void)
 void HandleZZXV(void)                          // VFO status
 {
     SetG2V2ZZXVState((uint32_t)ParsedInt);
-    printf("ZZXV: param=%04x\n", ParsedInt);
+//    printf("ZZXV: param=%04x\n", ParsedInt);
 }
 
 
@@ -73,7 +73,7 @@ void HandleZZXV(void)                          // VFO status
 void HandleZZUT(void)                          // 2 tone test
 {
     SetG2V2ZZUTState(ParsedBool);
-    printf("ZZUT: param=%04x\n", (int)ParsedBool);
+    //printf("ZZUT: param=%04x\n", (int)ParsedBool);
 }
 
 
@@ -83,5 +83,5 @@ void HandleZZUT(void)                          // 2 tone test
 void HandleZZYR(void)                          // RX1/2
 {
     SetG2V2ZZYRState(ParsedBool);
-    printf("ZZUT: param=%04x\n", (int)ParsedBool);
+//    printf("ZZUT: param=%04x\n", (int)ParsedBool);
 }
