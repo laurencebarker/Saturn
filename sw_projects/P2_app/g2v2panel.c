@@ -239,25 +239,28 @@ void G2V2PanelInterrupt(void *arg)
                             break;
 
                         case VPBPRESS:
-                            ThetisScanCode = GetThetisScanCode(EventData, &ThetisPBShift);
-                            if(ThetisPBShift)
-                            {
-                                MakePushbuttonCAT(VTHETISSHIFTSCANCODE, 1);
-                                MakePushbuttonCAT(VTHETISSHIFTSCANCODE, 0);
-                            }
-                            MakePushbuttonCAT(ThetisScanCode, 1);
+//                            ThetisScanCode = GetThetisScanCode(EventData, &ThetisPBShift);
+//                            if(ThetisPBShift)
+//                            {
+//                                MakePushbuttonCAT(VTHETISSHIFTSCANCODE, 1);
+//                                MakePushbuttonCAT(VTHETISSHIFTSCANCODE, 0);
+//                            }
+//                            MakePushbuttonCAT(ThetisScanCode, 1);
+                            MakePushbuttonCAT(EventData, 1);
                             printf("Pushbutton press, scan code = %d; ", EventData);
                             break;
 
                         case VPBLONGRESS:
-                            ThetisScanCode = GetThetisScanCode(EventData, &ThetisPBShift);
-                            MakePushbuttonCAT(ThetisScanCode, 2);
+//                            ThetisScanCode = GetThetisScanCode(EventData, &ThetisPBShift);
+//                            MakePushbuttonCAT(ThetisScanCode, 2);
+                            MakePushbuttonCAT(EventData, 2);
                             printf("Pushbutton longpress, scan code = %d; ", EventData);
                             break;
 
                         case VPBRELEASE:
-                            ThetisScanCode = GetThetisScanCode(EventData, &ThetisPBShift);
-                            MakePushbuttonCAT(ThetisScanCode, 0);
+//                            ThetisScanCode = GetThetisScanCode(EventData, &ThetisPBShift);
+//                            MakePushbuttonCAT(ThetisScanCode, 0);
+                            MakePushbuttonCAT(EventData, 0);
                             printf("Pushbutton release, scan code = %d; ", EventData);
                             break;
 
