@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "saturntypes.h": "c"
+        "saturntypes.h": "c",
+        "stdbool.h": "c"
     }
 }

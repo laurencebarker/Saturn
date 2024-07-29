@@ -45,6 +45,26 @@
 // the parsed result will be in ParsedString, ParsedInt or ParsedBool as set in message table
 //
 
+//
+// array of records. This must exactly match the enum ECATCommands in tiger.h
+// and the number of commands defined here must be correct
+// (not including the final eNoCommand)
+// if there is no handler needed, set function pointer to NULL
+
+SCATCommands GCATCommands[VNUMCATCMDS] = 
+{
+  {"ZZZD", eNum, 0, 99, 2, false, NULL},                        // VFO down
+  {"ZZZU", eNum, 0, 99, 2, false, NULL},                        // VFO up
+  {"ZZZE", eNum, 0, 999, 3, false, NULL},                       // encoder
+  {"ZZZP", eNum, 0, 999, 3, false, NULL},                       // pushbutton
+  {"ZZZI", eNum, 0, 999, 3, false, NULL},                       // indicator
+  {"ZZZS", eNum, 0, 9999999, 7, false, HandleZZZS},             // s/w version
+  {"ZZTU", eBool, 0, 1, 1, false, NULL},                        // tune
+  {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA},                  // VFO A frequency
+  {"ZZXV", eNum, 0, 1023, 4, false, HandleZZXV},                // VFO status
+  {"ZZUT", eBool, 0, 1, 1, false, HandleZZUT},                  // 2 tone test
+  {"ZZYR", eBool, 0, 1, 1, false, HandleZZYR}                   // RX1/RX2 buttons
+};
 
 
 //
@@ -84,4 +104,13 @@ void HandleZZYR(void)                          // RX1/2
 {
     SetG2V2ZZYRState(ParsedBool);
 //    printf("ZZUT: param=%04x\n", (int)ParsedBool);
+}
+
+
+//
+// product ID and version
+//
+void HandleZZZS(void)                          // ID
+{
+    SetG2V2ZZZSState((uint32_t)ParsedInt);
 }

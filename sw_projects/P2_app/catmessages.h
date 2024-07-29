@@ -17,6 +17,33 @@
 #define __catmessages_h
 
 
+
+//
+// firstly an enumerated list of all of the CAT commands
+// ordered as per documentation, not alphabetically!
+// this list must match exactly the table GCATCommands
+//
+#define VNUMCATCMDS 11
+
+typedef enum 
+{
+  eZZZD,                          // VFO steps down
+  eZZZU,                          // VFO steps up
+  eZZZE,                          // other encoder
+  eZZZP,                          // pushbutton
+  eZZZI,                          // indicator
+  eZZZS,                          // s/w version
+  eZZTU,                          // tune
+  eZZFA,
+  eZZXV,
+  eZZUT,
+  eZZYR,
+  eNoCommand                      // this is an exception condition
+}ECATCommands;
+
+
+
+
 //
 // VFO A frequency 
 //
@@ -36,6 +63,11 @@ void HandleZZUT(void);                          // 2 tone test
 // RX1/RX2
 //
 void HandleZZYR(void);                          // RX1/2
+
+//
+// product ID and version
+//
+void HandleZZZS(void);                          // ID
 
 
 #endif  //#ifndef

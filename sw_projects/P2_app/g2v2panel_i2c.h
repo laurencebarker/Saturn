@@ -20,9 +20,6 @@
 #include <stdint.h>
 
 
-#define G2ARDUINOPATH "/dev/ttyACM0"
-
-
 //
 // function to initialise a connection to the G2 V2 front panel; call if selected as a command line option
 //
@@ -50,11 +47,6 @@ void SetG2V2ZZYRState(bool NewState);
 // receive ZZXV state
 //
 void SetG2V2ZZXVState(uint32_t NewState);
-
-//
-// receive ZZZS state
-//
-void SetG2V2ZZZSState(uint32_t Param);
 
 
 #endif      // file sentry

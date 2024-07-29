@@ -18,6 +18,8 @@
 
 
 #include "../common/saturntypes.h"
+#include "catmessages.h"
+
 typedef unsigned char byte;                 // copy of an Arduino type
 
 extern bool CATPortAssigned;                // true if CAT set up and active
@@ -29,27 +31,6 @@ extern bool ParsedBool;                          // if a bool expected, it goes 
 extern long ParsedInt;                            // if int expected, it goes here
 extern char ParsedString[20];                    // if string expected, it goes here
 
-
-//
-// firstly an enumerated list of all of the CAT commands
-// ordered as per documentation, not alphabetically!
-// this list must match exactly the table GCATCommands
-//
-typedef enum 
-{
-  eZZZD,                          // VFO steps down
-  eZZZU,                          // VFO steps up
-  eZZZE,                          // other encoder
-  eZZZP,                          // pushbutton
-  eZZZI,                          // indicator
-  eZZZS,                          // s/w version
-  eZZTU,                          // tune
-  eZZFA,
-  eZZXV,
-  eZZUT,
-  eZZYR,
-  eNoCommand                      // this is an exception condition
-}ECATCommands;
 
 
 typedef enum
@@ -125,6 +106,15 @@ void SetupCATPort(int Port);
 //
 void ShutdownCATHandler(void);
 
+//
+// send a CAT message to TCP/IP port
+//
+void SendCATMessage(char* CatString);
+
+//
+// parse a CAT command, and call appropriate handler
+//
+void ParseCATCmd(char* CATString);
 
 
 #endif  //#ifndef

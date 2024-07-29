@@ -16,7 +16,6 @@
 #include "g2v2panel.h"
 #include "threaddata.h"
 #include <stdbool.h>
-#include <stdint.h>
 #include "../common/saturntypes.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -31,6 +30,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <termios.h>
 
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
@@ -50,20 +50,18 @@ bool G2V2CATDetected = false;                       // true if panel ID message 
 
 extern int i2c_fd;                                  // file reference
 char* gpio_dev = NULL;
-struct gpiod_line *intline;
 pthread_t G2V2PanelTickThread;                      // thread with periodic tick
-pthread_t G2V2PanelInterruptThread;                 // thread with periodic tick
+pthread_t G2V2PanelSerialThread;                    // thread wfor serial read from panel
 uint8_t G2V2PanelSWID;
-uint8_t G2V2PanelHWVersion = 1;
+uint8_t G2V2PanelHWVersion;
 uint8_t G2V2PanelProductID;
 uint32_t VKeepAliveCnt;                             // count of ticks for keepalive
 uint8_t CATPollCntr;                                // determines which message to poll for
-static struct gpiod_chip *chip = NULL;
 bool G2ToneState;                                   // true if 2 tone test in progress
 bool GVFOBSelected;                                 // true if VFO B selected
 uint32_t GCombinedVFOState;                         // reported VFO state bits
 uint16_t GLEDState;                                 // LED state settings
-
+int SerialDev;                                      // serial device
 
 
 #define VKEEPALIVECOUNT 150                         // 15s period between keepalive requests (based on 100ms tick)
@@ -75,205 +73,130 @@ uint16_t GLEDState;                                 // LED state settings
 #define VPBRELEASE 5
 
 
+
+
 //
-// set GPIO interrupt line to required state
+// send a CAT message to the panel
 //
-void SetupG2V2PanelGPIO(void)
+void SendCATtoPanel(char* Message)
 {
-    chip = NULL;
+    int Length;                                     // message length in charactera
+    int Cntr;
 
-    //
-    // Open GPIO device. Try devices for RPi4 and RPi5
-    //
-    if (chip == NULL)
-    {
-        gpio_dev = "/dev/gpiochip4";      // works on RPI5
-        chip = gpiod_chip_open(gpio_dev);
-    }
-
-    if (chip == NULL)
-    {
-        gpio_dev = "/dev/gpiochip0";     // works on RPI4
-        chip = gpiod_chip_open(gpio_dev);
-    }
-
-    //
-    // If no connection, give up
-    //
-    if (chip == NULL)
-        printf("%s: open gpio chip failed\n", __FUNCTION__);
-    else
-    {
-        printf("%s: G2V2 panel GPIO device=%s\n", __FUNCTION__, gpio_dev);
-
-        intline = gpiod_chip_get_line(chip, 4);
-        if(!intline)
-            perror("gpiod_chip_get_line");
-
-//
-// setup interrupt line as an input, with falling edge events
-//    
-        gpiod_line_request_falling_edge_events(intline, "interrupt");
-    }
+    Length = strlen(Message);
+    write(SerialDev, Message, Length);
 }
 
 
 
 
+
 //
-// 
+// setup serial port
 //
-void SetupG2V2PanelI2C(void)
+void SetupG2V2PanelSerial(void)
 {
-int Retval;
-bool Error;                                                     // i2c error flag
+    int Retval;
+    bool Error;                                                     // i2c error flag
+    int bits;
+    struct termios Ser;
+
 //
-// read product ID and version register
+// setup serial; then send CAT message to read product ID and version register
 //
-    Retval = i2c_read_word_data(0x0C, &Error);                  // read ID register (also clears interrupt)
-    if(!Error)
+    printf("Setting up serial connection to front panel controller\n");
+    SerialDev = open(G2ARDUINOPATH, O_RDWR);
+    if(SerialDev == 0)
     {
-        G2V2PanelProductID = (Retval >> 8) &0xFF;
-        printf("found panel product ID=%d", G2V2PanelProductID);
-        G2V2PanelSWID = Retval & 0xFF;
-        printf("; S/W verson = %d\n", G2V2PanelSWID);
+        printf("serial open failed\n");
     }
+
+
+
+	if (ioctl(SerialDev, TIOCMGET, &bits) < 0) 
+    {
+		close(SerialDev);
+		perror("ioctl(TCIOMGET)");
+		return -1;
+	}
+
+	bits &= ~(TIOCM_DTR | TIOCM_RTS);
+	if (ioctl(SerialDev, TIOCMSET, &bits) < 0) {
+		close(SerialDev);
+		perror("ioctl(TIOCMSET)");
+		return -1;
+	}
+	sleep(1);
+	tcflush(SerialDev, TCIFLUSH);
+	bits &= TIOCM_DTR;
+	if (ioctl(SerialDev, TIOCMSET, &bits) < 0) 
+    {
+		close(SerialDev);
+		perror("ioctl(TIOCMSET)");
+		return -1;
+	}
+
+	memset(&Ser, 0, sizeof(Ser));
+	Ser.c_iflag = IGNBRK | IGNPAR;
+	Ser.c_cflag = CS8 | CREAD | HUPCL | CLOCAL;
+	cfsetospeed(&Ser, B9600);
+	cfsetispeed(&Ser, B9600);
+    Ser.c_cc[VTIME] = 0;                // no timeout on read
+    Ser.c_cc[VMIN] = 1;                 // read will return just one character
+
+	if (tcsetattr(SerialDev, TCSANOW, &Ser) < 0) 
+    {
+		perror("tcsetattr()");
+		return -1;
+	}
+	tcflush(SerialDev, TCIFLUSH);
 }
 
 
 
+#define VESERINSIZE 120                 // large enough to hold a whole CAT message
 //
-// lookup from a G2V2 scan code to a Thetis scan code
+// serial read thread
 //
-uint8_t ScanCode2Thetis[] =
+void G2V2PanelSerial(void *arg)
 {
-    0, 1, 3, 11, 49, 50, 48, 47, 
-    45, 44, 43, 42, 9, 5, 31, 32, 
-    30, 34, 35, 33, 36, 37, 38, 39, 
-    40, 41, 0, 30, 31, 32, 33, 34, 
-    35, 36, 37, 38, 39, 40, 41, 0, 
-    0, 7
-};
+    char SerialInputBuffer[VESERINSIZE];
+    char CATMessageBuffer[VESERINSIZE];
+    int ReadCnt;
+    int Cntr;
+    int CATWritePtr = 0;
+    char ch;                                    // individual read character
+    int MatchPosition;
 
-
-
+    printf("G2 panel Serial read handler thread established\n");
 //
-// Get Thetis Scan Code
-// lookup scan code, and indicate whether a SHIFT is needed
-//
-uint8_t GetThetisScanCode(uint8_t V2Code, bool* Shifted)
-{
-    uint8_t NewScanCode;
-
-    if((V2Code >= 27) && (V2Code <= 38))
-        *Shifted = true;
-    else
-        *Shifted = false;                               // assume no shift
-    NewScanCode = ScanCode2Thetis[V2Code];
-    return NewScanCode;
-}
-
-#define VTHETISSHIFTSCANCODE 29
-
-
-
-//
-// interrupt thread
-//
-void G2V2PanelInterrupt(void *arg)
-{
-    uint16_t Retval;
-    uint8_t EventCount;
-    uint8_t EventID;
-    uint8_t EventData;
-    int8_t Steps;
-    bool Error;
-    struct timespec ts = {1, 0};                                    // timeout time = 1s
-    struct gpiod_line_event intevent;
-    uint8_t Encoder;
-    bool ThetisPBShift;
-    uint8_t ThetisScanCode;
-
-    printf("G2 panel Interrupt Handler thread established\n");
-//
-// now loop waiting for interrupt, then reading the i2c Event register
-// need to read all i2c data, until it reports no more events
+// now loop waiting for characters, then form them into CAT messages terminated by semicolon
 //
     while(G2V2PanelActive)
     {
-        Retval = gpiod_line_event_wait(intline, &ts);                   // wait for interrupt from Arduino
-        if(Retval > 0)                                                  // if event occurred ie not timeout
+        ReadCnt = read(SerialDev, &SerialInputBuffer, VESERINSIZE);
+        if (ReadCnt > 0)
         {
-            Retval = gpiod_line_event_read(intline, &intevent);         // UNDOCUMENTED: read event to cancel it
-            //
-            // the interrupt line has reached zero. Read and process one i2c event
-            // if there is more than one event present, the interrupt line will stay low
-            //
-            while(1)
+//
+// we have input data available, so read it one char at a time and write to buffer
+// if we find a terminating semicolon, process the command
+// if we get a control character, abandon the line so far and start again
+//
+            for(Cntr=0; Cntr < ReadCnt; Cntr++)
             {
-                Retval = i2c_read_word_data(0x0B, &Error);                  // read Arduino i2c event register
-                if(!Error)
+                ch=SerialInputBuffer[Cntr];
+                CATMessageBuffer[CATWritePtr++] = ch;
+                if (ch == ';')
                 {
-                    printf("data=%04x; ", Retval);
-                    EventID = (Retval >> 8) & 0x0F;
-                    EventCount = (Retval >> 12) & 0x0F;
-                    EventData = Retval & 0x7F;
-
-                    switch(EventID)
-                    {
-                        case VNOEVENT:
-                            break;
-                                
-                        case VVFOSTEP:
-                            Steps = (int8_t)(EventData);
-                            Steps |= ((Steps & 0x40) << 1);         // sign extend
-                            MakeVFOEncoderCAT(Steps);
-                            break;
-
-                        case VENCODERSTEP:
-                            Steps = (int8_t)(EventData & 0x7);
-                            if (Steps >= 4)
-                                Steps = -(8-Steps);
-                            Encoder = ((EventData>>3) + 1);
-                            MakeEncoderCAT(Steps, Encoder);
-                            break;
-
-                        case VPBPRESS:
-//                            ThetisScanCode = GetThetisScanCode(EventData, &ThetisPBShift);
-//                            if(ThetisPBShift)
-//                            {
-//                                MakePushbuttonCAT(VTHETISSHIFTSCANCODE, 1);
-//                                MakePushbuttonCAT(VTHETISSHIFTSCANCODE, 0);
-//                            }
-//                            MakePushbuttonCAT(ThetisScanCode, 1);
-                            MakePushbuttonCAT(EventData, 1);
-                            printf("Pushbutton press, scan code = %d; ", EventData);
-                            break;
-
-                        case VPBLONGRESS:
-//                            ThetisScanCode = GetThetisScanCode(EventData, &ThetisPBShift);
-//                            MakePushbuttonCAT(ThetisScanCode, 2);
-                            MakePushbuttonCAT(EventData, 2);
-                            printf("Pushbutton longpress, scan code = %d; ", EventData);
-                            break;
-
-                        case VPBRELEASE:
-//                            ThetisScanCode = GetThetisScanCode(EventData, &ThetisPBShift);
-//                            MakePushbuttonCAT(ThetisScanCode, 0);
-                            MakePushbuttonCAT(EventData, 0);
-                            printf("Pushbutton release, scan code = %d; ", EventData);
-                            break;
-
-                        default:
-                            printf("spurious event code = %d; ", EventID);
-                            break;
-
-                    }
-                    printf(" Remaining Events Count = %d\n", EventCount);
-                    if(EventCount <= 1)
-                        break;
+                    CATMessageBuffer[CATWritePtr++] = 0;            // terminate the string
+//                    printf("rxed cat command = %s\n", CATMessageBuffer);
+                    MatchPosition = (int)(strstr(CATMessageBuffer, "ZZZS") - CATMessageBuffer);
+                    if(MatchPosition == 0)
+                        ParseCATCmd(CATMessageBuffer);              // if ZZZS, process locally; else send to TCPIP CAT port
+                    else
+                        SendCATMessage(CATMessageBuffer);
+                    CATWritePtr = 0;                                // reset for next CAT message
                 }
-                usleep(1000);                                                   // small 1ms delay between i2c reads
             }
         }
     }
@@ -373,23 +296,24 @@ void G2V2PanelTick(void *arg)
 
 //
 // function to initialise a connection to the G2 V2 front panel; call if selected as a command line option
-// initialise i2c and GPIO; and create threads for tick and interrupt
+// initialise serial; and create threads for tick andserial read
 //
 void InitialiseG2V2PanelHandler(void)
 {
     G2V2PanelControlled = true;
     printf("Initialising G2V2 panel handler\n");
-    SetupG2V2PanelGPIO();
-    SetupG2V2PanelI2C();
+    SetupG2V2PanelSerial();
     G2V2PanelActive = true;
 
     if(pthread_create(&G2V2PanelTickThread, NULL, G2V2PanelTick, NULL) < 0)
         perror("pthread_create G2 panel tick");
     pthread_detach(G2V2PanelTickThread);
 
-    if(pthread_create(&G2V2PanelInterruptThread, NULL, G2V2PanelInterrupt, NULL) < 0)
+    if(pthread_create(&G2V2PanelSerialThread, NULL, G2V2PanelSerial, NULL) < 0)
         perror("pthread_create G2 panel tick");
-    pthread_detach(G2V2PanelInterruptThread);
+    pthread_detach(G2V2PanelSerialThread);
+
+    SendCATtoPanel("ZZZS;");    
 }
 
 
@@ -398,13 +322,8 @@ void InitialiseG2V2PanelHandler(void)
 //
 void ShutdownG2V2PanelHandler(void)
 {
-    if (chip != NULL)
-    {
-        G2V2PanelActive = false;
-        sleep(2);                                       // wait 2s to allow threads to close
-        gpiod_line_release(intline);
-        gpiod_chip_close(chip);
-    }
+    G2V2PanelActive = false;
+    close(SerialDev);
 }
 
 
@@ -433,4 +352,20 @@ void SetG2V2ZZYRState(bool NewState)
 void SetG2V2ZZXVState(uint32_t NewState)
 {
     GCombinedVFOState = NewState;
+}
+
+
+
+//
+// receive ZZZS state
+//
+void SetG2V2ZZZSState(uint32_t Param)
+{
+    G2V2PanelProductID = Param / 100000;
+    Param = Param % 100000;
+    G2V2PanelHWVersion = Param / 1000;
+    G2V2PanelSWID= Param % 1000;
+    printf("found panel product ID=%d", G2V2PanelProductID);
+    printf("; H/W verson = %d", G2V2PanelHWVersion);
+    printf("; S/W verson = %d\n", G2V2PanelSWID);
 }
