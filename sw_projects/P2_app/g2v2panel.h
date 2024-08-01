@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 
-#define G2ARDUINOPATH "/dev/ttyACM0"
+#define G2ARDUINOPATH "/dev/ttyS0"
 
 
 //

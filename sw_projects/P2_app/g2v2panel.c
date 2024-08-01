@@ -112,29 +112,29 @@ void SetupG2V2PanelSerial(void)
     }
 
 
+// this removed code is needed for USB serial, but not for native serial port
+//	if (ioctl(SerialDev, TIOCMGET, &bits) < 0) 
+//    {
+//		close(SerialDev);
+//		perror("ioctl(TCIOMGET)");
+//		return -1;
+//	}
 
-	if (ioctl(SerialDev, TIOCMGET, &bits) < 0) 
-    {
-		close(SerialDev);
-		perror("ioctl(TCIOMGET)");
-		return -1;
-	}
-
-	bits &= ~(TIOCM_DTR | TIOCM_RTS);
-	if (ioctl(SerialDev, TIOCMSET, &bits) < 0) {
-		close(SerialDev);
-		perror("ioctl(TIOCMSET)");
-		return -1;
-	}
-	sleep(1);
-	tcflush(SerialDev, TCIFLUSH);
-	bits &= TIOCM_DTR;
-	if (ioctl(SerialDev, TIOCMSET, &bits) < 0) 
-    {
-		close(SerialDev);
-		perror("ioctl(TIOCMSET)");
-		return -1;
-	}
+//	bits &= ~(TIOCM_DTR | TIOCM_RTS);
+//	if (ioctl(SerialDev, TIOCMSET, &bits) < 0) {
+//		close(SerialDev);
+//		perror("ioctl(TIOCMSET)");
+//		return -1;
+//	}
+//	sleep(1);
+//	tcflush(SerialDev, TCIFLUSH);
+//	bits &= TIOCM_DTR;
+//	if (ioctl(SerialDev, TIOCMSET, &bits) < 0) 
+//    {
+//		close(SerialDev);
+//		perror("ioctl(TIOCMSET)");
+//		return -1;
+//	}
 
 	memset(&Ser, 0, sizeof(Ser));
 	Ser.c_iflag = IGNBRK | IGNPAR;
