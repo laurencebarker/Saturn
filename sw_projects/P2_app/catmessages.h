@@ -69,5 +69,9 @@ void HandleZZYR(void);                          // RX1/2
 //
 void HandleZZZS(void);                          // ID
 
+//
+// Indicator settings
+//
+void HandleZZZI(void);                         // indicator
 
 #endif  //#ifndef

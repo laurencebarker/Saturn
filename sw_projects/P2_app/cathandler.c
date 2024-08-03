@@ -651,3 +651,62 @@ void ShutdownCATHandler(void)
 }
 
 
+//
+// make a CAT command with a numeric parameter into the provided string
+// (used to send messages to local panel)
+//
+void MakeCATMessageNumeric_Local(ECATCommands Cmd, long Param, char* Str)
+{
+  byte CharCount;                  // character count to add
+  unsigned long Divisor;           // initial divisor to convert to ascii
+  unsigned long Digit;             // decimal digit found
+  char ASCIIDigit;
+  SCATCommands* StructPtr;
+
+  StructPtr = GCATCommands + (int)Cmd;
+  strcpy(Str, StructPtr->CATString);
+  CharCount = StructPtr->NumParams;
+//
+// clip the parameter to the allowed numeric range
+//
+  if (Param > StructPtr->MaxParamValue)
+    Param = StructPtr->MaxParamValue;
+  else if (Param < StructPtr->MinParamValue)
+    Param = StructPtr->MinParamValue;
+//
+// now add sign if needed
+//
+  if (StructPtr -> AlwaysSigned)
+  {
+    if (Param < 0)
+    {
+      strcat(Str, "-");
+      Param = -Param;                   // make positive
+    }
+    else
+      strcat(Str, "+");
+    CharCount--;
+  }
+  else if (Param < 0)                   // not always signed, but neg so it needs a sign
+  {
+      strcat(Str, "-");
+      Param = -Param;      
+      CharCount--;                      // make positive
+  }
+//
+// we now have a positive number to fit into <CharCount> digits
+// pad with zeros if needed
+//
+  Divisor = DivisorTable[CharCount];
+  while (Divisor > 1)
+  {
+    Digit = Param / Divisor;                  // get the digit for this decimal position
+    ASCIIDigit = (char)(Digit + '0');         // ASCII version - and output it
+    Append(Str, ASCIIDigit);
+    Param = Param - (Digit * Divisor);        // get remainder
+    Divisor = Divisor / 10;                   // set for next digit
+  }
+  ASCIIDigit = (char)(Param + '0');           // ASCII version of units digit
+  Append(Str, ASCIIDigit);
+  strcat(Str, ";");
+}

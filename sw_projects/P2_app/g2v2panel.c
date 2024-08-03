@@ -47,6 +47,7 @@
 bool G2V2PanelControlled = false;
 bool G2V2PanelActive = false;                       // true while panel active and threads should run
 bool G2V2CATDetected = false;                       // true if panel ID message has been sent
+bool GZZZIReceived = false;                         // true if a ZZZI message received (so halt polling)
 
 extern int i2c_fd;                                  // file reference
 char* gpio_dev = NULL;
@@ -65,12 +66,6 @@ int SerialDev;                                      // serial device
 
 
 #define VKEEPALIVECOUNT 150                         // 15s period between keepalive requests (based on 100ms tick)
-#define VNOEVENT 0
-#define VVFOSTEP 1
-#define VENCODERSTEP 2
-#define VPBPRESS 3
-#define VPBLONGRESS 4
-#define VPBRELEASE 5
 
 
 
@@ -154,6 +149,25 @@ void SetupG2V2PanelSerial(void)
 
 
 
+//
+// function to check if panel is present. 
+// file can be left open if "yes".
+//
+bool CheckG2V2PanelPresent(void)
+{
+    int Chars;                                      // returned character count
+//  return (access(G2ARDUINOPATH, F_OK)==0);        // this wirks for USB, but not for the always-present on board serial
+    SetupG2V2PanelSerial();
+    SendCATtoPanel("ZZZS;");
+    sleep(1);                                       // if any chars come back, there is a panel attached
+    ioctl(SerialDev, FIONREAD, &Chars);             // see if any characters returned
+
+    if(Chars == 0)                                  // if we get non, panel not present; close device
+        close(SerialDev);
+    return(Chars != 0);
+}
+
+
 #define VESERINSIZE 120                 // large enough to hold a whole CAT message
 //
 // serial read thread
@@ -206,7 +220,7 @@ void G2V2PanelSerial(void *arg)
 
 
 
-
+#define VNUMG2V2INDICATORS 9
 //
 // periodic timestep
 //
@@ -227,26 +241,27 @@ void G2V2PanelTick(void *arg)
         else
             G2V2CATDetected = false;
 //
-// poll CAT
+// poll CAT, if we haven't been sent an indicator message
 //
-        switch(CATPollCntr++)
-        {
-            case 0:
-                MakeCATMessageNoParam(eZZXV);
-                break;
+        if(GZZZIReceived == false)
+            switch(CATPollCntr++)
+            {
+                case 0:
+                    MakeCATMessageNoParam(eZZXV);
+                    break;
 
-            case 1:
-                MakeCATMessageNoParam(eZZUT);
-                break;
+                case 1:
+                    MakeCATMessageNoParam(eZZUT);
+                    break;
 
-            case 2:
-                MakeCATMessageNoParam(eZZYR);
-                break;
+                case 2:
+                    MakeCATMessageNoParam(eZZYR);
+                    break;
 
-            default:
-                CATPollCntr = 0;
-                break;
-        }
+                default:
+                    CATPollCntr = 0;
+                    break;
+            }
 //
 // check keepalive
 // keep this in case we can ditch the polling at some point
@@ -258,32 +273,51 @@ void G2V2PanelTick(void *arg)
         }
 //
 // Set LEDs from values reported by CAT messages
-// store into NewLEDStates; then set to I2C if different from what we had before
+// store into NewLEDStates; then set to I2C create ZZZI if different from what we had before
 // ATU tune LEDs are internal to P2app, not Thetis
 //
-        NewLEDStates = 0;
-        if((GCombinedVFOState & (1<<6)) != 0)
-            NewLEDStates |= 1;                          // MOX bit
-        if((GCombinedVFOState & (1<<7)) != 0)
-            NewLEDStates |= (1 << 1);                   // TUNE bit
-        if(G2ToneState)
-            NewLEDStates |= (1 << 2);                   // 2 tone bit
-        if((GCombinedVFOState & (1<<8)) != 0)
-            NewLEDStates |= (1 << 5);                   // XIT bit
-        if((GCombinedVFOState & (1<<0)) != 0)
-            NewLEDStates |= (1 << 6);                   // RIT bit
-        if(GVFOBSelected)
-            NewLEDStates |= (1 << 7);                   // VFO B bit
-
-        if((((GCombinedVFOState & (1<<2)) != 0) && GVFOBSelected) ||
-        (((GCombinedVFOState & (1<<1)) != 0) && !GVFOBSelected))
-            NewLEDStates |= (1 << 8);                   // VFO Lock bit
-
-
-        if(NewLEDStates != GLEDState)
+        if(GZZZIReceived == false)
         {
+            NewLEDStates = 0;
+            if((GCombinedVFOState & (1<<6)) != 0)
+                NewLEDStates |= 1;                          // MOX bit
+            if((GCombinedVFOState & (1<<7)) != 0)
+                NewLEDStates |= (1 << 1);                   // TUNE bit
+            if(G2ToneState)
+                NewLEDStates |= (1 << 2);                   // 2 tone bit
+            if((GCombinedVFOState & (1<<8)) != 0)
+                NewLEDStates |= (1 << 6);                   // XIT bit
+            if((GCombinedVFOState & (1<<0)) != 0)
+                NewLEDStates |= (1 << 5);                   // RIT bit
+            if(!GVFOBSelected)
+                NewLEDStates |= (1 << 7);                   // led lit if VFO A selected
+
+            if((((GCombinedVFOState & (1<<2)) != 0) && GVFOBSelected) ||
+            (((GCombinedVFOState & (1<<1)) != 0) && !GVFOBSelected))
+                NewLEDStates |= (1 << 8);                   // VFO Lock bit
+
+//
+// now loop through to find differences
+// do bitwise compares; if differences found, senz a ZZZI message
+            int Cntr;
+            int Mask = 1;
+            int NewState;
+            int Param;
+            char IndicatorMessage[10];
+
+            for(Cntr=0; Cntr < VNUMG2V2INDICATORS; Cntr++)
+            {
+                if((NewLEDStates & Mask) != (GLEDState & Mask))
+                {
+                    NewState = (NewLEDStates & Mask) >> Cntr;
+                    Param = ((Cntr +1)* 10) + NewState;
+                    MakeCATMessageNumeric_Local(eZZZI, Param, IndicatorMessage);
+                    SendCATtoPanel(IndicatorMessage);
+
+                }
+                Mask = Mask << 1;                               // bitmask for next bit
+            }
             GLEDState = NewLEDStates;
-            i2c_write_word_data(0x0A, NewLEDStates);
         }
 
         usleep(100000);                                                  // 100ms period
@@ -368,4 +402,19 @@ void SetG2V2ZZZSState(uint32_t Param)
     printf("found panel product ID=%d", G2V2PanelProductID);
     printf("; H/W verson = %d", G2V2PanelHWVersion);
     printf("; S/W verson = %d\n", G2V2PanelSWID);
+}
+
+
+
+//
+// receive ZZZI state
+// set that it has been seen, and make an outgoing message for the panel
+//
+void SetG2V2ZZZIState(uint32_t Param)
+{
+    char IndicatorMessage[10];
+    GZZZIReceived = true;
+    MakeCATMessageNumeric_Local(eZZZI, Param, IndicatorMessage);
+    SendCATtoPanel(IndicatorMessage);
+
 }

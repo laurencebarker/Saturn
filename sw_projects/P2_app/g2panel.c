@@ -33,6 +33,7 @@
 #include <gpiod.h>
 #include <pthread.h>
 
+#include <linux/i2c-dev.h>
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
 #include "../common/hwaccess.h"
@@ -44,12 +45,29 @@
 
 
 //
-// paramters for eZZZS version string
+// define is enabled if pane behaves as original andromeda
+// for panel to behave as "stripped down" G2V2 (future) comment this out!
+// (this is only needed until Thetis support is readily available)
+//
+#define LEGACYANDROMEDA 1
+
+
+//
+// parameters for eZZZS version string
 //
 #define HWVERSION 2                         // andromeda V2
+
+
+#ifdef LEGACYANDROMEDA
 #define PRODUCTID 1                         // report as being an Andromeda panel
+#else
+#define PRODUCTID 4                         // report as being G2
+#endif
 
-
+int i2c_fd;                                  // file reference
+char* pi_i2c_device = "/dev/i2c-1";
+unsigned int G2MCP23017 = 0x20;                     // i2c slave address of MCP23017 on G2 panel
+unsigned int G2V2Arduino = 0x15;                    // i2c slave address of Arduino on G2V2
 
 bool G2PanelControlled = false;
 extern int i2c_fd;                                  // file reference
@@ -110,13 +128,19 @@ int8_t EncoderCounts[VNUMENCODERS];             // number of steps since last re
 // lookup table from h/w encoder numbers to Andromeda-like encoder numbers
 // (to give similar control settings in Thetis)
 //
-uint8_t LookupEncoderCode [] = {11, 12, 1, 2, 5, 6, 9, 10};
 
 //
 // lookup table from h/w pushbutton numbers to Andromeda-like button numbers
 // (to give similar control settings in Thetis)
 //
+#ifdef LEGACYANDROMEDA
+uint8_t LookupEncoderCode [] = {11, 12, 1, 2, 5, 6, 9, 10};
 uint8_t LookupButtonCode [] = {47, 50, 45, 44, 31, 32, 30, 34, 35, 33, 36, 37, 38, 21, 42, 43, 11, 1, 5, 9};
+#else
+uint8_t LookupEncoderCode [] = {5, 6, 3, 4, 9, 10, 7, 8};
+uint8_t LookupButtonCode [] = {7, 6, 8, 9, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 3, 2, 13, 12};
+#endif
+
 
 
 // GPIO pins used for G2 panel:
@@ -173,6 +197,35 @@ uint8_t LookupButtonCode [] = {47, 50, 45, 44, 31, 32, 30, 34, 35, 33, 36, 37, 3
 // GPB5   SW20
 // GPB6   SW21
 // GPB7   SW22
+
+
+
+//
+// function to check if panel is present. 
+// file can be left open if "yes".
+//
+bool CheckG2PanelPresent(void)
+{
+    bool Result = false;
+    uint16_t i2cdata;
+    bool Error;
+
+
+    i2c_fd=open(pi_i2c_device, O_RDWR);
+    if(i2c_fd < 0)
+        printf("failed to open i2c device\n");
+    else if(ioctl(i2c_fd, I2C_SLAVE, G2MCP23017) >= 0)
+        // check for G2 front panel on i2c. Change device address then byte read
+    {
+        i2cdata = i2c_read_byte_data(0x0, &Error);              // trial read
+        if (!Error)
+            Result = true;
+        else
+            close(i2c_fd);
+    }
+    return Result;    
+}
+
 
 
 #define VOPTENCODERDIVISOR 1                        // only declare every n-th event
@@ -485,6 +538,7 @@ void ShutdownG2PanelHandler(void)
         gpiod_line_release_bulk(&PBInLines);
         gpiod_chip_close(chip);
     }
+    close(i2c_fd);
 }
 
 

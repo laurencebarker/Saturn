@@ -40,14 +40,8 @@
 #include "g2v2panel.h"
 #include "i2cdriver.h"
 
-char* pi_i2c_device = "/dev/i2c-1";
-unsigned int G2MCP23017 = 0x20;                     // i2c slave address of MCP23017 on G2 panel
-unsigned int G2V2Arduino = 0x15;                    // i2c slave address of Arduino on G2V2
-int i2c_fd;                                  // file reference
 bool FoundG2Panel = false;
 bool FoundG2V2Panel = false;
-bool Error;
-uint16_t i2cdata;
 
 
 //
@@ -56,48 +50,20 @@ uint16_t i2cdata;
 //
 void InitialiseFrontPanelHandler(void)
 {
-    if(access(G2ARDUINOPATH, F_OK)==0)
+    if(CheckG2V2PanelPresent())
     {
         printf("found Arduino serial device\n");
         FoundG2V2Panel = true;
         InitialiseG2V2PanelHandler();
     }
-    else
+    else if(CheckG2PanelPresent())
     {
-        i2c_fd=open(pi_i2c_device, O_RDWR);
-        if(i2c_fd < 0)
-            printf("failed to open i2c device\n");
-        else
-        {
-            // check for G2 front panel on i2c. Change device address then byte read
-            if(ioctl(i2c_fd, I2C_SLAVE, G2MCP23017) >= 0)
-            {
-                i2cdata = i2c_read_byte_data(0x0, &Error);              // trial read
-                if (!Error)
-                {
-                    printf("found G2 front panel\n");
-                    FoundG2Panel = true;
-                }
-
-            }
-            // check for G2V2 front panel. Change device address then word read product id register
-//            if(ioctl(i2c_fd, I2C_SLAVE, G2V2Arduino) >= 0)
-//            {
-//                i2cdata = i2c_read_word_data(0x0C, &Error);              // trial read
-//                if (!Error)
-//                {
-//                    printf("found G2 V2 front panel\n");
-//                    FoundG2V2Panel = true;
-//                }
-//            }
-            // now initiate processing for whichever panel was discovered
-            if(FoundG2Panel)
-                InitialiseG2PanelHandler();
-            else if(FoundG2V2Panel)
-                InitialiseG2V2PanelHandler();
-
-        }
+        printf("found G2 front panel\n");
+        FoundG2Panel = true;
+        InitialiseG2PanelHandler();
     }
+    else
+        printf("No front panel found\n");
 }
 
 
@@ -115,6 +81,5 @@ void ShutdownFrontPanelHandler(void)
     {
         ShutdownG2V2PanelHandler();
     }
-    close(i2c_fd);
 }
 

@@ -57,7 +57,7 @@ SCATCommands GCATCommands[VNUMCATCMDS] =
   {"ZZZU", eNum, 0, 99, 2, false, NULL},                        // VFO up
   {"ZZZE", eNum, 0, 999, 3, false, NULL},                       // encoder
   {"ZZZP", eNum, 0, 999, 3, false, NULL},                       // pushbutton
-  {"ZZZI", eNum, 0, 999, 3, false, NULL},                       // indicator
+  {"ZZZI", eNum, 0, 999, 3, false, HandleZZZI},                 // indicator
   {"ZZZS", eNum, 0, 9999999, 7, false, HandleZZZS},             // s/w version
   {"ZZTU", eBool, 0, 1, 1, false, NULL},                        // tune
   {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA},                  // VFO A frequency
@@ -113,4 +113,13 @@ void HandleZZYR(void)                          // RX1/2
 void HandleZZZS(void)                          // ID
 {
     SetG2V2ZZZSState((uint32_t)ParsedInt);
+}
+
+
+//
+// Indicator settings
+//
+void HandleZZZI(void)                          // indicator
+{
+    SetG2V2ZZZIState((uint32_t)ParsedInt);
 }

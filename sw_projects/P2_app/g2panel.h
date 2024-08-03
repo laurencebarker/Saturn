@@ -13,14 +13,23 @@
 //
 //////////////////////////////////////////////////////////////
 
+#include <stdbool.h>
+
 #ifndef __G2PANEL_h
 #define __G2PANEL_h
-
 
 //
 // function to initialise a connection to the G2 front panel; call if selected as a command line option
 //
 void InitialiseG2PanelHandler(void);
+
+
+//
+// function to check if panel is present. 
+// file can be left open if "yes".
+//
+bool CheckG2PanelPresent(void);
+
 
 
 //

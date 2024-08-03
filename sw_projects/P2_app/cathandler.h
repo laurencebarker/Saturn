@@ -116,5 +116,11 @@ void SendCATMessage(char* CatString);
 //
 void ParseCATCmd(char* CATString);
 
+//
+// make a CAT command with a numeric parameter into the provided string
+// (used to send messages to local panel)
+//
+void MakeCATMessageNumeric_Local(ECATCommands Cmd, long Param, char* Str);
+
 
 #endif  //#ifndef

@@ -30,6 +30,13 @@ void InitialiseG2V2PanelHandler(void);
 
 
 //
+// function to check if panel is present. 
+// file can be left open if "yes".
+//
+bool CheckG2V2PanelPresent(void);
+
+
+//
 // function to shutdown a connection to the G2 front panel; call if selected as a command line option
 //
 void ShutdownG2V2PanelHandler(void);
@@ -55,6 +62,12 @@ void SetG2V2ZZXVState(uint32_t NewState);
 // receive ZZZS state
 //
 void SetG2V2ZZZSState(uint32_t Param);
+
+//
+// receive ZZZI state
+//
+void SetG2V2ZZZIState(uint32_t Param);
+
 
 
 #endif      // file sentry
