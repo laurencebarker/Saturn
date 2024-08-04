@@ -56,7 +56,7 @@
 #include "LDGATU.h"
 #include "frontpanelhandler.h"
 
-#define P2APPVERSION 26
+#define P2APPVERSION 27
 #define FIRMWARE_MIN_VERSION  8               // Minimum FPGA software version that this software requires
 #define FIRMWARE_MAX_VERSION 17               // Maximum FPGA software version that this software is tested on
 //
@@ -66,6 +66,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V27: 4/8/2024:    merged G2V2 panel support code into main
 // V26: 17/7/2024:   initial support for G2V2 panel implemented. Polling CAT for LED states.
 // V25: 22/6/2024:   merged branch with beta code for G2 panel controls to communicate via CAT over TCP/IP
 // V24: 17/6/2024:   support for V17 firmware (fixed latency CW ramp sidetone)
