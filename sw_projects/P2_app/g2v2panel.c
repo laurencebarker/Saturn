@@ -99,7 +99,6 @@ void SetupG2V2PanelSerial(void)
 //
 // setup serial; then send CAT message to read product ID and version register
 //
-    printf("Setting up serial connection to front panel controller\n");
     SerialDev = open(G2ARDUINOPATH, O_RDWR);
     if(SerialDev == 0)
     {
@@ -162,7 +161,7 @@ bool CheckG2V2PanelPresent(void)
     sleep(1);                                       // if any chars come back, there is a panel attached
     ioctl(SerialDev, FIONREAD, &Chars);             // see if any characters returned
 
-    if(Chars == 0)                                  // if we get non, panel not present; close device
+    if(Chars == 0)                                  // if we get none, panel not present; close device
         close(SerialDev);
     return(Chars != 0);
 }
@@ -203,7 +202,6 @@ void G2V2PanelSerial(void *arg)
                 if (ch == ';')
                 {
                     CATMessageBuffer[CATWritePtr++] = 0;            // terminate the string
-//                    printf("rxed cat command = %s\n", CATMessageBuffer);
                     MatchPosition = (int)(strstr(CATMessageBuffer, "ZZZS") - CATMessageBuffer);
                     if(MatchPosition == 0)
                         ParseCATCmd(CATMessageBuffer);              // if ZZZS, process locally; else send to TCPIP CAT port
@@ -336,7 +334,6 @@ void InitialiseG2V2PanelHandler(void)
 {
     G2V2PanelControlled = true;
     printf("Initialising G2V2 panel handler\n");
-    SetupG2V2PanelSerial();
     G2V2PanelActive = true;
 
     if(pthread_create(&G2V2PanelTickThread, NULL, G2V2PanelTick, NULL) < 0)
@@ -347,7 +344,6 @@ void InitialiseG2V2PanelHandler(void)
         perror("pthread_create G2 panel tick");
     pthread_detach(G2V2PanelSerialThread);
 
-    SendCATtoPanel("ZZZS;");    
 }
 
 
