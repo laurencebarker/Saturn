@@ -110,7 +110,7 @@ void *OutgoingHighPriority(void *arg)
     //
     while(SDRActive && !InitError)                               // main loop
     {
-      uint8_t SleepCount;                                       // counter for sending next message
+      uint16_t SleepCount;                                      // counter for sending next message
       uint8_t PTTBits;                                          // PTT bits - and change means a new message needed
       // create the packet
       *(uint32_t *)UDPBuffer = htonl(SequenceCounter++);        // add sequence count
@@ -191,7 +191,7 @@ void *OutgoingHighPriority(void *arg)
       // so break up the 200ms period with smaller sleeps
       // thank you to Rick N1GP for recommending this approach
       //
-      SleepCount = (MOXAsserted)? 2: 400;
+      SleepCount = (MOXAsserted) ? 2 : 400;
       while (SleepCount-- > 0)
       {
         ReadStatusRegister();
