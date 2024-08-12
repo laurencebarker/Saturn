@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <math.h>
 #include <pthread.h>
+#include <stdatomic.h>
 #include <termios.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
@@ -107,17 +108,17 @@ extern sem_t CodecRegMutex;                 // protect writes to codec
 
 struct sockaddr_in reply_addr;              // destination address for outgoing data
 
-bool IsTXMode;                              // true if in TX
-bool SDRActive;                             // true if this SDR is running at the moment
-bool ReplyAddressSet = false;               // true when reply address has been set
-bool StartBitReceived = false;              // true when "run" bit has been set
-bool NewMessageReceived = false;            // set whenever a message is received
-bool ExitRequested = false;                 // true if "exit checking" thread requests shutdown
-bool SkipExitCheck = false;                 // true to skip "exit checking", if running as a service
-bool ThreadError = false;                   // true if a thread reports an error
-bool UseDebug = false;                      // true if to enable debugging
-bool UseControlPanel = false;               // true if to use a control panel
-bool UseLDGATU = false;                     // true if to use an LDG ATU via CAT
+atomic_bool IsTXMode = false;                              // true if in TX
+atomic_bool SDRActive = false;                             // true if this SDR is running at the moment
+atomic_bool ReplyAddressSet = false;               // true when reply address has been set
+atomic_bool StartBitReceived = false;              // true when "run" bit has been set
+atomic_bool NewMessageReceived = false;            // set whenever a message is received
+atomic_bool ExitRequested = false;                        // true if "exit checking" thread requests shutdown
+bool SkipExitCheck = false;                        // true to skip "exit checking", if running as a service
+atomic_bool ThreadError = false;                   // true if a thread reports an error
+atomic_bool UseDebug = false;                      // true if to enable debugging
+bool UseControlPanel = false;                      // true if to use a control panel
+bool UseLDGATU = false;                            // true if to use an LDG ATU via CAT
 
 
 #define SDRBOARDID 1                        // Hermes

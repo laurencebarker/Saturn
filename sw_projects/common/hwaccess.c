@@ -14,6 +14,11 @@
 
 #define _DEFAULT_SOURCE
 #define _XOPEN_SOURCE 500
+
+#ifdef __STDC_NO_ATOMICS__
+#error This compiler does not support C11 atomics
+#endif
+
 #include <assert.h>
 #include <fcntl.h>
 #include <getopt.h>
@@ -22,6 +27,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <pthread.h>
+
 
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -37,7 +44,7 @@
 //
 // mem read/write variables:
 //
-	int register_fd;                             // device identifier
+int register_fd;                             // device identifier
 
 
 
@@ -45,19 +52,15 @@
 //
 // open connection to the XDMA device driver for register and DMA access
 //
-int OpenXDMADriver(void)
-{
-    int Result = 0;
-	if ((register_fd = open("/dev/xdma0_user", O_RDWR)) == -1)
-    {
-		printf("register R/W address space not available\n");
-    }
-    else
-    {
-		printf("register access connected to /dev/xdma0_user\n");
-        Result = 1;
-    }
-    return Result;
+int OpenXDMADriver(void) {
+  int Result = 0;
+  if ((register_fd = open("/dev/xdma0_user", O_RDWR)) == -1) {
+    printf("register R/W address space not available\n");
+  } else {
+    printf("register access connected to /dev/xdma0_user\n");
+    Result = 1;
+  }
+  return Result;
 }
 
 
@@ -132,25 +135,23 @@ int DMAReadFromFPGA(int fd, unsigned char*DestData, uint32_t Length, uint32_t AX
 //
 // 32 bit register read over the AXILite bus
 //
-uint32_t RegisterRead(uint32_t Address)
-{
-	uint32_t result = 0;
+uint32_t RegisterRead(uint32_t Address) {
+  uint32_t result = 0;
 
-    ssize_t nread = pread(register_fd, &result, sizeof(result), (off_t) Address);
-    if (nread != sizeof(result))
-        printf("ERROR: register read: addr=0x%08X   error=%s\n",Address, strerror(errno));
-	
-    return result;
+  ssize_t nread = pread(register_fd, &result, sizeof(result), (off_t) Address);
+  if (nread != sizeof(result))
+    printf("ERROR: register read: addr=0x%08X   error=%s\n", Address, strerror(errno));
+
+  return result;
 }
 
 //
 // 32 bit register write over the AXILite bus
 //
-void RegisterWrite(uint32_t Address, uint32_t Data)
-{
-    ssize_t nsent = pwrite(register_fd, &Data, sizeof(Data), (off_t) Address); 
-    if (nsent != sizeof(Data))
-        printf("ERROR: Write: addr=0x%08X   error=%s\n",Address, strerror(errno));
+void RegisterWrite(uint32_t Address, uint32_t Data) {
+  ssize_t nsent = pwrite(register_fd, &Data, sizeof(Data), (off_t) Address);
+  if (nsent != sizeof(Data))
+    printf("ERROR: Write: addr=0x%08X   error=%s\n", Address, strerror(errno));
 }
 
 
