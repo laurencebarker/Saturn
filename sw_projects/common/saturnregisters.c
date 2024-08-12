@@ -739,7 +739,7 @@ void SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)		// only accepts DUC
 
     if(!IsDeltaPhase)                       // ieif protocol 1
     {
-        fDeltaPhase = (double)(2^32) * (double)Value / (double) VSAMPLERATE;
+        fDeltaPhase = (double)(1LL << 32) * (double)Value / (double) VSAMPLERATE;
         DeltaPhase = (uint32_t)fDeltaPhase;
     }
     else
@@ -1568,7 +1568,7 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
 // If Breakin enabled, the key input engages TX automatically
 // and generates sidetone.
 //
-void EnableCW (bool Enabled, bool Breakin)
+void EnableCW(bool Enabled, bool Breakin)
 {
     //
     // set I/Q modulation source if CW selected 
@@ -1924,7 +1924,7 @@ void SetUserOutputBits(unsigned int Bits)
 //
 // ReadStatusRegister(void)
 // this is a precursor to getting any of the data itself; simply reads the register to a local variable
-// probably call every time an outgoig packet is put together initially
+// probably call every time an outgoing packet is put together initially
 // but possibly do this one a timed basis.
 //
 void ReadStatusRegister(void)
@@ -2163,26 +2163,25 @@ void ResetDUCMux(void)
 }
 
 
-
 //
 // void SetTXOutputGate(bool AlwaysOn)
 // sets the sample output gater. If false, samples gated by TX strobe.
 // if true, samples are alweays enabled.
 //
-void SetTXOutputGate(bool AlwaysOn)
-{
-    uint32_t Register;
-    uint32_t BitMask;
+void SetTXOutputGate(bool AlwaysOn) {
+  uint32_t Register;
+  uint32_t BitMask;
 
-    GTXAlwaysEnabled = AlwaysOn;
-    BitMask = (1 << 2);
-    Register = TXConfigRegValue;                        // get current settings
-    if (AlwaysOn)
-        Register |= BitMask;                            // set bit if true
-        else
-        Register &= ~BitMask;                           // clear bit if false
-    TXConfigRegValue = Register;                    // store it back
-    RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
+  GTXAlwaysEnabled = AlwaysOn;
+  BitMask = (1 << 2);
+  Register = TXConfigRegValue;                        // get current settings
+  if (AlwaysOn) {
+    Register |= BitMask;                            // set bit if true
+  } else {
+    Register &= ~BitMask;                           // clear bit if false
+  }
+  TXConfigRegValue = Register;                    // store it back
+  RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
 }
 
 

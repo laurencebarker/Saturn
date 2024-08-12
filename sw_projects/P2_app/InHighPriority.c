@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdatomic.h>
 #include "../common/saturnregisters.h"
 #include "../common/hwaccess.h"                   // low level access
 #include "../common/version.h"

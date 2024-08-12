@@ -337,9 +337,9 @@ void *OutgoingDDCIQ(void *arg)
     SetupFIFOMonitorChannel(eRXDDCDMA, false);
     ResetDMAStreamFIFO(eRXDDCDMA);
     RegisterValue = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);				// read the FIFO Depth register
-	if(UseDebug)
-        printf("DDC FIFO Depth register = %08x (should be ~0)\n", RegisterValue);
-	Depth=0;
+    if(UseDebug)
+          printf("DDC FIFO Depth register = %08x (should be ~0)\n", RegisterValue);
+    Depth=0;
 
 
 //
@@ -408,7 +408,7 @@ void *OutgoingDDCIQ(void *arg)
                     memcpy(UDPBuffer[DDC] + 16, IQReadPtr[DDC], VIQBYTESPERFRAME);
                     IQReadPtr[DDC] += VIQBYTESPERFRAME;
 
-                    int Error;
+                    ssize_t Error;
                     Error = sendmsg((ThreadData+DDC)->Socketid, &datagram[DDC], 0);
                     if(StartupCount != 0)                                   // decrement startup message count
                         StartupCount--;
@@ -419,24 +419,24 @@ void *OutgoingDDCIQ(void *arg)
                         InitError = true;
                     }
                 }
-                //
-                // now copy any residue to the start of the buffer (before the data copy in point)
-                // unless the buffer already starts at or below the base
-                // if we do a copy, the 1st free location is always base addr
-                //
-                ResidueBytes = IQHeadPtr[DDC] - IQReadPtr[DDC];
-                //		printf("Residue = %d bytes\n",ResidueBytes);
-                if (IQReadPtr[DDC] > IQBasePtr[DDC])                                // move data down
+              //
+              // now copy any residue to the start of the buffer (before the data copy in point)
+              // unless the buffer already starts at or below the base
+              // if we do a copy, the 1st free location is always base addr
+              //
+              ResidueBytes = IQHeadPtr[DDC] - IQReadPtr[DDC];
+              //		printf("Residue = %d bytes\n",ResidueBytes);
+              if (IQReadPtr[DDC] > IQBasePtr[DDC])                                // move data down
+              {
+                if (ResidueBytes != 0)    // if there is residue to move
                 {
-                    if (ResidueBytes != 0) 		// if there is residue to move
-                    {
-                        memcpy(IQBasePtr[DDC] - ResidueBytes, IQReadPtr[DDC], ResidueBytes);
-                        IQReadPtr[DDC] = IQBasePtr[DDC] - ResidueBytes;
-                    }
-                    else
-                        IQReadPtr[DDC] = IQBasePtr[DDC];
-                    IQHeadPtr[DDC] = IQBasePtr[DDC];                            // ready for new data at base
+                  memcpy(IQBasePtr[DDC] - ResidueBytes, IQReadPtr[DDC], ResidueBytes);
+                  IQReadPtr[DDC] = IQBasePtr[DDC] - ResidueBytes;
+                } else {
+                  IQReadPtr[DDC] = IQBasePtr[DDC];
                 }
+                IQHeadPtr[DDC] = IQBasePtr[DDC];                            // ready for new data at base
+              }
             }
             //
             // P2 packet sending complete.There are no DDC buffers with enough data to send out.
