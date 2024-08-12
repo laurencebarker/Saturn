@@ -15,13 +15,11 @@
 
 
 #include "threaddata.h"
-#include <stddef.h>
-#include <stdio.h>
+#include <stdatomic.h>
 #include "generalpacket.h"
 #include "../common/saturnregisters.h"
 
-
-bool HW_Timer_Enable = true;
+atomic_bool HW_Timer_Enable = true;
 
 //
 // protocol 2 handler for General Packet to SDR
@@ -34,7 +32,6 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
   uint16_t Port;                                  // port number from table
   int i;
   uint8_t Byte;
-
   SetPort(VPORTDDCSPECIFIC, ntohs(*(uint16_t*)(PacketBuffer+5)));
   SetPort(VPORTDUCSPECIFIC, ntohs(*(uint16_t*)(PacketBuffer+7)));
   SetPort(VPORTHIGHPRIORITYTOSDR, ntohs(*(uint16_t*)(PacketBuffer+9)));
@@ -44,7 +41,7 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
   SetPort(VPORTMICAUDIO, ntohs(*(uint16_t*)(PacketBuffer+19)));
 
 // DDC ports start at the transferred value then increment
-  Port = ntohs(*(uint16_t*)(PacketBuffer+17));            // DDC0
+  Port = get_uint16(PacketBuffer, 17);            // DDC0
   for (i=0; i<10; i++)
   {
     if(Port==0)
@@ -54,7 +51,7 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
   }  
 
 // similarly, wideband ports start at the transferred value then increment
-  Port = ntohs(*(uint16_t*)(PacketBuffer+21));            // DDC0
+  Port = get_uint16(PacketBuffer, 21);            // DDC0
   for (i=0; i<2; i++)
   {
     if(Port==0)
@@ -69,7 +66,7 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
   Byte = *(uint8_t*)(PacketBuffer+23);                // get wideband enables
   SetWidebandEnable(eADC1, (bool)(Byte&1));
   SetWidebandEnable(eADC2, (bool)(Byte&2));
-  Port = ntohs(*(uint16_t*)(PacketBuffer+24));        // wideband sample count
+  Port = get_uint16(PacketBuffer, 24);   // wideband sample count
   SetWidebandSampleCount(Port);
   Byte = *(uint8_t*)(PacketBuffer+26);                // wideband sample size
   SetWidebandSampleSize(Byte);
@@ -80,9 +77,9 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
 //
 // envelope PWM data:
 //
-  Port = ntohs(*(uint16_t*)(PacketBuffer+33));        // PWM min
+  Port = get_uint16(PacketBuffer, 33);  // PWM min
   SetMinPWMWidth(Port);
-  Port = ntohs(*(uint16_t*)(PacketBuffer+35));        // PWM max
+  Port = get_uint16(PacketBuffer, 35);  // PWM max
   SetMaxPWMWidth(Port);
 //
 // various bits

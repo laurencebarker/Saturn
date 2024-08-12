@@ -19,9 +19,10 @@
 
 
 #include <stdint.h>
+#include <stdatomic.h>
 #include "../common/saturntypes.h"
 
-extern bool HW_Timer_Enable;
+extern atomic_bool HW_Timer_Enable;
 
 //
 // protocol 2 handler for General Packet to SDR

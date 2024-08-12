@@ -16,6 +16,8 @@
 #include "threaddata.h"
 #include <stdint.h>
 #include "../common/saturntypes.h"
+#include "../common/saturnregisters.h"
+#include "../common/saturndrivers.h"
 #include "OutHighPriority.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -24,11 +26,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
-#include "../common/saturnregisters.h"
 #include "LDGATU.h"
 
 
-uint8_t GlobalFIFOOverflows = 0;             // FIFO overflow words
+atomic_uint_fast8_t GlobalFIFOOverflows = 0;             // FIFO overflow words
 
 
 
@@ -53,7 +54,6 @@ void *OutgoingHighPriority(void *arg)
   ssize_t Error;
   uint8_t Byte;                                   // data being encoded
   uint16_t Word;                                  // data being encoded
-  bool ATUTuneRequest = false;
   bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;      // FIFO flags
   uint32_t Depth = 0;                                       // FIFO locations available
   uint8_t FIFOOverflows;
@@ -112,78 +112,87 @@ void *OutgoingHighPriority(void *arg)
     {
       uint16_t SleepCount;                                      // counter for sending next message
       uint8_t PTTBits;                                          // PTT bits - and change means a new message needed
+
       // create the packet
-      *(uint32_t *)UDPBuffer = htonl(SequenceCounter++);        // add sequence count
+      put_uint32(UDPBuffer, 0, SequenceCounter++);
+
       ReadStatusRegister();
       PTTBits = (uint8_t)GetP2PTTKeyInputs();
-      *(uint8_t *)(UDPBuffer+4) = PTTBits;
+      put_uint8(UDPBuffer, 4, PTTBits);
+
       Byte = (uint8_t)GetADCOverflow();
-      *(uint8_t *)(UDPBuffer+5) = Byte;
+      put_uint8(UDPBuffer, 5, Byte);
+
       Word = (uint16_t)GetAnalogueIn(4);
-      *(uint16_t *)(UDPBuffer+6) = htons(Word);                // exciter power
+      put_uint16(UDPBuffer, 6, Word);  // exciter power
+
       Word = (uint16_t)GetAnalogueIn(0);
-      *(uint16_t *)(UDPBuffer+14) = htons(Word);               // forward power
+      put_uint16(UDPBuffer, 14, Word);  // forward power
+
       Word = (uint16_t)GetAnalogueIn(1);
-      *(uint16_t *)(UDPBuffer+22) = htons(Word);               // reverse power
+      put_uint16(UDPBuffer, 22, Word);  // reverse power
+
       Word = (uint16_t)GetAnalogueIn(5);
-      *(uint16_t *)(UDPBuffer+49) = htons(Word);               // supply voltage
+      put_uint16(UDPBuffer, 49, Word);  // supply voltage
 
       Word = (uint16_t)GetAnalogueIn(2);
-      *(uint16_t *)(UDPBuffer+57) = htons(Word);               // AIN3 user_analog1
-      Word = (uint16_t)GetAnalogueIn(3);
-      *(uint16_t *)(UDPBuffer+55) = htons(Word);               // AIN4 user_analog2
+      put_uint16(UDPBuffer, 57, Word);  // AIN3 user_analog1
 
-      Byte = (uint8_t)GetUserIOBits();                  // user I/O bits
-      *(uint8_t *)(UDPBuffer+59) = Byte;
+      Word = (uint16_t)GetAnalogueIn(3);
+      put_uint16(UDPBuffer, 55, Word);  // AIN4 user_analog2
+
+      Byte = (uint8_t)GetUserIOBits();  // user I/O bits
+      put_uint8(UDPBuffer, 59, Byte);
 
 //
 // protocol V4.3: send FIFO depths and error states
 // we can read a snapshot now, but under or overflows could have happened at other times too
 // and they are cleared by the data transfer reads of the monitor channel
 //
-      FIFOOverflows = 0;
-      Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);				// read the DDC FIFO Depth register
-      *(uint16_t *)(UDPBuffer+31) = htons(Word);                // DDC ssmples
-      if(FIFOOverThreshold)
+
+      // DDC FIFO
+      Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);
+      put_uint16(UDPBuffer, 31, Word);  // DDC samples
+      if (FIFOOverThreshold)
         FIFOOverflows |= 0b00000001;
 
-      Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);				// read the mic FIFO Depth register
-      Word = Word*4;                                            // 4 samples per FIFO location
-      *(uint16_t *)(UDPBuffer+33) = htons(Word);                // mic samples
-      if(FIFOOverThreshold)
+      // Mic FIFO
+      Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);
+      Word *= 4;  // 4 samples per FIFO location
+      put_uint16(UDPBuffer, 33, Word);  // mic samples
+      if (FIFOOverThreshold)
         FIFOOverflows |= 0b00000010;
 
-      Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);				// read the DUC FIFO Depth register
-      Word = (Word*4)/3;                                        // 4/3 samples per FIFO location
-      *(uint16_t *)(UDPBuffer+35) = htons(Word);                // DUC samples
-      if(FIFOUnderflow)
+      // DUC FIFO
+      Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);
+      Word = (Word * 4) / 3;  // 4/3 samples per FIFO location
+      put_uint16(UDPBuffer, 35, Word);  // DUC samples
+      if (FIFOUnderflow)
         FIFOOverflows |= 0b00000100;
 
-      Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);				// read the speaker FIFO Depth register
-      Word = Word*2;                                            // 2 samples per FIFO location
-      *(uint16_t *)(UDPBuffer+37) = htons(Word);                // speaker samples
-      if(FIFOUnderflow)
+      // Speaker FIFO
+      Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);
+      Word *= 2;  // 2 samples per FIFO location
+      put_uint16(UDPBuffer, 37, Word);  // speaker samples
+      if (FIFOUnderflow)
         FIFOOverflows |= 0b00001000;
 
-      FIFOOverflows |= GlobalFIFOOverflows;                   // copy in any bits set during normal data transfer
-      *(uint8_t *)(UDPBuffer+30) = FIFOOverflows;
-      GlobalFIFOOverflows = 0;                                // clear any overflows
+      FIFOOverflows |= GlobalFIFOOverflows;  // copy in any bits set during normal data transfer
+      put_uint8(UDPBuffer, 30, FIFOOverflows);
+      GlobalFIFOOverflows = 0;  // clear any overflows
       FIFOOverflows = 0;
       Error = sendmsg(ThreadData -> Socketid, &datagram, 0);
-
 
       //
       // get ATU bit and offer to LDG ATU handler
       // power requested if bit 2 is zero
-      Byte = ((Byte >> 2) & 1) ^1;
-      ATUTuneRequest = (bool)Byte;
+      bool ATUTuneRequest = (bool) ((Byte >> 2 & 1) ^ 1);
       RequestATUTune(ATUTuneRequest);
 
-      if(Error == -1)
-      {
+      if (Error == -1) {
         printf("High Priority Send Error, errno=%d\n", errno);
-        printf("socket id = %d\n", ThreadData -> Socketid);
-        InitError=true;
+        printf("socket id = %d\n", ThreadData->Socketid);
+        InitError = true;
       }
       //
       // now we need to sleep for 1ms (in TX) or 200ms (not in TX)
@@ -192,10 +201,9 @@ void *OutgoingHighPriority(void *arg)
       // thank you to Rick N1GP for recommending this approach
       //
       SleepCount = (MOXAsserted) ? 2 : 400;
-      while (SleepCount-- > 0)
-      {
+      while (SleepCount-- > 0) {
         ReadStatusRegister();
-        if ((uint8_t)GetP2PTTKeyInputs() != PTTBits)
+        if ((uint8_t) GetP2PTTKeyInputs() != PTTBits)
           break;
         usleep(500);
       }

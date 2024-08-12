@@ -23,5 +23,6 @@
 //
 void InitialiseFrontPanelHandler(void);
 
+void ShutdownFrontPanelHandler(void);
 
 #endif  //#ifndef
