@@ -18,6 +18,8 @@
 
 #include "../common/saturntypes.h"
 #include <stdint.h>
+#include <stddef.h>
+#include <stdatomic.h>
 
 #define VNUMDDC 10                                  // downconverters available
 
@@ -134,10 +136,11 @@ typedef enum
 #define VBITCODECMICFIFORESET 0					// reset bit in register
 #define VBITCODECSPKFIFORESET 1					// reset bit in register
 
+
 //
 // MOX register
 //
-extern bool MOXAsserted;                                   // true if MOX as asserted
+extern atomic_bool MOXAsserted;         // true if MOX as asserted
 
 //
 // addresses of the DDC frequency registers
@@ -159,7 +162,15 @@ extern bool GEEREnabled;                                   // P2. true if EER is
 
 
 
+uint32_t get_uint32(const uint8_t *buffer, size_t offset);
 
+uint16_t get_uint16(const uint8_t *buffer, size_t offset);
+
+void put_uint32(uint8_t *buffer, size_t offset, uint32_t value);
+
+void put_uint16(uint8_t *buffer, size_t offset, uint16_t value);
+
+void put_uint8(uint8_t *buffer, size_t offset, uint8_t value);
 //
 // InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
 // calculates an "S" shape ramp curve and loads into RAM

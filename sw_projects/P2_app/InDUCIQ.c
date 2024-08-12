@@ -52,7 +52,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     uint8_t UDPInBuffer[VDUCIQSIZE];                      // incoming buffer
     struct iovec iovecinst;                               // iovcnt buffer - 1 for each outgoing buffer
     struct msghdr datagram;                               // multiple incoming message header
-    int size;                                             // UDP datagram length
+    ssize_t size;                                             // UDP datagram length
 
                                                           //
 // variables for DMA buffer 
@@ -71,7 +71,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     uint8_t* DestPtr;                                       // pointer to DMA buffer data
     unsigned int Current;                                   // current occupied locations in FIFO
     unsigned int StartupCount;                              // used to delay reporting of under & overflows
-    bool PrevSDRActive;                                     // used to detect change of state
+    bool PrevSDRActive = false;                             // used to detect change of state
 
     ThreadData = (struct ThreadSocketData *)arg;
     ThreadData->Active = true;

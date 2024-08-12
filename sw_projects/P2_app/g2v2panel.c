@@ -68,7 +68,7 @@ int SerialDev;                                      // serial device
 #define VKEEPALIVECOUNT 150                         // 15s period between keepalive requests (based on 100ms tick)
 
 
-
+pthread_mutex_t MutexGCombinedVFOState = PTHREAD_MUTEX_INITIALIZER;
 
 //
 // send a CAT message to the panel
@@ -276,6 +276,7 @@ void G2V2PanelTick(void *arg)
 //
         if(GZZZIReceived == false)
         {
+          pthread_mutex_lock(&MutexGCombinedVFOState);
             NewLEDStates = 0;
             if((GCombinedVFOState & (1<<6)) != 0)
                 NewLEDStates |= 1;                          // MOX bit
@@ -293,6 +294,8 @@ void G2V2PanelTick(void *arg)
             if((((GCombinedVFOState & (1<<2)) != 0) && GVFOBSelected) ||
             (((GCombinedVFOState & (1<<1)) != 0) && !GVFOBSelected))
                 NewLEDStates |= (1 << 8);                   // VFO Lock bit
+
+          pthread_mutex_unlock(&MutexGCombinedVFOState);
 
 //
 // now loop through to find differences
@@ -315,7 +318,9 @@ void G2V2PanelTick(void *arg)
                 }
                 Mask = Mask << 1;                               // bitmask for next bit
             }
+          pthread_mutex_lock(&MutexGCombinedVFOState);
             GLEDState = NewLEDStates;
+          pthread_mutex_lock(&MutexGCombinedVFOState);
         }
 
         usleep(100000);                                                  // 100ms period

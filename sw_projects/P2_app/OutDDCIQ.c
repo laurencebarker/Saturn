@@ -398,10 +398,10 @@ void *OutgoingDDCIQ(void *arg)
                 while ((IQHeadPtr[DDC] - IQReadPtr[DDC]) > VIQBYTESPERFRAME)
                 {
 //                    printf("enough data for packet: DDC= %d\n", DDC);
-                    *(uint32_t*)UDPBuffer[DDC] = htonl(SequenceCounter[DDC]++);     // add sequence count
-                    memset(UDPBuffer[DDC] + 4, 0, 8);                               // clear the timestamp data
-                    *(uint16_t*)(UDPBuffer[DDC] + 12) = htons(24);                  // bits per sample
-                    *(uint32_t*)(UDPBuffer[DDC] + 14) = htons(VIQSAMPLESPERFRAME);  // I/Q samples for ths frame
+                    put_uint32(UDPBuffer[DDC], 0, SequenceCounter[DDC]++);  // add sequence count
+                    memset(UDPBuffer[DDC] + 4, 0, 8);                                          // clear the timestamp data
+                    put_uint16(UDPBuffer[DDC], 12, 24);                     // bits per sample
+                    put_uint32(UDPBuffer[DDC], 14, VIQSAMPLESPERFRAME);     // I/Q samples for ths frame
                     //
                     // now add I/Q data & send outgoing packet
                     //

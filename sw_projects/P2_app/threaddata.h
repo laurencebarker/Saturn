@@ -77,7 +77,7 @@ extern atomic_bool StartBitReceived;                       // true when "run" bi
 extern atomic_bool NewMessageReceived;                     // set whenever a message is received
 extern atomic_bool ThreadError;                            // set true if a thread reports an error
 extern atomic_bool UseDebug;                               // true if debugging enabled
-extern uint8_t GlobalFIFOOverflows;                 // FIFO overflow words
+extern atomic_uint_fast8_t GlobalFIFOOverflows;            // FIFO overflow words
 
 #define VBITCHANGEPORT 1                        // if set, thread must close its socket and open a new one on different port
 #define VBITINTERLEAVE 2                        // if set, DDC threads should interleave data
@@ -108,9 +108,6 @@ int MakeSocket(struct ThreadSocketData* Ptr, int DDCid);
 // function ot get program version
 //
 uint32_t GetP2appVersion(void);
-
-
-
 
 
 #endif

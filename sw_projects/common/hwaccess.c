@@ -83,7 +83,7 @@ int DMAWriteToFPGA(int fd, unsigned char*SrcData, uint32_t Length, uint32_t AXIA
 	rc = lseek(fd, OffsetAddr, SEEK_SET);
 	if (rc != OffsetAddr)
 	{
-		printf("seek off 0x%lx != 0x%lx.\n", rc, OffsetAddr);
+		printf("seek off 0x%lx != 0x%lx.\n", rc, (long) OffsetAddr);
 		perror("seek file");
 		return -EIO;
 	}
@@ -92,7 +92,7 @@ int DMAWriteToFPGA(int fd, unsigned char*SrcData, uint32_t Length, uint32_t AXIA
 	rc = write(fd, SrcData, Length);
 	if (rc < 0)
 	{
-		printf("write 0x%x @ 0x%lx failed %ld.\n", Length, OffsetAddr, rc);
+		printf("write 0x%x @ 0x%lx failed %ld.\n", Length, (long) OffsetAddr, rc);
 		perror("DMA write");
 		return -EIO;
 	}
@@ -116,7 +116,7 @@ int DMAReadFromFPGA(int fd, unsigned char*DestData, uint32_t Length, uint32_t AX
 	rc = lseek(fd, OffsetAddr, SEEK_SET);
 	if (rc != OffsetAddr)
 	{
-		printf("seek off 0x%lx != 0x%lx.\n", rc, OffsetAddr);
+		printf("seek off 0x%lx != 0x%lx.\n", rc, (long) OffsetAddr);
 		perror("seek file");
 		return -EIO;
 	}
@@ -125,7 +125,7 @@ int DMAReadFromFPGA(int fd, unsigned char*DestData, uint32_t Length, uint32_t AX
 	rc = read(fd, DestData, Length);
 	if (rc < 0)
 	{
-		printf("read 0x%x @ 0x%lx failed %ld.\n", Length, OffsetAddr, rc);
+		printf("read 0x%x @ 0x%lx failed %ld.\n", Length, (long) OffsetAddr, rc);
 		perror("DMA read");
 		return -EIO;
 	}
@@ -153,6 +153,3 @@ void RegisterWrite(uint32_t Address, uint32_t Data) {
   if (nsent != sizeof(Data))
     printf("ERROR: Write: addr=0x%08X   error=%s\n", Address, strerror(errno));
 }
-
-
-

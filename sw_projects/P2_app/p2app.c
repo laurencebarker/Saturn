@@ -355,8 +355,9 @@ void* CheckForActivity(void *arg)
 void Shutdown()
 {
   ShutdownCATHandler();                                   // close CAT connection socket
-    if(UseControlPanel)
-    ShutdownFrontPanelHandler();
+    if(UseControlPanel) {
+      ShutdownFrontPanelHandler();
+    }
 
   close(SocketData[0].Socketid);                          // close incoming data socket
   pthread_mutex_destroy(&DDCInSelMutex);

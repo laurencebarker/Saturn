@@ -57,7 +57,7 @@ void *OutgoingMicSamples(void *arg)
     struct ThreadSocketData* ThreadData;            // socket etc data for this thread
     struct sockaddr_in DestAddr;                    // destination address for outgoing data
     bool InitError = false;
-    int Error;
+    ssize_t Error;
 
 //
 // variables for DMA buffer 
@@ -191,10 +191,10 @@ void *OutgoingMicSamples(void *arg)
             DMAReadFromFPGA(DMAReadfile_fd, MicBasePtr, VDMATRANSFERSIZE, VADDRMICSTREAMREAD);
 
             // create the packet into UDPBuffer
-            *(uint32_t*)UDPBuffer = htonl(SequenceCounter++);        // add sequence count
-            memcpy(UDPBuffer+4, MicBasePtr, VDMATRANSFERSIZE);       // copy in mic samples
+            put_uint32(UDPBuffer, 0, SequenceCounter++);       // add sequence count
+            memcpy(UDPBuffer+4, MicBasePtr, VDMATRANSFERSIZE);                    // copy in mic samples
             Error = sendmsg(ThreadData -> Socketid, &datagram, 0);
-            if(StartupCount != 0)                                   // decrement startup message count
+            if(StartupCount != 0)                                                 // decrement startup message count
                 StartupCount--;
             if(Error == -1)
             {
