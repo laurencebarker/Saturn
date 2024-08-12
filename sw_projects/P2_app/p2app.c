@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <math.h>
 #include <pthread.h>
+#include <poll.h>
 #include <stdatomic.h>
 #include <termios.h>
 #include <sys/time.h>
@@ -293,19 +294,29 @@ int MakeSocket(struct ThreadSocketData* Ptr, int DDCid)
 //
 void* CheckForExitCommand(void *arg)
 {
+  struct pollfd fds[1];
+  int ret;
   char ch;
-  printf("spinning up Check For Exit thread\n");
-  
-  while (1)
+
+  fds[0].fd = STDIN_FILENO;
+  fds[0].events = POLLIN;
+
+  while (!ExitRequested)
   {
-    usleep(10000);
-    ch = getchar();
-    if((ch == 'x') || (ch == 'X'))
+    ret = poll(fds, 1, 100);  // Wait for up to 100ms
+
+    if (ret > 0 && (fds[0].revents & POLLIN))
     {
-      ExitRequested = true;
-      break;
+      read(STDIN_FILENO, &ch, 1);
+      if (ch == 'x' || ch == 'X')
+      {
+        ExitRequested = true;
+        break;
+      }
     }
   }
+
+  return NULL;
 }
 
 
