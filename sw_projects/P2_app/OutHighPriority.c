@@ -50,7 +50,7 @@ void *OutgoingHighPriority(void *arg)
   struct ThreadSocketData *ThreadData;            // socket etc data for this thread
   struct sockaddr_in DestAddr;                    // destination address for outgoing data
   bool InitError = false;
-  int Error;
+  ssize_t Error;
   uint8_t Byte;                                   // data being encoded
   uint16_t Word;                                  // data being encoded
   bool ATUTuneRequest = false;
