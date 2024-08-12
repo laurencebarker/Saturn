@@ -33,7 +33,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net/if.h>
-#include <semaphore.h>
 #include <signal.h>
 
 #include "../common/saturntypes.h"
@@ -101,10 +100,10 @@
 
 
 
-extern sem_t DDCInSelMutex;                 // protect access to shared DDC input select register
-extern sem_t DDCResetFIFOMutex;             // protect access to FIFO reset register
-extern sem_t RFGPIOMutex;                   // protect access to RF GPIO register
-extern sem_t CodecRegMutex;                 // protect writes to codec
+extern pthread_mutex_t DDCInSelMutex;                 // protect access to shared DDC input select register
+extern pthread_mutex_t DDCResetFIFOMutex;             // protect access to FIFO reset register
+extern pthread_mutex_t RFGPIOMutex;                   // protect access to RF GPIO register
+extern pthread_mutex_t CodecRegMutex;                 // protect writes to codec
 
 struct sockaddr_in reply_addr;              // destination address for outgoing data
 
@@ -349,10 +348,10 @@ void Shutdown()
     ShutdownFrontPanelHandler();
 
   close(SocketData[0].Socketid);                          // close incoming data socket
-  sem_destroy(&DDCInSelMutex);
-  sem_destroy(&DDCResetFIFOMutex);
-  sem_destroy(&RFGPIOMutex);
-  sem_destroy(&CodecRegMutex);
+  pthread_mutex_destroy(&DDCInSelMutex);
+  pthread_mutex_destroy(&DDCResetFIFOMutex);
+  pthread_mutex_destroy(&RFGPIOMutex);
+  pthread_mutex_destroy(&CodecRegMutex);
   SetMOX(false);
   SetTXEnable(false);
   EnableCW(false, false);
@@ -405,14 +404,6 @@ int main(int argc, char *argv[])
 	ESoftwareID ID;
 	unsigned int Version = 0;
   bool IncompatibleFirmware = false;                                // becomes set if firmware is not compatible with this version
-
-  //
-  // initialise register access semaphores
-  //
-  sem_init(&DDCInSelMutex, 0, 1);                                   // for DDC input select register
-  sem_init(&DDCResetFIFOMutex, 0, 1);                               // for FIFO reset register
-  sem_init(&RFGPIOMutex, 0, 1);                                     // for RF GPIO register
-  sem_init(&CodecRegMutex, 0, 1);                                   // for codec writes
 
 //
 // setup Saturn hardware

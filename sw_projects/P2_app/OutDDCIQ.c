@@ -522,7 +522,7 @@ void *OutgoingDDCIQ(void *arg)
             {
                 if(*(DMAReadPtr + 7) != 0x80)
                 {
-                    printf("header not found for rate word at addr %x\n", DMAReadPtr);
+                    printf("header not found for rate word at addr %s\n", DMAReadPtr);
                     exit(1);
                 }
                 else                                                                    // analyse word, then process
