@@ -26,6 +26,7 @@ bool GFIFOSizesInitialised = false;
 
 
 
+
 //
 // void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt);
 //
@@ -44,12 +45,9 @@ void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt)
 			InitialiseFIFOSizes();				// load FIFO size table, if not already done
 			GFIFOSizesInitialised = true;
 	}
-	Address = VADDRFIFOMONBASE + 4 * Channel + 0x10;			// config register address
-	Data = DMAFIFODepths[(int)Channel];							// memory depth
-	if (EnableInterrupt)
-		Data += 0x80000000;						// bit 31
-	RegisterWrite(Address, Data);
+  WriteFIFOConfigRegister(&Channel, EnableInterrupt);
 }
+
 
 
 
@@ -73,8 +71,7 @@ uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed, bool
 	bool OverThresh = false;
 	bool Underflow = false;
 
-	Address = VADDRFIFOMONBASE + 4 * (uint32_t)Channel;			// status register address
-	Data = RegisterRead(Address);
+  Data = ReadChannelStatusRegister(Channel);
 	if (Data & 0x80000000)										// if top bit set, declare overflow
 		Overflow = true;
 	if (Data & 0x40000000)										// if bit 30 set, declare over threshold

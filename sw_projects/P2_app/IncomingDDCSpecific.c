@@ -40,7 +40,7 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
   uint8_t UDPInBuffer[VDDCSPECIFICSIZE];                // incoming buffer
   struct iovec iovecinst;                               // iovcnt buffer - 1 for each outgoing buffer
   struct msghdr datagram;                               // multiple incoming message header
-  int size;                                             // UDP datagram length
+  ssize_t size;                                             // UDP datagram length
   uint8_t Byte1, Byte2;                                 // received data
   bool Dither, Random;                                  // ADC bits
   bool Enabled, Interleaved;                            // DDC settings
