@@ -299,7 +299,7 @@ uint32_t get_uint32(const uint8_t *buffer, size_t offset) {
 uint16_t get_uint16(const uint8_t *buffer, size_t offset) {
   uint16_t value;
   memcpy(&value, buffer + offset, sizeof(uint16_t));
-  return ntohl(value);  // Assuming network byte order
+  return ntohs(value);  // Assuming network byte order
 }
 
 void put_uint32(uint8_t *buffer, size_t offset, uint32_t value) {
@@ -545,6 +545,7 @@ void SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bo
     uint32_t RegisterValue;
     uint32_t Mask;
     ESampleRate Rate;
+  pthread_mutex_lock(&RegisterMutex);
 
     Mask = 7 << (DDC * 3);                      // 3 bits in correct position
     if (!Enabled)                                   // if not enabled, clear sample rate value & enabled flag
@@ -583,6 +584,7 @@ void SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bo
     Mask = Mask << (DDC * 3);                       // get new bits to right bit position
     RegisterValue |= Mask;
     DDCRateReg = RegisterValue;                     // don't save to hardware
+  pthread_mutex_unlock(&RegisterMutex);
 }
 
 
@@ -775,7 +777,7 @@ void SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)		// only accepts DUC
     uint32_t DeltaPhase;                    // calculated deltaphase value
     double fDeltaPhase;
 
-  pthread_mutex_lock(&RegisterMutex);
+    pthread_mutex_lock(&RegisterMutex);
     if(!IsDeltaPhase)                       // ieif protocol 1
     {
         fDeltaPhase = (double)(1LL << 32) * (double)Value / (double) VSAMPLERATE;
@@ -1099,6 +1101,7 @@ void DisableAlexTRRelay(bool IsDisabled)
 void AlexManualTXFilters(unsigned int Bits, bool HasTXAntExplicitly)
 {
     uint32_t Register;                                  // modified register
+  pthread_mutex_lock(&RegisterMutex);
     if(GAlexManualFilterSelect)
     {
         Register = Bits;                         // new setting
@@ -1113,6 +1116,7 @@ void AlexManualTXFilters(unsigned int Bits, bool HasTXAntExplicitly)
             RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXFILTREG, Register);  // and write to it
         }
     }
+  pthread_mutex_unlock(&RegisterMutex);
 }
 
 
@@ -1166,20 +1170,21 @@ void EnablePPSStamp(bool Enabled)
 // sets both step attenuator drive and PWM DAC drive for high speed DAC current,
 // using ROMs calculated at initialise.
 //
-void SetTXDriveLevel(unsigned int Level)
-{
-    uint32_t RegisterValue = 0;
-    uint32_t DACDrive, AttenDrive;
+void SetTXDriveLevel(unsigned int Level) {
+  uint32_t RegisterValue = 0;
+  uint32_t DACDrive, AttenDrive;
+  pthread_mutex_lock(&RegisterMutex);
 
-    Level &= 0xFF;                                  // make sure 8 bits only
-    DACDrive = DACCurrentROM[Level];                // get PWM
-    AttenDrive = DACStepAttenROM[Level];            // get step atten
-    RegisterValue = DACDrive;                       // set drive level when RX
-    RegisterValue |= (DACDrive << 8);               // set drive level when TX
-    RegisterValue |= (AttenDrive << 16);            // set step atten when RX
-    RegisterValue |= (AttenDrive << 24);            // set step atten when TX
-    GTXDACCtrl = RegisterValue;
-    RegisterWrite(VADDRDACCTRLREG, RegisterValue);  // and write to it
+  Level &= 0xFF;                                  // make sure 8 bits only
+  DACDrive = DACCurrentROM[Level];                // get PWM
+  AttenDrive = DACStepAttenROM[Level];            // get step atten
+  RegisterValue = DACDrive;                       // set drive level when RX
+  RegisterValue |= (DACDrive << 8);               // set drive level when TX
+  RegisterValue |= (AttenDrive << 16);            // set step atten when RX
+  RegisterValue |= (AttenDrive << 24);            // set step atten when TX
+  GTXDACCtrl = RegisterValue;
+  RegisterWrite(VADDRDACCTRLREG, RegisterValue);  // and write to it
+  pthread_mutex_unlock(&RegisterMutex);
 }
 
 
@@ -1364,8 +1369,10 @@ void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool RXAtten, bool TXA
             Register |= (Atten & 0X1F)<<15;         // add in new bits for ADC2, TX
         }
     }
+  pthread_mutex_lock(&RegisterMutex);
         GRXADCCtrl = Register; 
         RegisterWrite(VADDRADCCTRLREG, Register);      // and write to it
+  pthread_mutex_unlock(&RegisterMutex);
 }
 
 
@@ -1406,12 +1413,14 @@ void SetCWIambicKeyer(uint8_t Speed, uint8_t Weight, bool ReverseKeys, bool Mode
         Register |= (1<<VIAMBICENABLE);             // set bit if enabled
     if(Breakin)
         Register |= (1<<VCWBREAKIN);             // set bit if enabled
-    
+
+  pthread_mutex_lock(&RegisterMutex);
     if (Register != GIambicConfigReg)               // save if changed
     {
         GIambicConfigReg = Register;
         RegisterWrite(VADDRIAMBICCONFIG, Register);
     }
+  pthread_mutex_unlock(&RegisterMutex);
 }
 
 
@@ -1433,12 +1442,13 @@ void SetCWXBits(bool CWXEnabled, bool CWXDash, bool CWXDot)
         Register |= (1<<VIAMBICCWXDOT);             // set bit if enabled
     if(GCWXDash)
         Register |= (1<<VIAMBICCWXDASH);            // set bit if enabled
-    
+  pthread_mutex_lock(&RegisterMutex);
     if (Register != GIambicConfigReg)               // save if changed
     {
         GIambicConfigReg = Register;
         RegisterWrite(VADDRIAMBICCONFIG, Register);
     }
+  pthread_mutex_unlock(&RegisterMutex);
 }
 
 
@@ -1568,6 +1578,7 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
 // DL1YCF ramp code:
 //
 //
+      pthread_mutex_lock(&RegisterMutex);
         for (Cntr = 0; Cntr < RampLength; Cntr++)
         {
             x = (double) Cntr / (double) RampLength;           // between 0 and 1
@@ -1596,6 +1607,7 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
         GCWKeyerSetup = Register;                    // store it back
         RegisterWrite(VADDRKEYERCONFIGREG, Register);  // and write to it
     }
+  pthread_mutex_unlock(&RegisterMutex);
 }
 
 
@@ -1633,6 +1645,7 @@ void EnableCW(bool Enabled, bool Breakin)
 void SetCWSidetoneEnabled(bool Enabled)
 {
     uint32_t Register;
+  pthread_mutex_lock(&RegisterMutex);
     if(GSidetoneEnabled != Enabled)                     // only act if bit changed
     {
         GSidetoneEnabled = Enabled;
@@ -1643,6 +1656,7 @@ void SetCWSidetoneEnabled(bool Enabled)
         GCodecConfigReg = Register;                     // store it back
         RegisterWrite(VADDRCODECCONFIGREG, Register);   // and write to it
     }
+  pthread_mutex_unlock(&RegisterMutex);
 }
 
 
@@ -1653,6 +1667,7 @@ void SetCWSidetoneEnabled(bool Enabled)
 void SetCWSidetoneVol(uint8_t Volume)
 {
     uint32_t Register;
+  pthread_mutex_lock(&RegisterMutex);
 
     if(GSidetoneVolume != Volume)                       // only act if value changed
     {
@@ -1664,6 +1679,7 @@ void SetCWSidetoneVol(uint8_t Volume)
         GCodecConfigReg = Register;                     // store it back
         RegisterWrite(VADDRCODECCONFIGREG, Register);   // and write to it
     }
+  pthread_mutex_unlock(&RegisterMutex);
 }
 
 
@@ -1674,6 +1690,7 @@ void SetCWSidetoneVol(uint8_t Volume)
 void SetCWPTTDelay(unsigned int Delay)
 {
     uint32_t Register;
+  pthread_mutex_lock(&RegisterMutex);
 
     Register = GCWKeyerSetup;                           // get current settings
     Register &= 0xFFFFFF00;                             // remove old bits
@@ -1683,6 +1700,7 @@ void SetCWPTTDelay(unsigned int Delay)
         GCWKeyerSetup = Register;                       // store it back
         RegisterWrite(VADDRKEYERCONFIGREG, Register);   // and write to it
     }
+  pthread_mutex_unlock(&RegisterMutex);
 }
 
 
@@ -1695,6 +1713,7 @@ void SetCWHangTime(unsigned int HangTime)
 {
     uint32_t Register;
 
+  pthread_mutex_lock(&RegisterMutex);
     Register = GCWKeyerSetup;                           // get current settings
     Register &= 0xFFFC00FF;                             // remove old bits
     Register |= (HangTime &0x3FF) << VCWKEYERHANG;      // add back new bits
@@ -1703,6 +1722,7 @@ void SetCWHangTime(unsigned int HangTime)
         GCWKeyerSetup = Register;                       // store it back
         RegisterWrite(VADDRKEYERCONFIGREG, Register);   // and write to it
     }
+  pthread_mutex_unlock(&RegisterMutex);
 }
 
 #define VCODECSAMPLERATE 48000                      // I2S rate
