@@ -277,7 +277,6 @@ void *OutgoingDDCIQ(void *arg)
     uint32_t FrameLength;                                       // number of words per frame
     uint32_t DDCCounts[VNUMDDC];                                // number of samples per DDC in a frame
     static DDCState ddcState = {0};
-    bool HeaderFound;
     uint32_t DecodeByteCount;                                   // bytes to decode
     unsigned int Current;                                   // current occupied locations in FIFO
     unsigned int StartupCount;                              // used to delay reporting of under & overflows
@@ -372,7 +371,6 @@ void *OutgoingDDCIQ(void *arg)
       //
         printf("outDDCIQ: enable data transfer\n");
         SetRXDDCEnabled(true);
-        HeaderFound = false;
         while(!InitError && SDRActive)
         {
 
@@ -495,7 +493,7 @@ void *OutgoingDDCIQ(void *arg)
               InitError = true;
               exit(1);
             }
-            
+
             //
             // finally copy data to DMA buffers according to the embedded DDC rate words
             // the 1st word is pointed by DMAReadPtr and it should point to a DDC rate word
