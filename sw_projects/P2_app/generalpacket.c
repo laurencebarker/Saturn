@@ -32,13 +32,13 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
   uint16_t Port;                                  // port number from table
   int i;
   uint8_t Byte;
-  SetPort(VPORTDDCSPECIFIC, ntohs(*(uint16_t*)(PacketBuffer+5)));
-  SetPort(VPORTDUCSPECIFIC, ntohs(*(uint16_t*)(PacketBuffer+7)));
-  SetPort(VPORTHIGHPRIORITYTOSDR, ntohs(*(uint16_t*)(PacketBuffer+9)));
-  SetPort(VPORTSPKRAUDIO, ntohs(*(uint16_t*)(PacketBuffer+13)));
-  SetPort(VPORTDUCIQ, ntohs(*(uint16_t*)(PacketBuffer+15)));
-  SetPort(VPORTHIGHPRIORITYFROMSDR, ntohs(*(uint16_t*)(PacketBuffer+11)));
-  SetPort(VPORTMICAUDIO, ntohs(*(uint16_t*)(PacketBuffer+19)));
+  SetPort(VPORTDDCSPECIFIC, get_uint16(PacketBuffer, 5));
+  SetPort(VPORTDUCSPECIFIC, get_uint16(PacketBuffer, 7));
+  SetPort(VPORTHIGHPRIORITYTOSDR, get_uint16(PacketBuffer, 9));
+  SetPort(VPORTSPKRAUDIO, get_uint16(PacketBuffer, 13));
+  SetPort(VPORTDUCIQ, get_uint16(PacketBuffer, 15));
+  SetPort(VPORTHIGHPRIORITYFROMSDR, get_uint16(PacketBuffer, 11));
+  SetPort(VPORTMICAUDIO, get_uint16(PacketBuffer, 19));
 
 // DDC ports start at the transferred value then increment
   Port = get_uint16(PacketBuffer, 17);            // DDC0

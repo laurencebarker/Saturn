@@ -30,14 +30,15 @@ pthread_mutex_t CodecRegMutex;
 // // using simple SPI writer IP
 // given 7 bit register address and 9 bit data
 //
-void CodecRegisterWrite(uint32_t Address, uint32_t Data)
-{
-	uint32_t WriteData;
+void CodecRegisterWrite(uint32_t Address, uint32_t Data) {
+  uint32_t WriteData;
 
-	WriteData = (Address << 9) | (Data & 0x01FFUL);
-    pthread_mutex_lock(&CodecRegMutex);                       // get protected access
+  WriteData = (Address << 9) | (Data & 0x01FFUL);
+  pthread_mutex_lock(&CodecRegMutex);
+
+
 //	printf("writing data %04x to codec register %04x\n", Data, Address);
-	  RegisterWrite(VADDRCODECSPIREG, WriteData); // and write to it
-    pthread_mutex_unlock(&CodecRegMutex);                     // clear protected access
+  RegisterWrite(VADDRCODECSPIREG, WriteData); // and write to it
+  pthread_mutex_unlock(&CodecRegMutex);
 }
 

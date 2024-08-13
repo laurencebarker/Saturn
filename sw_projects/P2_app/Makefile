@@ -4,7 +4,7 @@
  
 CC = gcc
 LD = gcc
-CFLAGS = -Wall -Wextra -Wno-unused-function -g -D_GNU_SOURCE
+CFLAGS = -Wall -Wextra -Wno-unused-function -g -D_GNU_SOURCE -O2
 LDFLAGS = -lm -lpthread
 LIBS = -lgpiod -li2c
 TARGET = p2app

@@ -69,7 +69,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     uint32_t Cntr;                                          // sample counter
     uint8_t* SrcPtr;                                        // pointer to data from Thetis
     uint8_t* DestPtr;                                       // pointer to DMA buffer data
-    unsigned int Current;                                   // current occupied locations in FIFO
+    uint32_t Current;                                       // current occupied locations in FIFO
     unsigned int StartupCount;                              // used to delay reporting of under & overflows
     bool PrevSDRActive = false;                             // used to detect change of state
 
@@ -163,22 +163,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
                         printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
                 }
             }
-            // copy data from UDP Buffer & DMA write it
-//            memcpy(IQBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);                // copy out I/Q samples
-            // need to swap I & Q samples on replay
-            SrcPtr = (uint16_t *) (UDPInBuffer + 4);
-            DestPtr = (uint16_t *) IQBasePtr;
-            for (Cntr=0; Cntr < VIQSAMPLESPERFRAME; Cntr++)                     // samplecounter
-            {
-                *DestPtr++ = *(SrcPtr+3);                           // get I sample (3 bytes)
-                *DestPtr++ = *(SrcPtr+4);
-                *DestPtr++ = *(SrcPtr+5);
-                *DestPtr++ = *(SrcPtr+0);                           // get Q sample (3 bytes)
-                *DestPtr++ = *(SrcPtr+1);
-                *DestPtr++ = *(SrcPtr+2);
-                SrcPtr += 6;                                        // point at next source sample
-            }
-            DMAWriteToFPGA(DMAWritefile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDUCSTREAMWRITE);
+          transferIQSamples(UDPInBuffer, IQBasePtr, DMAWritefile_fd);
         }
     }
 //
@@ -188,6 +173,30 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     ThreadData->Socketid = 0;
     ThreadData->Active = false;                   // indicate it is closed
     return NULL;
+}
+
+// copy data from UDP Buffer & DMA write it
+static void transferIQSamples(const uint8_t* UDPInBuffer, uint8_t* IQBasePtr, int DMAWritefile_fd)
+{
+  const uint8_t* srcPtr = UDPInBuffer + 4;
+  uint8_t* destPtr = IQBasePtr;
+
+  // Need to swap I & Q samples on replay
+  for (size_t i = 0; i < VIQSAMPLESPERFRAME; i++)
+  {
+    // Copy Q sample (3 bytes).
+    // We copy Q first so that we read from srcPtr first, making the subsequent read from srcPtr + 3 a cache hit.
+    memcpy(destPtr + 3, srcPtr, 3);
+
+    // Copy I sample (3 bytes)
+    memcpy(destPtr, srcPtr + 3, 3);
+
+    // Move to the next source sample
+    destPtr += 6;
+    srcPtr += 6;
+  }
+
+  DMAWriteToFPGA(DMAWritefile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDUCSTREAMWRITE);
 }
 
 

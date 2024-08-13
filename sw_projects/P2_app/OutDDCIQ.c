@@ -16,7 +16,7 @@
 #include "threaddata.h"
 #include <stdint.h>
 #include "../common/saturntypes.h"
-#include "OutMicAudio.h"
+#include "OutDDCIQ.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -200,8 +200,6 @@ unsigned char* IQBasePtr[VNUMDDC];							// ptr to DMA location in I/Q memory
 
 bool CreateDynamicMemory(void)                              // return true if error
 {
-    uint32_t DDC;
-    bool Result = false;
 //
 // first create the buffer for DMA, and initialise its pointers
 //
@@ -212,38 +210,33 @@ bool CreateDynamicMemory(void)                              // return true if er
     if (!DMAReadBuffer)
     {
         printf("I/Q read buffer allocation failed\n");
-        Result = true;
+        return true;
     }
     memset(DMAReadBuffer, 0, DMABufferSize);
 
     //
     // set up per-DDC data structures
     //
-    for (DDC = 0; DDC < VNUMDDC; DDC++)
+    for (int ddc = 0; ddc < VNUMDDC; ddc++)
     {
-        UDPBuffer[DDC] = malloc(VDDCPACKETSIZE);
-        DDCSampleBuffer[DDC] = malloc(DMABufferSize);
-        IQReadPtr[DDC] = DDCSampleBuffer[DDC] + VBASE;		// offset 4096 bytes into buffer
-        IQHeadPtr[DDC] = DDCSampleBuffer[DDC] + VBASE;
-        IQBasePtr[DDC] = DDCSampleBuffer[DDC] + VBASE;
+        UDPBuffer[ddc] = malloc(VDDCPACKETSIZE);
+        DDCSampleBuffer[ddc] = malloc(DMABufferSize);
+        IQReadPtr[ddc] = DDCSampleBuffer[ddc] + VBASE;		// offset 4096 bytes into buffer
+        IQHeadPtr[ddc] = DDCSampleBuffer[ddc] + VBASE;
+        IQBasePtr[ddc] = DDCSampleBuffer[ddc] + VBASE;
     }
-    return Result;
+    return false;
 }
 
 
-void FreeDynamicMemory(void)
-{
-    uint32_t DDC;
+void FreeDynamicMemory(void) {
+  free(DMAReadBuffer);
 
-    free(DMAReadBuffer);
-    //
-    // free the per-DDC buffers
-    //
-    for (DDC = 0; DDC < VNUMDDC; DDC++)
-    {
-        free(UDPBuffer[DDC]);
-        free(DDCSampleBuffer[DDC]);
-    }
+  // free the per-DDC buffers
+  for (int ddc = 0; ddc < VNUMDDC; ddc++) {
+    free(UDPBuffer[ddc]);
+    free(DDCSampleBuffer[ddc]);
+  }
 }
 
 
@@ -268,7 +261,6 @@ void *OutgoingDDCIQ(void *arg)
     int IQReadfile_fd = -1;									    // DMA read file device
     uint32_t RegisterValue;
     bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;
-    int DDC;                                                    // iterator
 
     struct ThreadSocketData *ThreadData;                        // socket etc data for each thread.
                                                                 // points to 1st one
@@ -284,12 +276,7 @@ void *OutgoingDDCIQ(void *arg)
 //
     uint32_t FrameLength;                                       // number of words per frame
     uint32_t DDCCounts[VNUMDDC];                                // number of samples per DDC in a frame
-    uint32_t RateWord;                                          // DDC rate word from buffer
-    uint32_t HdrWord;                                           // check word read form DMA's data
-    uint16_t* SrcWordPtr, * DestWordPtr;                        // 16 bit read & write pointers
-    uint32_t *LongWordPtr;
-    uint32_t PrevRateWord;                                      // last used rate word
-    uint32_t Cntr;                                              // sample word counter
+    static DDCState ddcState = {0};
     bool HeaderFound;
     uint32_t DecodeByteCount;                                   // bytes to decode
     unsigned int Current;                                   // current occupied locations in FIFO
@@ -298,7 +285,6 @@ void *OutgoingDDCIQ(void *arg)
 //
 // initialise. Create memory buffers and open DMA file devices
 //
-    PrevRateWord = 0xFFFFFFFF;                                  // illegal value to forc re-calculation of rates
     DMATransferSize = VDMATRANSFERSIZE;                         // initial size, but can be changed
     InitError = CreateDynamicMemory();
     //
@@ -317,10 +303,10 @@ void *OutgoingDDCIQ(void *arg)
     //
     // set up per-DDC data structures
     //
-    for (DDC = 0; DDC < VNUMDDC; DDC++)
+    for (int ddc = 0; ddc < VNUMDDC; ddc++)
     {
-        SequenceCounter[DDC] = 0;                           // clear UDP packet counter
-        (ThreadData + DDC)->Active = true;                  // set outgoing socket active
+        SequenceCounter[ddc] = 0;                           // clear UDP packet counter
+        (ThreadData + ddc)->Active = true;                  // set outgoing socket active
     }
 
 
@@ -342,6 +328,8 @@ void *OutgoingDDCIQ(void *arg)
     Depth=0;
 
 
+
+
 //
 // thread loop. runs continuously until commanded by main loop to exit
 // for now: add 1 RX data + mic data at 48KHz sample rate. Mic data is constant zero.
@@ -352,12 +340,12 @@ void *OutgoingDDCIQ(void *arg)
     {
         while(!SDRActive)
         {
-            for (DDC=0; DDC < VNUMDDC; DDC++)
-                if((ThreadData+DDC) -> Cmdid & VBITCHANGEPORT)
+            for (int ddc = 0; ddc < VNUMDDC; ddc++)
+                if((ThreadData + ddc) -> Cmdid & VBITCHANGEPORT)
                 {
-                    close((ThreadData+DDC) -> Socketid);                      // close old socket, open new one
-                    MakeSocket((ThreadData + DDC), 0);                        // this binds to the new port.
-                    (ThreadData + DDC) -> Cmdid &= ~VBITCHANGEPORT;           // clear command bit
+                    close((ThreadData + ddc) -> Socketid);                      // close old socket, open new one
+                    MakeSocket((ThreadData + ddc), 0);                        // this binds to the new port.
+                    (ThreadData + ddc) -> Cmdid &= ~VBITCHANGEPORT;           // clear command bit
                 }
             usleep(100);
         }
@@ -366,18 +354,18 @@ void *OutgoingDDCIQ(void *arg)
         //
         // initialise outgoing DDC packets - 1 per DDC
         //
-        for (DDC = 0; DDC < VNUMDDC; DDC++)
+        for (int ddc = 0; ddc < VNUMDDC; ddc++)
         {
-            SequenceCounter[DDC] = 0;
-            memcpy(&DestAddr[DDC], &reply_addr, sizeof(struct sockaddr_in));           // local copy of PC destination address (reply_addr is global)
-            memset(&iovecinst[DDC], 0, sizeof(struct iovec));
-            memset(&datagram[DDC], 0, sizeof(struct msghdr));
-            iovecinst[DDC].iov_base = UDPBuffer[DDC];
-            iovecinst[DDC].iov_len = VDDCPACKETSIZE;
-            datagram[DDC].msg_iov = &iovecinst[DDC];
-            datagram[DDC].msg_iovlen = 1;
-            datagram[DDC].msg_name = &DestAddr[DDC];                   // MAC addr & port to send to
-            datagram[DDC].msg_namelen = sizeof(DestAddr);
+            SequenceCounter[ddc] = 0;
+            memcpy(&DestAddr[ddc], &reply_addr, sizeof(struct sockaddr_in));           // local copy of PC destination address (reply_addr is global)
+            memset(&iovecinst[ddc], 0, sizeof(struct iovec));
+            memset(&datagram[ddc], 0, sizeof(struct msghdr));
+            iovecinst[ddc].iov_base = UDPBuffer[ddc];
+            iovecinst[ddc].iov_len = VDDCPACKETSIZE;
+            datagram[ddc].msg_iov = &iovecinst[ddc];
+            datagram[ddc].msg_iovlen = 1;
+            datagram[ddc].msg_name = &DestAddr[ddc];                   // MAC addr & port to send to
+            datagram[ddc].msg_namelen = sizeof(DestAddr);
         }
       //
       // enable Saturn DDC to transfer data
@@ -393,29 +381,29 @@ void *OutgoingDDCIQ(void *arg)
         // while there is enough I/Q data for this DDC in local (ARM) memory, make DDC Packets
         // then put any residues at the heads of the buffer, ready for new data to come in
         //
-            for (DDC = 0; DDC < VNUMDDC; DDC++)
+            for (int ddc = 0; ddc < VNUMDDC; ddc++)
             {
-                while ((IQHeadPtr[DDC] - IQReadPtr[DDC]) > VIQBYTESPERFRAME)
+                while ((IQHeadPtr[ddc] - IQReadPtr[ddc]) > VIQBYTESPERFRAME)
                 {
 //                    printf("enough data for packet: DDC= %d\n", DDC);
-                    put_uint32(UDPBuffer[DDC], 0, SequenceCounter[DDC]++);  // add sequence count
-                    memset(UDPBuffer[DDC] + 4, 0, 8);                                          // clear the timestamp data
-                    put_uint16(UDPBuffer[DDC], 12, 24);                     // bits per sample
-                    put_uint32(UDPBuffer[DDC], 14, VIQSAMPLESPERFRAME);     // I/Q samples for ths frame
+                    put_uint32(UDPBuffer[ddc], 0, SequenceCounter[ddc]++);  // add sequence count
+                    memset(UDPBuffer[ddc] + 4, 0, 8);                                          // clear the timestamp data
+                    put_uint16(UDPBuffer[ddc], 12, 24);                     // bits per sample
+                    put_uint32(UDPBuffer[ddc], 14, VIQSAMPLESPERFRAME);     // I/Q samples for ths frame
                     //
                     // now add I/Q data & send outgoing packet
                     //
-                    memcpy(UDPBuffer[DDC] + 16, IQReadPtr[DDC], VIQBYTESPERFRAME);
-                    IQReadPtr[DDC] += VIQBYTESPERFRAME;
+                    memcpy(UDPBuffer[ddc] + 16, IQReadPtr[ddc], VIQBYTESPERFRAME);
+                    IQReadPtr[ddc] += VIQBYTESPERFRAME;
 
                     ssize_t Error;
-                    Error = sendmsg((ThreadData+DDC)->Socketid, &datagram[DDC], 0);
+                    Error = sendmsg((ThreadData+ddc)->Socketid, &datagram[ddc], 0);
                     if(StartupCount != 0)                                   // decrement startup message count
                         StartupCount--;
 
                     if (Error == -1)
                     {
-                        printf("Send Error, DDC=%d, errno=%d, socket id = %d\n", DDC, errno, (ThreadData+DDC)->Socketid);
+                        printf("Send Error, DDC=%d, errno=%d, socket id = %d\n", ddc, errno, (ThreadData+ddc)->Socketid);
                         InitError = true;
                     }
                 }
@@ -424,18 +412,18 @@ void *OutgoingDDCIQ(void *arg)
               // unless the buffer already starts at or below the base
               // if we do a copy, the 1st free location is always base addr
               //
-              ResidueBytes = IQHeadPtr[DDC] - IQReadPtr[DDC];
+              ResidueBytes = IQHeadPtr[ddc] - IQReadPtr[ddc];
               //		printf("Residue = %d bytes\n",ResidueBytes);
-              if (IQReadPtr[DDC] > IQBasePtr[DDC])                                // move data down
+              if (IQReadPtr[ddc] > IQBasePtr[ddc])                                // move data down
               {
                 if (ResidueBytes != 0)    // if there is residue to move
                 {
-                  memcpy(IQBasePtr[DDC] - ResidueBytes, IQReadPtr[DDC], ResidueBytes);
-                  IQReadPtr[DDC] = IQBasePtr[DDC] - ResidueBytes;
+                  memcpy(IQBasePtr[ddc] - ResidueBytes, IQReadPtr[ddc], ResidueBytes);
+                  IQReadPtr[ddc] = IQBasePtr[ddc] - ResidueBytes;
                 } else {
-                  IQReadPtr[DDC] = IQBasePtr[DDC];
+                  IQReadPtr[ddc] = IQBasePtr[ddc];
                 }
-                IQHeadPtr[DDC] = IQBasePtr[DDC];                            // ready for new data at base
+                IQHeadPtr[ddc] = IQBasePtr[ddc];                            // ready for new data at base
               }
             }
             //
@@ -485,29 +473,29 @@ void *OutgoingDDCIQ(void *arg)
 
             DMAReadFromFPGA(IQReadfile_fd, DMAHeadPtr, DMATransferSize, VADDRDDCSTREAMREAD);
             DMAHeadPtr += DMATransferSize;
+
             //
             // find header: may not be the 1st word
             //
-//            DumpMemoryBuffer(DMAReadPtr, DMATransferSize);
-            if(HeaderFound == false)                                                    // 1st time: look for header
-                for(Cntr=16; Cntr < (DMAHeadPtr - DMAReadPtr); Cntr+=8)                  // search for rate word; ignoring 1st
-                {
-                    if(*(DMAReadPtr + Cntr + 7) == 0x80)
-                    {
-//                        printf("found header at offset=%x\n", Cntr);
-                        HeaderFound = true;
-                        DMAReadPtr += Cntr;                                             // point read buffer where header is 
-                        break;
-                    }
-                }
-            if (HeaderFound == false)                                        // if rate flag not set
-            {
-//                printf("Rate word not found when expected. rate= %08x\n", RateWord);
-                InitError = true;
-                exit(1);
+            uint64_t rateWordWithHeader;
+            bool headerFound = false;
+
+            // Search for the header
+            for (uint32_t i = 16; i < (DMAHeadPtr - DMAReadPtr); i += 8) {
+              rateWordWithHeader = *((uint64_t*)(DMAReadPtr + i));
+              if ((rateWordWithHeader & (0x80ULL << (7 * 8))) != 0) {
+                DMAReadPtr += i;
+                headerFound = true;
+                break;
+              }
             }
 
-
+            if (!headerFound) {
+              printf("Rate word not found when expected.\n");
+              InitError = true;
+              exit(1);
+            }
+            
             //
             // finally copy data to DMA buffers according to the embedded DDC rate words
             // the 1st word is pointed by DMAReadPtr and it should point to a DDC rate word
@@ -520,50 +508,32 @@ void *OutgoingDDCIQ(void *arg)
             DecodeByteCount = DMAHeadPtr - DMAReadPtr;
             while (DecodeByteCount >= 16)                       // minimum size to try!
             {
-                if(*(DMAReadPtr + 7) != 0x80)
-                {
-                    printf("header not found for rate word at addr %s\n", DMAReadPtr);
-                    exit(1);
-                }
-                else                                                                    // analyse word, then process
-                {
-                    LongWordPtr = (uint32_t*)DMAReadPtr;                            // get 32 bit ptr
-                    RateWord = *LongWordPtr;                                      // read rate word
+              rateWordWithHeader = *((uint64_t*)DMAReadPtr);
+              if ((rateWordWithHeader & (0x80ULL << (7 * 8))) == 0) {
+                // Header is offset by 7 bytes
+                printf("header not found for rate word at addr %s\n", DMAReadPtr);
+                exit(1);
+              }
+              uint32_t RateWord = (uint32_t)rateWordWithHeader; // extract rate word
 
-                    if (RateWord != PrevRateWord)
-                    {
-                        FrameLength = AnalyseDDCHeader(RateWord, &DDCCounts[0]);           // read new settings
-//                        printf("new framelength = %d\n", FrameLength);
-                        PrevRateWord = RateWord;                                        // so so we know its analysed
-                    }
-                    if (DecodeByteCount >= ((FrameLength+1) * 8))             // if bytes for header & frame
-                    {
-                        //THEN COPY DMA DATA TO I / Q BUFFERS
-                        DMAReadPtr += 8;                                                // point to 1st location past rate word
-                        SrcWordPtr = (uint16_t*)DMAReadPtr;                             // read sample data in 16 bit chunks
-                        for (DDC = 0; DDC < VNUMDDC; DDC++)
-                        {
-                            HdrWord = DDCCounts[DDC];                                   // number of words for this DDC. reuse variable
-                            if (HdrWord != 0)
-                            {
-                                DestWordPtr = (uint16_t *)IQHeadPtr[DDC];
-                                for (Cntr = 0; Cntr < HdrWord; Cntr++)                  // count 64 bit words
-                                {
-                                    *DestWordPtr++ = *SrcWordPtr++;                     // move 48 bits of sample data
-                                    *DestWordPtr++ = *SrcWordPtr++;
-                                    *DestWordPtr++ = *SrcWordPtr++;
-                                    SrcWordPtr++;                                       // and skip 16 bits where theres no data
-                                }
-                                IQHeadPtr[DDC] += 6 * HdrWord;                          // 6 bytes per sample
-                            }
-                            // read N samples; write at head ptr
-                        }
-                        DMAReadPtr += FrameLength * 8;                                  // that's how many bytes we read out
-                        DecodeByteCount -= (FrameLength+1) * 8;
-                    }
-                    else
-                        break;                                                          // if not enough left, exit loop
-                }
+              // Update DDC state only if RateWord has changed
+              if (RateWord != ddcState.lastRateWord) {
+                FrameLength = AnalyseDDCHeaderAndUpdateActive(RateWord, DDCCounts, &ddcState);
+//                      printf("new framelength = %d\n", FrameLength);
+              }
+
+              if (DecodeByteCount >= ((FrameLength + 1) * 8))             // if bytes for header & frame
+              {
+                  //THEN COPY DMA DATA TO I / Q BUFFERS
+                  DMAReadPtr += 8;                                                // point to 1st location past rate word
+                  processDDCData(DMAReadPtr, IQHeadPtr, &ddcState);
+
+                  DMAReadPtr += FrameLength * 8;                                  // that's how many bytes we read out
+                  DecodeByteCount -= (FrameLength + 1) * 8;
+              }
+              else
+                  break;                                                          // if not enough left, exit loop
+
             }
             //
             // now copy any residue to the start of the buffer (before the data copy in point)
@@ -619,4 +589,49 @@ void *OutgoingDDCIQ(void *arg)
 void HandlerCheckDDCSettings(void)
 {
 
+}
+
+
+static void processDDCData(const uint8_t *readPtr, uint8_t **headPtr, const DDCState *state) {
+  const uint8_t *srcPtr = readPtr;
+
+  for (int i = 0; i < state->activeCount; i++) {
+    int ddc = state->activeDDCs[i].ddc_index;
+    uint32_t sampleCount = state->activeDDCs[i].sample_count;
+    uint8_t *destPtr = headPtr[ddc];
+
+    copyDDCData(srcPtr, destPtr, sampleCount);
+
+    headPtr[ddc] += sampleCount * 6;  // Update IQHeadPtr
+    srcPtr += sampleCount * 8;  // Move to the next DDC's data
+  }
+}
+
+static uint32_t AnalyseDDCHeaderAndUpdateActive(uint32_t RateWord, uint32_t* ddcCounts, DDCState* state) {
+  uint32_t Total = AnalyseDDCHeader(RateWord, ddcCounts);
+
+  state->activeCount = 0;
+  for (int ddc = 0; ddc < VNUMDDC; ddc++) {
+    if (ddcCounts[ddc] > 0) {
+      state->activeDDCs[state->activeCount].ddc_index = ddc;
+      state->activeDDCs[state->activeCount].sample_count = ddcCounts[ddc];
+      state->activeCount++;
+    }
+  }
+
+  state->lastRateWord = RateWord;
+  return Total;
+}
+
+static void copyDDCData(const uint8_t* srcPtr, uint8_t* destPtr, uint32_t sampleCount)
+{
+  for (uint32_t i = 0; i < sampleCount; i++)
+  {
+    // Copy 48 bits (6 bytes) of sample data
+    memcpy(destPtr, srcPtr, 6);
+
+    // Move pointers
+    destPtr += 6;
+    srcPtr += 8;  // Skip 16 bits where there's no data
+  }
 }
