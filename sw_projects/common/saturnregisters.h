@@ -731,6 +731,10 @@ void SetUserOutputBits(unsigned int Bits);
 void ReadStatusRegister(void);
 
 
+uint32_t ReadChannelStatusRegister(int Channel);
+
+void WriteFIFOConfigRegister(EDMAStreamSelect *Channel, bool EnableInterrupt);
+
 //
 // GetPTTInput(void)
 // return true if PTT input is pressed.

@@ -453,9 +453,7 @@ void SetMOX(bool Mox) {
     ActivateCWKeyer(GCWEnabled && GBreakinEnabled); // disable keyer unless CW & breakin
   }
 
-  pthread_mutex_unlock(&RFGPIOMutex);             // clear protected access
-
-
+  pthread_mutex_unlock(&RFGPIOMutex);
 }
 
 
@@ -469,6 +467,7 @@ void SetTXEnable(bool Enabled)
     uint32_t Register;
 
     pthread_mutex_lock(&RFGPIOMutex);               // get protected access
+    pthread_mutex_lock(&RegisterMutex);
     Register = GPIORegValue;                        // get current settings
     if (Enabled)
         Register |= (UINT32_C(1) << VTXENABLEBIT);
@@ -476,6 +475,7 @@ void SetTXEnable(bool Enabled)
         Register &= ~(UINT32_C(1) << VTXENABLEBIT);
     GPIORegValue = Register;                        // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);        // and write to it
+    pthread_mutex_unlock(&RegisterMutex);
     pthread_mutex_unlock(&RFGPIOMutex);             // clear protected access
 }
 
@@ -595,12 +595,14 @@ void SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bo
 //
 bool WriteP2DDCRateRegister(void)
 {
+    pthread_mutex_lock(&RegisterMutex);
     uint32_t CurrentValue;                          // current register setting
     bool Result = false;                            // return value
     CurrentValue = RegisterRead(VADDRDDCRATES);
     if (CurrentValue != DDCRateReg)
         Result = true;
     RegisterWrite(VADDRDDCRATES, DDCRateReg);        // and write to hardware register
+    pthread_mutex_unlock(&RegisterMutex);
     return Result;
 }
 
@@ -710,7 +712,7 @@ void SetDDCFrequency(uint32_t DDC, uint32_t Value, bool IsDeltaPhase)
     uint32_t DeltaPhase;                    // calculated deltaphase value
     uint32_t RegAddress;
     double fDeltaPhase;
-
+    pthread_mutex_lock(&RegisterMutex);
     if(DDC >= VNUMDDC)                      // limit the DDC count to actual regs!
         DDC = VNUMDDC-1;
     if(!IsDeltaPhase)                       // ieif protocol 1
@@ -727,6 +729,7 @@ void SetDDCFrequency(uint32_t DDC, uint32_t Value, bool IsDeltaPhase)
         RegAddress =DDCRegisters[DDC];          // get DDC reg address, 
         RegisterWrite(RegAddress, DeltaPhase);  // and write to it
     }
+    pthread_mutex_unlock(&RegisterMutex);
 }
 
 
@@ -743,6 +746,7 @@ void SetTestDDSFrequency(uint32_t Value, bool IsDeltaPhase)
     uint32_t DeltaPhase;                    // calculated deltaphase value
     double fDeltaPhase;
 
+  pthread_mutex_lock(&RegisterMutex);
     if(!IsDeltaPhase)                       // ie if protocol 1
     {
         fDeltaPhase = VTWOEXP32 * (double)Value / (double) VSAMPLERATE;
@@ -756,6 +760,7 @@ void SetTestDDSFrequency(uint32_t Value, bool IsDeltaPhase)
         TestSourceDeltaPhase = DeltaPhase;        // store this delta phase
         RegisterWrite(VADDRRXTESTDDSREG, DeltaPhase);  // and write to it
     }
+  pthread_mutex_unlock(&RegisterMutex);
 }
 
 
@@ -770,6 +775,7 @@ void SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)		// only accepts DUC
     uint32_t DeltaPhase;                    // calculated deltaphase value
     double fDeltaPhase;
 
+  pthread_mutex_lock(&RegisterMutex);
     if(!IsDeltaPhase)                       // ieif protocol 1
     {
         fDeltaPhase = (double)(1LL << 32) * (double)Value / (double) VSAMPLERATE;
@@ -780,6 +786,7 @@ void SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)		// only accepts DUC
 
     DUCDeltaPhase = DeltaPhase;             // store this delta phase
     RegisterWrite(VADDRTXDUCREG, DeltaPhase);  // and write to it
+  pthread_mutex_unlock(&RegisterMutex);
 }
 
 
@@ -1963,8 +1970,31 @@ void SetUserOutputBits(unsigned int Bits)
 void ReadStatusRegister(void) {
   pthread_mutex_lock(&RegisterMutex);
   uint32_t StatusRegisterValue = RegisterRead(VADDRSTATUSREG);
-  pthread_mutex_unlock(&RegisterMutex);
   GStatusRegister = StatusRegisterValue;                  // save to global
+  pthread_mutex_unlock(&RegisterMutex);
+}
+
+
+uint32_t ReadChannelStatusRegister(int Channel) {
+  uint32_t Address;							// register address
+  uint32_t Data = 0;							// register content
+  pthread_mutex_lock(&RegisterMutex);
+  Address = VADDRFIFOMONBASE + 4 * (uint32_t)Channel;			// status register address
+  Data = RegisterRead(Address);
+  pthread_mutex_unlock(&RegisterMutex);
+  return Data;
+}
+
+void WriteFIFOConfigRegister(EDMAStreamSelect *Channel, bool EnableInterrupt) {
+  uint32_t Data;
+  uint32_t Address;
+  pthread_mutex_lock(&RegisterMutex);
+  Address = VADDRFIFOMONBASE + 4 * (*Channel) + 0x10;      // config register address
+  Data = DMAFIFODepths[(int) (*Channel)];              // memory depth
+  if (EnableInterrupt)
+    Data += 0x80000000;            // bit 31
+  RegisterWrite(Address, Data);
+  pthread_mutex_unlock(&RegisterMutex);
 }
 
 //
@@ -2363,11 +2393,10 @@ void SetDDCSampleSize(unsigned int DDC, unsigned int Size)
 // UseTestDDSSource(void)
 // override ADC1 and ADC2 selection; use test source instead.
 //
-void UseTestDDSSource(void)
-{
-    pthread_mutex_lock(&DDCInSelMutex);
-    GADCOverride = true;
-    DDCInSelReg = (DDCInSelReg & 0x40000000) | 0x000AAAAA;      // set all to test
-    pthread_mutex_unlock(&DDCInSelMutex);
+void UseTestDDSSource(void) {
+  pthread_mutex_lock(&DDCInSelMutex);
+  GADCOverride = true;
+  DDCInSelReg = (DDCInSelReg & 0x40000000) | 0x000AAAAA;      // set all to test
+  pthread_mutex_unlock(&DDCInSelMutex);
 
 }

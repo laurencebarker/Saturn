@@ -47,8 +47,6 @@
 int register_fd;                             // device identifier
 
 
-
-
 //
 // open connection to the XDMA device driver for register and DMA access
 //
