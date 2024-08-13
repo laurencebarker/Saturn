@@ -105,30 +105,20 @@ int DMAWriteToFPGA(int fd, unsigned char*SrcData, uint32_t Length, uint32_t AXIA
 // Length: number of bytes to copy
 // AXIAddr: offset address in the FPGA window 
 //
-int DMAReadFromFPGA(int fd, unsigned char*DestData, uint32_t Length, uint32_t AXIAddr)
+int DMAReadFromFPGA(int fd, unsigned char* DestData, uint32_t Length, uint32_t AXIAddr)
 {
-	ssize_t rc;									// response code
-	off_t OffsetAddr;
+  ssize_t rc;
 
-	OffsetAddr = AXIAddr;
-	rc = lseek(fd, OffsetAddr, SEEK_SET);
-	if (rc != OffsetAddr)
-	{
-		printf("seek off 0x%lx != 0x%lx.\n", rc, (long) OffsetAddr);
-		perror("seek file");
-		return -EIO;
-	}
+  rc = pread(fd, DestData, Length, AXIAddr);
+  if (rc < 0) {
+    printf("DMA read of 0x%x bytes from 0x%lx failed: %ld\n", Length, (long) AXIAddr, rc);
+    perror("DMA read");
+    return -EIO;
+  }
 
-	// write data to FPGA from memory buffer
-	rc = read(fd, DestData, Length);
-	if (rc < 0)
-	{
-		printf("read 0x%x @ 0x%lx failed %ld.\n", Length, (long) OffsetAddr, rc);
-		perror("DMA read");
-		return -EIO;
-	}
-	return 0;
+  return 0;
 }
+
 
 //
 // 32 bit register read over the AXILite bus
