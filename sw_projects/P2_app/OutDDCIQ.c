@@ -364,7 +364,7 @@ void *OutgoingDDCIQ(void *arg)
             datagram[ddc].msg_iov = &iovecinst[ddc];
             datagram[ddc].msg_iovlen = 1;
             datagram[ddc].msg_name = &DestAddr[ddc];                   // MAC addr & port to send to
-            datagram[ddc].msg_namelen = sizeof(DestAddr);
+            datagram[ddc].msg_namelen = sizeof(struct sockaddr_in);
         }
       //
       // enable Saturn DDC to transfer data
@@ -395,19 +395,6 @@ void *OutgoingDDCIQ(void *arg)
                     IQReadPtr[ddc] += VIQBYTESPERFRAME;
 
                     ssize_t Error;
-                    printf("ddc: %d\n", ddc);
-                    printf("datagram[ddc].msg_iov: %p\n", (void*)datagram[ddc].msg_iov);
-                    printf("datagram[ddc].msg_iovlen: %zu\n", datagram[ddc].msg_iovlen);
-                    printf("iovecinst[ddc].iov_base: %p\n", iovecinst[ddc].iov_base);
-                    printf("iovecinst[ddc].iov_len: %zu\n", iovecinst[ddc].iov_len);
-                    printf("msg_name: %p\n", datagram[ddc].msg_name);
-                    printf("msg_namelen: %zu\n", datagram[ddc].msg_namelen);
-                    printf("msg_iov: %p\n", datagram[ddc].msg_iov);
-                    printf("msg_iovlen: %zu\n", datagram[ddc].msg_iovlen);
-                    printf("iov_base: %p\n", iovecinst[ddc].iov_base);
-                    printf("iov_len: %zu\n", iovecinst[ddc].iov_len);
-                    printf("&datagram[ddc]: %p\n", (void*)&datagram[ddc]);
-                    printf("&iovecinst[ddc]: %p\n", (void*)&iovecinst[ddc]);
                     Error = sendmsg(ThreadData[ddc].Socketid, &datagram[ddc], 0);
                     if(StartupCount != 0)                                   // decrement startup message count
                         StartupCount--;

@@ -98,7 +98,7 @@ void *OutgoingHighPriority(void *arg)
     datagram.msg_iov = &iovecinst;
     datagram.msg_iovlen = 1;
     datagram.msg_name = &DestAddr;                   // MAC addr & port to send to
-    datagram.msg_namelen = sizeof(DestAddr);
+    datagram.msg_namelen = sizeof(struct sockaddr_in);
 
     //
     // this is the main loop. SDR is running. transfer data;
