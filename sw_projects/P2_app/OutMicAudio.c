@@ -176,7 +176,7 @@ void *OutgoingMicSamples(void *arg)
 //                printf("Codec Mic FIFO Underflowed, depth now = %d\n", Current);
             while (Depth < (VMICSAMPLESPERFRAME/4))			        // 16 locations = 64 samples
             {
-                usleep(1000);								        // 1ms wait
+                usleep(5000);								        // 5ms wait
                 Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);				// read the FIFO Depth register
                 if((StartupCount == 0) && FIFOOverThreshold)
                 {

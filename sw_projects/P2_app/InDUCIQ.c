@@ -152,16 +152,16 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
 
             while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {
-                usleep(500);								                    // 0.5ms wait
-                Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);       // read the FIFO free locations
-                if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
-                    printf("TX DUC FIFO Overthreshold, depth now = %d\n", Current);
-                if((StartupCount == 0) && FIFOUnderflow)
-                {
-                    GlobalFIFOOverflows |= 0b00000100;
-                    if(UseDebug)
-                        printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
-                }
+              usleep(5000);                                    // 5ms wait
+              Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow,
+                                             &Current);       // read the FIFO free locations
+              if ((StartupCount == 0) && FIFOOverThreshold && UseDebug)
+                printf("TX DUC FIFO Overthreshold, depth now = %d\n", Current);
+              if ((StartupCount == 0) && FIFOUnderflow) {
+                GlobalFIFOOverflows |= 0b00000100;
+                if (UseDebug)
+                  printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
+              }
             }
           transferIQSamples(UDPInBuffer, IQBasePtr, DMAWritefile_fd);
         }

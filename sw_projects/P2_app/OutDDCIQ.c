@@ -179,7 +179,7 @@
 
 
 
-
+const uint32_t minimumDMATransferSize = 4096;
 
 //
 // code to allocate and free dynamic allocated memory
@@ -304,11 +304,9 @@ void *OutgoingDDCIQ(void *arg)
     //
     for (int ddc = 0; ddc < VNUMDDC; ddc++)
     {
-        SequenceCounter[ddc] = 0;                           // clear UDP packet counter
-        (ThreadData + ddc)->Active = true;                  // set outgoing socket active
+        SequenceCounter[ddc] = 0;                       // clear UDP packet counter
+        ThreadData[ddc].Active = true;                  // set outgoing socket active
     }
-
-
 
 //
 // now initialise Saturn hardware.
@@ -337,16 +335,18 @@ void *OutgoingDDCIQ(void *arg)
 //
     while(!InitError)
     {
-        while(!SDRActive)
+        while (!SDRActive)
         {
-            for (int ddc = 0; ddc < VNUMDDC; ddc++)
-                if((ThreadData + ddc) -> Cmdid & VBITCHANGEPORT)
-                {
-                    close((ThreadData + ddc) -> Socketid);                      // close old socket, open new one
-                    MakeSocket((ThreadData + ddc), 0);                        // this binds to the new port.
-                    (ThreadData + ddc) -> Cmdid &= ~VBITCHANGEPORT;           // clear command bit
-                }
-            usleep(100);
+          for (int ddc = 0; ddc < VNUMDDC; ddc++)
+          {
+            if (ThreadData[ddc].Cmdid & VBITCHANGEPORT)
+            {
+              close(ThreadData[ddc].Socketid);
+              MakeSocket(&ThreadData[ddc], 0);
+              ThreadData[ddc].Cmdid &= ~VBITCHANGEPORT;
+            }
+          }
+          usleep(100);
         }
         printf("starting outgoing DDC data\n");
         StartupCount = VSTARTUPDELAY;
@@ -395,7 +395,20 @@ void *OutgoingDDCIQ(void *arg)
                     IQReadPtr[ddc] += VIQBYTESPERFRAME;
 
                     ssize_t Error;
-                    Error = sendmsg((ThreadData+ddc)->Socketid, &datagram[ddc], 0);
+                    printf("ddc: %d\n", ddc);
+                    printf("datagram[ddc].msg_iov: %p\n", (void*)datagram[ddc].msg_iov);
+                    printf("datagram[ddc].msg_iovlen: %zu\n", datagram[ddc].msg_iovlen);
+                    printf("iovecinst[ddc].iov_base: %p\n", iovecinst[ddc].iov_base);
+                    printf("iovecinst[ddc].iov_len: %zu\n", iovecinst[ddc].iov_len);
+                    printf("msg_name: %p\n", datagram[ddc].msg_name);
+                    printf("msg_namelen: %zu\n", datagram[ddc].msg_namelen);
+                    printf("msg_iov: %p\n", datagram[ddc].msg_iov);
+                    printf("msg_iovlen: %zu\n", datagram[ddc].msg_iovlen);
+                    printf("iov_base: %p\n", iovecinst[ddc].iov_base);
+                    printf("iov_len: %zu\n", iovecinst[ddc].iov_len);
+                    printf("&datagram[ddc]: %p\n", (void*)&datagram[ddc]);
+                    printf("&iovecinst[ddc]: %p\n", (void*)&iovecinst[ddc]);
+                    Error = sendmsg(ThreadData[ddc].Socketid, &datagram[ddc], 0);
                     if(StartupCount != 0)                                   // decrement startup message count
                         StartupCount--;
 
@@ -446,16 +459,22 @@ void *OutgoingDDCIQ(void *arg)
 //            if((StartupCount == 0) && FIFOUnderflow)
 //                 printf("RX DDC FIFO Underflowed, depth now = %d\n", Current);
             //		printf("read: depth = %d\n", Depth);
-            while(Depth < (DMATransferSize/8U))			// 8 bytes per location
+
+            Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);
+            if ((StartupCount == 0) && FIFOOverThreshold) {
+              GlobalFIFOOverflows |= 0b00000001;
+              if (UseDebug)
+                printf("RX DDC FIFO Overthreshold, depth now = %d\n", Current);
+            }
+            while (Depth < (minimumDMATransferSize / 8U))      // 8 bytes per location
             {
-                usleep(500);								// 1ms wait
-                Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);				// read the FIFO Depth register
-                if((StartupCount == 0) && FIFOOverThreshold)
-                {
-                    GlobalFIFOOverflows |= 0b00000001;
-                    if(UseDebug)
-                        printf("RX DDC FIFO Overthreshold, depth now = %d\n", Current);
-                }
+              usleep(5000);                // 5ms wait
+              Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);
+              if ((StartupCount == 0) && FIFOOverThreshold) {
+                GlobalFIFOOverflows |= 0b00000001;
+                if (UseDebug)
+                  printf("RX DDC FIFO Overthreshold, depth now = %d\n", Current);
+              }
 //                if((StartupCount == 0) && FIFOUnderflow)
 //                    printf("RX DDC FIFO Underflowed, depth now = %d\n", Current);
              }
