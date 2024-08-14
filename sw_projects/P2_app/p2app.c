@@ -39,7 +39,6 @@
 #include "../common/saturntypes.h"
 #include "../common/hwaccess.h"                     // access to PCIe read & write
 #include "../common/saturnregisters.h"              // register I/O for Saturn
-#include "../common/codecwrite.h"                   // codec register I/O for Saturn
 #include "../common/version.h"                      // version I/O for Saturn
 #include "../common/auxadc.h"                       // version I/O for Saturn
 

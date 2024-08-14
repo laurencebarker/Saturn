@@ -16,7 +16,6 @@
 
 #include "threaddata.h"
 #include <stdint.h>
-#include "../common/saturntypes.h"
 #include "IncomingDDCSpecific.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -26,8 +25,6 @@
 #include <string.h>
 #include "../common/saturnregisters.h"
 #include "OutDDCIQ.h"
-
-
 
 
 //
@@ -45,7 +42,6 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
   bool Dither, Random;                                  // ADC bits
   bool Enabled, Interleaved;                            // DDC settings
   uint16_t Word, Word2;                                 // 16 bit read value
-  int i;                                                // counter
   EADCSelect ADC = eADC1;                               // ADC to use for a DDC
 
   ThreadData = (struct ThreadSocketData *)arg;
@@ -75,18 +71,14 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
       NewMessageReceived = true;
       printf("DDC specific packet received\n");
       // get ADC details:
-      Byte1 = *(uint8_t*)(UDPInBuffer+4);                   // get ADC count
-      SetADCCount(Byte1);
-      Byte1 = *(uint8_t*)(UDPInBuffer+5);                   // get ADC Dither bits
-      Byte2 = *(uint8_t*)(UDPInBuffer+6);                   // get ADC Random bits
-      Dither  = (bool)(Byte1&1);
-      Random  = (bool)(Byte2&1);
-      SetADCOptions(eADC1, false, Dither, Random);          // ADC1 settings
-      Byte1 = Byte1 >> 1;                                   // move onto ADC bits
-      Byte2 = Byte2 >> 1;
-      Dither  = (bool)(Byte1&1);
-      Random  = (bool)(Byte2&1);
-      SetADCOptions(eADC2, false, Dither, Random);          // ADC2 settings
+      uint8_t adcCount = *(uint8_t*)(UDPInBuffer+4);                   // get ADC count
+      SetADCCount(adcCount);
+      uint8_t ditherBits = get_uint8(UDPInBuffer, 5);                   // get ADC Dither bits
+      uint8_t randomBits = get_uint8(UDPInBuffer, 6);                   // get ADC Random bits
+      SetADCOptions(eADC1, false, (bool) (ditherBits & 1),
+                    (bool) (randomBits & 1)); // ADC1 settings
+      SetADCOptions(eADC2, false, (bool) ((ditherBits >> 1) & 1),
+                    (bool) ((randomBits >> 1) & 1)); // ADC2 settings
       
       //
       // main settings for each DDC
@@ -95,13 +87,12 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
       // be aware an interleaved "odd" DDC will usually be set to disabled, and we need to revert this!
       //
       Word = *(uint16_t*)(UDPInBuffer + 7);                 // get DDC enables 15:0 (note it is already low byte 1st!)
-      for(i=0; i<VNUMDDC; i++)
+      for(int i = 0; i < VNUMDDC; i++)
       {
-        Enabled = (bool)(Word & 1);                        // get enable state
-        Byte1 = *(uint8_t*)(UDPInBuffer+i*6+17);          // get ADC for this DDC
-        Word2 = *(uint16_t*)(UDPInBuffer+i*6+18);         // get sample rate for this DDC
-        Word2 = ntohs(Word2);                             // swap byte order
-        Byte2 = *(uint8_t*)(UDPInBuffer+i*6+22);          // get sample size for this DDC
+        Enabled = (bool)(Word & 1);                             // get enable state
+        Byte1 = get_uint8(UDPInBuffer, i * 6 + 17);                // get ADC for this DDC
+        Word2 = get_uint16(UDPInBuffer, i * 6 + 18); // get sample rate for this DDC
+        Byte2 = get_uint8(UDPInBuffer, i * 6 + 22);                // get sample size for this DDC
         SetDDCSampleSize(i, Byte2);
         if(Byte1 == 0)
           ADC = eADC1;
@@ -169,9 +160,14 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
             case 7:
                 Byte1 = *(uint8_t*)(UDPInBuffer + 1369);          // get DDC6 synch
                 if (Byte1 == 0b10000000)                          // if synch to DDC7
-                    Enabled = true;                                // enable DDC7
+                    Enabled = true;                               // enable DDC7
                 break;
-
+            default:
+                // VNUMDDC = 10 implies i goes to 9, but cases 8 & 9 aren't handled explicitly
+                if (i >= VNUMDDC) {
+                  perror("Invalid DDC in IncomingDDCSpecific");
+                  exit(1);
+                 };
         }
         SetP2SampleRate(i, Enabled, Word2, Interleaved);
         Word = Word >> 1;                                 // move onto next DDC enabled bit

@@ -166,6 +166,8 @@ uint32_t get_uint32(const uint8_t *buffer, size_t offset);
 
 uint16_t get_uint16(const uint8_t *buffer, size_t offset);
 
+uint8_t get_uint8(const uint8_t *buffer, size_t offset);
+
 void put_uint32(uint8_t *buffer, size_t offset, uint32_t value);
 
 void put_uint16(uint8_t *buffer, size_t offset, uint16_t value);
@@ -733,7 +735,7 @@ void ReadStatusRegister(void);
 
 uint32_t ReadChannelStatusRegister(int Channel);
 
-void WriteFIFOConfigRegister(EDMAStreamSelect *Channel, bool EnableInterrupt);
+void WriteFIFOConfigRegister(const EDMAStreamSelect *Channel, bool EnableInterrupt);
 
 //
 // GetPTTInput(void)
@@ -909,7 +911,7 @@ void SetDDCSampleSize(unsigned int DDC, unsigned int Size);
 //
 void UseTestDDSSource(void);
 
-
+void CodecRegisterWrite(uint32_t Address, uint32_t Data);
 
 
 

@@ -17,7 +17,6 @@
 
 #include "threaddata.h"
 #include <stdint.h>
-#include "../common/saturntypes.h"
 #include "IncomingDUCSpecific.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -39,16 +38,7 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
     uint8_t UDPInBuffer[VDUCSPECIFICSIZE];                // incoming buffer
     struct iovec iovecinst;                               // iovcnt buffer - 1 for each outgoing buffer
     struct msghdr datagram;                               // multiple incoming message header
-    int size;                                             // UDP datagram length
-    uint8_t Byte;
-    uint16_t SidetoneFreq;                                // freq for audio sidetone
-    uint8_t IambicSpeed;                                  // WPM
-    uint8_t IambicWeight;                                 //
-    uint8_t SidetoneVolume;
-    uint8_t CWRFDelay;
-    uint16_t CWHangDelay;
-    uint8_t CWRampTime;
-    uint32_t CWRampTime_us;
+    ssize_t size;                                             // UDP datagram length
 
     ThreadData = (struct ThreadSocketData *)arg;
     ThreadData->Active = true;
@@ -76,44 +66,51 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
       {
           NewMessageReceived = true;
           printf("DUC packet received\n");
-// iambic settings
-          IambicSpeed = *(uint8_t*)(UDPInBuffer+9);               // keyer speed
-          IambicWeight = *(uint8_t*)(UDPInBuffer+10);             // keyer weight
-          Byte = *(uint8_t*)(UDPInBuffer+5);                      // keyer bool bits
-          SetCWIambicKeyer(IambicSpeed, IambicWeight, (bool)((Byte >> 2)&1), (bool)((Byte >> 5)&1), 
-                          (bool)((Byte >> 6)&1), (bool)((Byte >> 3)&1), (bool)((Byte >> 7)&1));
-// general CW settings
-          SetCWSidetoneEnabled((bool)((Byte >> 4)&1));
-          EnableCW((bool)((Byte >> 1)&1), (bool)((Byte >> 7)&1));   // CW enabled bit, breakin bit
-          SidetoneVolume = *(uint8_t*)(UDPInBuffer+6);            // keyer speed
-          SidetoneFreq = *(uint16_t*)(UDPInBuffer+7);             // get frequency
-          SidetoneFreq = ntohs(SidetoneFreq);                     // convert from big endian
+          // iambic settings
+          uint8_t IambicSpeed = get_uint8(UDPInBuffer, 9);                // keyer speed
+          uint8_t IambicWeight = get_uint8(UDPInBuffer, 10);              // keyer weight
+          uint8_t keyerBoolBits = get_uint8(UDPInBuffer, 5);              // keyer bool bits
+          SetCWIambicKeyer(IambicSpeed, IambicWeight,
+                           (bool) ((keyerBoolBits >> 2) & 1),
+                           (bool) ((keyerBoolBits >> 5) & 1),
+                           (bool) ((keyerBoolBits >> 6) & 1),
+                           (bool) ((keyerBoolBits >> 3) & 1),
+                           (bool) ((keyerBoolBits >> 7) & 1));
+          // general CW settings
+          bool cwSidetone = (bool) ((keyerBoolBits >> 4) & 1);
+          SetCWSidetoneEnabled(cwSidetone);
+          bool cwEnabled = (bool) ((keyerBoolBits >> 1) & 1);
+          bool cwBreakin = (bool)((keyerBoolBits >> 7) & 1);
+          EnableCW(cwEnabled, cwBreakin);   // CW enabled bit, breakin bit
+
+          uint8_t SidetoneVolume = get_uint8(UDPInBuffer, 6); // keyer speed
+          uint16_t SidetoneFreq = get_uint16(UDPInBuffer, 7); // get frequency
           SetCWSidetoneVol(SidetoneVolume);
           SetCWSidetoneFrequency(SidetoneFreq);
-          CWRFDelay = *(uint8_t*)(UDPInBuffer+13);                // delay before CW on
-          CWHangDelay = *(uint16_t*)(UDPInBuffer+11);             // delay before CW off
-          CWHangDelay = ntohs(CWHangDelay);                       // convert from big endian
+          
+          uint8_t CWRFDelay = get_uint8(UDPInBuffer, 13); // delay before CW on
+          uint16_t CWHangDelay = get_uint16(UDPInBuffer, 11); // delay before CW off
           SetCWPTTDelay(CWRFDelay);
           SetCWHangTime(CWHangDelay);
-          CWRampTime = *(uint8_t*)(UDPInBuffer+17);               // ramp transition time
+          uint8_t CWRampTime = get_uint8(UDPInBuffer, 17); // ramp transition time
           if(CWRampTime != 0)                                     // if ramp period supported by client app
           {
-              CWRampTime_us = 1000 * CWRampTime;
+              uint32_t CWRampTime_us = 1000 * CWRampTime;
               InitialiseCWKeyerRamp(true, CWRampTime_us);         // create required ramp, P2
           }
 
-// mic and line in options
-          Byte = *(uint8_t*)(UDPInBuffer+50);                     // mic/line options
-          SetMicBoost((bool)((Byte >> 1)&1));
-          SetMicLineInput((bool)(Byte&1));
-          SetOrionMicOptions((bool)((Byte >> 3)&1), (bool)((Byte >> 4)&1), (bool)((~Byte >> 2)&1));          
-          SetBalancedMicInput((bool)((Byte >> 5)&1));
-          Byte = *(uint8_t*)(UDPInBuffer+51);                     // line in gain
-          SetCodecLineInGain(Byte);
-          Byte = *(uint8_t*)(UDPInBuffer+58);                     // ADC1 att on TX
-          SetADCAttenuator(eADC2, Byte, false, true);
-          Byte = *(uint8_t*)(UDPInBuffer+59);                     // ADC1 att on TX
-          SetADCAttenuator(eADC1, Byte, false, true);
+          // mic and line in options
+          uint8_t micLineOptionsByte = get_uint8(UDPInBuffer, 50); // mic/line options
+          SetMicBoost((micLineOptionsByte >> 1) & 1);
+          SetMicLineInput((bool)(micLineOptionsByte & 1));
+          SetOrionMicOptions((bool)((micLineOptionsByte >> 3)&1), (bool)((micLineOptionsByte >> 4)&1), (bool)((~micLineOptionsByte >> 2)&1));
+          SetBalancedMicInput((bool)((micLineOptionsByte >> 5)&1));
+          uint8_t lineInByte = get_uint8(UDPInBuffer, 51);                   // line in gain
+          SetCodecLineInGain(lineInByte);
+          uint8_t adc2Byte = get_uint8(UDPInBuffer, 58);                     // ADC2 att on TX
+          SetADCAttenuator(eADC2, adc2Byte, false, true);
+          uint8_t adc1Byte = get_uint8(UDPInBuffer, 59);                     // ADC1 att on TX
+          SetADCAttenuator(eADC1, adc1Byte, false, true);
       }
     }
 //
