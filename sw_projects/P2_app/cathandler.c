@@ -15,25 +15,17 @@
 //////////////////////////////////////////////////////////////
 
 #include "threaddata.h"
-#include <stdint.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include <fcntl.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <pthread.h>
 
-#include "../common/saturnregisters.h"
-#include "../common/saturndrivers.h"
-#include "../common/hwaccess.h"
-#include "../common/debugaids.h"
 #include "cathandler.h"
 #include "catmessages.h"
 

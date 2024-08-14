@@ -15,23 +15,9 @@
 
 #define _DEFAULT_SOURCE
 #define _XOPEN_SOURCE 500
-#include <assert.h>
-#include <fcntl.h>
-#include <getopt.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <errno.h>
 
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
-#include "../common/saturntypes.h"
 #include "../common/auxadc.h"
-#include "../common/saturnregisters.h"
 #include "../common/hwaccess.h"
 
 

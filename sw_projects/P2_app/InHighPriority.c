@@ -15,7 +15,6 @@
 
 #include "threaddata.h"
 #include <stdint.h>
-#include "../common/saturntypes.h"
 #include "InHighPriority.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -24,7 +23,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "../common/saturnregisters.h"
-#include "../common/hwaccess.h"                   // low level access
 #include "../common/version.h"
 #include "cathandler.h"
 
@@ -85,7 +83,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       NewMessageReceived = true;
       LongWord = get_uint32(UDPInBuffer, 0);
       printf("high priority packet received\n");
-      Byte = (uint8_t)(UDPInBuffer[4]);
+      Byte = get_uint8(UDPInBuffer, 4);
       RunBit = (bool)(Byte&1);
       if(RunBit)
       {
@@ -95,20 +93,27 @@ void *IncomingHighPriority(void *arg)                   // listener thread
           SDRActive = true;                                       // only set active if we have replay address too
           SetTXEnable(true);
         }
+
+        //
+        // set TX or not TX
+        //
+        IsTXMode = (bool)(Byte&2);
+        SetMOX(IsTXMode);
       }
       else
       {
-        SDRActive = false;                                       // set state of whole app
         SetTXEnable(false);
         EnableCW(false, false);
+        //
+        // set TX or not TX
+        //
+        IsTXMode = (bool)(Byte&2);
+        SetMOX(IsTXMode);
+        SDRActive = false;                                       // set state of whole app
         printf("set to inactive by client app\n");
         StartBitReceived = false;
       }
-      //
-      // set TX or not TX
-      //
-      IsTXMode = (bool)(Byte&2);
-      SetMOX(IsTXMode);
+
 
 //
 // now properly decode DDC frequencies
@@ -123,7 +128,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       //
       LongWord = get_uint32(UDPInBuffer, 329);
       SetDUCFrequency(LongWord, true);
-      Byte = (uint8_t)(UDPInBuffer[345]);
+      Byte = get_uint8(UDPInBuffer, 345);
       SetTXDriveLevel(Byte);
       //
       // CAT port (if set)

@@ -13,10 +13,7 @@
 //////////////////////////////////////////////////////////////
 
 
-#include <stdlib.h>                     // for function min()
-#include <math.h>
 #include "../common/saturndrivers.h"
-#include "../common/saturnregisters.h"
 #include "../common/hwaccess.h"                   // low level access
 #include <pthread.h>
 #include <string.h>
@@ -49,9 +46,6 @@ void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt)
 
 
 
-//
-// uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed, bool* OverThreshold, bool* Underflowed,  unsigned int* Current);
-//
 // Read number of locations in a FIFO
 // for a read FIFO: returns the number of occupied locations available to read
 // for a write FIFO: returns the number of free locations available to write
@@ -80,9 +74,6 @@ uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed, bool
 
   return count;  // Occupied locations for read channels (16 bit FIFO count)
 }
-
-
-
 
 
 //

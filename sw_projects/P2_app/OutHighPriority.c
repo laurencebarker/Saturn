@@ -15,17 +15,14 @@
 
 #include "threaddata.h"
 #include <stdint.h>
-#include "../common/saturntypes.h"
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
 #include "OutHighPriority.h"
 #include <errno.h>
-#include <stdlib.h>
 #include <stddef.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include <fcntl.h>
 #include "LDGATU.h"
 
 

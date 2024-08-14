@@ -19,21 +19,13 @@
 #error This compiler does not support C11 atomics
 #endif
 
-#include <assert.h>
 #include <fcntl.h>
-#include <getopt.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <pthread.h>
 
-
-#include <sys/types.h>
 #include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
 #define VMEMBUFFERSIZE 32768										// memory buffer to reserve
 #define AXIBaseAddress 0x10000									// address of StreamRead/Writer IP

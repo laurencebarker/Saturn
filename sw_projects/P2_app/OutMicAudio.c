@@ -15,9 +15,7 @@
 
 #include "threaddata.h"
 #include <stdint.h>
-#include "../common/saturntypes.h"
 #include "OutMicAudio.h"
-#include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -71,16 +69,15 @@ void *OutgoingMicSamples(void *arg)
     int DMAReadfile_fd = -1;								// DMA read file device
     uint32_t RegisterValue;
     bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;
-    unsigned int Current;                                   // current occupied locations in FIFO
-    unsigned int StartupCount;                              // used to delay reporting of under & overflows
-
+    uint32_t Current;                                   // current occupied locations in FIFO
+    uint32_t StartupCount;                              // used to delay reporting of under & overflows
 
 
 //
 // initialise. Get parameters for thread; 
 // then create memory buffers and open DMA file devices
 //
-    ThreadData = (struct ThreadSocketData *)arg;
+    ThreadData = (struct ThreadSocketData *) arg;
     ThreadData->Active = true;
     printf("spinning up outgoing mic thread with port %d\n", ThreadData->Portid);
 
@@ -116,10 +113,10 @@ void *OutgoingMicSamples(void *arg)
   //
     SetupFIFOMonitorChannel(eMicCodecDMA, false);
     ResetDMAStreamFIFO(eMicCodecDMA);
-    RegisterValue = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);				// read the FIFO Depth register
+    RegisterValue = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow,
+                                           (uint16_t *) &Current);				// read the FIFO Depth register
     if(UseDebug)
         printf("mic FIFO Depth register = %08x (should be ~0)\n", RegisterValue);
-    Depth = 0;
 
 
   //
@@ -162,7 +159,9 @@ void *OutgoingMicSamples(void *arg)
             //
             // now wait until there is data, then DMA it
             //
-            Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);			// read the FIFO Depth register. 4 mic words per 64 bit word.
+            usleep(500); // wait at least 0.5ms before checking, to increase the likelihood there's enough data ready
+            Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow,
+                                           (uint16_t *) &Current);			// read the FIFO Depth register. 4 mic words per 64 bit word.
             if((StartupCount == 0) && FIFOOverThreshold)
             {
                 GlobalFIFOOverflows |= 0b00000010;
@@ -176,8 +175,9 @@ void *OutgoingMicSamples(void *arg)
 //                printf("Codec Mic FIFO Underflowed, depth now = %d\n", Current);
             while (Depth < (VMICSAMPLESPERFRAME/4))			        // 16 locations = 64 samples
             {
-                usleep(5000);								        // 5ms wait
-                Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);				// read the FIFO Depth register
+                usleep(1000);	// 1ms wait
+                Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow,
+                                               (uint16_t *) &Current);				// read the FIFO Depth register
                 if((StartupCount == 0) && FIFOOverThreshold)
                 {
                     GlobalFIFOOverflows |= 0b00000010;
@@ -199,7 +199,7 @@ void *OutgoingMicSamples(void *arg)
             if(Error == -1)
             {
                 perror("sendmsg, Mic Audio");
-                InitError=true;
+                InitError = true;
             }
         }
     }
