@@ -22,9 +22,10 @@
 
 
 
-#define VADDRXADCTEMPREG 0x18200              // die temperature register
 
 
+
+float GetDieTemperatureCelcius();
 
 //
 // prints temperature information
@@ -32,15 +33,9 @@
 //
 void PrintAuxADCInfo(void)
 {
-    uint32_t RegisterValue;
-    float Temp;
+  float Temp = GetDieTemperatureCelcius();
 
-    RegisterValue = RegisterRead(VADDRXADCTEMPREG);
-    Temp = (float)RegisterValue * 503.975;
-    Temp = Temp / 65536.0;
-    Temp -= 273.15;
-
-    printf("Die Temp = %4.1fC\n", Temp);
+  printf("Die Temp = %4.1f°C\n", Temp);
 }
 
 

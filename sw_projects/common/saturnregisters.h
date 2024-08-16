@@ -156,6 +156,7 @@ typedef struct {
 #define VBITCODECMICFIFORESET 0					// reset bit in register
 #define VBITCODECSPKFIFORESET 1					// reset bit in register
 
+#define VADDRXADCTEMPREG 0x18200              // die temperature register
 
 //
 // MOX register
@@ -943,5 +944,6 @@ ProductInfo GetProductInfo(void);
 uint32_t GetDateCode(void);
 FullVersionInfo GetFullVersionInfo(void);
 
+float GetDieTemperatureCelcius();
 
 #endif
