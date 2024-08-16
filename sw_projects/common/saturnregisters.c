@@ -2546,3 +2546,15 @@ FirmwareInfo GetFirmwareInfo(void)
 
   return info;
 }
+
+
+float GetDieTemperatureCelcius() {
+  uint32_t RegisterValue;
+  float Temp;
+
+  RegisterValue = RegisterRead(VADDRXADCTEMPREG);
+  Temp = (float)RegisterValue * 503.975f;
+  Temp = Temp / 65536.0f;
+  Temp -= 273.15f;
+  return Temp;
+}
