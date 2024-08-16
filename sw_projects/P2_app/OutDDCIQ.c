@@ -333,7 +333,6 @@ void *OutgoingDDCIQ(void *arg)
                                            (uint16_t *) &Current);				// read the FIFO Depth register
     if (UseDebug)
           printf("DDC FIFO Depth register = %08x (should be ~0)\n", RegisterValue);
-    Depth=0;
 
 
 //
@@ -465,8 +464,6 @@ void *OutgoingDDCIQ(void *arg)
                 if (UseDebug)
                   printf("RX DDC FIFO Overthreshold, depth now = %d\n", Current);
               }
-//                if((StartupCount == 0) && FIFOUnderflow)
-//                    printf("RX DDC FIFO Underflowed, depth now = %d\n", Current);
              }
 //            printf("DDC DMA read %d bytes from destination to base\n", DMATransferSize);
             if(Depth > 4096)

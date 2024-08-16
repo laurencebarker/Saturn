@@ -52,7 +52,6 @@ void *OutgoingHighPriority(void *arg)
   uint8_t Byte;                                   // data being encoded
   uint16_t Word;                                  // data being encoded
   bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;      // FIFO flags
-  uint32_t Depth = 0;                                       // FIFO locations available
   uint8_t FIFOOverflows;
 
 //
@@ -70,9 +69,9 @@ void *OutgoingHighPriority(void *arg)
 //
   while (!InitError)
   {
-    while(!(SDRActive))
+    while (!SDRActive)
     {
-      if(ThreadData->Cmdid & VBITCHANGEPORT)
+      if (ThreadData->Cmdid & VBITCHANGEPORT)
       {
         close(ThreadData->Socketid);                      // close old socket, open new one
         MakeSocket(ThreadData, 0);                        // this binds to the new port.
@@ -105,7 +104,7 @@ void *OutgoingHighPriority(void *arg)
     // when a DDC becomes enabled, its paired DDC may not know yet and may still be set to interleaved.
     // when a DDC is set to interleaved, the paired DDC may not have been disabled yet.
     //
-    while(SDRActive && !InitError)                               // main loop
+    while (SDRActive && !InitError)                               // main loop
     {
       uint16_t SleepCount;                                      // counter for sending next message
       uint8_t PTTBits;                                          // PTT bits - and change means a new message needed
@@ -141,34 +140,34 @@ void *OutgoingHighPriority(void *arg)
       Byte = (uint8_t)GetUserIOBits();  // user I/O bits
       put_uint8(UDPBuffer, 59, Byte);
 
-//
-// protocol V4.3: send FIFO depths and error states
-// we can read a snapshot now, but under or overflows could have happened at other times too
-// and they are cleared by the data transfer reads of the monitor channel
-//
+      //
+      // protocol V4.3: send FIFO depths and error states
+      // we can read a snapshot now, but under or overflows could have happened at other times too
+      // and they are cleared by the data transfer reads of the monitor channel
+      //
 
       // DDC FIFO
-      Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);
+      ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);
       put_uint16(UDPBuffer, 31, Word);  // DDC samples
       if (FIFOOverThreshold)
         FIFOOverflows |= 0b00000001;
 
       // Mic FIFO
-      Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);
+      ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);
       Word *= 4;  // 4 samples per FIFO location
       put_uint16(UDPBuffer, 33, Word);  // mic samples
       if (FIFOOverThreshold)
         FIFOOverflows |= 0b00000010;
 
       // DUC FIFO
-      Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);
+      ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);
       Word = (Word * 4) / 3;  // 4/3 samples per FIFO location
       put_uint16(UDPBuffer, 35, Word);  // DUC samples
       if (FIFOUnderflow)
         FIFOOverflows |= 0b00000100;
 
       // Speaker FIFO
-      Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);
+      ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);
       Word *= 2;  // 2 samples per FIFO location
       put_uint16(UDPBuffer, 37, Word);  // speaker samples
       if (FIFOUnderflow)
@@ -206,14 +205,14 @@ void *OutgoingHighPriority(void *arg)
       }
     }
   }
-//
-// tidy shutdown of the thread
-//
-  if(InitError)                                           // if error, flag it to main program
+  //
+  // tidy shutdown of the thread
+  //
+  if (InitError) // if error, flag it to main program
     ThreadError = true;
   printf("shutting down outgoing high priority thread\n");
-  close(ThreadData->Socketid); 
-  ThreadData->Active = false;                   // signal closed
+  close(ThreadData->Socketid);
+  ThreadData->Active = false; // signal closed
   return NULL;
 }
 
