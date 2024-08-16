@@ -2108,25 +2108,27 @@ bool GetCWKeyDown(void) {
 //
 unsigned int GetP2PTTKeyInputs(void)
 {
-    unsigned int Result = 0;
+  unsigned int statusRegister;
 
-    pthread_mutex_lock(&DefaultRegMutex);
-    if (GStatusRegister & 1)
-        Result |= 1;                                                        // set PTT output bit
-    if ((GStatusRegister >> VCWKEYDOWN) & 1)
-        Result |= 1;                                                        // set PTT output bit if keyer PTT active
-    if ((GStatusRegister >> VKEYINA) & 1)
-        Result |= 2;                                                        // set dot output bit
-    if ((GStatusRegister >> VKEYINB) & 1)
-        Result |= 4;                                                        // set dash output bit
-    if (!((GStatusRegister >> VUSERIO8) & 1))
-        Result |= 4;                                                        // set dash output bit if IO8 active
-    if ((GStatusRegister >> VPLLLOCKED) & 1)
-        Result |= 16;                                                       // set PLL output bit
-    if ((GStatusRegister >> VCWKEYDOWN) & 1)
-        Result |= 1;                                                        // set PTT if keyer asserted TX
-    pthread_mutex_unlock(&DefaultRegMutex);
-    return Result;
+  pthread_mutex_lock(&DefaultRegMutex);
+  statusRegister = GStatusRegister;
+  pthread_mutex_unlock(&DefaultRegMutex);
+
+  unsigned int result = 0;
+  if (statusRegister & 1)
+    result |= 1;
+  if ((statusRegister >> VCWKEYDOWN) & 1)
+    result |= 1;
+  if ((statusRegister >> VKEYINA) & 1)
+    result |= 2;
+  if ((statusRegister >> VKEYINB) & 1)
+    result |= 4;
+  if (!((statusRegister >> VUSERIO8) & 1))
+    result |= 4;
+  if ((statusRegister >> VPLLLOCKED) & 1)
+    result |= 16;
+
+  return result;
 }
 
 
