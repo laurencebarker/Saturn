@@ -17,6 +17,7 @@
 #define __saturnregisters_h
 
 #include "../common/saturntypes.h"
+#include "version.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <stdatomic.h>
@@ -26,54 +27,73 @@
 //
 // enum type for sample rate. only 48-384KHz allowed for protocol 1
 //
-typedef enum
-{
-	eDisabled,
-	e48KHz,
-	e96KHz,
-	e192KHz,
-	e384KHz,
-	e768KHz,
-	e1536KHz,
-	eInterleaveWithNext
+typedef enum {
+    eDisabled,
+    e48KHz,
+    e96KHz,
+    e192KHz,
+    e384KHz,
+    e768KHz,
+    e1536KHz,
+    eInterleaveWithNext
 } ESampleRate;
 
 //
 // enum type for ADC selection
 //
-typedef enum
-{
-  eADC1,                        // selects ADC1
-  eADC2,                        // selects ADC2
-  eTestSource,                  // selects internal test source (not for operational use)
-  eTXSamples                    // (for Puresignal)
+typedef enum {
+    eADC1,                        // selects ADC1
+    eADC2,                        // selects ADC2
+    eTestSource,                  // selects internal test source (not for operational use)
+    eTXSamples                    // (for Puresignal)
 } EADCSelect;
 
 
 //
 // enum for TX modulation source
 //
-typedef enum
-{
-eIQData,
-eFixed0Hz,
-eTXDDS,
-eCWKeyer
+typedef enum {
+    eIQData,
+    eFixed0Hz,
+    eTXDDS,
+    eCWKeyer
 } ETXModulationSource;
-
 
 
 //
 // enum type for FIFO monitor and DMA channel selection
 //
-typedef enum
-{
-	eRXDDCDMA,							// selects RX
-	eTXDUCDMA,							// selects TX
-	eMicCodecDMA,						// selects mic samples
-	eSpkCodecDMA						// selects speaker samples
+typedef enum {
+    eRXDDCDMA,              // selects RX
+    eTXDUCDMA,              // selects TX
+    eMicCodecDMA,            // selects mic samples
+    eSpkCodecDMA            // selects speaker samples
 } EDMAStreamSelect;
 
+//
+// Struct for codec register operations
+//
+typedef struct {
+    uint32_t address;
+    uint32_t data;
+} CodecRegisterOp;
+
+typedef struct {
+    ESoftwareID id;
+    uint16_t version;
+} FirmwareInfo;
+
+typedef struct {
+    uint16_t productId;
+    uint16_t productVersion;
+} ProductInfo;
+
+typedef struct {
+    FirmwareInfo firmware;
+    ProductInfo product;
+    uint32_t dateCode;
+    uint8_t clockInfo;
+} FullVersionInfo;
 
 //
 // DMA channel allocations
@@ -158,7 +178,7 @@ extern uint32_t DDCConfigRegs[VNUMDDC];
 //
 extern uint32_t DMAFIFODepths[VNUMDMAFIFO];
 
-extern bool GEEREnabled;                                   // P2. true if EER is enabled
+extern atomic_bool GEEREnabled;                                   // P2. true if EER is enabled
 
 
 
@@ -734,6 +754,8 @@ void ReadStatusRegister(void);
 
 
 uint32_t ReadChannelStatusRegister(int Channel);
+uint32_t ReadChannelStatusRegisterUnsafe(int Channel);
+uint32_t ReadChannelStatusAndUpdateFIFODepth(EDMAStreamSelect Channel, uint32_t* FIFODepth);
 
 void WriteFIFOConfigRegister(const EDMAStreamSelect *Channel, bool EnableInterrupt);
 
@@ -911,8 +933,15 @@ void SetDDCSampleSize(unsigned int DDC, unsigned int Size);
 //
 void UseTestDDSSource(void);
 
-void CodecRegisterWrite(uint32_t Address, uint32_t Data);
+void CodecRegisterWriteSingle(uint32_t address, uint32_t data);
+void CodecRegisterWriteBatch(const CodecRegisterOp* ops, size_t count);
+void CodecRegisterWriteUnsafe(uint32_t address, uint32_t data);
 
+FirmwareInfo GetFirmwareInfo(void);
+static uint32_t ReadSoftwareInformationRegister(void);
+ProductInfo GetProductInfo(void);
+uint32_t GetDateCode(void);
+FullVersionInfo GetFullVersionInfo(void);
 
 
 #endif

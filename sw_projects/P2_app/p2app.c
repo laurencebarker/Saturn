@@ -412,7 +412,7 @@ int main(int argc, char *argv[])
   uint32_t TestFrequency;                                           // test source DDS freq
   int CmdOption;                                                    // command line option
   char BuildDate[]=GIT_DATE;
-	ESoftwareID ID;
+  ESoftwareID ID;
 	unsigned int Version = 0;
   bool IncompatibleFirmware = false;                                // becomes set if firmware is not compatible with this version
 
@@ -429,17 +429,19 @@ int main(int argc, char *argv[])
       printf("FPGA load is a fallback - you should re-flash the primary FPGA image!\n");
 
   CodecInitialise();
+  InitialiseFIFOSizes();                                            // Call in main thread before creating other threads
   InitialiseDACAttenROMs();
 //  InitialiseCWKeyerRamp(true, 5000);                                // create initial default 5 ms ramp, P2
   InitialiseCWKeyerRamp(true, 9000);                                // create initial default 9ms DL1YCF amp, P2
   SetCWSidetoneEnabled(true);
-  SetTXProtocol(true);                                              // set to protocol 2
-  SetTXModulationSource(eIQData);                                   // disable debug options
-  HandlerSetEERMode(false);                                         // no EER
-  SetByteSwapping(true);                                            // h/w to generate network byte order
+  SetTXProtocol(true);                                      // set to protocol 2
+  SetTXModulationSource(eIQData);                            // disable debug options
+  HandlerSetEERMode(false);                              // no EER
+  SetByteSwapping(true);                                 // h/w to generate network byte order
   SetSpkrMute(false);
 
-  Version = GetFirmwareVersion(&ID);                                // TX scaling changed at FW V13
+  Version = GetFirmwareVersion(&ID); // TX scaling changed at FW V13
+
   if(Version < 13)
     SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR);
   else if (Version < 17)
