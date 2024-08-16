@@ -132,9 +132,9 @@ void SetTXAmplitudeEER(bool EEREnabled)
 // a value of "7" indicates an interleaved DDC
 // and the rate value is stored for *next* DDC
 //
-const uint32_t DDCSampleCounts[] =
+static const uint32_t DDCSampleCounts[] =
 {
-	0,						// set to zero so no samples transferred
+	0,					// set to zero so no samples transferred
 	1,
 	2,
 	4,
@@ -144,6 +144,7 @@ const uint32_t DDCSampleCounts[] =
 	0						// when set to 7, use next value & double it
 };
 
+
 //
 // uint32_t AnalyseDDCHeader(unit32_t Header, unit32_t** DDCCounts)
 // parameters are the header read from the DDC stream, and
@@ -151,32 +152,32 @@ const uint32_t DDCSampleCounts[] =
 // the array of ints is populated with the number of samples to read for each DDC
 // returns the number of words per frame, which helps set the DMA transfer size
 //
-uint32_t AnalyseDDCHeader(uint32_t Header, uint32_t* DDCCounts)
-{
-	uint32_t DDC;								// DDC counter
-	uint32_t Rate;								// 3 bit value for this DDC
-	uint32_t Count;
-	uint32_t Total = 0;
-	for (DDC = 0; DDC < VNUMDDC; DDC++)
-	{
-		Rate = Header & 7;						// get settings for this DDC
-		if (Rate != 7)
-		{
-			Count = DDCSampleCounts[Rate];
-			DDCCounts[DDC] = Count;
-			Total += Count;						// add up samples
-		}
-		else									// interleaved
-		{
-			Header = Header >> 3;
-			Rate = Header & 7;					// next 3 bits
-			Count = 2*DDCSampleCounts[Rate];
-			DDCCounts[DDC] = Count;
-			Total += Count;
-			DDCCounts[DDC + 1] = 0;
-			DDC += 1;
-		}
-		Header = Header >> 3;					// ready for next DDC rate
-	}
-	return Total;
+inline uint32_t AnalyseDDCHeader(uint32_t header, uint32_t* restrict ddc_counts) {
+  uint32_t total = 0;
+
+  for (int ddc = 0; ddc < VNUMDDC; ddc++) {
+    uint32_t rate = header & 0x7;
+    uint32_t count;
+
+    if (rate != 7) {
+      count = DDCSampleCounts[rate];
+      ddc_counts[ddc] = count;
+    } else {
+      // interleaved
+      header >>= 3;
+      rate = header & 0x7;
+      count = 2 * DDCSampleCounts[rate];
+      ddc_counts[ddc] = count;
+
+      if (ddc + 1 < VNUMDDC) { // this prevents a bug from triggering - don't access beyond length of array VNUMDDC
+        ddc_counts[ddc + 1] = 0;
+        ddc++;
+      }
+    }
+
+    total += count;
+    header >>= 3;
+  }
+
+  return total;
 }
