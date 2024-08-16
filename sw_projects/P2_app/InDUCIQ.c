@@ -16,6 +16,7 @@
 #include "threaddata.h"
 #include <stdint.h>
 #include "InDUCIQ.h"
+#include <arm_neon.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -27,7 +28,11 @@
 #include "../common/saturndrivers.h"
 #include "../common/hwaccess.h"
 
-
+#if defined(__aarch64__) || (defined(__arm__) && defined(__ARM_NEON))
+#define HAS_NEON 1
+#else
+#define HAS_NEON 0
+#endif
 
 #define VIQSAMPLESPERFRAME 240                      // samples per UDP frame
 #define VMEMWORDSPERFRAME 180                       // memory writes per UDP frame
@@ -138,6 +143,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
             if(StartupCount != 0)                                   // decrement startup message count
                 StartupCount--;
             NewMessageReceived = true;
+            usleep(500); // wait at least 0.5ms before checking, to increase the likelihood there's enough space ready
             Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow,
                                            (uint16_t *) &Current);           // read the FIFO free locations
             if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
@@ -152,7 +158,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
 
             while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {
-              usleep(500); // 0.5ms wait
+              usleep(2000); // 2ms wait
               Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow,
                                              (uint16_t *) &Current);
               if ((StartupCount == 0) && FIFOOverThreshold && UseDebug)
@@ -166,24 +172,69 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
             transferIQSamples(UDPInBuffer, IQBasePtr, DMAWritefile_fd);
         }
     }
-//
-// close down thread
-//
+    //
+    // close down thread
+    //
     close(ThreadData->Socketid);                  // close incoming data socket
     ThreadData->Socketid = 0;
     ThreadData->Active = false;                   // indicate it is closed
     return NULL;
 }
 
-// copy data from UDP Buffer & DMA write it
-static void transferIQSamples(const uint8_t* UDPInBuffer, uint8_t* IQBasePtr, int DMAWritefile_fd)
+
+// Copy data from UDP Buffer & DMA write it
+static void transferIQSamples(const uint8_t* UDPInBuffer, uint8_t* IQBasePtr, int DMAWritefile_fd) {
+#if HAS_NEON
+  transferIQSamples_SIMD(UDPInBuffer, IQBasePtr, DMAWritefile_fd);
+#else
+  transferIQSamples_generic(UDPInBuffer, IQBasePtr, DMAWritefile_fd);
+#endif
+}
+
+
+// SIMD implementation for ARM v8 and ARM v7 with NEON
+#if HAS_NEON
+static void transferIQSamples_SIMD(const uint8_t* UDPInBuffer, uint8_t* IQBasePtr, int DMAWritefile_fd)
 {
   const uint8_t* srcPtr = UDPInBuffer + 4;
   uint8_t* destPtr = IQBasePtr;
 
-  // Need to swap I & Q samples on replay
-  for (size_t i = 0; i < VIQSAMPLESPERFRAME; i++)
+  // Create a mask for the first 96 bits (12 bytes)
+  const uint8x16_t mask = {255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0};
+
+  // Process 2 IQ samples (12 bytes) per iteration
+  // Process all 240 samples in 120 iterations: 2 IQ samples (12 bytes) per iteration
+  for (int i = 0; i < 120; i++)
   {
+    // Load 16 bytes (2 IQ samples + 4 extra bytes) into a 128-bit register
+    uint8x16_t input = vld1q_u8(srcPtr);
+
+    // Swap I and Q samples
+    uint8x16_t swapped = vqtbl1q_u8(input,
+                                    (uint8x16_t) {3, 4, 5, 0, 1, 2, 9, 10, 11, 6, 7, 8, 12, 13, 14, 15});
+
+    // Apply mask to keep only the first 12 bytes
+    uint8x16_t masked = vandq_u8(swapped, mask);
+
+    // Store the first 12 bytes of the result
+    vst1q_u8(destPtr, masked);
+
+    // Move to the next block
+    srcPtr += 12;
+    destPtr += 12;
+  }
+
+  DMAWriteToFPGA(DMAWritefile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDUCSTREAMWRITE);
+}
+#endif
+
+// Generic implementation for non-NEON platforms
+static void transferIQSamples_generic(const uint8_t* UDPInBuffer, uint8_t* IQBasePtr, int DMAWritefile_fd) {
+  const uint8_t* srcPtr = UDPInBuffer + 4;
+  uint8_t* destPtr = IQBasePtr;
+
+  // Need to swap I & Q samples on replay
+  for (size_t i = 0; i < VIQSAMPLESPERFRAME; i++) {
     // Copy Q sample (3 bytes).
     // We copy Q first so that we read from srcPtr first, making the subsequent read from srcPtr + 3 a cache hit.
     memcpy(destPtr + 3, srcPtr, 3);
@@ -198,6 +249,7 @@ static void transferIQSamples(const uint8_t* UDPInBuffer, uint8_t* IQBasePtr, in
 
   DMAWriteToFPGA(DMAWritefile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDUCSTREAMWRITE);
 }
+
 
 //
 // HandlerSetEERMode (bool EEREnabled)

@@ -126,7 +126,7 @@ void *OutgoingMicSamples(void *arg)
   //
     while (!InitError)
     {
-        while(!(SDRActive))
+        while (!SDRActive)
         {
             if(ThreadData->Cmdid & VBITCHANGEPORT)
             {
