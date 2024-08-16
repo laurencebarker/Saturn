@@ -525,7 +525,7 @@ void *OutgoingDDCIQ(void *arg)
                 RateWord = *LongWordPtr;                                      // read rate word
 
                 if (RateWord != PrevRateWord) {
-                  FrameLength = AnalyseDDCHeader(RateWord, &DDCCounts[0]);           // read new settings
+                  FrameLength = AnalyseDDCHeader(RateWord, DDCCounts);           // read new settings
   //                        printf("new framelength = %d\n", FrameLength);
                   PrevRateWord = RateWord;                                        // so we know its analysed
                 }
