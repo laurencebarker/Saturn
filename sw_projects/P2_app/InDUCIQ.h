@@ -30,6 +30,8 @@
 //
 void *IncomingDUCIQ(void *arg);                 // listener thread
 
+static void transferIQSamples_SIMD(const uint8_t* UDPInBuffer, uint8_t* IQBasePtr, int DMAWritefile_fd);
+static void transferIQSamples_generic(const uint8_t* UDPInBuffer, uint8_t* IQBasePtr, int DMAWritefile_fd);
 static void transferIQSamples(const uint8_t* UDPInBuffer, uint8_t* IQBasePtr, int DMAWritefile_fd);
 
 
