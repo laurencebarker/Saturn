@@ -2013,7 +2013,7 @@ void SetUserOutputBits(unsigned int Bits)
 // probably call every time an outgoing packet is put together initially
 // but possibly do this one a timed basis.
 //
-void ReadStatusRegister(void) {
+inline void ReadStatusRegister(void) {
   pthread_mutex_lock(&DefaultRegMutex);
   uint32_t StatusRegisterValue = RegisterRead(VADDRSTATUSREG);
   GStatusRegister = StatusRegisterValue;                  // save to global
@@ -2021,7 +2021,7 @@ void ReadStatusRegister(void) {
 }
 
 
-uint32_t ReadChannelStatusRegister(int Channel) {
+inline uint32_t ReadChannelStatusRegister(int Channel) {
   uint32_t Address;							// register address
   uint32_t Data = 0;							// register content
   pthread_mutex_lock(&DefaultRegMutex);
@@ -2031,7 +2031,7 @@ uint32_t ReadChannelStatusRegister(int Channel) {
   return Data;
 }
 
-void WriteFIFOConfigRegister(const EDMAStreamSelect *Channel, bool EnableInterrupt) {
+inline void WriteFIFOConfigRegister(const EDMAStreamSelect *Channel, bool EnableInterrupt) {
   uint32_t Data;
   uint32_t Address;
   pthread_mutex_lock(&DefaultRegMutex);
@@ -2050,10 +2050,9 @@ void WriteFIFOConfigRegister(const EDMAStreamSelect *Channel, bool EnableInterru
 //
 bool GetPTTInput(void) {
   pthread_mutex_lock(&DefaultRegMutex);
-  bool Result = false;
-  Result = (bool) (GStatusRegister & 1);                       // get PTT bit
+  bool result = (bool) (GStatusRegister & 1);
   pthread_mutex_unlock(&DefaultRegMutex);
-  return Result;
+  return result;
 }
 
 
@@ -2064,10 +2063,9 @@ bool GetPTTInput(void) {
 //
 bool GetKeyerDashInput(void) {
   pthread_mutex_lock(&DefaultRegMutex);
-  bool Result = false;
-  Result = (bool) ((GStatusRegister >> VKEYINB) & 1);                       // get PTT bit
+  bool result = (bool) ((GStatusRegister >> VKEYINB) & 1);
   pthread_mutex_unlock(&DefaultRegMutex);
-  return Result;
+  return result;
 }
 
 
@@ -2079,10 +2077,9 @@ bool GetKeyerDashInput(void) {
 //
 bool GetKeyerDotInput(void) {
   pthread_mutex_lock(&DefaultRegMutex);
-  bool Result = false;
-  Result = (bool) ((GStatusRegister >> VKEYINA) & 1);                       // get PTT bit
+  bool result = (bool) ((GStatusRegister >> VKEYINA) & 1);
   pthread_mutex_unlock(&DefaultRegMutex);
-  return Result;
+  return result;
 }
 
 
@@ -2093,10 +2090,9 @@ bool GetKeyerDotInput(void) {
 //
 bool GetCWKeyDown(void) {
   pthread_mutex_lock(&DefaultRegMutex);
-  bool Result = (bool) ((GStatusRegister >> VCWKEYDOWN) & 1);                       // get PTT bit
+  bool result = (bool) ((GStatusRegister >> VCWKEYDOWN) & 1);
   pthread_mutex_unlock(&DefaultRegMutex);
-
-  return Result;
+  return result;
 }
 
 
@@ -2115,7 +2111,6 @@ unsigned int GetP2PTTKeyInputs(void)
     unsigned int Result = 0;
 
     pthread_mutex_lock(&DefaultRegMutex);
-    // ReadStatusRegister();
     if (GStatusRegister & 1)
         Result |= 1;                                                        // set PTT output bit
     if ((GStatusRegister >> VCWKEYDOWN) & 1)
