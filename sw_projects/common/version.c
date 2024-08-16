@@ -36,16 +36,7 @@
 
 
 
-#define VADDRUSERVERSIONREG 0x4004              // user defined version register
-#define VADDRSWVERSIONREG 0XC000                // user defined s/w version register
-#define VADDRPRODVERSIONREG 0XC004              // user defined product version register
 
-
-//
-// the identification scheme leaves open the possibility of other products with similar s/w & FPGA architecture
-//
-#define VMAXPRODUCTID 1							// product ID index limit
-#define VMAXSWID 4								// software ID index limit
 
 char* ProductIDStrings[] =
 {
@@ -77,44 +68,15 @@ char* ClockStrings[] =
 #define SATURNGOLDENCONFIGID 3				// "golden" configuration id
 
 
-
 //
 // Check for a fallback configuration
 // returns true if FPGA is a fallback load
 //
 bool IsFallbackConfig(void)
 {
-	bool Result = false;
-	uint32_t SoftwareInformation;			// swid & version
-	uint32_t ProductInformation;			// product id & version
-	uint32_t DateCode;						// date code from user register in FPGA
-
-	uint32_t SWVer, SWID;					// s/w version and id
-	uint32_t ProdVer, ProdID;				// product version and id
-	uint32_t ClockInfo;						// clock status
-	uint32_t Cntr;
-
-	char* ProdString;
-	char* SWString;
-
-	//
-	// read the raw data from registers
-	//
-	SoftwareInformation = RegisterRead(VADDRSWVERSIONREG);
-	ProductInformation = RegisterRead(VADDRPRODVERSIONREG);
-	DateCode = RegisterRead(VADDRUSERVERSIONREG);
-
-	ClockInfo = (SoftwareInformation & 0xF);				// 4 clock bits
-	SWVer = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version
-	SWID = SoftwareInformation >> 20;						// 12 bit software ID
-
-	ProdVer = ProductInformation & 0xFFFF;					// 16 bit product version
-	ProdID = ProductInformation >> 16;						// 16 bit product ID
-
-	if ((ProdID == SATURNPRODUCTID) && (SWID == SATURNGOLDENCONFIGID))
-		Result = true;
-
-	return Result;
+  FullVersionInfo info = GetFullVersionInfo();
+  return (info.product.productId == SATURNPRODUCTID) &&
+         (info.firmware.id == SATURNGOLDENCONFIGID);
 }
 
 //
@@ -122,78 +84,41 @@ bool IsFallbackConfig(void)
 //
 void PrintVersionInfo(void)
 {
-	uint32_t SoftwareInformation;			// swid & version
-	uint32_t ProductInformation;			// product id & version
-	uint32_t DateCode;						// date code from user register in FPGA
+  FullVersionInfo info = GetFullVersionInfo();
 
-	uint32_t SWVer, SWID;					// s/w version and id
-	uint32_t ProdVer, ProdID;				// product version and id
-	uint32_t ClockInfo;						// clock status
-	uint32_t Cntr;
+  printf("FPGA BIT file data code = %08x\n", info.dateCode);
 
-	char* ProdString;
-	char* SWString;
+  const char* prodString = (info.product.productId <= VMAXPRODUCTID) ?
+                           ProductIDStrings[info.product.productId] : ProductIDStrings[0];
 
-	//
-	// read the raw data from registers
-	//
-	SoftwareInformation = RegisterRead(VADDRSWVERSIONREG);
-	ProductInformation = RegisterRead(VADDRPRODVERSIONREG);
-	DateCode = RegisterRead(VADDRUSERVERSIONREG);
-	printf("FPGA BIT file data code = %08x\n", DateCode);
+  const char* swString = (info.firmware.id <= VMAXSWID) ?
+                         SWIDStrings[info.firmware.id] : SWIDStrings[0];
 
-	ClockInfo = (SoftwareInformation & 0xF);				// 4 clock bits
-	SWVer = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version
-	SWID = SoftwareInformation >> 20;						// 12 bit software ID
+  printf(" Product: %s; Version = %d\n", prodString, info.product.productVersion);
+  printf(" FPGA Firmware loaded: %s; FW Version = %d\n", swString, info.firmware.version >> 4);
 
-	ProdVer = ProductInformation & 0xFFFF;					// 16 bit product version
-	ProdID = ProductInformation >> 16;						// 16 bit product ID
-
-	//
-	// now chack if IDs are valid and print strings
-	//
-	if (ProdID > VMAXPRODUCTID)
-		ProdString = ProductIDStrings[0];
-	else
-		ProdString = ProductIDStrings[ProdID];
-
-	if (SWID > VMAXSWID)
-		SWString = SWIDStrings[0];
-	else
-		SWString = SWIDStrings[SWID];
-
-	printf(" Product: %s; Version = %d\n", ProdString, ProdVer);
-	printf(" FPGA Firmware loaded: %s; FW Version = %d\n", SWString, SWVer);
-
-	if (ClockInfo == 0xF)
-		printf("All clocks present\n");
-	else
-	{
-		for (Cntr = 0; Cntr < 4; Cntr++)
-		{
-			if (ClockInfo & 1)
-				printf("%s present\n", ClockStrings[Cntr]);
-			else
-				printf("%s not present\n", ClockStrings[Cntr]);
-			ClockInfo = ClockInfo >> 1;
-		}
-	}
+  if (info.clockInfo == 0xF)
+  {
+    printf("All clocks present\n");
+  }
+  else
+  {
+    for (int i = 0; i < 4; i++)
+    {
+      if (info.clockInfo & (1 << i))
+        printf("%s present\n", ClockStrings[i]);
+      else
+        printf("%s not present\n", ClockStrings[i]);
+    }
+  }
 }
 
 
-
-//
-// function call to get firmware ID and version
-//
-unsigned int GetFirmwareVersion(ESoftwareID* ID)
+uint16_t GetFirmwareVersion(ESoftwareID* ID)
 {
-	unsigned int Version = 0;
-	uint32_t SoftwareInformation;			// swid & version
-
-	SoftwareInformation = RegisterRead(VADDRSWVERSIONREG);
-	Version = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version
-	*ID = (ESoftwareID)(SoftwareInformation >> 20);						// 12 bit software ID
-	return Version;
+  FirmwareInfo info = GetFirmwareInfo();
+  if (ID != NULL) {
+    *ID = info.id;
+  }
+  return info.version;
 }
-
-

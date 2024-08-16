@@ -20,10 +20,6 @@
 
 pthread_mutex_t DDCResetFIFOMutex;
 
-bool GFIFOSizesInitialised = false;
-
-
-
 
 //
 // void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt);
@@ -35,15 +31,8 @@ bool GFIFOSizesInitialised = false;
 //
 void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt)
 {
-  if (!GFIFOSizesInitialised)
-	{
-			InitialiseFIFOSizes();				// load FIFO size table, if not already done
-			GFIFOSizesInitialised = true;
-	}
   WriteFIFOConfigRegister(&Channel, EnableInterrupt);
 }
-
-
 
 
 // Read number of locations in a FIFO
@@ -57,7 +46,8 @@ void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt)
 //
 uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed, bool* OverThreshold, bool* Underflowed, uint16_t* Current)
 {
-  uint32_t status = ReadChannelStatusRegister(Channel);
+  uint32_t fifoDepth;
+  uint32_t status = ReadChannelStatusAndUpdateFIFODepth(Channel, &fifoDepth);
 
   *Overflowed = (status >> 31) & 1;
   *OverThreshold = (status >> 30) & 1;
@@ -69,9 +59,8 @@ uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed, bool
   memcpy(Current, &count, sizeof(uint16_t));
 
   if (Channel == eTXDUCDMA || Channel == eSpkCodecDMA) {
-    return DMAFIFODepths[Channel] - count;  // Free locations for write channels
+    return fifoDepth - count;  // Free locations for write channels
   }
-
   return count;  // Occupied locations for read channels (16 bit FIFO count)
 }
 

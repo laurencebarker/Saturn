@@ -45,7 +45,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
   uint16_t Word;
   int i;                                                // counter
   ESoftwareID FPGASWID;                                 // preprod/release etc
-  unsigned int FPGAVersion;                             // firmware version
+  uint16_t FPGAVersion;                             // firmware version
   bool PAEnable;
 
 
