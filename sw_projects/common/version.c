@@ -97,7 +97,7 @@ void PrintVersionInfo(void)
   printf(" Product: %s; Version = %d\n", prodString, info.product.productVersion);
   printf(" FPGA Firmware loaded: %s; FW Version = %d\n", swString, info.firmware.version >> 4);
 
-  if (info.clockInfo == 0xF)
+  if (info.firmware.clockInfo == 0xF)
   {
     printf("All clocks present\n");
   }
@@ -105,7 +105,7 @@ void PrintVersionInfo(void)
   {
     for (int i = 0; i < 4; i++)
     {
-      if (info.clockInfo & (1 << i))
+      if (info.firmware.clockInfo & (1 << i))
         printf("%s present\n", ClockStrings[i]);
       else
         printf("%s not present\n", ClockStrings[i]);

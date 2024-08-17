@@ -81,6 +81,7 @@ typedef struct {
 typedef struct {
     ESoftwareID id;
     uint16_t version;
+    uint32_t clockInfo;
 } FirmwareInfo;
 
 typedef struct {
@@ -92,7 +93,7 @@ typedef struct {
     FirmwareInfo firmware;
     ProductInfo product;
     uint32_t dateCode;
-    uint8_t clockInfo;
+
 } FullVersionInfo;
 
 //
