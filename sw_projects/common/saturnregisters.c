@@ -380,7 +380,6 @@ FullVersionInfo GetFullVersionInfo(void)
   info.firmware = GetFirmwareInfo();
   info.product = GetProductInfo();
   info.dateCode = GetDateCode();
-  info.clockInfo = info.firmware.version & 0xF;
   return info;
 }
 
@@ -2532,7 +2531,9 @@ inline void CodecRegisterWriteUnsafe(uint32_t address, uint32_t data) {
 
 static uint32_t ReadSoftwareInformationRegister(void)
 {
+  pthread_mutex_lock(&DefaultRegMutex);
   uint32_t softwareInformation = RegisterRead(VADDRSWVERSIONREG);
+  pthread_mutex_unlock(&DefaultRegMutex);
   return softwareInformation;
 }
 
@@ -2543,6 +2544,7 @@ FirmwareInfo GetFirmwareInfo(void)
   FirmwareInfo info;
   info.version = (softwareInformation >> 4) & 0xFFFF;  // 16 bit sw version
   info.id = (ESoftwareID)(softwareInformation >> 20);  // 12 bit software ID
+  info.clockInfo = (softwareInformation & 0xF);
 
   return info;
 }
@@ -2551,8 +2553,9 @@ FirmwareInfo GetFirmwareInfo(void)
 float GetDieTemperatureCelcius() {
   uint32_t RegisterValue;
   float Temp;
-
+  pthread_mutex_lock(&DefaultRegMutex);
   RegisterValue = RegisterRead(VADDRXADCTEMPREG);
+  pthread_mutex_unlock(&DefaultRegMutex);
   Temp = (float)RegisterValue * 503.975f;
   Temp = Temp / 65536.0f;
   Temp -= 273.15f;
