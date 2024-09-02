@@ -158,12 +158,13 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
 
             while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {
-              usleep(2000); // 2ms wait
+              usleep(500); // 0.5ms wait
               Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow,
                                              (uint16_t *) &Current);
               if ((StartupCount == 0) && FIFOOverThreshold && UseDebug)
                 printf("TX DUC FIFO Overthreshold, depth now = %d\n", Current);
-              if ((StartupCount == 0) && FIFOUnderflow) {
+              if ((StartupCount == 0) && FIFOUnderflow)
+              {
                 GlobalFIFOOverflows |= 0b00000100;
                 if (UseDebug)
                   printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
@@ -199,9 +200,6 @@ static void transferIQSamples_SIMD(const uint8_t* UDPInBuffer, uint8_t* IQBasePt
   const uint8_t* srcPtr = UDPInBuffer + 4;
   uint8_t* destPtr = IQBasePtr;
 
-  // Create a mask for the first 96 bits (12 bytes)
-  const uint8x16_t mask = {255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0};
-
   // Process 2 IQ samples (12 bytes) per iteration
   // Process all 240 samples in 120 iterations: 2 IQ samples (12 bytes) per iteration
   for (int i = 0; i < 120; i++)
@@ -213,13 +211,10 @@ static void transferIQSamples_SIMD(const uint8_t* UDPInBuffer, uint8_t* IQBasePt
     uint8x16_t swapped = vqtbl1q_u8(input,
                                     (uint8x16_t) {3, 4, 5, 0, 1, 2, 9, 10, 11, 6, 7, 8, 12, 13, 14, 15});
 
-    // Apply mask to keep only the first 12 bytes
-    uint8x16_t masked = vandq_u8(swapped, mask);
+    // Store 16 byte output (4 extra bytes get overwritten in next iteration)
+    vst1q_u8(destPtr, swapped);
 
-    // Store the first 12 bytes of the result
-    vst1q_u8(destPtr, masked);
-
-    // Move to the next block
+    // Advance 12 bytes
     srcPtr += 12;
     destPtr += 12;
   }
@@ -236,13 +231,12 @@ static void transferIQSamples_generic(const uint8_t* UDPInBuffer, uint8_t* IQBas
   // Need to swap I & Q samples on replay
   for (size_t i = 0; i < VIQSAMPLESPERFRAME; i++) {
     // Copy Q sample (3 bytes).
-    // We copy Q first so that we read from srcPtr first, making the subsequent read from srcPtr + 3 a cache hit.
     memcpy(destPtr + 3, srcPtr, 3);
 
     // Copy I sample (3 bytes)
     memcpy(destPtr, srcPtr + 3, 3);
 
-    // Move to the next source sample
+    // Advance 6 bytes
     destPtr += 6;
     srcPtr += 6;
   }
