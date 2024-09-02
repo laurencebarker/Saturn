@@ -140,36 +140,25 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
         }
         if(size == VDUCIQSIZE)
         {
-            if(StartupCount != 0)                                   // decrement startup message count
+            if (StartupCount != 0)                                   // decrement startup message count
                 StartupCount--;
             NewMessageReceived = true;
-            usleep(500); // wait at least 0.5ms before checking, to increase the likelihood there's enough space ready
-            Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow,
-                                           (uint16_t *) &Current);           // read the FIFO free locations
-            if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
-                printf("TX DUC FIFO Overthreshold, depth now = %d\n", Current);
 
-            if((StartupCount == 0) && FIFOUnderflow)
-            {
-                GlobalFIFOOverflows |= 0b00000100;
-                if(UseDebug)
-                    printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
-            }
+            do {
+              usleep(500); // 0.5ms
+              Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, (uint16_t *)&Current); // read the FIFO free locations
 
-            while (Depth < VMEMWORDSPERFRAME)       // loop till space available
-            {
-              usleep(500); // 0.5ms wait
-              Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow,
-                                             (uint16_t *) &Current);
               if ((StartupCount == 0) && FIFOOverThreshold && UseDebug)
                 printf("TX DUC FIFO Overthreshold, depth now = %d\n", Current);
+
               if ((StartupCount == 0) && FIFOUnderflow)
               {
                 GlobalFIFOOverflows |= 0b00000100;
                 if (UseDebug)
                   printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
               }
-            }
+            } while (Depth < VMEMWORDSPERFRAME); // loop till space available
+
             transferIQSamples(UDPInBuffer, IQBasePtr, DMAWritefile_fd);
         }
     }
