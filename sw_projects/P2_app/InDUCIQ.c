@@ -201,8 +201,7 @@ static void transferIQSamples_SIMD(const uint8_t* UDPInBuffer, uint8_t* IQBasePt
   uint8_t* destPtr = IQBasePtr;
 
   // Process 2 IQ samples (12 bytes) per iteration
-  // Process all 240 samples in 120 iterations: 2 IQ samples (12 bytes) per iteration
-  for (int i = 0; i < 120; i++)
+  for (int i = 0; i < VIQSAMPLESPERFRAME/2 - 1; i++)
   {
     // Load 16 bytes (2 IQ samples + 4 extra bytes) into a 128-bit register
     uint8x16_t input = vld1q_u8(srcPtr);
@@ -217,6 +216,16 @@ static void transferIQSamples_SIMD(const uint8_t* UDPInBuffer, uint8_t* IQBasePt
     // Advance 12 bytes
     srcPtr += 12;
     destPtr += 12;
+  }
+
+  // Handle the last pair (or single sample if odd) without SIMD to avoid buffer overrun
+  int remaining = VIQSAMPLESPERFRAME - (VIQSAMPLESPERFRAME / 2 - 1) * 2;
+  for (int i = 0; i < remaining; i++)
+  {
+    memcpy(destPtr + 3, srcPtr, 3);     // Copy Q sample (3 bytes)
+    memcpy(destPtr, srcPtr + 3, 3);     // Copy I sample (3 bytes)
+    srcPtr += 6;
+    destPtr += 6;
   }
 
   DMAWriteToFPGA(DMAWritefile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDUCSTREAMWRITE);
