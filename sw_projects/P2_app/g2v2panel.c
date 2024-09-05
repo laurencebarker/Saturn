@@ -9,7 +9,7 @@
 //
 // g2panel.c:
 //
-// interface G2V2 front panel using I2C
+// interface G2V2 front panel using asynchronous serial
 //
 //////////////////////////////////////////////////////////////
 
