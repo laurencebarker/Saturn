@@ -15,8 +15,8 @@
 
 #include "threaddata.h"
 #include <stdint.h>
-#include "../common/saturntypes.h"
 #include "InDUCIQ.h"
+#include <arm_neon.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -28,7 +28,11 @@
 #include "../common/saturndrivers.h"
 #include "../common/hwaccess.h"
 
-
+#if defined(__aarch64__) || (defined(__arm__) && defined(__ARM_NEON))
+#define HAS_NEON 1
+#else
+#define HAS_NEON 0
+#endif
 
 #define VIQSAMPLESPERFRAME 240                      // samples per UDP frame
 #define VMEMWORDSPERFRAME 180                       // memory writes per UDP frame
@@ -52,7 +56,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     uint8_t UDPInBuffer[VDUCIQSIZE];                      // incoming buffer
     struct iovec iovecinst;                               // iovcnt buffer - 1 for each outgoing buffer
     struct msghdr datagram;                               // multiple incoming message header
-    int size;                                             // UDP datagram length
+    ssize_t size;                                             // UDP datagram length
 
                                                           //
 // variables for DMA buffer 
@@ -71,7 +75,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     uint8_t* DestPtr;                                       // pointer to DMA buffer data
     unsigned int Current;                                   // current occupied locations in FIFO
     unsigned int StartupCount;                              // used to delay reporting of under & overflows
-    bool PrevSDRActive;                                     // used to detect change of state
+    bool PrevSDRActive = false;                             // used to detect change of state
 
     ThreadData = (struct ThreadSocketData *)arg;
     ThreadData->Active = true;
@@ -136,58 +140,106 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
         }
         if(size == VDUCIQSIZE)
         {
-            if(StartupCount != 0)                                   // decrement startup message count
+            if (StartupCount != 0)                                   // decrement startup message count
                 StartupCount--;
             NewMessageReceived = true;
-            Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);           // read the FIFO free locations
-            if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
+
+            do {
+              usleep(500); // 0.5ms
+              Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, (uint16_t *)&Current); // read the FIFO free locations
+
+              if ((StartupCount == 0) && FIFOOverThreshold && UseDebug)
                 printf("TX DUC FIFO Overthreshold, depth now = %d\n", Current);
 
-            if((StartupCount == 0) && FIFOUnderflow)
-            {
+              if ((StartupCount == 0) && FIFOUnderflow)
+              {
                 GlobalFIFOOverflows |= 0b00000100;
-                if(UseDebug)
-                    printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
-            }
+                if (UseDebug)
+                  printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
+              }
+            } while (Depth < VMEMWORDSPERFRAME); // loop till space available
 
-            while (Depth < VMEMWORDSPERFRAME)       // loop till space available
-            {
-                usleep(500);								                    // 0.5ms wait
-                Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);       // read the FIFO free locations
-                if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
-                    printf("TX DUC FIFO Overthreshold, depth now = %d\n", Current);
-                if((StartupCount == 0) && FIFOUnderflow)
-                {
-                    GlobalFIFOOverflows |= 0b00000100;
-                    if(UseDebug)
-                        printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
-                }
-            }
-            // copy data from UDP Buffer & DMA write it
-//            memcpy(IQBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);                // copy out I/Q samples
-            // need to swap I & Q samples on replay
-            SrcPtr = (uint16_t *) (UDPInBuffer + 4);
-            DestPtr = (uint16_t *) IQBasePtr;
-            for (Cntr=0; Cntr < VIQSAMPLESPERFRAME; Cntr++)                     // samplecounter
-            {
-                *DestPtr++ = *(SrcPtr+3);                           // get I sample (3 bytes)
-                *DestPtr++ = *(SrcPtr+4);
-                *DestPtr++ = *(SrcPtr+5);
-                *DestPtr++ = *(SrcPtr+0);                           // get Q sample (3 bytes)
-                *DestPtr++ = *(SrcPtr+1);
-                *DestPtr++ = *(SrcPtr+2);
-                SrcPtr += 6;                                        // point at next source sample
-            }
-            DMAWriteToFPGA(DMAWritefile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDUCSTREAMWRITE);
+            transferIQSamples(UDPInBuffer, IQBasePtr, DMAWritefile_fd);
         }
     }
-//
-// close down thread
-//
+    //
+    // close down thread
+    //
     close(ThreadData->Socketid);                  // close incoming data socket
     ThreadData->Socketid = 0;
     ThreadData->Active = false;                   // indicate it is closed
     return NULL;
+}
+
+
+// Copy data from UDP Buffer & DMA write it
+static void transferIQSamples(const uint8_t* UDPInBuffer, uint8_t* IQBasePtr, int DMAWritefile_fd) {
+#if HAS_NEON
+  transferIQSamples_SIMD(UDPInBuffer, IQBasePtr, DMAWritefile_fd);
+#else
+  transferIQSamples_generic(UDPInBuffer, IQBasePtr, DMAWritefile_fd);
+#endif
+}
+
+
+// SIMD implementation for ARM v8 and ARM v7 with NEON
+#if HAS_NEON
+static void transferIQSamples_SIMD(const uint8_t* UDPInBuffer, uint8_t* IQBasePtr, int DMAWritefile_fd)
+{
+  const uint8_t* srcPtr = UDPInBuffer + 4;
+  uint8_t* destPtr = IQBasePtr;
+
+  // Process 2 IQ samples (12 bytes) per iteration
+  for (int i = 0; i < VIQSAMPLESPERFRAME/2 - 1; i++)
+  {
+    // Load 16 bytes (2 IQ samples + 4 extra bytes) into a 128-bit register
+    uint8x16_t input = vld1q_u8(srcPtr);
+
+    // Swap I and Q samples
+    uint8x16_t swapped = vqtbl1q_u8(input,
+                                    (uint8x16_t) {3, 4, 5, 0, 1, 2, 9, 10, 11, 6, 7, 8, 12, 13, 14, 15});
+
+    // Store 16 byte output (4 extra bytes get overwritten in next iteration)
+    vst1q_u8(destPtr, swapped);
+
+    // Advance 12 bytes
+    srcPtr += 12;
+    destPtr += 12;
+  }
+
+  // Handle the last pair (or single sample if odd) without SIMD to avoid buffer overrun
+  int remaining = VIQSAMPLESPERFRAME - (VIQSAMPLESPERFRAME / 2 - 1) * 2;
+  for (int i = 0; i < remaining; i++)
+  {
+    memcpy(destPtr + 3, srcPtr, 3);     // Copy Q sample (3 bytes)
+    memcpy(destPtr, srcPtr + 3, 3);     // Copy I sample (3 bytes)
+    srcPtr += 6;
+    destPtr += 6;
+  }
+
+  DMAWriteToFPGA(DMAWritefile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDUCSTREAMWRITE);
+}
+#endif
+
+// Generic implementation for non-NEON platforms
+static void transferIQSamples_generic(const uint8_t* UDPInBuffer, uint8_t* IQBasePtr, int DMAWritefile_fd) {
+  const uint8_t* srcPtr = UDPInBuffer + 4;
+  uint8_t* destPtr = IQBasePtr;
+
+  // Need to swap I & Q samples on replay
+  for (size_t i = 0; i < VIQSAMPLESPERFRAME; i++) {
+    // Copy Q sample (3 bytes).
+    memcpy(destPtr + 3, srcPtr, 3);
+
+    // Copy I sample (3 bytes)
+    memcpy(destPtr, srcPtr + 3, 3);
+
+    // Advance 6 bytes
+    destPtr += 6;
+    srcPtr += 6;
+  }
+
+  DMAWriteToFPGA(DMAWritefile_fd, IQBasePtr, VDMATRANSFERSIZE, VADDRDUCSTREAMWRITE);
 }
 
 

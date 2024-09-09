@@ -15,7 +15,12 @@
 #ifndef __hwaccess_h
 #define __hwaccess_h
 
+#ifdef __STDC_NO_ATOMICS__
+#error This compiler does not support C11 atomics
+#endif
+
 #include <stdint.h>
+#include <stdatomic.h>
 
 
 //
@@ -35,7 +40,6 @@ int OpenXDMADriver(void);
 // AXIAddr: offset address in the FPGA window 
 //
 int DMAWriteToFPGA(int fd, unsigned char*SrcData, uint32_t Length, uint32_t AXIAddr);
-
 
 
 //

@@ -15,7 +15,6 @@
 
 #include "threaddata.h"
 #include <stdint.h>
-#include "../common/saturntypes.h"
 #include "InSpkrAudio.h"
 #include <errno.h>
 #include <fcntl.h>
@@ -31,10 +30,10 @@
 
 #define VSPKSAMPLESPERFRAME 64                      // samples per UDP frame
 #define VMEMWORDSPERFRAME 32                        // 8 byte writes per UDP msg
-#define VSPKSAMPLESPERMEMWORD 2                     // 2 samples (each 4 bytres) per 8 byte word
-#define VDMABUFFERSIZE 32768						// memory buffer to reserve
+#define VSPKSAMPLESPERMEMWORD 2                     // 2 samples (each 4 bytes) per 8 byte word
+#define VDMABUFFERSIZE 32768						            // memory buffer to reserve
 #define VALIGNMENT 4096                             // buffer alignment
-#define VBASE 0x1000								// DMA start at 4K into buffer
+#define VBASE 0x1000								                // DMA start at 4K into buffer
 #define VDMATRANSFERSIZE 256                        // write 1 message at a time
 #define VSTARTUPDELAY 100                           // 100 messages (~100ms) before reporting under or overflows
 
@@ -52,7 +51,7 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
     uint8_t UDPInBuffer[VSPEAKERAUDIOSIZE];               // incoming buffer
     struct iovec iovecinst;                               // iovcnt buffer - 1 for each outgoing buffer
     struct msghdr datagram;                               // multiple incoming message header
-    int size;                                             // UDP datagram length
+    ssize_t size;                                         // UDP datagram length
 
 //
 // variables for DMA buffer 
@@ -60,16 +59,16 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
     uint8_t* SpkWriteBuffer = NULL;							// data for DMA to write to spkr
     uint32_t SpkBufferSize = VDMABUFFERSIZE;
     bool InitError = false;                                 // becomes true if we get an initialisation error
-    unsigned char* SpkReadPtr;								// pointer for reading out a spkr sample
-    unsigned char* SpkHeadPtr;								// ptr to 1st free location in spk memory
-    unsigned char* SpkBasePtr;								// ptr to DMA location in spk memory
+    unsigned char* SpkReadPtr;								              // pointer for reading out a spkr sample
+    unsigned char* SpkHeadPtr;								              // ptr to 1st free location in spk memory
+    unsigned char* SpkBasePtr;								              // ptr to DMA location in spk memory
     uint32_t Depth = 0;
-    int DMAWritefile_fd = -1;								// DMA read file device
+    int DMAWritefile_fd = -1;								                // DMA read file device
     bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;
-    uint32_t RegVal;
-    unsigned int Current;                                   // current occupied locations in FIFO
+    uint32_t RegVal = 0;
+    uint32_t Current;                                       // current occupied locations in FIFO
     unsigned int StartupCount;                              // used to delay reporting of under & overflows
-    bool PrevSDRActive;                                     // used to detect change of state
+    bool PrevSDRActive = false;                             // used to detect change of state
 
 
     ThreadData = (struct ThreadSocketData *)arg;
@@ -99,7 +98,7 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
         printf("XDMA write device open failed for spk data\n");
         InitError = true;
     }
-	ResetDMAStreamFIFO(eSpkCodecDMA);
+	  ResetDMAStreamFIFO(eSpkCodecDMA);
     SetupFIFOMonitorChannel(eSpkCodecDMA, false);
 
   //
@@ -137,8 +136,9 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
             if(StartupCount != 0)                                   // decrement startup message count
                 StartupCount--;
             NewMessageReceived = true;
-            RegVal += 1;            //debug
-            Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);        // read the FIFO free locations
+            RegVal += 1; // debug
+            Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow,
+                                           (uint16_t *) &Current);        // read the FIFO free locations
             if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
                 printf("Codec speaker FIFO Overthreshold, depth now = %d\n", Current);
             if((StartupCount == 0) && FIFOUnderflow)
@@ -150,8 +150,9 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
     //            printf("speaker packet received; depth = %d\n", Depth);
             while (Depth < VMEMWORDSPERFRAME)       // loop till space available
             {
-                usleep(1000);								                    // 1ms wait
-                Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);    // read the FIFO free locations
+                usleep(1000);	// 1ms wait
+                Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow,
+                                               (uint16_t *) &Current);    // read the FIFO free locations
                 if((StartupCount == 0) && FIFOOverThreshold && UseDebug)
                     printf("Codec speaker FIFO Overthreshold, depth now = %d\n", Current);
                 if((StartupCount == 0) && FIFOUnderflow)
@@ -161,7 +162,7 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
                         printf("Codec speaker FIFO Underflowed, depth now = %d\n", Current);
                 }
             }
-                // copy sata from UDP Buffer & DMA write it
+            // copy sata from UDP Buffer & DMA write it
             memcpy(SpkBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);              // copy out spk samples
     //        if(RegVal == 100)
     //            DumpMemoryBuffer(SpkBasePtr, VDMATRANSFERSIZE);
