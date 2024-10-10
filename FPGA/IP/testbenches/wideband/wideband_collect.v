@@ -16,7 +16,8 @@
 // Registers:
 //  addr 0         Control. R/W. Bit0=1: enable ADC0; bit1=1: enable ADC1
 //  addr 4         RecordPeriod. R/W.  Period in clock ticks between restart of recording 
-//  addr 8         Depth. R/W. Number of samples to be recorded into FIFO from one ADC 
+//  addr 8         Depth. R/W. Number of 64 bit words to be recorded into FIFO from one ADC, minus one
+//                 (to record 1024 words, write 1023)
 //  addr C         Status. R. 
 //	bit 13:90) FIFO depth in 64 bit words. 
 //	bit 31	   ADC1 data ready. 1 if data available to read.
@@ -100,11 +101,11 @@ module Wideband_Collect #
   reg [31:0] depthreg; 		    	    // writable register - depth register
   reg [1:0] dataavailablereg;		    // data available when set (by WB state machine)
   reg controlregwritten;		    // set when control register has been written 
-  reg [1:0] enabled;			    // two bits one for each ADC; set when enabled actually to record.
-                                            // each is SR flip flop: set by processor write, cleared by record.
-  reg [31:0] delaycountreg;		    // inter-record delay, in ticks
-  reg [31:0] samplecountreg;                // sample count during record
-  reg [3:0] wbstatereg;                     // state machine state
+  reg [1:0] enabled;			            // two bits one for each ADC; set when enabled actually to record.
+                                           // each is SR flip flop: set by processor write, cleared by record.
+  reg [31:0] delaycountreg;		           // inter-record delay, in ticks
+  reg [31:0] samplecountreg;               // sample count during record
+  reg [3:0] wbstatereg;                    // state machine state
 
 //
 // AXI interface
@@ -282,38 +283,36 @@ module Wideband_Collect #
 	        begin
 		      wbstatereg <= 1;
 		      delaycountreg <= recordperiodreg;
+	          startrecord <= 1;
 	        end
 	        else if(enabled[1] == 1'b01)	// else if ADC1 enabled
 	        begin
               wbstatereg <= 9;
 	          delaycountreg <= recordperiodreg;
+	          startrecord <= 1;
 	        end
           end
 
           1: begin				// begin ADC0
-	        startrecord <= 1;
+	        startrecord <= 0;
 	        wbstatereg <= 2;
 	        samplecountreg <= depthreg;
 	        enabled[0] <= 0;
           end
 
           2: begin				// record 1 ADC0
-	        startrecord <= 0;
 	        m_axis_tdata[15:0] <= adc0[15:0];
 	        m_axis_tvalid <= 0;
-	        samplecountreg <= samplecountreg - 1;
 	        wbstatereg <= 3;
           end
           
           3: begin				// record 2 ADC0
 	        m_axis_tdata[31:16] <= adc0[15:0];
-	        samplecountreg <= samplecountreg - 1;
 	        wbstatereg <= 4;
           end
 
           4: begin				// record 3 ADC0
 	        m_axis_tdata[47:32] <= adc0[15:0];
-	        samplecountreg <= samplecountreg - 1;
 	        wbstatereg <= 5;
           end
 
@@ -332,13 +331,17 @@ module Wideband_Collect #
           end
 
           6: begin				// finish ADC0
+	        m_axis_tvalid <= 0;
 	        dataavailablereg[0] <= 1;
 	        wbstatereg <= 7;
           end
 
           7: begin				// wait after record ADC0
 	        if(enabled[1:0] == 2'b11)	// if re-enabled by processor && ADC1 enabled
+	        begin
 	          wbstatereg <= 9;
+	          startrecord <= 1;
+	        end
 	        else if(enabled[1:0] == 2'b01)	// if re-enabled by processor && ADC1 not enabled
 	          wbstatereg <= 8;
           end
@@ -353,29 +356,25 @@ module Wideband_Collect #
 
           9: begin				// begin ADC1
 	        dataavailablereg[1:0] <= 2'b00;
-	        startrecord <= 1;
+	        startrecord <= 0;
 	        wbstatereg <= 10;
 	        samplecountreg <= depthreg;
 	        enabled[1] <= 0;
           end
 
           10: begin				// record 1 ADC1
-	        startrecord <= 0;
 	        m_axis_tdata[15:0] <= adc1[15:0];
 	        m_axis_tvalid <= 0;
-	        samplecountreg <= samplecountreg - 1;
 	        wbstatereg <= 11;
           end
 
           11: begin				// record 2 ADC1
 	        m_axis_tdata[31:16] <= adc1[15:0];
-	        samplecountreg <= samplecountreg - 1;
 	        wbstatereg <= 12;
           end
 
           12: begin				// record 3 ADC1
 	        m_axis_tdata[47:32] <= adc1[15:0];
-	        samplecountreg <= samplecountreg - 1;
 	        wbstatereg <= 13;
           end
 
@@ -394,6 +393,7 @@ module Wideband_Collect #
           end
 
           14: begin				// finish ADC1
+	        m_axis_tvalid <= 0;
 	        dataavailablereg[1] <= 1;
 	        wbstatereg <= 15;
           end
