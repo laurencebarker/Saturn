@@ -49,7 +49,7 @@
 // for panel to behave as "stripped down" G2V2 (future) comment this out!
 // (this is only needed until Thetis support is readily available)
 //
-#define LEGACYANDROMEDA 1
+//#define LEGACYANDROMEDA 1
 
 
 //
@@ -137,8 +137,10 @@ int8_t EncoderCounts[VNUMENCODERS];             // number of steps since last re
 uint8_t LookupEncoderCode [] = {11, 12, 1, 2, 5, 6, 9, 10};
 uint8_t LookupButtonCode [] = {47, 50, 45, 44, 31, 32, 30, 34, 35, 33, 36, 37, 38, 21, 42, 43, 11, 1, 5, 9};
 #else
-uint8_t LookupEncoderCode [] = {5, 6, 3, 4, 9, 10, 7, 8};
-uint8_t LookupButtonCode [] = {7, 6, 8, 9, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 3, 2, 13, 12};
+uint8_t LookupEncoderCode [] = {11, 12, 1, 2, 5, 6, 9, 10};
+uint8_t LookupButtonCode [] = {47, 50, 45, 44, 31, 32, 30, 34, 35, 33, 36, 37, 38, 21, 42, 43, 11, 1, 5, 9};
+//uint8_t LookupEncoderCode [] = {5, 6, 3, 4, 9, 10, 7, 8};
+//uint8_t LookupButtonCode [] = {7, 6, 8, 9, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 3, 2, 13, 12};
 #endif
 
 

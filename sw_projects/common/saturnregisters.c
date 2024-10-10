@@ -1472,10 +1472,19 @@ void SetRXDDCEnabled(bool IsEnabled)
 //
 void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
 {
-    const double a0 = 0.35875;
-    const double a1 = -0.48829;
-    const double a2 = 0.14128;
-    const double a3 = -0.01168;
+    const double c1 = -0.12182865361171612;
+    const double c2 = -0.018557469249199286;
+    const double c3 = -0.0009378783245428506;
+    const double c4 = 0.0008567571519403228;
+    const double c5 = 0.00018706912431472442;
+
+
+    const double twopi = 6.28318530717959;
+    const double fourpi = 12.56637061435920;
+    const double sixpi = 18.84955592153880;
+    const double eightpi = 25.13274122871830;
+    const double tenpi = 31.41592653589790;
+
     double LargestSample;
     double Fraction;                        // fractional position in ramp
     double SamplePeriod;                    // sample period in us
@@ -1488,7 +1497,7 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
 	ESoftwareID ID;
 	unsigned int FPGAVersion = 0;
     unsigned int MaxDuration;               // max ramp duration in microseconds
-    double y, y2, y4, y6,rampsample;
+    double x, x2, x4, x6, x8, x10, rampsample;
 
     FPGAVersion = GetFirmwareVersion(&ID);
     if(FPGAVersion >= 14)
@@ -1515,23 +1524,19 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
             SamplePeriod = 1000.0/48.0;
         RampLength = (uint32_t)(((double)Length_us / SamplePeriod) + 1);
 
-
 //
-// DL1YCF code:
+// DL1YCF ramp code:
+//
 //
         for (Cntr = 0; Cntr < RampLength; Cntr++)
         {
-            y = (double) Cntr / (double) RampLength;           // between 0 and 1
-            y2 = y * 6.2831853071795864769252867665590;  // 2 Pi y
-            y4 = y * 12.566370614359172953850573533118;  // 4 Pi y
-            y6 = y * 18.849555921538759430775860299677;  // 6 Pi y
-            rampsample = 2.787456445993031358885017421602787456445993031358885 * 
-                    (
-                        0.358750000000000000000000000000000000000000000000000    * y
-                        - 0.0777137671623415735025882528171650378378063004186075  * sin(y2)
-                        + 0.01124270518001148651871394904463441453411422937510584 * sin(y4)
-                        - 0.00061964324510444584059352078539698924952082955408284 * sin(y6)
-                    );
+            x = (double) Cntr / (double) RampLength;           // between 0 and 1
+            x2 = x * twopi;         // 2 Pi x
+            x4 = x * fourpi;        // 4 Pi x
+            x6 = x * sixpi;         // 6 Pi x
+            x8 = x * eightpi;       // 8 Pi x
+            x10 = x * tenpi;        // 10 Pi x
+            rampsample = x + c1 * sin(x2) + c2 * sin(x4) + c3 * sin(x6) + c4 * sin(x8) + c5 * sin(x10);
             Sample = (uint32_t) (rampsample * 8388607.0);
             RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, Sample);
         }
