@@ -338,15 +338,13 @@ module Wideband_Collect #
 	        wbstatereg <= 7;
           end
 
-          7: begin				// wait after record ADC0
-	        if(enabled[1:0] == 2'b00)	// if processor has disabled the WB capture
-	           wbstatereg <= 0;
-	        else if(enabled[1:0] == 2'b11)	// if re-enabled by processor && ADC1 enabled
+          7: begin				// wait after record ADC0: needs processor to rewrite an enable
+	        if(enabled[1] == 1'b1)	// if re-enabled by processor && ADC1 enabled
 	        begin
 	          wbstatereg <= 9;
 	          startrecord <= 1;
 	        end
-	        else if(enabled[1:0] == 2'b01)	// if re-enabled by processor && ADC1 not enabled
+	        else if(enabled[0] == 1'b1)	// if re-enabled by processor && ADC1 not enabled
 	          wbstatereg <= 8;
           end
 
@@ -403,9 +401,7 @@ module Wideband_Collect #
           end
 
           15: begin				// wait after record ADC1
-	        if(enabled[1:0] == 2'b00)	// if processor has disabled the WB capture
-	           wbstatereg <= 0;
-	        else if(enabled[1] == 1)		// if re-enabled by processor
+	        if(enabled[1] == 1)		// if re-enabled by processor
 	          wbstatereg <= 8;
             end
         endcase
