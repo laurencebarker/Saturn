@@ -55,8 +55,10 @@
 //                  
 //-----------------------------------------------------------------------------
 //Step 2 - Import two required packages: axi_vip_pkg and <component_name>_pkg.
+// second one is a filename from build tree: 
+// <blockdiagrambame><AXI test instance name>_0_pkg
 import axi_vip_pkg::*;
-import AXI_GPIO_Sim_axi_vip_0_0_pkg::*;
+import widebandtest_axi_vip_0_0_pkg::*;
 
 
 
@@ -100,13 +102,16 @@ end
 //////////////////////////////////////////////////////////////////////////////////
 //
 // Step 3 - Declare the agent for the master VIP
-AXI_GPIO_Sim_axi_vip_0_0_mst_t      master_agent;
+// <blockdiagrambame><AXI test instance name>_0_mst_t
+widebandtest_axi_vip_0_0_mst_t      master_agent;
 
 //
 initial begin    
 
 // Step 4 - Create a new agent
-master_agent = new("master vip agent",UUT.AXI_GPIO_Sim_i.axi_vip_0.inst.IF);
+// UUT.<blockdiagrambame>_i.<AXI test instance name>.inst.IF
+
+master_agent = new("master vip agent",UUT.widebandtest_i.axi_vip_0.inst.IF);
 
 // Step 5 - Start the agent
 master_agent.start_master();
@@ -120,17 +125,26 @@ master_agent.start_master();
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
-// now test the wideband
+// test the wideband
 // write depth and delay registers, then read back all 4 registers
 $display("initial writes to wideband registers:");
+$display("control register = 0;");
+$display("period register = 12,500,000;");
+$display("depth register = 15 to enable 16 writes;");
+
 #50us
+addr = 32'h0000;
+data = 32'd0;        // no enables
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+
+#100ns
 addr = 32'h0004;
 data = 32'd12500000;        // 100ms period
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
 
-#100ns
+#200ns
 addr = 32'h0008;
-data = 32'h00000010;        // write depth = 16
+data = 32'h0000000F;        // write depth = 16
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
 
 #200ns
@@ -143,7 +157,7 @@ $display("read wideband control reg: data = 0x%x", data);
 data = 32'b0;
 addr = 32'h0004;
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
-$display("read wideband record period reg: data = 0x%x", data);
+$display("read wideband record period reg: data = (decimal) ", data);
 
 #200ns
 data = 32'b0;
@@ -156,7 +170,117 @@ data = 32'b0;
 addr = 32'h000C;
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read wideband status reg: data = 0x%x", data);
+//
 
+$display("");
+$display("");
+
+// write control register to value 1
+$display("write wideband control = 1 to enable ADC0:");
+addr = 32'h0000;
+data = 32'd1;        // enable ADC1
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+//
+// expect to see data collected now!
+//
+#10us
+$display("write operation should be complete");
+data = 32'b0;
+addr = 32'h000C;
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("read wideband status reg: data = 0x%x", data);
+$display("should have 16 samples, and ADC0 bit set");
+
+
+//
+// ignore reading out FIFO for now
+//
+$display("");
+$display("next phase: disable operation, so WB resets to idle");
+$display("write record depth = 32, then enable ADC1 record");
+// write control register to value 1
+addr = 32'h0000;
+data = 32'd0;        // disable
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+
+#200ns
+
+addr = 32'h0008;
+data = 32'h00000001F;        // write depth = 32
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+
+#200ns
+// write control register to value 2 to enable ADC1
+$display("write wideband control = 2 to enable ADC1:");
+addr = 32'h0000;
+data = 32'd2;        // enable ADC1
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+
+
+//
+// expect to see data collected now!
+//
+#10us
+$display("write operation should be complete");
+data = 32'b0;
+addr = 32'h000C;
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("read wideband status reg: data = 0x%x", data);
+$display("should have 48 samples, and ADC1 bit set");
+
+//
+// ignore reading out FIFO for now
+//
+
+
+
+$display("");
+$display("next phase: disable operation, so WB resets to idle");
+$display("write record depth = 16 again, then enable both ADC1&2 record");
+// write control register to value 1
+addr = 32'h0000;
+data = 32'd0;        // disable
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+
+#200ns
+
+addr = 32'h0008;
+data = 32'h00000000F;        // write depth = 32
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+
+#200ns
+// write control register to value 3 to enable both ADC
+$display("write wideband control = 3 to enable both ADC:");
+addr = 32'h0000;
+data = 32'd3;        // enable ADC1 & 0
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+
+
+//
+// expect to see data collected now!
+//
+#10us
+$display("ADC0 write operation should be complete");
+data = 32'b0;
+addr = 32'h000C;
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("read wideband status reg: data = 0x%x", data);
+$display("should have 64 samples, and ADC0 bit set");
+
+// write control register to value 3 to enable both ADC
+$display("write wideband control = 3 to enable both ADC:");
+addr = 32'h0000;
+data = 32'd3;        // enable ADC1 & 0
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+     
+#10us     
+$display("ADC1 write operation should be complete");
+data = 32'b0;
+addr = 32'h000C;
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("read wideband status reg: data = 0x%x", data);
+$display("should have 80 samples, and ADC1 bit set");
+     
      
 end
 

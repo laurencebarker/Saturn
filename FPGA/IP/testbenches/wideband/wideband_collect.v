@@ -279,6 +279,7 @@ module Wideband_Collect #
 	// now a state machine for recording control:
         case (wbstatereg[3:0])
           0: begin				// idle state
+	        dataavailablereg[1:0] <= 2'b00;        // clear available data
 	        if(enabled[0] == 1'b1)		// if ADC0 enabled
 	        begin
 		      wbstatereg <= 1;
@@ -294,6 +295,7 @@ module Wideband_Collect #
           end
 
           1: begin				// begin ADC0
+	        dataavailablereg[1:0] <= 2'b00;
 	        startrecord <= 0;
 	        wbstatereg <= 2;
 	        samplecountreg <= depthreg;
@@ -337,7 +339,9 @@ module Wideband_Collect #
           end
 
           7: begin				// wait after record ADC0
-	        if(enabled[1:0] == 2'b11)	// if re-enabled by processor && ADC1 enabled
+	        if(enabled[1:0] == 2'b00)	// if processor has disabled the WB capture
+	           wbstatereg <= 0;
+	        else if(enabled[1:0] == 2'b11)	// if re-enabled by processor && ADC1 enabled
 	        begin
 	          wbstatereg <= 9;
 	          startrecord <= 1;
@@ -399,7 +403,9 @@ module Wideband_Collect #
           end
 
           15: begin				// wait after record ADC1
-	        if(enabled[1] == 1)		// if re-enabled by processor
+	        if(enabled[1:0] == 2'b00)	// if processor has disabled the WB capture
+	           wbstatereg <= 0;
+	        else if(enabled[1] == 1)		// if re-enabled by processor
 	          wbstatereg <= 8;
             end
         endcase
