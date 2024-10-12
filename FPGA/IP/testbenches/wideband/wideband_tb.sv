@@ -127,7 +127,7 @@ master_agent.start_master();
 //
 // test the wideband
 // write depth and delay registers, then read back all 4 registers
-$display("initial writes to wideband registers:");
+$display("1st phase: initial writes then reads to wideband registers:");
 $display("control register = 0;");
 $display("period register = 12,500,000;");
 $display("depth register = 15 to enable 16 writes;");
@@ -174,6 +174,7 @@ $display("read wideband status reg: data = 0x%x", data);
 
 $display("");
 $display("");
+$display("test WB acquire from ADC0:");
 
 // write control register to value 1
 $display("write wideband control = 1 to enable ADC0:");
@@ -190,11 +191,16 @@ addr = 32'h000C;
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read wideband status reg: data = 0x%x", data);
 $display("should have 16 samples, and ADC0 bit set");
+$display("write processor data read out bit");
+addr = 32'h0000;
+data = 32'd5;        // enable ADC1, processor data read
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
 
 
 //
 // ignore reading out FIFO for now
 //
+$display("");
 $display("");
 $display("next phase: disable operation, so WB resets to idle");
 $display("write record depth = 32, then enable ADC1 record");
@@ -227,6 +233,10 @@ addr = 32'h000C;
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read wideband status reg: data = 0x%x", data);
 $display("should have 48 samples, and ADC1 bit set");
+$display("write processor data read out bit");
+addr = 32'h0000;
+data = 32'd6;        // enable ADC2, processor data read
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
 
 //
 // ignore reading out FIFO for now
@@ -267,11 +277,11 @@ master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read wideband status reg: data = 0x%x", data);
 $display("should have 64 samples, and ADC0 bit set");
 
-// write control register to value 3 to enable both ADC
-$display("write wideband control = 3 to enable both ADC:");
+$display("write processor data read out bit");
 addr = 32'h0000;
-data = 32'd3;        // enable ADC1 & 0
+data = 32'd7;        // enable both ADC1 processor data read
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+
      
 #10us     
 $display("ADC1 write operation should be complete");
@@ -281,6 +291,12 @@ master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read wideband status reg: data = 0x%x", data);
 $display("should have 80 samples, and ADC1 bit set");
      
+$display("write processor data read out bit");
+addr = 32'h0000;
+data = 32'd7;        // enable both ADC, processor data read
+master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+
+
      
 end
 
