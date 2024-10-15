@@ -65,6 +65,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V29: 15/10/2024   DL1YCF CW ramp; CW amplitude corrected; added support to detect & check FPGA major version
 // V27: 4/8/2024:    merged G2V2 panel support code into main
 // V26: 17/7/2024:   initial support for G2V2 panel implemented. Polling CAT for LED states.
 // V25: 22/6/2024:   merged branch with beta code for G2 panel controls to communicate via CAT over TCP/IP
