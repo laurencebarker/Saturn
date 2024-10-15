@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="wideband_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="\$unit_wideband_tb_sv " />
+            <top_module name="axi4stream_vip_pkg" />
+            <top_module name="axi_vip_pkg" />
+            <top_module name="glbl" />
+            <top_module name="std" />
+            <top_module name="wideband_tb" />
+            <top_module name="widebandtest_axi_vip_0_0_pkg" />
+            <top_module name="xil_common_vip_pkg" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="71,452.857 ns"></ZoomStartTime>
+      <ZoomEndTime time="72,083.858 ns"></ZoomEndTime>
+      <Cursor1Time time="71,552.357 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="254"></NameColumnWidth>
+      <ValueColumnWidth column_width="106"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="15" />
+   <wvobject fp_name="/wideband_tb/UUT/aclk" type="logic">
+      <obj_property name="ElementShortName">aclk</obj_property>
+      <obj_property name="ObjectShortName">aclk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wideband_tb/UUT/aresetn" type="logic">
+      <obj_property name="ElementShortName">aresetn</obj_property>
+      <obj_property name="ObjectShortName">aresetn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wideband_tb/UUT/widebandtest_i/Wideband_Collect_0/s_axi_wdata" type="array">
+      <obj_property name="ElementShortName">s_axi_wdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">s_axi_wdata[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wideband_tb/UUT/widebandtest_i/Wideband_Collect_0/s_axi_wvalid" type="logic">
+      <obj_property name="ElementShortName">s_axi_wvalid</obj_property>
+      <obj_property name="ObjectShortName">s_axi_wvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wideband_tb/UUT/widebandtest_i/Wideband_Collect_0/s_axi_wready" type="logic">
+      <obj_property name="ElementShortName">s_axi_wready</obj_property>
+      <obj_property name="ObjectShortName">s_axi_wready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wideband_tb/UUT/widebandtest_i/Wideband_Collect_0/s_axi_rdata" type="array">
+      <obj_property name="ElementShortName">s_axi_rdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">s_axi_rdata[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wideband_tb/UUT/widebandtest_i/Wideband_Collect_0/s_axi_rvalid" type="logic">
+      <obj_property name="ElementShortName">s_axi_rvalid</obj_property>
+      <obj_property name="ObjectShortName">s_axi_rvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wideband_tb/UUT/widebandtest_i/Wideband_Collect_0/s_axi_rready" type="logic">
+      <obj_property name="ElementShortName">s_axi_rready</obj_property>
+      <obj_property name="ObjectShortName">s_axi_rready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wideband_tb/UUT/widebandtest_i/Wideband_Collect_0/startrecord" type="logic">
+      <obj_property name="ElementShortName">startrecord</obj_property>
+      <obj_property name="ObjectShortName">startrecord</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wideband_tb/UUT/widebandtest_i/Test_Counter_ADC0/inst/countout" type="array">
+      <obj_property name="ElementShortName">countout[15:0]</obj_property>
+      <obj_property name="ObjectShortName">countout[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wideband_tb/UUT/widebandtest_i/Wideband_Collect_0/inst/wbstatereg" type="array">
+      <obj_property name="ElementShortName">wbstatereg[3:0]</obj_property>
+      <obj_property name="ObjectShortName">wbstatereg[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wideband_tb/UUT/widebandtest_i/Wideband_Collect_0/inst/delaycountreg" type="array">
+      <obj_property name="ElementShortName">delaycountreg[31:0]</obj_property>
+      <obj_property name="ObjectShortName">delaycountreg[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wideband_tb/UUT/widebandtest_i/Wideband_Collect_0/inst/samplecountreg" type="array">
+      <obj_property name="ElementShortName">samplecountreg[31:0]</obj_property>
+      <obj_property name="ObjectShortName">samplecountreg[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wideband_tb/UUT/widebandtest_i/Wideband_Collect_0/inst/m_axis_tvalid" type="logic">
+      <obj_property name="ElementShortName">m_axis_tvalid</obj_property>
+      <obj_property name="ObjectShortName">m_axis_tvalid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wideband_tb/UUT/widebandtest_i/Wideband_Collect_0/inst/m_axis_tdata" type="array">
+      <obj_property name="ElementShortName">m_axis_tdata[63:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axis_tdata[63:0]</obj_property>
+   </wvobject>
+</wave_config>
