@@ -1460,6 +1460,7 @@ void SetRXDDCEnabled(bool IsEnabled)
 #define VMINCWRAMPDURATION 3000                     // 3ms min
 #define VMAXCWRAMPDURATION 10000                    // 10ms max
 #define VMAXCWRAMPDURATIONV14PLUS 20000             // 20ms max
+#define VCWAMPLITUDE 7549746.0F                     // 0.9*max amplitude to match Tune etc
 
 
 //
@@ -1537,11 +1538,11 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
             x8 = x * eightpi;       // 8 Pi x
             x10 = x * tenpi;        // 10 Pi x
             rampsample = x + c1 * sin(x2) + c2 * sin(x4) + c3 * sin(x6) + c4 * sin(x8) + c5 * sin(x10);
-            Sample = (uint32_t) (rampsample * 8388607.0);
+            Sample = (uint32_t) (rampsample * VCWAMPLITUDE);
             RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, Sample);
         }
         for(Cntr = RampLength; Cntr < VRAMPSIZE; Cntr++)                        // fill remainder of RAM
-            RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, 8388607);
+            RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, (unsigned long)VCWAMPLITUDE);
 
     //
     // finally write the ramp length
