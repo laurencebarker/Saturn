@@ -56,9 +56,8 @@
 #include "LDGATU.h"
 #include "frontpanelhandler.h"
 
-#define P2APPVERSION 27
-#define FIRMWARE_MIN_VERSION  8               // Minimum FPGA software version that this software requires
-#define FIRMWARE_MAX_VERSION 17               // Maximum FPGA software version that this software is tested on
+#define P2APPVERSION 29
+#define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
 // it won't work with an old version. This means p2app will always need to be updated if the formware is updated. 
@@ -403,6 +402,7 @@ int main(int argc, char *argv[])
   char BuildDate[]=GIT_DATE;
 	ESoftwareID ID;
 	unsigned int Version = 0;
+  unsigned int MajorVersion = 0;
   bool IncompatibleFirmware = false;                                // becomes set if firmware is not compatible with this version
 
   //
@@ -437,6 +437,8 @@ int main(int argc, char *argv[])
   SetSpkrMute(false);
 
   Version = GetFirmwareVersion(&ID);                                // TX scaling changed at FW V13
+  MajorVersion = GetFirmwareMajorVersion();
+
   if(Version < 13)
     SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR);
   else if (Version < 17)
@@ -446,14 +448,13 @@ int main(int argc, char *argv[])
   
 
 
-  if (Version < FIRMWARE_MIN_VERSION || Version > FIRMWARE_MAX_VERSION)
+  if (MajorVersion != FWREQUIREDMAJORVERSION)
   {
     printf("\n***************************************************************************\n");
     printf("***************************************************************************\n");
-    printf("Incompatible Saturn FPGA firmware v%d; this version of p2app needs %d ... %d\n",
-             Version,
-             FIRMWARE_MIN_VERSION,
-             FIRMWARE_MAX_VERSION);
+    printf("Incompatible Saturn FPGA firmware v%d; major version%d\n",
+             Version,  MajorVersion);
+    printf("This version of p2app requires major version = %d\n, FWREQUIREDMAJORVERSION");
     printf("You must update your copy of p2app to use that firmware version - see User manual\n");
     printf("p2app will refuse a connection request until this is resolved!\n");
     printf("\n\n\n***************************************************************************\n");
