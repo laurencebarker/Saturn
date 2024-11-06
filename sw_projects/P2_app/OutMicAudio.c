@@ -188,7 +188,10 @@ void *OutgoingMicSamples(void *arg)
 //                    printf("Codec Mic FIFO Underflowed, depth now = %d\n", Current);
             }
 
+            // DMA shared with wideband samples, so get semaphore granting access
+            sem_wait(&MicWBDMAMutex);                       // get protected access
             DMAReadFromFPGA(DMAReadfile_fd, MicBasePtr, VDMATRANSFERSIZE, VADDRMICSTREAMREAD);
+            sem_post(&MicWBDMAMutex);                       // get protected access
 
             // create the packet into UDPBuffer
             *(uint32_t*)UDPBuffer = htonl(SequenceCounter++);        // add sequence count

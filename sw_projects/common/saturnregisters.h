@@ -123,6 +123,14 @@ typedef enum
 #define VADDRXADCREG 0x18000                    // on-chip XADC (temp, VCC...)
 #define VADDRCWKEYERRAM 0x1C000                 // keyer RAM mapped here
 
+//
+// wideband data collection registers
+//
+#define VADDRWIDEBANDCONTROLREG 0xD000
+#define VADDRWIDEBANDPERIODREG 0xD004
+#define VADDRWIDEBANDDEPTHREG 0xD008
+#define VADDRWIDEBANDSTATUSREG 0xD00C
+
 #define VNUMDMAFIFO 4							// DMA streams available
 #define VADDRDDCSTREAMREAD 0x0L					// stream reader/writer on AXI-4 bus
 #define VADDRDUCSTREAMWRITE 0x0L				// stream reader/writer on AXI-4 bus
@@ -599,38 +607,38 @@ void SetXvtrEnable(bool Enabled);
 
 
 //
-// SetWidebandEnable(EADCSelect ADC, bool Enabled)
+// SetWidebandEnable(bool ADC0, bool ADC1, bool DataCollected)
 // enables wideband sample collection from an ADC.
+// enable bits for each ADC; and a bit to set the "data collected" flag
+// ALWAYS DO A WRITE to the control register;
 //
-void SetWidebandEnable(EADCSelect ADC, bool Enabled);
+void SetWidebandEnable(bool ADC0, bool ADC1, bool DataCollected);
 
 
 //
-// SetWidebandSampleCount(unsigned int Samples)
-// sets the wideband data collected count
+// SetWidebandSampleCount(uint32_t SampleWords)
+// sets the wideband data collected count, in 64 bit words
 //
 void SetWidebandSampleCount(unsigned int Samples);
 
 
 //
-// SetWidebandSampleSize(unsigned int Bits)
-// sets the sample size per packet used for wideband data transfers
-//
-void SetWidebandSampleSize(unsigned int Bits);
-
-
-//
 // SetWidebandUpdateRate(unsigned int Period_ms)
-// sets the period (ms) between collections of wideband data
+// sets the period (milliseconds) between collections of wideband data
 //
 void SetWidebandUpdateRate(unsigned int Period_ms);
 
 
+
 //
-// SetWidebandPacketsPerFrame(unsigned int Count)
-// sets the number of packets to be transferred per wideband data frame
+// uint32_t GetWidebandStatus(bool *ADC0Data, bool *ADC1Data)
+// returns the number of 64 bit words in the Wideband data FIFO
+// also returns as paramters the flags saying if there is readable data
+// from each ADC.
 //
-void SetWidebandPacketsPerFrame(unsigned int Count);
+uint32_t GetWidebandStatus(bool *ADC0Data, bool *ADC1Data);
+
+
 
 
 //

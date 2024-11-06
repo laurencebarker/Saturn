@@ -52,11 +52,12 @@
 #include "OutMicAudio.h"
 #include "OutDDCIQ.h"
 #include "OutHighPriority.h"
+#include "Outwideband.h"
 #include "cathandler.h"
 #include "LDGATU.h"
 #include "frontpanelhandler.h"
 
-#define P2APPVERSION 29
+#define P2APPVERSION 30
 #define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
@@ -65,6 +66,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V30: 31/10/2024:  initial prep for wideband record to be added
 // V29: 15/10/2024   DL1YCF CW ramp; CW amplitude corrected; added support to detect & check FPGA major version
 // V27: 4/8/2024:    merged G2V2 panel support code into main
 // V26: 17/7/2024:   initial support for G2V2 panel implemented. Polling CAT for LED states.
@@ -104,6 +106,7 @@ extern sem_t DDCInSelMutex;                 // protect access to shared DDC inpu
 extern sem_t DDCResetFIFOMutex;             // protect access to FIFO reset register
 extern sem_t RFGPIOMutex;                   // protect access to RF GPIO register
 extern sem_t CodecRegMutex;                 // protect writes to codec
+sem_t MicWBDMAMutex;                        // protect one DMA read channel shared by mic and WB read
 
 struct sockaddr_in reply_addr;              // destination address for outgoing data
 
@@ -175,6 +178,8 @@ pthread_t DUCIQThread;
 pthread_t DDCIQThread[VNUMDDC];               // array, but not sure how many
 pthread_t MicThread;
 pthread_t HighPriorityFromSDRThread;
+pthread_t WidebandDataThread;
+
 pthread_t CheckForExitThread;                 // thread looks for types "exit" command
 pthread_t CheckForNoActivityThread;           // thread looks for inactvity
 
@@ -352,6 +357,7 @@ void Shutdown()
   sem_destroy(&DDCResetFIFOMutex);
   sem_destroy(&RFGPIOMutex);
   sem_destroy(&CodecRegMutex);
+  sem_destroy(&DDCResetFIFOMutex);                        // for DMA
   SetMOX(false);
   SetTXEnable(false);
   EnableCW(false, false);
@@ -412,8 +418,8 @@ int main(int argc, char *argv[])
   sem_init(&DDCInSelMutex, 0, 1);                                   // for DDC input select register
   sem_init(&DDCResetFIFOMutex, 0, 1);                               // for FIFO reset register
   sem_init(&RFGPIOMutex, 0, 1);                                     // for RF GPIO register
-  sem_init(&CodecRegMutex, 0, 1);                                   // for codec writes
-
+  sem_init(&DDCResetFIFOMutex, 0, 1);                               // for DMA
+  
 //
 // setup Saturn hardware
 //
@@ -676,9 +682,6 @@ int main(int argc, char *argv[])
   pthread_detach(MicThread);
 
 
-
-
-
 //
 // create outgoing high priority data thread
 // note this shares a port with incoming DDC specific, so don't create a new port
@@ -714,6 +717,26 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
   pthread_detach(DDCIQThread[0]);
+
+//
+// create outgoing wideband data thread which services bothe wideband0 and wideband1
+// both sockets already exist so copy socket settings from existing sockets:
+// wideband0 shares port 1027 with incoming high priority data
+// wideband1 shares port 1028 with incoming DDC audio
+//
+  SocketData[VPORTWIDEBAND0].Socketid = SocketData[VPORTHIGHPRIORITYTOSDR].Socketid;
+  SocketData[VPORTWIDEBAND1].Socketid = SocketData[VPORTSPKRAUDIO].Socketid;
+  memcpy(&SocketData[VPORTWIDEBAND0].addr_cmddata, &SocketData[VPORTHIGHPRIORITYTOSDR].addr_cmddata, sizeof(struct sockaddr_in));
+  memcpy(&SocketData[VPORTWIDEBAND1].addr_cmddata, &SocketData[VPORTSPKRAUDIO].addr_cmddata, sizeof(struct sockaddr_in));
+  if(pthread_create(&WidebandDataThread, NULL, OutgoingWidebandSamples, (void*)&SocketData[VPORTWIDEBAND0]) < 0)
+  {
+    perror("pthread_create outgoing wideband data");
+    return EXIT_FAILURE;
+  }
+  pthread_detach(WidebandDataThread);
+
+
+
 
 
   //
