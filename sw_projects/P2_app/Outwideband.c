@@ -74,7 +74,7 @@ uint8_t* WBUDPBuffer[VNUMDDC];                                // DDC frame buffe
 //
 // create dynamically allocated memory at startup
 //
-bool CreatewbDynamicMemory(void)                              // return true if error
+bool CreateWBDynamicMemory(void)                              // return true if error
 {
     uint32_t ADC;
     bool Result = false;
@@ -101,7 +101,7 @@ bool CreatewbDynamicMemory(void)                              // return true if 
 }
 
 
-void FreewbDynamicMemory(void)
+void FreeWBDynamicMemory(void)
 {
     uint32_t ADC;
 
@@ -127,7 +127,6 @@ void SetWidebandParams(uint8_t Enables, uint16_t SampleCount, uint8_t SampleSize
 //  SetWidebandEnable(eADC2, (bool)(Enables&2));
   SetWidebandSampleCount(SampleCount);
   SetWidebandUpdateRate(Rate);
-
 }
 
 
@@ -137,11 +136,113 @@ void SetWidebandParams(uint8_t Enables, uint16_t SampleCount, uint8_t SampleSize
 // thread initiated after a "Start" command
 // will be instructed to stop & exit by main loop setting enable_thread to 0
 // this code signals thread terminated by setting active_thread = 0
+// substantially similar to outgoing DDC thread
 //
 void *OutgoingWidebandSamples(void *arg)
 {
-    while(1)
-    {
+//
+// memory buffers
+//
+    uint32_t WBDMATransferSize;
+    bool InitError = false;                                     // becomes true if we get an initialisation error
+    
+    uint32_t Depth = 0;
+    
+    uint32_t RegisterValue;
+    bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;
+    int ADC;                                                    // iterator
 
+    struct ThreadSocketData *ThreadData;                        // socket etc data for each thread.
+                                                                // points to 1st one
+//
+// variables for outgoing UDP frame
+//
+    struct sockaddr_in DestAddr[VNUMWBADC];                     // destination address for outgoing data
+    struct iovec iovecinst[VNUMWBADC];                          // instance of iovec
+    struct msghdr datagram[VNUMWBADC];
+    uint32_t SequenceCounter[VNUMWBADC];                        // UDP sequence count
+    
+    unsigned int StartupCount;
+
+//
+// initialise. Create memory buffers and open DMA file devices
+//
+    InitError = CreateWBDynamicMemory();
+    //
+    // note we re-use the DMA device for MIC samples
+    //
+
+    ThreadData = (struct ThreadSocketData*)arg;
+    printf("spinning up outgoing Wideband sample thread with port %d\n", ThreadData->Portid);
+
+    //
+    // set up per-ADC data structures
+    //
+    for (ADC = 0; ADC < VNUMWBADC; ADC++)
+    {
+        SequenceCounter[ADC] = 0;                           // clear UDP packet counter
+        (ThreadData + ADC)->Active = true;                  // set outgoing socket active
     }
+
+
+
+//
+// now initialise Saturn wideband hardware.
+// turn off wideband capture, and clear FIFO
+// then read depth
+//
+
+
+//
+// thread loop. runs continuously until commanded by main loop to exit
+// while there is wideband data, make outgoing packets;
+//
+    while(!InitError)
+    {
+        while(!SDRActive)
+        {
+            for (ADC=0; ADC < VNUMWBADC; ADC++)
+                if((ThreadData+ADC) -> Cmdid & VBITCHANGEPORT)
+                {
+                    close((ThreadData+ADC) -> Socketid);                      // close old socket, open new one
+                    MakeSocket((ThreadData + ADC), 0);                        // this binds to the new port.
+                    (ThreadData + ADC) -> Cmdid &= ~VBITCHANGEPORT;           // clear command bit
+                }
+            usleep(100);
+        }
+        printf("starting outgoing Wideband data\n");
+        StartupCount = VSTARTUPDELAY;
+        //
+        // initialise outgoing WB packets - 1 per ADC
+        //
+        for (ADC = 0; ADC < VNUMWBADC; ADC++)
+        {
+            SequenceCounter[ADC] = 0;
+            memcpy(&DestAddr[ADC], &reply_addr, sizeof(struct sockaddr_in));           // local copy of PC destination address (reply_addr is global)
+            memset(&iovecinst[ADC], 0, sizeof(struct iovec));
+            memset(&datagram[ADC], 0, sizeof(struct msghdr));
+            iovecinst[ADC].iov_base = WBUDPBuffer[ADC];
+            iovecinst[ADC].iov_len = VWBPACKETSIZE;
+            datagram[ADC].msg_iov = &iovecinst[ADC];
+            datagram[ADC].msg_iovlen = 1;
+            datagram[ADC].msg_name = &DestAddr[ADC];                   // MAC addr & port to send to
+            datagram[ADC].msg_namelen = sizeof(DestAddr);
+        }
+      //
+      // enable Saturn WB IP to transfer data
+      //
+        printf("outDDCIQ: enable data transfer\n");
+        while(!InitError && SDRActive)
+        {
+        }     // end of while(!InitError&& SDRActive) loop
+    } //end of while(!InitError)
+
+//
+// tidy shutdown of the thread
+//
+    printf("shutting down Wideband outgoing thread\n");
+    close(ThreadData->Socketid); 
+    ThreadData->Active = false;                   // signal closed
+    FreeWBDynamicMemory();
+    return NULL;
 }
