@@ -13,17 +13,12 @@
 //////////////////////////////////////////////////////////////
 
 
-#include <stdlib.h>                     // for function min()
-#include <math.h>
 #include "../common/saturndrivers.h"
-#include "../common/saturnregisters.h"
 #include "../common/hwaccess.h"                   // low level access
-#include <semaphore.h>
+#include <pthread.h>
+#include <string.h>
 
-sem_t DDCResetFIFOMutex;
-
-bool GFIFOSizesInitialised = false;
-
+pthread_mutex_t DDCResetFIFOMutex;
 
 
 //
@@ -36,26 +31,10 @@ bool GFIFOSizesInitialised = false;
 //
 void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt)
 {
-	uint32_t Address;							// register address
-	uint32_t Data;								// register content
-
-	if (!GFIFOSizesInitialised)
-	{
-			InitialiseFIFOSizes();				// load FIFO size table, if not already done
-			GFIFOSizesInitialised = true;
-	}
-	Address = VADDRFIFOMONBASE + 4 * Channel + 0x10;			// config register address
-	Data = DMAFIFODepths[(int)Channel];							// memory depth
-	if (EnableInterrupt)
-		Data += 0x80000000;						// bit 31
-	RegisterWrite(Address, Data);
+  WriteFIFOConfigRegister(&Channel, EnableInterrupt);
 }
 
 
-
-//
-// uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed, bool* OverThreshold, bool* Underflowed,  unsigned int* Current);
-//
 // Read number of locations in a FIFO
 // for a read FIFO: returns the number of occupied locations available to read
 // for a write FIFO: returns the number of free locations available to write
@@ -65,34 +44,25 @@ void SetupFIFOMonitorChannel(EDMAStreamSelect Channel, bool EnableInterrupt)
 //   Underflowed:       true if underflow has occurred. Cleared by read.
 //   Current:           number of locations occupied (in either FIFO type)
 //
-uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed, bool* OverThreshold, bool* Underflowed,  unsigned int* Current)
+uint32_t ReadFIFOMonitorChannel(EDMAStreamSelect Channel, bool* Overflowed, bool* OverThreshold, bool* Underflowed, uint16_t* Current)
 {
-	uint32_t Address;							// register address
-	uint32_t Data = 0;							// register content
-	bool Overflow = false;
-	bool OverThresh = false;
-	bool Underflow = false;
+  uint32_t fifoDepth;
+  uint32_t status = ReadChannelStatusAndUpdateFIFODepth(Channel, &fifoDepth);
 
-	Address = VADDRFIFOMONBASE + 4 * (uint32_t)Channel;			// status register address
-	Data = RegisterRead(Address);
-	if (Data & 0x80000000)										// if top bit set, declare overflow
-		Overflow = true;
-	if (Data & 0x40000000)										// if bit 30 set, declare over threshold
-		OverThresh = true;
-	if (Data & 0x20000000)										// if bit 29 set, declare underflow
-		Underflow = true;
-	Data = Data & 0xFFFF;										// strip to 16 bits
-	*Current = Data;
-	*Overflowed = Overflow;										// send out overflow result
-	*OverThreshold = OverThresh;								// send out over threshold result
-	*Underflowed = Underflow;									// send out underflow result
-	if ((Channel == eTXDUCDMA) || (Channel == eSpkCodecDMA))	// if a write channel
-		Data = DMAFIFODepths[Channel] - Data;					// calculate free locations
-	return Data;												// return 16 bit FIFO count
+  *Overflowed = (status >> 31) & 1;
+  *OverThreshold = (status >> 30) & 1;
+  *Underflowed = (status >> 29) & 1;
+
+  uint16_t count = status & 0xFFFF; // strip to 16 bits
+
+  // Use memcpy for safe, aligned write
+  memcpy(Current, &count, sizeof(uint16_t));
+
+  if (Channel == eTXDUCDMA || Channel == eSpkCodecDMA) {
+    return fifoDepth - count;  // Free locations for write channels
+  }
+  return count;  // Occupied locations for read channels (16 bit FIFO count)
 }
-
-
-
 
 
 //
@@ -122,13 +92,13 @@ void ResetDMAStreamFIFO(EDMAStreamSelect DDCNum)
 			break;
 	}
 
-	sem_wait(&DDCResetFIFOMutex);                       // get protected access
+  pthread_mutex_lock(&DDCResetFIFOMutex);             // get protected access
 	Data = RegisterRead(VADDRFIFORESET);				// read current content
 	Data = Data & ~DataBit;
 	RegisterWrite(VADDRFIFORESET, Data);				// set reset bit to zero
 	Data = Data | DataBit;
 	RegisterWrite(VADDRFIFORESET, Data);				// set reset bit to 1
-	sem_post(&DDCResetFIFOMutex);                       // release protected access
+	pthread_mutex_unlock(&DDCResetFIFOMutex);           // release protected access
 }
 
 
@@ -151,9 +121,9 @@ void SetTXAmplitudeEER(bool EEREnabled)
 // a value of "7" indicates an interleaved DDC
 // and the rate value is stored for *next* DDC
 //
-const uint32_t DDCSampleCounts[] =
+static const uint32_t DDCSampleCounts[] =
 {
-	0,						// set to zero so no samples transferred
+	0,					// set to zero so no samples transferred
 	1,
 	2,
 	4,
@@ -163,6 +133,7 @@ const uint32_t DDCSampleCounts[] =
 	0						// when set to 7, use next value & double it
 };
 
+
 //
 // uint32_t AnalyseDDCHeader(unit32_t Header, unit32_t** DDCCounts)
 // parameters are the header read from the DDC stream, and
@@ -170,32 +141,32 @@ const uint32_t DDCSampleCounts[] =
 // the array of ints is populated with the number of samples to read for each DDC
 // returns the number of words per frame, which helps set the DMA transfer size
 //
-uint32_t AnalyseDDCHeader(uint32_t Header, uint32_t* DDCCounts)
-{
-	uint32_t DDC;								// DDC counter
-	uint32_t Rate;								// 3 bit value for this DDC
-	uint32_t Count;
-	uint32_t Total = 0;
-	for (DDC = 0; DDC < VNUMDDC; DDC++)
-	{
-		Rate = Header & 7;						// get settings for this DDC
-		if (Rate != 7)
-		{
-			Count = DDCSampleCounts[Rate];
-			DDCCounts[DDC] = Count;
-			Total += Count;						// add up samples
-		}
-		else									// interleaved
-		{
-			Header = Header >> 3;
-			Rate = Header & 7;					// next 3 bits
-			Count = 2*DDCSampleCounts[Rate];
-			DDCCounts[DDC] = Count;
-			Total += Count;
-			DDCCounts[DDC + 1] = 0;
-			DDC += 1;
-		}
-		Header = Header >> 3;					// ready for next DDC rate
-	}
-	return Total;
+inline uint32_t AnalyseDDCHeader(uint32_t header, uint32_t* restrict ddc_counts) {
+  uint32_t total = 0;
+
+  for (int ddc = 0; ddc < VNUMDDC; ddc++) {
+    uint32_t rate = header & 0x7;
+    uint32_t count;
+
+    if (rate != 7) {
+      count = DDCSampleCounts[rate];
+      ddc_counts[ddc] = count;
+    } else {
+      // interleaved
+      header >>= 3;
+      rate = header & 0x7;
+      count = 2 * DDCSampleCounts[rate];
+      ddc_counts[ddc] = count;
+
+      if (ddc + 1 < VNUMDDC) { // this prevents a bug from triggering - don't access beyond length of array VNUMDDC
+        ddc_counts[ddc + 1] = 0;
+        ddc++;
+      }
+    }
+
+    total += count;
+    header >>= 3;
+  }
+
+  return total;
 }

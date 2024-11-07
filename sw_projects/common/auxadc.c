@@ -15,30 +15,17 @@
 
 #define _DEFAULT_SOURCE
 #define _XOPEN_SOURCE 500
-#include <assert.h>
-#include <fcntl.h>
-#include <getopt.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <errno.h>
 
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
-#include "../common/saturntypes.h"
 #include "../common/auxadc.h"
-#include "../common/saturnregisters.h"
 #include "../common/hwaccess.h"
 
 
 
-#define VADDRXADCTEMPREG 0x18200              // die temperature register
 
 
+
+float GetDieTemperatureCelcius();
 
 //
 // prints temperature information
@@ -46,15 +33,9 @@
 //
 void PrintAuxADCInfo(void)
 {
-    uint32_t RegisterValue;
-    float Temp;
+  float Temp = GetDieTemperatureCelcius();
 
-    RegisterValue = RegisterRead(VADDRXADCTEMPREG);
-    Temp = (float)RegisterValue * 503.975;
-    Temp = Temp / 65536.0;
-    Temp -= 273.15;
-
-    printf("Die Temp = %4.1fC\n", Temp);
+  printf("Die Temp = %4.1f°C\n", Temp);
 }
 
 

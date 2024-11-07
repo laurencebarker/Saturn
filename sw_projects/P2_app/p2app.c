@@ -25,6 +25,8 @@
 #include <fcntl.h>
 #include <math.h>
 #include <pthread.h>
+#include <poll.h>
+#include <stdatomic.h>
 #include <termios.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
@@ -32,13 +34,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net/if.h>
-#include <semaphore.h>
 #include <signal.h>
 
 #include "../common/saturntypes.h"
 #include "../common/hwaccess.h"                     // access to PCIe read & write
 #include "../common/saturnregisters.h"              // register I/O for Saturn
-#include "../common/codecwrite.h"                   // codec register I/O for Saturn
 #include "../common/version.h"                      // version I/O for Saturn
 #include "../common/auxadc.h"                       // version I/O for Saturn
 
@@ -100,24 +100,24 @@
 
 
 
-extern sem_t DDCInSelMutex;                 // protect access to shared DDC input select register
-extern sem_t DDCResetFIFOMutex;             // protect access to FIFO reset register
-extern sem_t RFGPIOMutex;                   // protect access to RF GPIO register
-extern sem_t CodecRegMutex;                 // protect writes to codec
+extern pthread_mutex_t DDCInSelMutex;                 // protect access to shared DDC input select register
+extern pthread_mutex_t DDCResetFIFOMutex;             // protect access to FIFO reset register
+extern pthread_mutex_t RFGPIOMutex;                   // protect access to RF GPIO register
+extern pthread_mutex_t CodecRegMutex;                 // protect writes to codec
 
 struct sockaddr_in reply_addr;              // destination address for outgoing data
 
-bool IsTXMode;                              // true if in TX
-bool SDRActive;                             // true if this SDR is running at the moment
-bool ReplyAddressSet = false;               // true when reply address has been set
-bool StartBitReceived = false;              // true when "run" bit has been set
-bool NewMessageReceived = false;            // set whenever a message is received
-bool ExitRequested = false;                 // true if "exit checking" thread requests shutdown
-bool SkipExitCheck = false;                 // true to skip "exit checking", if running as a service
-bool ThreadError = false;                   // true if a thread reports an error
-bool UseDebug = false;                      // true if to enable debugging
-bool UseControlPanel = false;               // true if to use a control panel
-bool UseLDGATU = false;                     // true if to use an LDG ATU via CAT
+atomic_bool IsTXMode = false;                              // true if in TX
+atomic_bool SDRActive = false;                             // true if this SDR is running at the moment
+atomic_bool ReplyAddressSet = false;               // true when reply address has been set
+atomic_bool StartBitReceived = false;              // true when "run" bit has been set
+atomic_bool NewMessageReceived = false;            // set whenever a message is received
+atomic_bool ExitRequested = false;                        // true if "exit checking" thread requests shutdown
+bool SkipExitCheck = false;                        // true to skip "exit checking", if running as a service
+atomic_bool ThreadError = false;                   // true if a thread reports an error
+atomic_bool UseDebug = false;                      // true if to enable debugging
+bool UseControlPanel = false;                      // true if to use a control panel
+bool UseLDGATU = false;                            // true if to use an LDG ATU via CAT
 
 
 #define SDRBOARDID 1                        // Hermes
@@ -293,19 +293,29 @@ int MakeSocket(struct ThreadSocketData* Ptr, int DDCid)
 //
 void* CheckForExitCommand(void *arg)
 {
+  struct pollfd fds[1];
+  int ret;
   char ch;
-  printf("spinning up Check For Exit thread\n");
-  
-  while (1)
+
+  fds[0].fd = STDIN_FILENO;
+  fds[0].events = POLLIN;
+
+  while (!ExitRequested)
   {
-    usleep(10000);
-    ch = getchar();
-    if((ch == 'x') || (ch == 'X'))
+    ret = poll(fds, 1, 100);  // Wait for up to 100ms
+
+    if (ret > 0 && (fds[0].revents & POLLIN))
     {
-      ExitRequested = true;
-      break;
+      read(STDIN_FILENO, &ch, 1);
+      if (ch == 'x' || ch == 'X')
+      {
+        ExitRequested = true;
+        break;
+      }
     }
   }
+
+  return NULL;
 }
 
 
@@ -344,14 +354,15 @@ void* CheckForActivity(void *arg)
 void Shutdown()
 {
   ShutdownCATHandler();                                   // close CAT connection socket
-    if(UseControlPanel)
-    ShutdownFrontPanelHandler();
+    if(UseControlPanel) {
+      ShutdownFrontPanelHandler();
+    }
 
   close(SocketData[0].Socketid);                          // close incoming data socket
-  sem_destroy(&DDCInSelMutex);
-  sem_destroy(&DDCResetFIFOMutex);
-  sem_destroy(&RFGPIOMutex);
-  sem_destroy(&CodecRegMutex);
+  pthread_mutex_destroy(&DDCInSelMutex);
+  pthread_mutex_destroy(&DDCResetFIFOMutex);
+  pthread_mutex_destroy(&RFGPIOMutex);
+  pthread_mutex_destroy(&CodecRegMutex);
   SetMOX(false);
   SetTXEnable(false);
   EnableCW(false, false);
@@ -401,17 +412,9 @@ int main(int argc, char *argv[])
   uint32_t TestFrequency;                                           // test source DDS freq
   int CmdOption;                                                    // command line option
   char BuildDate[]=GIT_DATE;
-	ESoftwareID ID;
+  ESoftwareID ID;
 	unsigned int Version = 0;
   bool IncompatibleFirmware = false;                                // becomes set if firmware is not compatible with this version
-
-  //
-  // initialise register access semaphores
-  //
-  sem_init(&DDCInSelMutex, 0, 1);                                   // for DDC input select register
-  sem_init(&DDCResetFIFOMutex, 0, 1);                               // for FIFO reset register
-  sem_init(&RFGPIOMutex, 0, 1);                                     // for RF GPIO register
-  sem_init(&CodecRegMutex, 0, 1);                                   // for codec writes
 
 //
 // setup Saturn hardware
@@ -426,17 +429,19 @@ int main(int argc, char *argv[])
       printf("FPGA load is a fallback - you should re-flash the primary FPGA image!\n");
 
   CodecInitialise();
+  InitialiseFIFOSizes();                                            // Call in main thread before creating other threads
   InitialiseDACAttenROMs();
 //  InitialiseCWKeyerRamp(true, 5000);                                // create initial default 5 ms ramp, P2
   InitialiseCWKeyerRamp(true, 9000);                                // create initial default 9ms DL1YCF amp, P2
   SetCWSidetoneEnabled(true);
-  SetTXProtocol(true);                                              // set to protocol 2
-  SetTXModulationSource(eIQData);                                   // disable debug options
-  HandlerSetEERMode(false);                                         // no EER
-  SetByteSwapping(true);                                            // h/w to generate network byte order
+  SetTXProtocol(true);                                      // set to protocol 2
+  SetTXModulationSource(eIQData);                            // disable debug options
+  HandlerSetEERMode(false);                              // no EER
+  SetByteSwapping(true);                                 // h/w to generate network byte order
   SetSpkrMute(false);
 
-  Version = GetFirmwareVersion(&ID);                                // TX scaling changed at FW V13
+  Version = GetFirmwareVersion(&ID); // TX scaling changed at FW V13
+
   if(Version < 13)
     SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR);
   else if (Version < 17)

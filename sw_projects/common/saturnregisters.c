@@ -16,19 +16,24 @@
 
 #include "../common/saturnregisters.h"
 #include "../common/hwaccess.h"                   // low level access
-#include "../common/codecwrite.h"
-#include <stdlib.h>                     // for function min()
+#include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
-#include <semaphore.h>
 #include "version.h"
 #include <stdio.h>
+#include <pthread.h>
+#include <string.h>
 
 //
-// semaphores to protect registers that are accessed from several threads
+// mutexes to protect registers that are accessed from several threads
 //
-sem_t DDCInSelMutex;
-sem_t RFGPIOMutex;
+pthread_mutex_t DDCInSelMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t RFGPIOMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t CodecRegMutex = PTHREAD_MUTEX_INITIALIZER;
+
+// DefaultRegMutex is a less granular mutex, used for all mutations of registers
+// not protected by the above register-specific mutexes
+pthread_mutex_t DefaultRegMutex = PTHREAD_MUTEX_INITIALIZER;
 
 
 //
@@ -47,92 +52,92 @@ unsigned int DACStepAttenROM[256];                  // provides most atten setti
 uint32_t DDCDeltaPhase[VNUMDDC];                    // DDC frequency settings
 uint32_t DUCDeltaPhase;                             // DUC frequency setting
 uint32_t TestSourceDeltaPhase;                      // test source DDS delta phase
-uint32_t GStatusRegister;                           // most recent status register setting
+atomic_uint GStatusRegister;                        // most recent status register setting
 uint32_t GPIORegValue;                              // value stored into GPIO
 uint32_t TXConfigRegValue;                          // value written into TX config register
 uint32_t DDCInSelReg;                               // value written into DDC config register
 uint32_t DDCRateReg;                                // value written into DDC rate register
-bool GADCOverride;                                  // true if ADCs are to be overridden & use test source instead
-bool GByteSwapEnabled;                              // true if byte swapping enabled for sample readout 
-bool GPTTEnabled;                                   // true if PTT is enabled
-bool MOXAsserted;                                   // true if MOX as asserted
-bool GPureSignalEnabled;                            // true if PureSignal is enabled
+atomic_bool GADCOverride;                           // true if ADCs are to be overridden & use test source instead
+atomic_bool GByteSwapEnabled;                       // true if byte swapping enabled for sample readout
+atomic_bool GPTTEnabled;                            // true if PTT is enabled
+atomic_bool MOXAsserted;                            // true if MOX as asserted
+atomic_bool GPureSignalEnabled;                     // true if PureSignal is enabled
 ESampleRate P1SampleRate;                           // rate for all DDC
-uint32_t P2SampleRates[VNUMDDC];                    // numerical sample rates for each DDC
-uint32_t GDDCEnabled;                               // 1 bit per DDC
-bool GClassESetting;                                // NOT CURRENTLY USED - true if class E operation
-bool GIsApollo;                                     // NOT CURRENTLY USED - true if Apollo filter selected
-bool GEnableApolloFilter;                           // Apollo filter bit - NOT USED
-bool GEnableApolloATU;                              // Apollo ATU bit - NOT USED
-bool GStartApolloAutoTune;                          // Start Apollo tune bit - NOT USED
-bool GPPSEnabled;                                   // NOT CURRENTLY USED - trie if PPS generation enabled
-uint32_t GTXDACCtrl;                                // TX DAC current setting & atten
-uint32_t GRXADCCtrl;                                // RX1 & 2 attenuations
-bool GAlexRXOut;                                    // P1 RX output bit (NOT USED)
-uint32_t GAlexTXFiltRegister;                       // 16 bit used of 32 
-uint32_t GAlexTXAntRegister;                        // 16 bit used of 32 
-uint32_t GAlexRXRegister;                           // 32 bit RX register 
-bool GRX2GroundDuringTX;                            // true if RX2 grounded while in TX
-uint32_t GAlexCoarseAttenuatorBits;                 // Alex coarse atten NOT USED  
-bool GAlexManualFilterSelect;                       // true if manual (remote CPU) filter setting
-bool GEnableAlexTXRXRelay;                          // true if TX allowed
-bool GCWKeysReversed;                               // true if keys reversed. Not yet used but will be
-unsigned int GCWKeyerSpeed;                         // Keyer speed in WPM. Not yet used
-unsigned int GCWKeyerMode;                          // Keyer Mode. True if mode B. Not yet used
-unsigned int GCWKeyerWeight;                        // Keyer Weight. Not yet used
-bool GCWKeyerSpacing;                               // Keyer spacing
-bool GCWIambicKeyerEnabled;                         // true if iambic keyer is enabled
-uint32_t GIambicConfigReg;                          // copy of iambic comfig register
-uint32_t GCWKeyerSetup;                             // keyer control register
-uint32_t GClassEPWMMin;                             // min class E PWM. NOT USED at present.
-uint32_t GClassEPWMMax;                             // max class E PWM. NOT USED at present.
-uint32_t GCodecConfigReg;                           // codec configuration
-bool GSidetoneEnabled;                              // true if sidetone is enabled
-unsigned int GSidetoneVolume;                       // assigned sidetone volume (8 bit signed)
-bool GWidebandADC1;                                 // true if wideband on ADC1. For P2 - not used yet.
-bool GWidebandADC2;                                 // true if wideband on ADC2. For P2 - not used yet.
-unsigned int GWidebandSampleCount;                  // P2 - not used yet
-unsigned int GWidebandSamplesPerPacket;             // P2 - not used yet
-unsigned int GWidebandUpdateRate;                   // update rate in ms. P2 - not used yet. 
-unsigned int GWidebandPacketsPerFrame;              // P2 - not used yet
-unsigned int GAlexEnabledBits;                      // P2. True if Alex1-8 enabled. NOT USED YET.
-bool GPAEnabled;                                    // P2. True if PA enabled. NOT USED YET.
-unsigned int GTXDACCount;                           // P2. #TX DACs. NOT USED YET.
+atomic_uint P2SampleRates[VNUMDDC];                 // numerical sample rates for each DDC
+atomic_uint GDDCEnabled;                            // 1 bit per DDC
+atomic_bool GClassESetting;                         // NOT CURRENTLY USED - true if class E operation
+atomic_bool GIsApollo;                              // NOT CURRENTLY USED - true if Apollo filter selected
+atomic_bool GEnableApolloFilter;                    // Apollo filter bit - NOT USED
+atomic_bool GEnableApolloATU;                       // Apollo ATU bit - NOT USED
+atomic_bool GStartApolloAutoTune;                   // Start Apollo tune bit - NOT USED
+atomic_bool GPPSEnabled;                            // NOT CURRENTLY USED - trie if PPS generation enabled
+atomic_uint GTXDACCtrl;                             // TX DAC current setting & atten
+atomic_uint GRXADCCtrl;                             // RX1 & 2 attenuations
+atomic_bool GAlexRXOut;                             // P1 RX output bit (NOT USED)
+atomic_uint GAlexTXFiltRegister;                    // 16 bit used of 32
+atomic_uint GAlexTXAntRegister;                     // 16 bit used of 32
+atomic_uint GAlexRXRegister;                        // 32 bit RX register
+atomic_bool GRX2GroundDuringTX;                     // true if RX2 grounded while in TX
+atomic_uint GAlexCoarseAttenuatorBits;              // Alex coarse atten NOT USED
+atomic_bool GAlexManualFilterSelect;                // true if manual (remote CPU) filter setting
+atomic_bool GEnableAlexTXRXRelay;                   // true if TX allowed
+atomic_bool GCWKeysReversed;                        // true if keys reversed. Not yet used but will be
+atomic_uint GCWKeyerSpeed;                          // Keyer speed in WPM. Not yet used
+atomic_uint GCWKeyerMode;                           // Keyer Mode. True if mode B. Not yet used
+atomic_uint GCWKeyerWeight;                         // Keyer Weight. Not yet used
+atomic_bool GCWKeyerSpacing;                        // Keyer spacing
+atomic_bool GCWIambicKeyerEnabled;                  // true if iambic keyer is enabled
+atomic_uint GIambicConfigReg;                       // copy of iambic comfig register
+atomic_uint GCWKeyerSetup;                          // keyer control register
+atomic_uint GClassEPWMMin;                          // min class E PWM. NOT USED at present.
+atomic_uint GClassEPWMMax;                          // max class E PWM. NOT USED at present.
+atomic_uint GCodecConfigReg;                        // codec configuration
+atomic_bool GSidetoneEnabled;                       // true if sidetone is enabled
+atomic_uint GSidetoneVolume;                        // assigned sidetone volume (8 bit signed)
+atomic_bool GWidebandADC1;                          // true if wideband on ADC1. For P2 - not used yet.
+atomic_bool GWidebandADC2;                          // true if wideband on ADC2. For P2 - not used yet.
+atomic_uint GWidebandSampleCount;                   // P2 - not used yet
+atomic_uint GWidebandSamplesPerPacket;              // P2 - not used yet
+atomic_uint GWidebandUpdateRate;                    // update rate in ms. P2 - not used yet.
+atomic_uint GWidebandPacketsPerFrame;               // P2 - not used yet
+atomic_uint GAlexEnabledBits;                       // P2. True if Alex1-8 enabled. NOT USED YET.
+atomic_bool GPAEnabled;                             // P2. True if PA enabled. NOT USED YET.
+atomic_uint GTXDACCount;                            // P2. #TX DACs. NOT USED YET.
 ESampleRate GDUCSampleRate;                         // P2. TX sample rate. NOT USED YET.
-unsigned int GDUCSampleSize;                        // P2. DUC # sample bits. NOT USED YET
-unsigned int GDUCPhaseShift;                        // P2. DUC phase shift. NOT USED YET.
-bool GSpeakerMuted;                                 // P2. True if speaker muted.
-bool GCWXMode;                                      // True if in computer generated CWX mode
-bool GCWXDot;                                       // True if computer generated CW Dot.
-bool GCWXDash;                                      // True if computer generated CW Dash.
-bool GDashPressed;                                  // P2. True if dash input pressed.
-bool GDotPressed;                                   // P2. true if dot input pressed.
-bool GCWEnabled;                                    // true if CW mode
-bool GBreakinEnabled;                               // true if break-in is enabled
-unsigned int GUserOutputBits;                       // P2. Not yet implermented.
-unsigned int GTXAmplScaleFactor;                    // values multipled into TX output after DUC
-bool GTXAlwaysEnabled;                              // true if TX samples always enabled (for test)
-bool GTXIQInterleaved;                              // true if IQ is interleaved, for EER mode
-bool GTXDUCMuxActive;                               // true if I/Q mux is enabled to transfer data
-bool GEEREnabled;                                   // P2. true if EER is enabled
+atomic_uint GDUCSampleSize;                         // P2. DUC # sample bits. NOT USED YET
+atomic_uint GDUCPhaseShift;                         // P2. DUC phase shift. NOT USED YET.
+atomic_bool GSpeakerMuted;                          // P2. True if speaker muted.
+atomic_bool GCWXMode;                               // True if in computer generated CWX mode
+atomic_bool GCWXDot;                                // True if computer generated CW Dot.
+atomic_bool GCWXDash;                               // True if computer generated CW Dash.
+atomic_bool GDashPressed;                           // P2. True if dash input pressed.
+atomic_bool GDotPressed;                            // P2. true if dot input pressed.
+atomic_bool GCWEnabled;                             // true if CW mode
+atomic_bool GBreakinEnabled;                        // true if break-in is enabled
+atomic_uint GUserOutputBits;                        // P2. Not yet implermented.
+atomic_uint GTXAmplScaleFactor;                     // values multipled into TX output after DUC
+atomic_bool GTXAlwaysEnabled;                       // true if TX samples always enabled (for test)
+atomic_bool GTXIQInterleaved;                       // true if IQ is interleaved, for EER mode
+atomic_bool GTXDUCMuxActive;                        // true if I/Q mux is enabled to transfer data
+atomic_bool GEEREnabled;                            // P2. true if EER is enabled
 ETXModulationSource GTXModulationSource;            // values added to register
-bool GTXProtocolP2;                                 // true if P2
+atomic_bool GTXProtocolP2;                          // true if P2
 uint32_t TXModulationTestReg;                       // modulation test DDS
-bool GEnableTimeStamping;                           // true if timestamps to be added to data. NOT IMPLEMENTED YET
-bool GEnableVITA49;                                 // true if to enable VITA49 formatting. NOT SUPPORTED YET
-unsigned int GCWKeyerRampms = 0;                    // ramp length for keyer, in ms
-bool GCWKeyerRamp_IsP2 = false;                     // true if ramp initialised for protocol 2
+atomic_bool GEnableTimeStamping;                    // true if timestamps to be added to data. NOT IMPLEMENTED YET
+atomic_bool GEnableVITA49;                          // true if to enable VITA49 formatting. NOT SUPPORTED YET
+atomic_uint GCWKeyerRampms = 0;                     // ramp length for keyer, in ms
+atomic_bool GCWKeyerRamp_IsP2 = false;              // true if ramp initialised for protocol 2
 
 unsigned int DACCurrentROM[256];                    // used for residual attenuation
 unsigned int DACStepAttenROM[256];                  // provides most atten setting
-unsigned int GNumADCs;                              // count of ADCs available
+atomic_uint GNumADCs;                               // count of ADCs available
 
 
 //
 // local copies of Codec registers
 //
-unsigned int GCodecLineGain;                        // value written in Codec left line in gain register
-unsigned int GCodecAnaloguePath;                    // value written in Codec analogue path register
+atomic_uint GCodecLineGain;                        // value written in Codec left line in gain register
+atomic_uint GCodecAnaloguePath;                    // value written in Codec analogue path register
 
 
 //
@@ -160,23 +165,11 @@ unsigned int GCodecAnaloguePath;                    // value written in Codec an
 #define VCODECACTIVATIONREG 9                       // digital interface activation register
 #define VCODECRESETREG 15                           // reset register
 
-
-
-
-
-
 //
-// DMA FIFO depths
-// this is the number of 64 bit FIFO locations
-// this is now version dependent, and updated by InitialiseFIFOSizes()
+// DMA FIFO depths - the number of 64 bit FIFO locations
+// Version-dependent & set by InitialiseFIFOSizes()
 //
-uint32_t DMAFIFODepths[VNUMDMAFIFO] =
-{
-  8192,             //  eRXDDCDMA,		selects RX
-  1024,             //  eTXDUCDMA,		selects TX
-  256,              //  eMicCodecDMA,	selects mic samples
-  256               //  eSpkCodecDMA	selects speaker samples
-};
+uint32_t DMAFIFODepths[VNUMDMAFIFO] = {0};
 
 
 //
@@ -195,9 +188,6 @@ uint32_t DDCRegisters[VNUMDDC] =
   VADDRDDC8REG,
   VADDRDDC9REG
 };
-
-
-
 
 
 //
@@ -286,33 +276,111 @@ uint32_t DDCRegisters[VNUMDDC] =
 #define VTXCONFIGIQSTREAMENABLED 31
 
 
+// Helper functions for safe reading & writing
+inline uint32_t get_uint32(const uint8_t *buffer, size_t offset) {
+  uint32_t value;
+  memcpy(&value, buffer + offset, sizeof(uint32_t));
+  return ntohl(value);
+}
+
+inline uint16_t get_uint16(const uint8_t *buffer, size_t offset) {
+  uint16_t value;
+  memcpy(&value, buffer + offset, sizeof(uint16_t));
+  return ntohs(value);
+}
+
+inline uint8_t get_uint8(const uint8_t *buffer, size_t offset) {
+  uint8_t value;
+  memcpy(&value, buffer + offset, sizeof(uint8_t));
+  return value;
+}
+
+inline void put_uint32(uint8_t *buffer, size_t offset, uint32_t value) {
+  value = htonl(value);
+  memcpy(buffer + offset, &value, sizeof(uint32_t));
+}
+
+inline void put_uint16(uint8_t *buffer, size_t offset, uint16_t value) {
+  value = htons(value);
+  memcpy(buffer + offset, &value, sizeof(uint16_t));
+}
+
+inline void put_uint8(uint8_t *buffer, size_t offset, uint8_t value) {
+  buffer[offset] = value;
+}
 
 
 //
 // InitialiseFIFOSizes(void)
-// initialise the FIFO size table, which is FPGA version dependent
+// Initialise the FIFO size table, which is FPGA version dependent.
 //
+// Should be called in the main thread before other threads are created.
 void InitialiseFIFOSizes(void)
 {
-	ESoftwareID ID;
-	unsigned int Version = 0;
-    Version = GetFirmwareVersion(&ID);
-    if((Version >= 10) && (Version <= 12))
-    {
-        printf("loading new FIFO sizes for updated firmware <= 12\n");
-        DMAFIFODepths[0] = 16384;       //  eRXDDCDMA,		selects RX
-        DMAFIFODepths[1] = 2048;        //  eTXDUCDMA,		selects TX
-        DMAFIFODepths[2] = 256;         //  eMicCodecDMA,	selects mic samples
-        DMAFIFODepths[3] = 1024;        //  eSpkCodecDMA	selects speaker samples
-    }
-    else if(Version >= 13)
-    {
-        printf("loading new FIFO sizes for updated firmware V13+\n");
-        DMAFIFODepths[0] = 16384;       //  eRXDDCDMA,		selects RX
-        DMAFIFODepths[1] = 4096;        //  eTXDUCDMA,		selects TX
-        DMAFIFODepths[2] = 256;         //  eMicCodecDMA,	selects mic samples
-        DMAFIFODepths[3] = 1024;        //  eSpkCodecDMA	selects speaker samples
-    }
+  FirmwareInfo fwInfo = GetFirmwareInfo();
+  unsigned int Version = fwInfo.version;
+
+  if((Version >= 10) && (Version <= 12))
+  {
+    printf("loading new FIFO sizes for updated firmware <= 12\n");
+    DMAFIFODepths[0] = 16384;  //  eRXDDCDMA,     selects RX
+    DMAFIFODepths[1] = 2048;   //  eTXDUCDMA,     selects TX
+    DMAFIFODepths[2] = 256;    //  eMicCodecDMA,  selects mic samples
+    DMAFIFODepths[3] = 1024;   //  eSpkCodecDMA   selects speaker samples
+  }
+  else if(Version >= 13)
+  {
+    printf("loading new FIFO sizes for updated firmware V13+\n");
+    DMAFIFODepths[0] = 16384;  //  eRXDDCDMA,     selects RX
+    DMAFIFODepths[1] = 4096;   //  eTXDUCDMA,     selects TX
+    DMAFIFODepths[2] = 256;    //  eMicCodecDMA,  selects mic samples
+    DMAFIFODepths[3] = 1024;   //  eSpkCodecDMA   selects speaker samples
+  }
+
+  // Memory barrier to ensure visibility to other threads
+  atomic_thread_fence(memory_order_release);
+}
+
+
+static uint32_t ReadProductInformationRegister(void)
+{
+  pthread_mutex_lock(&DefaultRegMutex);
+  uint32_t productInformation = RegisterRead(VADDRPRODVERSIONREG);
+  pthread_mutex_unlock(&DefaultRegMutex);
+  return productInformation;
+}
+
+static uint32_t ReadDateCodeRegister(void)
+{
+  pthread_mutex_lock(&DefaultRegMutex);
+  uint32_t dateCode = RegisterRead(VADDRUSERVERSIONREG);
+  pthread_mutex_unlock(&DefaultRegMutex);
+  return dateCode;
+}
+
+ProductInfo GetProductInfo(void)
+{
+  uint32_t productInformation = ReadProductInformationRegister();
+
+  ProductInfo info;
+  info.productVersion = productInformation & 0xFFFF;
+  info.productId = productInformation >> 16;
+
+  return info;
+}
+
+uint32_t GetDateCode(void)
+{
+  return ReadDateCodeRegister();
+}
+
+FullVersionInfo GetFullVersionInfo(void)
+{
+  FullVersionInfo info;
+  info.firmware = GetFirmwareInfo();
+  info.product = GetProductInfo();
+  info.dateCode = GetDateCode();
+  return info;
 }
 
 
@@ -358,7 +426,7 @@ void SetByteSwapping(bool IsSwapped)
 {
     uint32_t Register;
 
-    sem_wait(&RFGPIOMutex);                         // get protected access
+    pthread_mutex_lock(&RFGPIOMutex);               // get protected access
     Register = GPIORegValue;                        // get current settings
     GByteSwapEnabled = IsSwapped;
     if(IsSwapped)
@@ -368,7 +436,7 @@ void SetByteSwapping(bool IsSwapped)
 
     GPIORegValue = Register;                        // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);        // and write to it
-    sem_post(&RFGPIOMutex);                         // clear protection
+    pthread_mutex_unlock(&RFGPIOMutex);             // clear protection
 }
 
 
@@ -379,19 +447,19 @@ void SetByteSwapping(bool IsSwapped)
 void ActivateCWKeyer(bool Keyer)
 {
     uint32_t Register;
+    pthread_mutex_lock(&DefaultRegMutex);
     Register = GCWKeyerSetup;                           // get current settings
     if(Keyer)
-        Register |= (1<<VCWKEYERENABLE);
+        Register |= (UINT32_C(1) << VCWKEYERENABLE);
     else
-        Register &= ~(1<<VCWKEYERENABLE);
+        Register &= ~(UINT32_C(1) << VCWKEYERENABLE);
     if(Register != GCWKeyerSetup)                       // write back if different
     {
         GCWKeyerSetup = Register;                       // store it back
         RegisterWrite(VADDRKEYERCONFIGREG, Register);   // and write to it
     }
-
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
-
 
 
 //
@@ -400,28 +468,28 @@ void ActivateCWKeyer(bool Keyer)
 // set or clear the relevant bit in GPIO
 // and enable keyer if CW
 //
-void SetMOX(bool Mox)
-{
-    uint32_t Register;
+void SetMOX(bool Mox) {
+  uint32_t Register;
 
-    sem_wait(&RFGPIOMutex);                         // get protected access
-    Register = GPIORegValue;                        // get current settings
-    MOXAsserted = Mox;                              // set variable
-    if (Mox)
-        Register |= (1 << VMOXBIT);
-    else
-        Register &= ~(1 << VMOXBIT);
-    GPIORegValue = Register;                        // store it back
-    RegisterWrite(VADDRRFGPIOREG, Register);        // and write to it
-//
-// now set CW keyer if required
-//
-    if (Mox)
-        ActivateCWKeyer(GCWEnabled);
-    else            // disable keyer unless CW & breakin
-        ActivateCWKeyer(GCWEnabled && GBreakinEnabled);
+  pthread_mutex_lock(&RFGPIOMutex);               // get protected access
+  Register = GPIORegValue;                        // get current settings
+  MOXAsserted = Mox;                              // set variable
+  if (Mox)
+    Register |= (UINT32_C(1) << VMOXBIT);
+  else
+    Register &= ~(UINT32_C(1) << VMOXBIT);
+  GPIORegValue = Register;                        // store it back
+  RegisterWrite(VADDRRFGPIOREG, Register); // and write to it
+  //
+  // now set CW keyer if required
+  //
+  if (Mox) {
+    ActivateCWKeyer(GCWEnabled);
+  } else {
+    ActivateCWKeyer(GCWEnabled && GBreakinEnabled); // disable keyer unless CW & breakin
+  }
 
-    sem_post(&RFGPIOMutex);                         // clear protected access
+  pthread_mutex_unlock(&RFGPIOMutex);
 }
 
 
@@ -434,15 +502,15 @@ void SetTXEnable(bool Enabled)
 {
     uint32_t Register;
 
-    sem_wait(&RFGPIOMutex);                         // get protected access
+    pthread_mutex_lock(&RFGPIOMutex);               // get protected access
     Register = GPIORegValue;                        // get current settings
     if (Enabled)
-        Register |= (1 << VTXENABLEBIT);
+        Register |= (UINT32_C(1) << VTXENABLEBIT);
     else
-        Register &= ~(1 << VTXENABLEBIT);
+        Register &= ~(UINT32_C(1) << VTXENABLEBIT);
     GPIORegValue = Register;                        // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);        // and write to it
-    sem_post(&RFGPIOMutex);                         // clear protected access
+    pthread_mutex_unlock(&RFGPIOMutex);             // clear protected access
 }
 
 
@@ -454,16 +522,15 @@ void SetTXEnable(bool Enabled)
 void SetATUTune(bool TuneEnabled)
 {
     uint32_t Register;
-
-    sem_wait(&RFGPIOMutex);                         // get protected access
+    pthread_mutex_lock(&RFGPIOMutex);               // get protected access
     Register = GPIORegValue;                        // get current settings
     if (TuneEnabled)
-        Register |= (1 << VATUTUNEBIT);
+        Register |= (UINT32_C(1) << VATUTUNEBIT);
     else
-        Register &= ~(1 << VATUTUNEBIT);
+        Register &= ~(UINT32_C(1) << VATUTUNEBIT);
     GPIORegValue = Register;                        // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);        // and write to it
-    sem_post(&RFGPIOMutex);                         // clear protected access
+    pthread_mutex_unlock(&RFGPIOMutex);             // clear protected access
 }
 
 
@@ -512,19 +579,20 @@ void SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bo
     uint32_t RegisterValue;
     uint32_t Mask;
     ESampleRate Rate;
+  pthread_mutex_lock(&DefaultRegMutex);
 
     Mask = 7 << (DDC * 3);                      // 3 bits in correct position
     if (!Enabled)                                   // if not enabled, clear sample rate value & enabled flag
     {
         P2SampleRates[DDC] = 0;
-        GDDCEnabled &= ~(1 << DDC);                 // clear enable bit
+        GDDCEnabled &= ~(UINT32_C(1) << DDC);                 // clear enable bit
         Rate = eDisabled;
 
     }
     else
     {
         P2SampleRates[DDC] = SampleRate;
-        GDDCEnabled |= (1 << DDC);                  // set enable bit
+        GDDCEnabled |= (UINT32_C(1) << DDC);                  // set enable bit
         if (InterleaveWithNext)
             Rate = eInterleaveWithNext;
         else
@@ -550,6 +618,7 @@ void SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bo
     Mask = Mask << (DDC * 3);                       // get new bits to right bit position
     RegisterValue |= Mask;
     DDCRateReg = RegisterValue;                     // don't save to hardware
+  pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -562,12 +631,14 @@ void SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bo
 //
 bool WriteP2DDCRateRegister(void)
 {
+    pthread_mutex_lock(&DefaultRegMutex);
     uint32_t CurrentValue;                          // current register setting
     bool Result = false;                            // return value
     CurrentValue = RegisterRead(VADDRDDCRATES);
     if (CurrentValue != DDCRateReg)
         Result = true;
     RegisterWrite(VADDRDDCRATES, DDCRateReg);        // and write to hardware register
+    pthread_mutex_unlock(&DefaultRegMutex);
     return Result;
 }
 
@@ -586,7 +657,7 @@ uint32_t GetDDCEnables(void)
 
 //
 // SetClassEPA(bool IsClassE)
-// enables non linear PA mode
+// enables non-linear PA mode
 // This is not usded in the current Saturn design
 //
 void SetClassEPA(bool IsClassE)
@@ -604,14 +675,14 @@ void SetOpenCollectorOutputs(unsigned int bits)
     uint32_t Register;                              // FPGA register content
     uint32_t BitMask;                               // bitmask for 7 OC bits
 
-    sem_wait(&RFGPIOMutex);                         // get protected access
+    pthread_mutex_lock(&RFGPIOMutex);               // get protected access
     Register = GPIORegValue;                        // get current settings
     BitMask = (0b1111111) << VOPENCOLLECTORBITS;
     Register = Register & ~BitMask;                 // strip old bits, add new
     Register |= (bits << VOPENCOLLECTORBITS);
-    GPIORegValue = Register;                    // store it back
+    GPIORegValue = Register;                        // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
-    sem_post(&RFGPIOMutex);                         // clear protected access
+    pthread_mutex_unlock(&RFGPIOMutex);             // clear protected access
 }
 
 
@@ -643,22 +714,22 @@ void SetADCOptions(EADCSelect ADC, bool PGA, bool Dither, bool Random)
         PGABit += 3;
         DitherBit += 3;
     }
-    sem_wait(&RFGPIOMutex);                         // get protected access
+    pthread_mutex_lock(&RFGPIOMutex);               // get protected access
     Register = GPIORegValue;                        // get current settings
-    Register &= ~(1 << RandBit);                    // strip old bits
-    Register &= ~(1 << PGABit);
-    Register &= ~(1 << DitherBit);
+    Register &= ~(UINT32_C(1) << RandBit);                    // strip old bits
+    Register &= ~(UINT32_C(1) << PGABit);
+    Register &= ~(UINT32_C(1) << DitherBit);
 
     if(PGA)                                         // add new bits where set
-        Register |= (1 << PGABit);
+        Register |= (UINT32_C(1) << PGABit);
     if(Dither)
-        Register |= (1 << DitherBit);
+        Register |= (UINT32_C(1) << DitherBit);
     if(Random)
-        Register |= (1 << RandBit);
+        Register |= (UINT32_C(1) << RandBit);
 
     GPIORegValue = Register;                    // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
-    sem_post(&RFGPIOMutex);                         // clear protected access
+    pthread_mutex_unlock(&RFGPIOMutex);         // clear protected access
 }
 
 #define VTWOEXP32 4294967296.0              // 2^32
@@ -677,7 +748,7 @@ void SetDDCFrequency(uint32_t DDC, uint32_t Value, bool IsDeltaPhase)
     uint32_t DeltaPhase;                    // calculated deltaphase value
     uint32_t RegAddress;
     double fDeltaPhase;
-
+    pthread_mutex_lock(&DefaultRegMutex);
     if(DDC >= VNUMDDC)                      // limit the DDC count to actual regs!
         DDC = VNUMDDC-1;
     if(!IsDeltaPhase)                       // ieif protocol 1
@@ -694,6 +765,7 @@ void SetDDCFrequency(uint32_t DDC, uint32_t Value, bool IsDeltaPhase)
         RegAddress =DDCRegisters[DDC];          // get DDC reg address, 
         RegisterWrite(RegAddress, DeltaPhase);  // and write to it
     }
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -710,6 +782,7 @@ void SetTestDDSFrequency(uint32_t Value, bool IsDeltaPhase)
     uint32_t DeltaPhase;                    // calculated deltaphase value
     double fDeltaPhase;
 
+  pthread_mutex_lock(&DefaultRegMutex);
     if(!IsDeltaPhase)                       // ie if protocol 1
     {
         fDeltaPhase = VTWOEXP32 * (double)Value / (double) VSAMPLERATE;
@@ -723,6 +796,7 @@ void SetTestDDSFrequency(uint32_t Value, bool IsDeltaPhase)
         TestSourceDeltaPhase = DeltaPhase;        // store this delta phase
         RegisterWrite(VADDRRXTESTDDSREG, DeltaPhase);  // and write to it
     }
+  pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -737,9 +811,10 @@ void SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)		// only accepts DUC
     uint32_t DeltaPhase;                    // calculated deltaphase value
     double fDeltaPhase;
 
+    pthread_mutex_lock(&DefaultRegMutex);
     if(!IsDeltaPhase)                       // ieif protocol 1
     {
-        fDeltaPhase = (double)(2^32) * (double)Value / (double) VSAMPLERATE;
+        fDeltaPhase = VTWOEXP32 * (double)Value / (double) VSAMPLERATE;
         DeltaPhase = (uint32_t)fDeltaPhase;
     }
     else
@@ -747,6 +822,7 @@ void SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)		// only accepts DUC
 
     DUCDeltaPhase = DeltaPhase;             // store this delta phase
     RegisterWrite(VADDRTXDUCREG, DeltaPhase);  // and write to it
+  pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -820,7 +896,7 @@ void SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)		// only accepts DUC
 void SetAlexRXAnt(unsigned int Bits)
 {
     uint32_t Register;                                  // modified register
-
+    pthread_mutex_lock(&DefaultRegMutex);
     Register = GAlexRXRegister;                         // copy original register
     Register &= 0xFFFFB4FF;                             // turn off all affected bits
 
@@ -845,6 +921,7 @@ void SetAlexRXAnt(unsigned int Bits)
         GAlexRXRegister = Register;
 //        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXRXREG, Register);  // and write to it
     }
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -855,7 +932,9 @@ void SetAlexRXAnt(unsigned int Bits)
 //
 void SetAlexRXOut(bool Enable)
 {
+    pthread_mutex_lock(&DefaultRegMutex);
     GAlexRXOut = Enable;
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -869,7 +948,7 @@ void SetAlexRXOut(bool Enable)
 void SetAlexTXAnt(unsigned int Bits)
 {
     uint32_t Register;                                  // modified register
-
+    pthread_mutex_lock(&DefaultRegMutex);
     Register = GAlexTXAntRegister;                         // copy original register
     Register &= 0xFCFF;                                 // turn off all affected bits
 
@@ -894,6 +973,7 @@ void SetAlexTXAnt(unsigned int Bits)
         GAlexTXAntRegister = Register;
 //        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXREG, Register);  // and write to it
     }
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -905,7 +985,9 @@ void SetAlexTXAnt(unsigned int Bits)
 //
 void SetAlexCoarseAttenuator(unsigned int Bits)
 {
+    pthread_mutex_lock(&DefaultRegMutex);
     GAlexCoarseAttenuatorBits = Bits;
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -920,6 +1002,7 @@ void SetAlexCoarseAttenuator(unsigned int Bits)
 void SetAlexRXFilters(bool IsRX1, unsigned int Bits)
 {
     uint32_t Register;                                          // modified register
+    pthread_mutex_lock(&DefaultRegMutex);
     if(GAlexManualFilterSelect)
     {
         Register = GAlexRXRegister;                             // copy original register
@@ -947,6 +1030,7 @@ void SetAlexRXFilters(bool IsRX1, unsigned int Bits)
     //        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXRXREG, Register);  // and write to it
         }
     }
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -955,7 +1039,9 @@ void SetAlexRXFilters(bool IsRX1, unsigned int Bits)
 //
 void SetRX2GroundDuringTX(bool IsGrounded)
 {
+    pthread_mutex_lock(&DefaultRegMutex);
     GRX2GroundDuringTX = IsGrounded;
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 //
@@ -968,6 +1054,7 @@ void SetRX2GroundDuringTX(bool IsGrounded)
 void SetAlexTXFilters(unsigned int Bits)
 {
     uint32_t Register;                                          // modified register
+    pthread_mutex_lock(&DefaultRegMutex);
     if(GAlexManualFilterSelect)
     {
         Register = GAlexTXFiltRegister;                         // copy original register
@@ -992,6 +1079,7 @@ void SetAlexTXFilters(unsigned int Bits)
     //        RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXREG, Register);  // and write to it
         }
     }
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1002,7 +1090,9 @@ void SetAlexTXFilters(unsigned int Bits)
 //
 void EnableAlexManualFilterSelect(bool IsManual)
 {
+    pthread_mutex_lock(&DefaultRegMutex);
     GAlexManualFilterSelect = IsManual;                 // just store the bit
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1016,6 +1106,7 @@ void EnableAlexManualFilterSelect(bool IsManual)
 void AlexManualRXFilters(unsigned int Bits, int RX)
 {
     uint32_t Register;                                          // modified register
+    pthread_mutex_lock(&DefaultRegMutex);
     if(GAlexManualFilterSelect)
     {
         Register = GAlexRXRegister;                             // copy original register
@@ -1035,6 +1126,7 @@ void AlexManualRXFilters(unsigned int Bits, int RX)
             RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXRXREG, Register);  // and write to it
         }
     }
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1044,7 +1136,9 @@ void AlexManualRXFilters(unsigned int Bits, int RX)
 //
 void DisableAlexTRRelay(bool IsDisabled)
 {
+    pthread_mutex_lock(&DefaultRegMutex);
     GEnableAlexTXRXRelay = !IsDisabled;                     // enable TXRX - opposite sense to stored bit
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1059,6 +1153,7 @@ void DisableAlexTRRelay(bool IsDisabled)
 void AlexManualTXFilters(unsigned int Bits, bool HasTXAntExplicitly)
 {
     uint32_t Register;                                  // modified register
+    pthread_mutex_lock(&DefaultRegMutex);
     if(GAlexManualFilterSelect)
     {
         Register = Bits;                         // new setting
@@ -1073,6 +1168,7 @@ void AlexManualTXFilters(unsigned int Bits, bool HasTXAntExplicitly)
             RegisterWrite(VADDRALEXSPIREG+VOFFSETALEXTXFILTREG, Register);  // and write to it
         }
     }
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1082,9 +1178,11 @@ void AlexManualTXFilters(unsigned int Bits, bool HasTXAntExplicitly)
 //
 void SetApolloBits(bool EnableFilter, bool EnableATU, bool StartAutoTune)
 {
+    pthread_mutex_lock(&DefaultRegMutex);
     GEnableApolloFilter = EnableFilter;
     GEnableApolloATU = EnableATU;
     GStartApolloAutoTune = StartAutoTune;
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1094,7 +1192,9 @@ void SetApolloBits(bool EnableFilter, bool EnableATU, bool StartAutoTune)
 //
 void SetApolloEnabled(bool EnableFilter)
 {
+    pthread_mutex_lock(&DefaultRegMutex);
     GEnableApolloFilter = EnableFilter;
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1105,7 +1205,9 @@ void SetApolloEnabled(bool EnableFilter)
 //
 void SelectFilterBoard(bool IsApollo)
 {
+    pthread_mutex_lock(&DefaultRegMutex);
     GIsApollo = IsApollo;
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1115,7 +1217,9 @@ void SelectFilterBoard(bool IsApollo)
 //
 void EnablePPSStamp(bool Enabled)
 {
+    pthread_mutex_lock(&DefaultRegMutex);
     GPPSEnabled = Enabled;
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1126,20 +1230,21 @@ void EnablePPSStamp(bool Enabled)
 // sets both step attenuator drive and PWM DAC drive for high speed DAC current,
 // using ROMs calculated at initialise.
 //
-void SetTXDriveLevel(unsigned int Level)
-{
-    uint32_t RegisterValue = 0;
-    uint32_t DACDrive, AttenDrive;
+void SetTXDriveLevel(unsigned int Level) {
+  uint32_t RegisterValue = 0;
+  uint32_t DACDrive, AttenDrive;
 
-    Level &= 0xFF;                                  // make sure 8 bits only
-    DACDrive = DACCurrentROM[Level];                // get PWM
-    AttenDrive = DACStepAttenROM[Level];            // get step atten
-    RegisterValue = DACDrive;                       // set drive level when RX
-    RegisterValue |= (DACDrive << 8);               // set drive level when TX
-    RegisterValue |= (AttenDrive << 16);            // set step atten when RX
-    RegisterValue |= (AttenDrive << 24);            // set step atten when TX
-    GTXDACCtrl = RegisterValue;
-    RegisterWrite(VADDRDACCTRLREG, RegisterValue);  // and write to it
+  pthread_mutex_lock(&DefaultRegMutex);
+  Level &= 0xFF;                                  // make sure 8 bits only
+  DACDrive = DACCurrentROM[Level];                // get PWM
+  AttenDrive = DACStepAttenROM[Level];            // get step atten
+  RegisterValue = DACDrive;                       // set drive level when RX
+  RegisterValue |= (DACDrive << 8);               // set drive level when TX
+  RegisterValue |= (AttenDrive << 16);            // set step atten when RX
+  RegisterValue |= (AttenDrive << 24);            // set step atten when TX
+  GTXDACCtrl = RegisterValue;
+  RegisterWrite(VADDRDACCTRLREG, RegisterValue);  // and write to it
+  pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1150,18 +1255,21 @@ void SetTXDriveLevel(unsigned int Level)
 //
 void SetMicBoost(bool EnableBoost)
 {
-    unsigned int Register;
+  pthread_mutex_lock(&CodecRegMutex);
 
-    Register = GCodecAnaloguePath;                      // get current setting
+  unsigned int Register = GCodecAnaloguePath;  // get current setting
 
-    Register &= 0xFFFE;                                 // remove old mic boost bit
-    if(EnableBoost)
-        Register |= 1;                                  // set new mic boost bit
-    if(Register != GCodecAnaloguePath)                  // only write back if changed
-    {
-        GCodecAnaloguePath = Register;
-        CodecRegisterWrite(VCODECANALOGUEPATHREG, Register);
-    }
+  Register &= 0xFFFE;  // remove old mic boost bit
+  if (EnableBoost)
+    Register |= 1;  // set new mic boost bit
+
+  if (Register != GCodecAnaloguePath)  // only write back if changed
+  {
+    GCodecAnaloguePath = Register;
+    CodecRegisterWriteUnsafe(VCODECANALOGUEPATHREG, Register);
+  }
+
+  pthread_mutex_unlock(&CodecRegMutex);
 }
 
 
@@ -1173,17 +1281,17 @@ void SetMicBoost(bool EnableBoost)
 void SetMicLineInput(bool IsLineIn)
 {
     unsigned int Register;
-
+    pthread_mutex_lock(&CodecRegMutex);
     Register = GCodecAnaloguePath;                      // get current setting
-
     Register &= 0xFFFB;                                 // remove old mic / line select bit
     if(!IsLineIn)
         Register |= 4;                                  // set new select bit
     if(Register != GCodecAnaloguePath)                  // only write back if changed
     {
         GCodecAnaloguePath = Register;
-        CodecRegisterWrite(VCODECANALOGUEPATHREG, Register);
+        CodecRegisterWriteUnsafe(VCODECANALOGUEPATHREG, Register);
     }
+    pthread_mutex_unlock(&CodecRegMutex);
 }
 
 
@@ -1198,32 +1306,32 @@ void SetOrionMicOptions(bool MicRing, bool EnableBias, bool EnablePTT)
 {
     uint32_t Register;                              // FPGA register content
 
-    sem_wait(&RFGPIOMutex);                         // get protected access
+    pthread_mutex_lock(&RFGPIOMutex);               // get protected access
     Register = GPIORegValue;                        // get current settings
-    Register &= ~(1 << VMICBIASENABLEBIT);          // strip old bits
-    Register &= ~(1 << VMICPTTSELECTBIT);           // strip old bits
-    Register &= ~(1 << VMICSIGNALSELECTBIT);
-    Register &= ~(1 << VMICBIASSELECTBIT);
+    Register &= ~(UINT32_C(1) << VMICBIASENABLEBIT);          // strip old bits
+    Register &= ~(UINT32_C(1) << VMICPTTSELECTBIT);           // strip old bits
+    Register &= ~(UINT32_C(1) << VMICSIGNALSELECTBIT);
+    Register &= ~(UINT32_C(1) << VMICBIASSELECTBIT);
 
     if(!MicRing)                                      // add new bits where set
     {
-        Register &= ~(1 << VMICSIGNALSELECTBIT);    // mic on tip
-        Register |= (1 << VMICBIASSELECTBIT);       // and hence mic bias on tip
-        Register &= ~(1 << VMICPTTSELECTBIT);       // PTT on ring
+        Register &= ~(UINT32_C(1) << VMICSIGNALSELECTBIT);    // mic on tip
+        Register |= (UINT32_C(1) << VMICBIASSELECTBIT);       // and hence mic bias on tip
+        Register &= ~(UINT32_C(1) << VMICPTTSELECTBIT);       // PTT on ring
     }
     else
     {
-        Register |= (1 << VMICSIGNALSELECTBIT);     // mic on ring
-        Register &= ~(1 << VMICBIASSELECTBIT);      // bias on ring
-        Register |= (1 << VMICPTTSELECTBIT);        // PTT on tip
+        Register |= (UINT32_C(1) << VMICSIGNALSELECTBIT);     // mic on ring
+        Register &= ~(UINT32_C(1) << VMICBIASSELECTBIT);      // bias on ring
+        Register |= (UINT32_C(1) << VMICPTTSELECTBIT);        // PTT on tip
     }
     if(EnableBias)
-        Register |= (1 << VMICBIASENABLEBIT);
+        Register |= (UINT32_C(1) << VMICBIASENABLEBIT);
     GPTTEnabled = !EnablePTT;                       // used when PTT read back - just store opposite state
 
     GPIORegValue = Register;                        // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);      // and write to it
-    sem_post(&RFGPIOMutex);                         // clear protected access
+    pthread_mutex_unlock(&RFGPIOMutex);             // clear protected access
 }
 
 
@@ -1236,7 +1344,7 @@ void SetBalancedMicInput(bool Balanced)
 {
     uint32_t Register;                              // FPGA register content
 
-    sem_wait(&RFGPIOMutex);                         // get protected access
+    pthread_mutex_lock(&RFGPIOMutex);               // get protected access
     Register = GPIORegValue;                        // get current settings
     Register &= ~(1 << VBALANCEDMICSELECT);         // strip old bit
     if(Balanced)
@@ -1244,7 +1352,7 @@ void SetBalancedMicInput(bool Balanced)
     
     GPIORegValue = Register;                        // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);      // and write to it
-    sem_post(&RFGPIOMutex);                         // clear protected access
+    pthread_mutex_unlock(&RFGPIOMutex);             // clear protected access
 }
 
 
@@ -1264,7 +1372,7 @@ void SetCodecLineInGain(unsigned int Gain)
     if(Register != GCodecLineGain)                      // only write back if changed
     {
         GCodecLineGain = Register;
-        CodecRegisterWrite(VCODECLLINEVOLREG, Register);
+        CodecRegisterWriteSingle(VCODECLLINEVOLREG, Register);
     }
 }
 
@@ -1293,6 +1401,7 @@ void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool RXAtten, bool TXA
     uint32_t TXMask;
     uint32_t RXMask;
 
+    pthread_mutex_lock(&DefaultRegMutex);
     Register = GRXADCCtrl;                          // get existing settings
     TXMask = 0b0000001111100000;                    // mask bits for TX, ADC1
     RXMask = 0b0000000000011111;                    // mask bits for RX, ADC1
@@ -1324,8 +1433,10 @@ void SetADCAttenuator(EADCSelect ADC, unsigned int Atten, bool RXAtten, bool TXA
             Register |= (Atten & 0X1F)<<15;         // add in new bits for ADC2, TX
         }
     }
-        GRXADCCtrl = Register; 
-        RegisterWrite(VADDRADCCTRLREG, Register);      // and write to it
+
+    GRXADCCtrl = Register;
+    RegisterWrite(VADDRADCCTRLREG, Register);      // and write to it
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1344,7 +1455,7 @@ void SetCWIambicKeyer(uint8_t Speed, uint8_t Weight, bool ReverseKeys, bool Mode
                       bool StrictSpacing, bool IambicEnabled, bool Breakin)
 {
     uint32_t Register;
-    Register =GIambicConfigReg;                     // copy of H/W register
+    Register = GIambicConfigReg;                    // copy of H/W register
     Register &= ~VIAMBICBITS;                       // strip off old iambic bits
 
     GCWKeyerSpeed = Speed;                          // just save it for now
@@ -1353,7 +1464,8 @@ void SetCWIambicKeyer(uint8_t Speed, uint8_t Weight, bool ReverseKeys, bool Mode
     GCWKeyerMode = Mode;                            // just save it for now
     GCWKeyerSpacing = StrictSpacing;
     GCWIambicKeyerEnabled = IambicEnabled;
-// set new data
+
+    // set new data
     Register |= Speed;
     Register |= (Weight << VIAMBICWEIGHT);
     if(ReverseKeys)
@@ -1366,12 +1478,14 @@ void SetCWIambicKeyer(uint8_t Speed, uint8_t Weight, bool ReverseKeys, bool Mode
         Register |= (1<<VIAMBICENABLE);             // set bit if enabled
     if(Breakin)
         Register |= (1<<VCWBREAKIN);             // set bit if enabled
-    
+
+    pthread_mutex_lock(&DefaultRegMutex);
     if (Register != GIambicConfigReg)               // save if changed
     {
         GIambicConfigReg = Register;
         RegisterWrite(VADDRIAMBICCONFIG, Register);
     }
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1393,12 +1507,13 @@ void SetCWXBits(bool CWXEnabled, bool CWXDash, bool CWXDot)
         Register |= (1<<VIAMBICCWXDOT);             // set bit if enabled
     if(GCWXDash)
         Register |= (1<<VIAMBICCWXDASH);            // set bit if enabled
-    
+    pthread_mutex_lock(&DefaultRegMutex);
     if (Register != GIambicConfigReg)               // save if changed
     {
         GIambicConfigReg = Register;
         RegisterWrite(VADDRIAMBICCONFIG, Register);
     }
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1419,16 +1534,16 @@ void SetDDCADC(int DDC, EADCSelect ADC)
         ADC = eTestSource;                          // override setting
 
     ADCSetting = ((uint32_t)ADC & 0x3) << (DDC*2);  // 2 bits with ADC setting
-    Mask = 0x3 << (DDC*2);                         // 0,2,4,6,8,10,12,14,16,18bit positions
+    Mask = 0x3 << (DDC*2);                          // 0,2,4,6,8,10,12,14,16,18bit positions
 
-    sem_wait(&DDCInSelMutex);                       // get protected access
+    pthread_mutex_lock(&DDCInSelMutex);             // get protected access
     RegisterValue = DDCInSelReg;                    // get current register setting
     RegisterValue &= ~Mask;                         // strip ADC bits
     RegisterValue |= ADCSetting;
 
     DDCInSelReg = RegisterValue;                    // write back
     RegisterWrite(VADDRDDCINSEL, RegisterValue);    // and write to it
-    sem_post(&DDCInSelMutex);
+    pthread_mutex_unlock(&DDCInSelMutex);
 }
 
 
@@ -1444,16 +1559,16 @@ void SetRXDDCEnabled(bool IsEnabled)
 
     Address = VADDRDDCINSEL;							// DDC config register address
 
-    sem_wait(&DDCInSelMutex);                           // get protected access
-    Data = DDCInSelReg;                                 // get current register setting
+    pthread_mutex_lock(&DDCInSelMutex);   // get protected access
+    Data = DDCInSelReg;                   // get current register setting
     if (IsEnabled)
-        Data |= (1 << 30);								// set new bit
+        Data |= (UINT32_C(1) << 30);								// set new bit
     else
-        Data &= ~(1 << 30);								// clear new bit
+        Data &= ~(UINT32_C(1) << 30);								// clear new bit
 
     DDCInSelReg = Data;          // write back
     RegisterWrite(Address, Data);					// write back
-    sem_post(&DDCInSelMutex);
+    pthread_mutex_unlock(&DDCInSelMutex);
 }
 
 
@@ -1494,12 +1609,13 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
     uint32_t Cntr;
     uint32_t Sample;                        // ramp sample value
     uint32_t Register;
-	ESoftwareID ID;
-	unsigned int FPGAVersion = 0;
+    unsigned int FPGAVersion = 0;
     unsigned int MaxDuration;               // max ramp duration in microseconds
     double x, x2, x4, x6, x8, x10, rampsample;
 
-    FPGAVersion = GetFirmwareVersion(&ID);
+    FirmwareInfo fwInfo = GetFirmwareInfo();
+    FPGAVersion = fwInfo.version;
+
     if(FPGAVersion >= 14)
         MaxDuration = VMAXCWRAMPDURATIONV14PLUS;        // get version dependent max length
     else
@@ -1528,6 +1644,7 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
 // DL1YCF ramp code:
 //
 //
+        pthread_mutex_lock(&DefaultRegMutex);
         for (Cntr = 0; Cntr < RampLength; Cntr++)
         {
             x = (double) Cntr / (double) RampLength;           // between 0 and 1
@@ -1556,6 +1673,7 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
         GCWKeyerSetup = Register;                    // store it back
         RegisterWrite(VADDRKEYERCONFIGREG, Register);  // and write to it
     }
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1568,7 +1686,7 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
 // If Breakin enabled, the key input engages TX automatically
 // and generates sidetone.
 //
-void EnableCW (bool Enabled, bool Breakin)
+void EnableCW(bool Enabled, bool Breakin)
 {
     //
     // set I/Q modulation source if CW selected 
@@ -1592,17 +1710,21 @@ void EnableCW (bool Enabled, bool Breakin)
 //
 void SetCWSidetoneEnabled(bool Enabled)
 {
-    uint32_t Register;
-    if(GSidetoneEnabled != Enabled)                     // only act if bit changed
-    {
-        GSidetoneEnabled = Enabled;
-        Register = GCodecConfigReg;                     // get current settings
-        Register &= 0x0000FFFF;                         // remove old volume bits
-        if(Enabled)
-            Register |= (GSidetoneVolume & 0xFF) << 24; // add back new bits; resize to 16 bits
-        GCodecConfigReg = Register;                     // store it back
-        RegisterWrite(VADDRCODECCONFIGREG, Register);   // and write to it
-    }
+  pthread_mutex_lock(&CodecRegMutex);
+
+  if (GSidetoneEnabled != Enabled)  // only act if bit changed
+  {
+    GSidetoneEnabled = Enabled;
+    uint32_t Register = GCodecConfigReg;  // get current settings
+    Register &= 0x0000FFFF;  // remove old volume bits
+    if (Enabled)
+      Register |= (GSidetoneVolume & 0xFF) << 24;  // add back new bits; resize to 16 bits
+    GCodecConfigReg = Register;  // store it back
+
+    CodecRegisterWriteUnsafe(VADDRCODECCONFIGREG, Register);
+  }
+
+  pthread_mutex_unlock(&CodecRegMutex);
 }
 
 
@@ -1613,6 +1735,7 @@ void SetCWSidetoneEnabled(bool Enabled)
 void SetCWSidetoneVol(uint8_t Volume)
 {
     uint32_t Register;
+    pthread_mutex_lock(&DefaultRegMutex);
 
     if(GSidetoneVolume != Volume)                       // only act if value changed
     {
@@ -1624,6 +1747,7 @@ void SetCWSidetoneVol(uint8_t Volume)
         GCodecConfigReg = Register;                     // store it back
         RegisterWrite(VADDRCODECCONFIGREG, Register);   // and write to it
     }
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1634,6 +1758,7 @@ void SetCWSidetoneVol(uint8_t Volume)
 void SetCWPTTDelay(unsigned int Delay)
 {
     uint32_t Register;
+    pthread_mutex_lock(&DefaultRegMutex);
 
     Register = GCWKeyerSetup;                           // get current settings
     Register &= 0xFFFFFF00;                             // remove old bits
@@ -1643,6 +1768,7 @@ void SetCWPTTDelay(unsigned int Delay)
         GCWKeyerSetup = Register;                       // store it back
         RegisterWrite(VADDRKEYERCONFIGREG, Register);   // and write to it
     }
+    pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -1655,6 +1781,7 @@ void SetCWHangTime(unsigned int HangTime)
 {
     uint32_t Register;
 
+  pthread_mutex_lock(&DefaultRegMutex);
     Register = GCWKeyerSetup;                           // get current settings
     Register &= 0xFFFC00FF;                             // remove old bits
     Register |= (HangTime &0x3FF) << VCWKEYERHANG;      // add back new bits
@@ -1663,6 +1790,7 @@ void SetCWHangTime(unsigned int HangTime)
         GCWKeyerSetup = Register;                       // store it back
         RegisterWrite(VADDRKEYERCONFIGREG, Register);   // and write to it
     }
+  pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 #define VCODECSAMPLERATE 48000                      // I2S rate
@@ -1717,18 +1845,18 @@ void SetMaxPWMWidth(unsigned int Width)
 // SetXvtrEnable(bool Enabled)
 // enables or disables transverter. If enabled, the PA is not keyed.
 //
-void SetXvtrEnable(bool Enabled)
-{
-    uint32_t Register;
+void SetXvtrEnable(bool Enabled) {
+  uint32_t Register;
 
-    sem_wait(&RFGPIOMutex);                         // get protected access
-    Register = GPIORegValue;                        // get current settings
-    if(Enabled)
-        Register |= (1<<VXVTRENABLEBIT);
-    else
-    Register &= ~(1<<VXVTRENABLEBIT);
-    GPIORegValue = Register;                    // store it back
-    sem_post(&RFGPIOMutex);                         // clear protected access
+  pthread_mutex_lock(&RFGPIOMutex);               // get protected access
+  Register = GPIORegValue;                        // get current settings
+  if (Enabled) {
+    Register |= (UINT32_C(1) << VXVTRENABLEBIT);
+  } else {
+    Register &= ~(UINT32_C(1) << VXVTRENABLEBIT);
+  }
+  GPIORegValue = Register;                    // store it back
+  pthread_mutex_unlock(&RFGPIOMutex);         // clear protected access
 }
 
 
@@ -1830,7 +1958,7 @@ void SetPAEnabled(bool Enabled)
     uint32_t Register;
 
     GPAEnabled = Enabled;                           // just save for now
-    sem_wait(&RFGPIOMutex);                         // get protected access
+    pthread_mutex_lock(&RFGPIOMutex);               // get protected access
     Register = GPIORegValue;                        // get current settings
     if(!Enabled)
         Register |= (1<<VTXRELAYDISABLEBIT);
@@ -1838,7 +1966,7 @@ void SetPAEnabled(bool Enabled)
         Register &= ~(1<<VTXRELAYDISABLEBIT);
     GPIORegValue = Register;                    // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
-    sem_post(&RFGPIOMutex);                         // clear protected access
+    pthread_mutex_unlock(&RFGPIOMutex);         // clear protected access
 }
 
 
@@ -1895,7 +2023,7 @@ void SetSpkrMute(bool IsMuted)
 
     GSpeakerMuted = IsMuted;                        // just save for now.
 
-    sem_wait(&RFGPIOMutex);                         // get protected access
+    pthread_mutex_lock(&RFGPIOMutex);               // get protected access
     Register = GPIORegValue;                        // get current settings
     if(IsMuted)
         Register |= (1<<VSPKRMUTEBIT);
@@ -1903,7 +2031,7 @@ void SetSpkrMute(bool IsMuted)
         Register &= ~(1<<VSPKRMUTEBIT);
     GPIORegValue = Register;                        // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);        // and write to it
-    sem_post(&RFGPIOMutex);                         // clear protected access
+    pthread_mutex_unlock(&RFGPIOMutex);             // clear protected access
 }
 
 
@@ -1924,15 +2052,52 @@ void SetUserOutputBits(unsigned int Bits)
 //
 // ReadStatusRegister(void)
 // this is a precursor to getting any of the data itself; simply reads the register to a local variable
-// probably call every time an outgoig packet is put together initially
+// probably call every time an outgoing packet is put together initially
 // but possibly do this one a timed basis.
 //
-void ReadStatusRegister(void)
-{
-    uint32_t StatusRegisterValue = 0;
+inline void ReadStatusRegister(void) {
+  pthread_mutex_lock(&DefaultRegMutex);
+  uint32_t StatusRegisterValue = RegisterRead(VADDRSTATUSREG);
+  GStatusRegister = StatusRegisterValue;                  // save to global
+  pthread_mutex_unlock(&DefaultRegMutex);
+}
 
-    StatusRegisterValue = RegisterRead(VADDRSTATUSREG);
-    GStatusRegister = StatusRegisterValue;                        // save to global
+
+inline uint32_t ReadChannelStatusRegister(int Channel) {
+  uint32_t data;
+  pthread_mutex_lock(&DefaultRegMutex);
+  data = ReadChannelStatusRegisterUnsafe(Channel);
+  pthread_mutex_unlock(&DefaultRegMutex);
+  return data;
+}
+
+
+inline uint32_t ReadChannelStatusRegisterUnsafe(int Channel) {
+  uint32_t address = VADDRFIFOMONBASE + 4 * (uint32_t)Channel;
+  return RegisterRead(address);
+}
+
+
+inline uint32_t ReadChannelStatusAndUpdateFIFODepth(EDMAStreamSelect Channel, uint32_t* FIFODepth) {
+  uint32_t status;
+  status = ReadChannelStatusRegister(Channel);
+  if (FIFODepth != NULL) {
+    *FIFODepth = DMAFIFODepths[Channel];
+  }
+  return status;
+}
+
+
+inline void WriteFIFOConfigRegister(const EDMAStreamSelect *Channel, bool EnableInterrupt) {
+  uint32_t Data;
+  uint32_t Address;
+  pthread_mutex_lock(&DefaultRegMutex);
+  Address = VADDRFIFOMONBASE + 4 * (*Channel) + 0x10;      // config register address
+  Data = DMAFIFODepths[(int) (*Channel)];              // memory depth
+  if (EnableInterrupt)
+    Data += 0x80000000;            // bit 31
+  RegisterWrite(Address, Data);
+  pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 //
@@ -1940,11 +2105,11 @@ void ReadStatusRegister(void)
 // return true if PTT input is pressed.
 // depends on the status register having been read before this is called!
 //
-bool GetPTTInput(void)
-{
-    bool Result = false;
-    Result = (bool)(GStatusRegister & 1);                       // get PTT bit
-    return Result;
+bool GetPTTInput(void) {
+  pthread_mutex_lock(&DefaultRegMutex);
+  bool result = (bool) (GStatusRegister & 1);
+  pthread_mutex_unlock(&DefaultRegMutex);
+  return result;
 }
 
 
@@ -1953,12 +2118,11 @@ bool GetPTTInput(void)
 // return true if keyer dash input is pressed.
 // depends on the status register having been read before this is called!
 //
-bool GetKeyerDashInput(void)
-{
-    bool Result = false;
-    Result = (bool)((GStatusRegister >> VKEYINB) & 1);                       // get PTT bit
-
-    return Result;
+bool GetKeyerDashInput(void) {
+  pthread_mutex_lock(&DefaultRegMutex);
+  bool result = (bool) ((GStatusRegister >> VKEYINB) & 1);
+  pthread_mutex_unlock(&DefaultRegMutex);
+  return result;
 }
 
 
@@ -1968,12 +2132,11 @@ bool GetKeyerDashInput(void)
 // return true if keyer dot input is pressed.
 // depends on the status register having been read before this is called!
 //
-bool GetKeyerDotInput(void)
-{
-    bool Result = false;
-    Result = (bool)((GStatusRegister >> VKEYINA) & 1);                       // get PTT bit
-
-    return Result;
+bool GetKeyerDotInput(void) {
+  pthread_mutex_lock(&DefaultRegMutex);
+  bool result = (bool) ((GStatusRegister >> VKEYINA) & 1);
+  pthread_mutex_unlock(&DefaultRegMutex);
+  return result;
 }
 
 
@@ -1982,12 +2145,11 @@ bool GetKeyerDotInput(void)
 // return true if keyer has initiated TX.
 // depends on the status register having been read before this is called!
 //
-bool GetCWKeyDown(void)
-{
-    bool Result = false;
-    Result = (bool)((GStatusRegister >> VCWKEYDOWN) & 1);                       // get PTT bit
-
-    return Result;
+bool GetCWKeyDown(void) {
+  pthread_mutex_lock(&DefaultRegMutex);
+  bool result = (bool) ((GStatusRegister >> VCWKEYDOWN) & 1);
+  pthread_mutex_unlock(&DefaultRegMutex);
+  return result;
 }
 
 
@@ -2003,24 +2165,27 @@ bool GetCWKeyDown(void)
 //
 unsigned int GetP2PTTKeyInputs(void)
 {
-    unsigned int Result = 0;
+  unsigned int statusRegister;
 
-    // ReadStatusRegister();
-    if (GStatusRegister & 1)
-        Result |= 1;                                                        // set PTT output bit
-    if ((GStatusRegister >> VCWKEYDOWN) & 1)
-        Result |= 1;                                                        // set PTT output bit if keyer PTT active
-    if ((GStatusRegister >> VKEYINA) & 1)
-        Result |= 2;                                                        // set dot output bit
-    if ((GStatusRegister >> VKEYINB) & 1)
-        Result |= 4;                                                        // set dash output bit
-    if (!((GStatusRegister >> VUSERIO8) & 1))
-        Result |= 4;                                                        // set dash output bit if IO8 active
-    if ((GStatusRegister >> VPLLLOCKED) & 1)
-        Result |= 16;                                                       // set PLL output bit
-    if ((GStatusRegister >> VCWKEYDOWN) & 1)
-        Result |= 1;                                                        // set PTT if keyer asserted TX
-    return Result;
+  pthread_mutex_lock(&DefaultRegMutex);
+  statusRegister = GStatusRegister;
+  pthread_mutex_unlock(&DefaultRegMutex);
+
+  unsigned int result = 0;
+  if (statusRegister & 1)
+    result |= 1;
+  if ((statusRegister >> VCWKEYDOWN) & 1)
+    result |= 1;
+  if ((statusRegister >> VKEYINA) & 1)
+    result |= 2;
+  if ((statusRegister >> VKEYINB) & 1)
+    result |= 4;
+  if (!((statusRegister >> VUSERIO8) & 1))
+    result |= 4;
+  if ((statusRegister >> VPLLLOCKED) & 1)
+    result |= 16;
+
+  return result;
 }
 
 
@@ -2031,12 +2196,12 @@ unsigned int GetP2PTTKeyInputs(void)
 // the overflow stored state is reset when this is read.
 // returns bit0: 1 if ADC1 overflow; bit1: 1 if ARC2 overflow
 //
-unsigned int GetADCOverflow(void)
-{
-    unsigned int Result = 0;
-
-    Result = RegisterRead(VADDRADCOVERFLOWBASE);
-    return (Result & 0x3);
+unsigned int GetADCOverflow(void) {
+  unsigned int result;
+  pthread_mutex_lock(&DefaultRegMutex);
+  result = RegisterRead(VADDRADCOVERFLOWBASE) & 0x3;
+  pthread_mutex_unlock(&DefaultRegMutex);
+  return result;
 }
 
 
@@ -2046,13 +2211,18 @@ unsigned int GetADCOverflow(void)
 // return the user input bits
 // returns IO4 in LSB, IO5 in bit 1, ATU bit in bit 2 & IO8 in bit 3
 //
-unsigned int GetUserIOBits(void)
-{
-    unsigned int Result = 0;
-    Result = ((GStatusRegister >> VUSERIO4) & 0b1011);                       // get user input 4/5/-/8
-    Result = Result ^ 0x8;                                                   // invert IO8 (should be active low)
-    Result |= ((GStatusRegister >> 7) & 0b0100);                             // get ATU bit into IO6 location
-    return Result;
+unsigned int GetUserIOBits(void) {
+  unsigned int statusRegister;
+
+  pthread_mutex_lock(&DefaultRegMutex);
+  statusRegister = GStatusRegister;
+  pthread_mutex_unlock(&DefaultRegMutex);
+
+  unsigned int result = ((statusRegister >> VUSERIO4) & 0b1011);  // get user input 4/5/-/8
+  result ^= 0x8;  // invert IO8 (should be active low)
+  result |= ((statusRegister >> 7) & 0b0100);  // get ATU bit into IO6 location
+
+  return result;
 }
 
 
@@ -2060,14 +2230,16 @@ unsigned int GetUserIOBits(void)
 //
 // unsigned int GetAnalogueIn(unsigned int AnalogueSelect)
 // return one of 6 ADC values from the RF board analogue values
-// the paramter selects which input is read. 
+// the parameter selects which input is read.
 // AnalogueSelect=0: AIN1 .... AnalogueSepect=5: AIN6
-unsigned int GetAnalogueIn(unsigned int AnalogueSelect)
-{
-    unsigned int Result = 0;
-    AnalogueSelect &= 7;                                        // limit to 3 bits
-    Result = RegisterRead(VADDRALEXADCBASE + 4*AnalogueSelect);
-    return Result;
+unsigned int GetAnalogueIn(unsigned int AnalogueSelect) {
+  AnalogueSelect &= 7;  // limit to 3 bits
+
+  pthread_mutex_lock(&DefaultRegMutex);
+  unsigned int result = RegisterRead(VADDRALEXADCBASE + 4 * AnalogueSelect);
+  pthread_mutex_unlock(&DefaultRegMutex);
+
+  return result;
 }
 
 
@@ -2086,26 +2258,22 @@ unsigned int GetAnalogueIn(unsigned int AnalogueSelect)
 //
 void CodecInitialise(void)
 {
-    GCodecLineGain = 0;                                     // Codec left line in gain register
-    GCodecAnaloguePath = 0x14;                              // Codec analogue path register (mic input, no boost)
-    CodecRegisterWrite(VCODECRESETREG, 0x0);          // reset register: reset deveice
-    usleep(100);
-    CodecRegisterWrite(VCODECACTIVATIONREG, 0x1);     // digital activation set to ACTIVE
-    usleep(100);
-    CodecRegisterWrite(VCODECANALOGUEPATHREG, GCodecAnaloguePath);        // mic input, no boost
-    usleep(100);
-    CodecRegisterWrite(VCODECPOWERDOWNREG, 0x0);      // all elements powered on
-    usleep(100);
-    CodecRegisterWrite(VCODECDIGITALFORMATREG, 0x2);  // slave; no swap; right when LRC high; 16 bit, I2S
-    usleep(100);
-    CodecRegisterWrite(VCODECSAMPLERATEREG, 0x0);     // no clock divide; rate ctrl=0; normal mode, oversample 256Fs
-    usleep(100);
-    CodecRegisterWrite(VCODECDIGITALPATHREG, 0x0);    // no soft mute; no deemphasis; ADC high pss filter enabled
-    usleep(100);
-    CodecRegisterWrite(VCODECLLINEVOLREG, GCodecLineGain);        // line in gain=0
-    CodecRegisterWrite(VCODECRLINEVOLREG, GCodecLineGain);        // line in gain=0
-    usleep(100);
+  GCodecLineGain = 0; // Codec left line in gain register
+  GCodecAnaloguePath = 0x14; // Codec analogue path register (mic input, no boost)
 
+  const CodecRegisterOp initOps[] = {
+      {VCODECRESETREG, 0x0}, // reset register: reset device
+      {VCODECACTIVATIONREG, 0x1}, // digital activation set to ACTIVE
+      {VCODECANALOGUEPATHREG, GCodecAnaloguePath}, // mic input, no boost
+      {VCODECPOWERDOWNREG, 0x0}, // all elements powered on
+      {VCODECDIGITALFORMATREG, 0x2}, // slave; no swap; right when LRC high; 16 bit, I2S
+      {VCODECSAMPLERATEREG, 0x0}, // no clock divide; rate ctrl=0; normal mode, oversample 256Fs
+      {VCODECDIGITALPATHREG, 0x0}, // no soft mute; no deemphasis; ADC high pss filter enabled
+      {VCODECLLINEVOLREG, GCodecLineGain}, // line in gain=0
+      {VCODECRLINEVOLREG, GCodecLineGain} // line in gain=0
+  };
+
+  CodecRegisterWriteBatch(initOps, sizeof(initOps) / sizeof(initOps[0]));
 }
 
 
@@ -2113,16 +2281,17 @@ void CodecInitialise(void)
 // SetTXAmplitudeScaling (unsigned int Amplitude)
 // sets the overall TX amplitude. This is normally set to a constant determined during development.
 // 
-void SetTXAmplitudeScaling (unsigned int Amplitude)
-{
-    uint32_t Register;
+void SetTXAmplitudeScaling(unsigned int Amplitude) {
+  pthread_mutex_lock(&DefaultRegMutex);
+  uint32_t Register;
 
-    GTXAmplScaleFactor = Amplitude;                             // save value
-    Register = TXConfigRegValue;                                // get current settings
-    Register &= 0xFFC0000F;                                     // remove old bits
-    Register |= ((Amplitude & 0x3FFFF) << VTXCONFIGSCALEBIT);   // add new bits
-    TXConfigRegValue = Register;                                // store it back
-    RegisterWrite(VADDRTXCONFIGREG, Register);                  // and write to it
+  GTXAmplScaleFactor = Amplitude;                             // save value
+  Register = TXConfigRegValue;                                // get current settings
+  Register &= 0xFFC0000F;                                     // remove old bits
+  Register |= ((Amplitude & 0x3FFFF) << VTXCONFIGSCALEBIT);   // add new bits
+  TXConfigRegValue = Register;                                // store it back
+  RegisterWrite(VADDRTXCONFIGREG, Register);                  // and write to it
+  pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -2131,16 +2300,16 @@ void SetTXAmplitudeScaling (unsigned int Amplitude)
 // SetTXProtocol (bool Protocol)
 // sets whether TX configured for P1 (48KHz) or P2 (192KHz)
 // true for P2
-void SetTXProtocol (bool Protocol)
-{
-    uint32_t Register;
-
-    GTXProtocolP2 = Protocol;                           // save value
-    Register = TXConfigRegValue;                        // get current settings
-    Register &= 0xFFFFFF7;                              // remove old bit
-    Register |= ((((unsigned int)Protocol)&1) << VTXCONFIGPROTOCOLBIT);            // add new bit
-    TXConfigRegValue = Register;                    // store it back
-    RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
+void SetTXProtocol(bool Protocol) {
+  uint32_t Register;
+  pthread_mutex_lock(&DefaultRegMutex);
+  GTXProtocolP2 = Protocol;                           // save value
+  Register = TXConfigRegValue;                        // get current settings
+  Register &= 0xFFFFFF7;                              // remove old bit
+  Register |= ((((unsigned int) Protocol) & 1) << VTXCONFIGPROTOCOLBIT);            // add new bit
+  TXConfigRegValue = Register;                    // store it back
+  RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
+  pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -2149,19 +2318,20 @@ void SetTXProtocol (bool Protocol)
 // resets to 64 to 48 bit multiplexer to initial state, expecting 1st 64 bit word
 // also causes any input data to be discarded, so don't set it for long!
 //
-void ResetDUCMux(void)
-{
-    uint32_t Register;
-    uint32_t BitMask;
+void ResetDUCMux(void) {
+  uint32_t Register;
+  uint32_t BitMask;
 
-    BitMask = (1 << 29);
-    Register = TXConfigRegValue;                        // get current settings
-    Register |= BitMask;                                // set reset bit
-    RegisterWrite(VADDRTXCONFIGREG, Register);          // and write to it
-    Register &= ~BitMask;                               // remove old bit
-    RegisterWrite(VADDRTXCONFIGREG, Register);          // and write to it
+  pthread_mutex_lock(&DefaultRegMutex);
+
+  BitMask = (UINT32_C(1) << 29);
+  Register = TXConfigRegValue;                        // get current settings
+  Register |= BitMask;                                // set reset bit
+  RegisterWrite(VADDRTXCONFIGREG, Register);          // and write to it
+  Register &= ~BitMask;                               // remove old bit
+  RegisterWrite(VADDRTXCONFIGREG, Register);          // and write to it
+  pthread_mutex_unlock(&DefaultRegMutex);
 }
-
 
 
 //
@@ -2169,20 +2339,23 @@ void ResetDUCMux(void)
 // sets the sample output gater. If false, samples gated by TX strobe.
 // if true, samples are alweays enabled.
 //
-void SetTXOutputGate(bool AlwaysOn)
-{
-    uint32_t Register;
-    uint32_t BitMask;
+void SetTXOutputGate(bool AlwaysOn) {
+  uint32_t Register;
+  uint32_t BitMask;
 
-    GTXAlwaysEnabled = AlwaysOn;
-    BitMask = (1 << 2);
-    Register = TXConfigRegValue;                        // get current settings
-    if (AlwaysOn)
-        Register |= BitMask;                            // set bit if true
-        else
-        Register &= ~BitMask;                           // clear bit if false
-    TXConfigRegValue = Register;                    // store it back
-    RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
+  pthread_mutex_lock(&DefaultRegMutex);
+
+  GTXAlwaysEnabled = AlwaysOn;
+  BitMask = (UINT32_C(1) << 2);
+  Register = TXConfigRegValue;                        // get current settings
+  if (AlwaysOn) {
+    Register |= BitMask;                            // set bit if true
+  } else {
+    Register &= ~BitMask;                           // clear bit if false
+  }
+  TXConfigRegValue = Register;                    // store it back
+  RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
+  pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -2194,20 +2367,22 @@ void SetTXOutputGate(bool AlwaysOn)
 // shgould be called by the TX I/Q data handler only to be sure
 // of meeting that constraint 
 //
-void SetTXIQDeinterleaved(bool Interleaved)
-{
-    uint32_t Register;
-    uint32_t BitMask;
+void SetTXIQDeinterleaved(bool Interleaved) {
+  uint32_t Register;
+  uint32_t BitMask;
 
-    GTXIQInterleaved = Interleaved;
-    BitMask = (1 << 30);
-    Register = TXConfigRegValue;                        // get current settings
-    if (Interleaved)
-        Register |= BitMask;                            // set bit if true
-    else
-        Register &= ~BitMask;                           // clear bit if false
-    TXConfigRegValue = Register;                    // store it back
-    RegisterWrite(VADDRTXCONFIGREG, Register);    // and write to it
+  pthread_mutex_lock(&DefaultRegMutex);
+
+  GTXIQInterleaved = Interleaved;
+  BitMask = (UINT32_C(1) << 30);
+  Register = TXConfigRegValue;                        // get current settings
+  if (Interleaved)
+    Register |= BitMask;                            // set bit if true
+  else
+    Register &= ~BitMask;                           // clear bit if false
+  TXConfigRegValue = Register;                    // store it back
+  RegisterWrite(VADDRTXCONFIGREG, Register);    // and write to it
+  pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -2216,20 +2391,21 @@ void SetTXIQDeinterleaved(bool Interleaved)
 // enabled the multiplexer to take samples from FIFO and hand on to DUC
 // // needs to be stoppable if there is an error condition
 //
-void EnableDUCMux(bool Enabled)
-{
-    uint32_t Register;
-    uint32_t BitMask;
+void EnableDUCMux(bool Enabled) {
+  uint32_t Register;
+  uint32_t BitMask;
+  pthread_mutex_lock(&DefaultRegMutex);
 
-    GTXDUCMuxActive = Enabled;
-    BitMask = (1 << 31);
-    Register = TXConfigRegValue;                        // get current settings
-    if (Enabled)
-        Register |= BitMask;                            // set bit if true
-    else
-        Register &= ~BitMask;                           // clear bit if false
-    TXConfigRegValue = Register;                    // store it back
-    RegisterWrite(VADDRTXCONFIGREG, Register);    // and write to it
+  GTXDUCMuxActive = Enabled;
+  BitMask = (UINT32_C(1) << 31);
+  Register = TXConfigRegValue;                        // get current settings
+  if (Enabled)
+    Register |= BitMask;                            // set bit if true
+  else
+    Register &= ~BitMask;                           // clear bit if false
+  TXConfigRegValue = Register;                    // store it back
+  RegisterWrite(VADDRTXCONFIGREG, Register);    // and write to it
+  pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -2239,16 +2415,17 @@ void EnableDUCMux(bool Enabled)
 // SetTXModulationTestSourceFrequency (unsigned int Freq)
 // sets the TX modulation DDS source frequency. Only used for development.
 // 
-void SetTXModulationTestSourceFrequency (unsigned int Freq)
-{
-    uint32_t Register;
+void SetTXModulationTestSourceFrequency(unsigned int Freq) {
+  uint32_t Register;
+  pthread_mutex_lock(&DefaultRegMutex);
 
-    Register = Freq;                        // get current settings
-    if(Register != TXModulationTestReg)                    // write back if different
-    {
-        TXModulationTestReg = Register;                    // store it back
-        RegisterWrite(VADDRTXMODTESTREG, Register);  // and write to it
-    }
+  Register = Freq;                        // get current settings
+  if (Register != TXModulationTestReg)                    // write back if different
+  {
+    TXModulationTestReg = Register;                    // store it back
+    RegisterWrite(VADDRTXMODTESTREG, Register);  // and write to it
+  }
+  pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -2257,16 +2434,17 @@ void SetTXModulationTestSourceFrequency (unsigned int Freq)
 // selects the modulation source for the TX chain.
 // this will need to be called operationally to change over between CW & I/Q
 //
-void SetTXModulationSource(ETXModulationSource Source)
-{
-    uint32_t Register;
+void SetTXModulationSource(ETXModulationSource Source) {
+  uint32_t Register;
+  pthread_mutex_lock(&DefaultRegMutex);
 
-    GTXModulationSource = Source;                       // save value
-    Register = TXConfigRegValue;                        // get current settings
-    Register &= 0xFFFFFFFC;                             // remove old bits
-    Register |= ((unsigned int)Source);                 // add new bits
-    TXConfigRegValue = Register;                    // store it back
-    RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
+  GTXModulationSource = Source;                       // save value
+  Register = TXConfigRegValue;                        // get current settings
+  Register &= 0xFFFFFFFC;                             // remove old bits
+  Register |= ((unsigned int) Source);                 // add new bits
+  TXConfigRegValue = Register;                    // store it back
+  RegisterWrite(VADDRTXCONFIGREG, Register);  // and write to it
+  pthread_mutex_unlock(&DefaultRegMutex);
 }
 
 
@@ -2318,11 +2496,68 @@ void SetDDCSampleSize(unsigned int DDC, unsigned int Size)
 // UseTestDDSSource(void)
 // override ADC1 and ADC2 selection; use test source instead.
 //
-void UseTestDDSSource(void)
-{
-    sem_wait(&DDCInSelMutex);                           // get protected access
-    GADCOverride = true;
-    DDCInSelReg = (DDCInSelReg & 0x40000000) | 0x000AAAAA;      // set all to test
-    sem_post(&DDCInSelMutex);
+void UseTestDDSSource(void) {
+  pthread_mutex_lock(&DDCInSelMutex);
+  GADCOverride = true;
+  DDCInSelReg = (DDCInSelReg & 0x40000000) | 0x000AAAAA;      // set all to test
+  pthread_mutex_unlock(&DDCInSelMutex);
+}
 
+//
+// 8 bit Codec register write over the AXILite bus via simple SPI writer IP
+// given 7 bit register address and 9 bit data
+//
+void CodecRegisterWriteBatch(const CodecRegisterOp* ops, size_t count) {
+  pthread_mutex_lock(&CodecRegMutex);
+  for (size_t i = 0; i < count; i++) {
+    CodecRegisterWriteUnsafe(ops[i].address, ops[i].data);
+    if (i < count - 1) {
+      usleep(100);  // Sleep between writes, but not after the last one
+    }
+  }
+  pthread_mutex_unlock(&CodecRegMutex);
+}
+
+void CodecRegisterWriteSingle(uint32_t address, uint32_t data) {
+  pthread_mutex_lock(&CodecRegMutex);
+  CodecRegisterWriteUnsafe(address, data);
+  pthread_mutex_unlock(&CodecRegMutex);
+}
+
+inline void CodecRegisterWriteUnsafe(uint32_t address, uint32_t data) {
+  uint32_t writeData = (address << 9) | (data & 0x01FFUL);
+  RegisterWrite(VADDRCODECSPIREG, writeData);
+}
+
+static uint32_t ReadSoftwareInformationRegister(void)
+{
+  pthread_mutex_lock(&DefaultRegMutex);
+  uint32_t softwareInformation = RegisterRead(VADDRSWVERSIONREG);
+  pthread_mutex_unlock(&DefaultRegMutex);
+  return softwareInformation;
+}
+
+FirmwareInfo GetFirmwareInfo(void)
+{
+  uint32_t softwareInformation = ReadSoftwareInformationRegister();
+
+  FirmwareInfo info;
+  info.version = (softwareInformation >> 4) & 0xFFFF;  // 16 bit sw version
+  info.id = (ESoftwareID)(softwareInformation >> 20);  // 12 bit software ID
+  info.clockInfo = (softwareInformation & 0xF);
+
+  return info;
+}
+
+
+float GetDieTemperatureCelcius() {
+  uint32_t RegisterValue;
+  float Temp;
+  pthread_mutex_lock(&DefaultRegMutex);
+  RegisterValue = RegisterRead(VADDRXADCTEMPREG);
+  pthread_mutex_unlock(&DefaultRegMutex);
+  Temp = (float)RegisterValue * 503.975f;
+  Temp = Temp / 65536.0f;
+  Temp -= 273.15f;
+  return Temp;
 }

@@ -14,19 +14,18 @@
 
 #define _DEFAULT_SOURCE
 #define _XOPEN_SOURCE 500
-#include <assert.h>
+
+#ifdef __STDC_NO_ATOMICS__
+#error This compiler does not support C11 atomics
+#endif
+
 #include <fcntl.h>
-#include <getopt.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
 
-#include <sys/types.h>
 #include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
 #define VMEMBUFFERSIZE 32768										// memory buffer to reserve
 #define AXIBaseAddress 0x10000									// address of StreamRead/Writer IP
@@ -37,27 +36,21 @@
 //
 // mem read/write variables:
 //
-	int register_fd;                             // device identifier
-
-
+int register_fd;                             // device identifier
 
 
 //
 // open connection to the XDMA device driver for register and DMA access
 //
-int OpenXDMADriver(void)
-{
-    int Result = 0;
-	if ((register_fd = open("/dev/xdma0_user", O_RDWR)) == -1)
-    {
-		printf("register R/W address space not available\n");
-    }
-    else
-    {
-		printf("register access connected to /dev/xdma0_user\n");
-        Result = 1;
-    }
-    return Result;
+int OpenXDMADriver(void) {
+  int Result = 0;
+  if ((register_fd = open("/dev/xdma0_user", O_RDWR)) == -1) {
+    printf("register R/W address space not available\n");
+  } else {
+    printf("register access connected to /dev/xdma0_user\n");
+    Result = 1;
+  }
+  return Result;
 }
 
 
@@ -71,30 +64,18 @@ int OpenXDMADriver(void)
 // Length: number of bytes to copy
 // AXIAddr: offset address in the FPGA window 
 //
-int DMAWriteToFPGA(int fd, unsigned char*SrcData, uint32_t Length, uint32_t AXIAddr)
-{
-	ssize_t rc;									// response code
-	off_t OffsetAddr;
+int DMAWriteToFPGA(int fd, unsigned char* SrcData, uint32_t Length, uint32_t AXIAddr) {
+  ssize_t rc; // response code
 
-	OffsetAddr = AXIAddr;
-	rc = lseek(fd, OffsetAddr, SEEK_SET);
-	if (rc != OffsetAddr)
-	{
-		printf("seek off 0x%lx != 0x%lx.\n", rc, OffsetAddr);
-		perror("seek file");
-		return -EIO;
-	}
-
-	// write data to FPGA from memory buffer
-	rc = write(fd, SrcData, Length);
-	if (rc < 0)
-	{
-		printf("write 0x%x @ 0x%lx failed %ld.\n", Length, OffsetAddr, rc);
-		perror("DMA write");
-		return -EIO;
-	}
-	return 0;
+  rc = pwrite(fd, SrcData, Length, AXIAddr);
+  if (rc < 0) {
+    printf("pwrite 0x%x bytes to 0x%lx failed: %ld.\n", Length, (long) AXIAddr, rc);
+    perror("DMA write");
+    return -EIO;
+  }
+  return 0;
 }
+
 
 //
 // initiate a DMA from the FPGA with specified parameters
@@ -104,54 +85,39 @@ int DMAWriteToFPGA(int fd, unsigned char*SrcData, uint32_t Length, uint32_t AXIA
 // Length: number of bytes to copy
 // AXIAddr: offset address in the FPGA window 
 //
-int DMAReadFromFPGA(int fd, unsigned char*DestData, uint32_t Length, uint32_t AXIAddr)
+int DMAReadFromFPGA(int fd, unsigned char* DestData, uint32_t Length, uint32_t AXIAddr)
 {
-	ssize_t rc;									// response code
-	off_t OffsetAddr;
+  ssize_t rc;
 
-	OffsetAddr = AXIAddr;
-	rc = lseek(fd, OffsetAddr, SEEK_SET);
-	if (rc != OffsetAddr)
-	{
-		printf("seek off 0x%lx != 0x%lx.\n", rc, OffsetAddr);
-		perror("seek file");
-		return -EIO;
-	}
+  rc = pread(fd, DestData, Length, AXIAddr);
+  if (rc < 0) {
+    printf("DMA read of 0x%x bytes from 0x%lx failed: %ld\n", Length, (long) AXIAddr, rc);
+    perror("DMA read");
+    return -EIO;
+  }
 
-	// write data to FPGA from memory buffer
-	rc = read(fd, DestData, Length);
-	if (rc < 0)
-	{
-		printf("read 0x%x @ 0x%lx failed %ld.\n", Length, OffsetAddr, rc);
-		perror("DMA read");
-		return -EIO;
-	}
-	return 0;
+  return 0;
 }
+
 
 //
 // 32 bit register read over the AXILite bus
 //
-uint32_t RegisterRead(uint32_t Address)
-{
-	uint32_t result = 0;
+uint32_t RegisterRead(uint32_t Address) {
+  uint32_t result = 0;
 
-    ssize_t nread = pread(register_fd, &result, sizeof(result), (off_t) Address);
-    if (nread != sizeof(result))
-        printf("ERROR: register read: addr=0x%08X   error=%s\n",Address, strerror(errno));
-	
-    return result;
+  ssize_t nread = pread(register_fd, &result, sizeof(result), (off_t) Address);
+  if (nread != sizeof(result))
+    printf("ERROR: register read: addr=0x%08X   error=%s\n", Address, strerror(errno));
+
+  return result;
 }
 
 //
 // 32 bit register write over the AXILite bus
 //
-void RegisterWrite(uint32_t Address, uint32_t Data)
-{
-    ssize_t nsent = pwrite(register_fd, &Data, sizeof(Data), (off_t) Address); 
-    if (nsent != sizeof(Data))
-        printf("ERROR: Write: addr=0x%08X   error=%s\n",Address, strerror(errno));
+void RegisterWrite(uint32_t Address, uint32_t Data) {
+  ssize_t nsent = pwrite(register_fd, &Data, sizeof(Data), (off_t) Address);
+  if (nsent != sizeof(Data))
+    printf("ERROR: Write: addr=0x%08X   error=%s\n", Address, strerror(errno));
 }
-
-
-
