@@ -44,31 +44,27 @@
 
 
 //
-// strategy:
-// 1. We have one DMA buffer, big enough for the largest DMA from the wideband FIFO
-// 2. On startup: turn off the IP and clear the FIFO if any data in it. 
-// 3. wideband IP started; it periodically writes defined sample count to FIFO
-// 4. When write complete, a status flag is set; one for each ADC
-// 5. when a flag is set, DMA out the data then write the bit to say "data transferred"
-// 6. break data into N outgoing packets and send to Thetis over UDP
-// 7. when the wideband settings change: stop operation; clear FIFO; setup new settings & restart
-// 8. when exiting: turn off the IP.
-//
-
-
-
-
-
-
-//
-// code to allocate and free dynamic allocated memory
-// first the memory buffers:
+// define the memory buffers:
 //
 uint8_t* WBDMAReadBuffer = NULL;								// data for DMA read from DDC
 uint32_t WBDMABufferSize = VDMABUFFERSIZE;
 unsigned char* WBDMAReadPtr;							        // pointer for 1st available location in DMA memory
 
-uint8_t* WBUDPBuffer[VNUMDDC];                                // DDC frame buffer
+uint8_t* WBUDPBuffer[VNUMDDC];                                  // DDC frame buffer
+extern  int DMAReadfile_fd;								        // DMA read file device (opened by mic samples thread)
+
+//
+// copies of params provided by P2 protocol
+// WBParamsChanged set true if parameters have moved
+//
+bool WBParamsChanged;
+uint8_t StoredEnables;
+uint16_t StoredSampleCount;
+uint8_t StoredSampleSize;
+uint8_t StoredRate;
+uint8_t StoredPacketCount;
+
+
 
 
 //
@@ -82,7 +78,7 @@ bool CreateWBDynamicMemory(void)                              // return true if 
 // first create the buffer for DMA, and initialise its pointers
 //
     posix_memalign((void**)&WBDMAReadBuffer, VALIGNMENT, WBDMABufferSize);
-    WBDMAReadPtr = WBDMAReadBuffer;		                    // offset 4096 bytes into buffer
+    WBDMAReadPtr = WBDMAReadBuffer;		                    // pointer into buffer
     if (!WBDMAReadBuffer)
     {
         printf("Wideband read buffer allocation failed\n");
@@ -120,15 +116,57 @@ void FreeWBDynamicMemory(void)
 //
 // set parameters from SDR for wideband data collect
 // paramters as transferred in general packet to SDR
+// see if any differences are present, then store for when thread is ready
 //
 void SetWidebandParams(uint8_t Enables, uint16_t SampleCount, uint8_t SampleSize, uint8_t Rate, uint8_t PacketCount)
 {
-//  SetWidebandEnable(eADC1, (bool)(Enables&1));
-//  SetWidebandEnable(eADC2, (bool)(Enables&2));
-  SetWidebandSampleCount(SampleCount);
-  SetWidebandUpdateRate(Rate);
+    if((Enables != StoredEnables) || (SampleCount != StoredSampleCount) || (SampleSize != StoredSampleSize)
+       || (Rate != StoredRate) || (PacketCount != StoredPacketCount))
+        WBParamsChanged = true;
+
+    StoredEnables = Enables;
+    StoredSampleCount = SampleCount;
+    StoredSampleSize = SampleSize;
+    StoredRate = Rate;
+    StoredPacketCount = PacketCount;
 }
 
+
+//
+// read out the Wideband FIFO
+// returns the number of samples read
+// read available word count, then do DMA to memory buffer
+//
+uint32_t ReadFIFOContent()
+{
+    uint32_t SampleCount = 0;
+    uint32_t WordCount = 0;                             // count of 64 bit words in the FIFO
+    bool ADC1, ADC2;
+
+    WordCount = GetWidebandStatus(&ADC1, &ADC2);
+    if(WordCount != 0)
+    {
+        sem_wait(&MicWBDMAMutex);                       // get protected access
+        DMAReadFromFPGA(DMAReadfile_fd, WBDMAReadBuffer, WordCount * 8, VADDRWIDEBANDREAD);
+        sem_post(&MicWBDMAMutex);                       // get protected access
+        SampleCount = WordCount * 4;
+    }
+    return SampleCount;
+}
+
+
+//
+// strategy:
+// 1. We have one DMA buffer, big enough for the largest DMA from the wideband FIFO
+// 2. On startup: turn off the IP and clear the FIFO if any data in it. 
+// 3. when the wideband settings change: stop operation; clear FIFO; setup new settings & restart if still enabled
+// 4. wideband IP started; it periodically writes defined sample count to FIFO
+// 5. When write complete, a status flag is set; one for each ADC
+// 6. when a flag is set, DMA out the data for that ADC then write the bit to say "data transferred"
+// 7. break data into N outgoing packets and send to Thetis over UDP
+// 8. Need to check if both ADCs are enabled, because more data will follow if so
+// 9. when exiting: turn off the IP.
+//
 
 
 //
@@ -166,6 +204,7 @@ void *OutgoingWidebandSamples(void *arg)
 
 //
 // initialise. Create memory buffers and open DMA file devices
+// (strategy step 1)
 //
     InitError = CreateWBDynamicMemory();
     //
@@ -189,13 +228,16 @@ void *OutgoingWidebandSamples(void *arg)
 //
 // now initialise Saturn wideband hardware.
 // turn off wideband capture, and clear FIFO
-// then read depth
-//
-
+// (strategy step 2)
+// 
+    SetWidebandEnable(false, false, false);                 // turn off data collection
+    usleep(150);                                            // wait dfor any current write to end
+    ReadFIFOContent();                                      // then empty the FIFO
 
 //
 // thread loop. runs continuously until commanded by main loop to exit
-// while there is wideband data, make outgoing packets;
+// initialise thread data structures;
+// then while there is wideband data, make outgoing packets;
 //
     while(!InitError)
     {
@@ -213,7 +255,7 @@ void *OutgoingWidebandSamples(void *arg)
         printf("starting outgoing Wideband data\n");
         StartupCount = VSTARTUPDELAY;
         //
-        // initialise outgoing WB packets - 1 per ADC
+        // initialise outgoing WB packet buffers - 1 per ADC
         //
         for (ADC = 0; ADC < VNUMWBADC; ADC++)
         {
@@ -230,17 +272,48 @@ void *OutgoingWidebandSamples(void *arg)
         }
       //
       // enable Saturn WB IP to transfer data
+      // this is the main app loop
+      // monitor changes to paramters, because this is the trigger to reconfigure operation
       //
         printf("outDDCIQ: enable data transfer\n");
         while(!InitError && SDRActive)
         {
-        }     // end of while(!InitError&& SDRActive) loop
+//
+// if parameters have changed, halt then re-load configuration (strategy step 3)
+// (this will also work from a cold start)
+//
+            if(WBParamsChanged)
+            {
+                SetWidebandEnable(false, false, false);                 // turn off data collection
+                usleep(150);                                            // wait dfor any current write to end
+                ReadFIFOContent();                                      // then empty the FIFO discarding data
+                SetWidebandSampleCount(StoredSampleCount);
+                SetWidebandUpdateRate(StoredRate);
+                SetWidebandEnable((bool)(StoredEnables&1), (bool)(StoredEnables&2), false);
+            }
+//
+// then if enabled:
+// using a while loop, wait for data to be available from the FPGA. 
+// When it is, read it and clear the IP "data available" flag
+// (strategy step 6)
+// then send out packets to SDR client
+// recheck if parameters have changed after a successful ready
+//
+            if(StoredEnables != 0)                      // if active
+            {
+
+            }
+
+        }     // end of while(!InitError&& SDRActive) loop - typically when comm with SDR client stops
+        StoredEnables = false;                                          // force a re-config if comm continues later
     } //end of while(!InitError)
 
 //
 // tidy shutdown of the thread
+// halt the wideband IP (strategy step 9)
 //
     printf("shutting down Wideband outgoing thread\n");
+    SetWidebandEnable(false, false, false);
     close(ThreadData->Socketid); 
     ThreadData->Active = false;                   // signal closed
     FreeWBDynamicMemory();

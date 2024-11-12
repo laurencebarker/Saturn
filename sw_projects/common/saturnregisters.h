@@ -136,6 +136,7 @@ typedef enum
 #define VADDRDUCSTREAMWRITE 0x0L				// stream reader/writer on AXI-4 bus
 #define VADDRMICSTREAMREAD 0x40000L				// stream reader/writer on AXI-4 bus
 #define VADDRSPKRSTREAMWRITE 0x40000L			// stream reader/writer on AXI-4 bus
+#define VADDRWIDEBANDREAD 0x80000L				// stream reader/writer on AXI-4 bus
 
 #define VBITDDCFIFORESET 2						// reset bit in register
 #define VBITDUCFIFORESET 3						// reset bit in register

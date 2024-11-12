@@ -37,6 +37,10 @@
 #define VSTARTUPDELAY 100                           // 100 messages (~100ms) before reporting under or overflows
 
 
+    int DMAReadfile_fd = -1;								// DMA read file device (global, used also by wideband)
+
+
+
 
 // this runs as its own thread to send outgoing data
 // thread initiated after a "Start" command
@@ -68,7 +72,6 @@ void *OutgoingMicSamples(void *arg)
     unsigned char* MicHeadPtr;								// ptr to 1st free location in mic memory
     unsigned char* MicBasePtr;								// ptr to DMA location in mic memory
     uint32_t Depth = 0;
-    int DMAReadfile_fd = -1;								// DMA read file device
     uint32_t RegisterValue;
     bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;
     unsigned int Current;                                   // current occupied locations in FIFO
