@@ -412,14 +412,18 @@ int main(int argc, char *argv[])
   unsigned int MajorVersion = 0;
   bool IncompatibleFirmware = false;                                // becomes set if firmware is not compatible with this version
 
+
+
+
   //
   // initialise register access semaphores
   //
   sem_init(&DDCInSelMutex, 0, 1);                                   // for DDC input select register
   sem_init(&DDCResetFIFOMutex, 0, 1);                               // for FIFO reset register
   sem_init(&RFGPIOMutex, 0, 1);                                     // for RF GPIO register
-  sem_init(&DDCResetFIFOMutex, 0, 1);                               // for DMA
-  
+  sem_init(&CodecRegMutex, 0, 1);                                   // for codec accesss
+  sem_init(&MicWBDMAMutex, 0, 1);                                   // for mic and WB DMA
+    
 //
 // setup Saturn hardware
 //
@@ -431,7 +435,7 @@ int main(int argc, char *argv[])
   PrintAuxADCInfo();
   if (IsFallbackConfig())
       printf("FPGA load is a fallback - you should re-flash the primary FPGA image!\n");
-
+  
   CodecInitialise();
   InitialiseDACAttenROMs();
 //  InitialiseCWKeyerRamp(true, 5000);                                // create initial default 5 ms ramp, P2

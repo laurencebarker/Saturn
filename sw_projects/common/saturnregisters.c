@@ -1762,7 +1762,7 @@ void SetWidebandEnable(bool ADC0, bool ADC1, bool DataCollected)
 //
 // SetWidebandSampleCount(uint32_t SampleWords)
 // sets the wideband data collected count, in 64 bit words
-// the register setting is one less than thos!
+// the register setting is one less than this!
 //
 void SetWidebandSampleCount(unsigned int Samples)
 {
