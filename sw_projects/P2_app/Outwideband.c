@@ -36,7 +36,7 @@
 #define VDMABUFFERSIZE 65536						            // memory buffer to reserve (2x wideband FIFO size)
 #define VALIGNMENT 4096                             // buffer alignment
 
-#define VWBPACKETSIZE 1028
+#define VWBPACKETSIZE 1500                          // packet size is a variable, sp make max for UDP
 #define VWBSAMPLESPERFRAME 512                      // total wideband ADC samples in one WB packet
 #define VWBBYTESPERFRAME 2*VWBSAMPLESPERFRAME       // total bytes in one outgoing frame
 #define VSTARTUPDELAY 100                           // 100 messages (~100ms) before reporting under or overflows
@@ -48,7 +48,6 @@
 //
 uint8_t* WBDMAReadBuffer = NULL;								// data for DMA read from DDC
 uint32_t WBDMABufferSize = VDMABUFFERSIZE;
-unsigned char* WBDMAReadPtr;							        // pointer for 1st available location in DMA memory
 
 uint8_t* WBUDPBuffer[VNUMDDC];                                  // DDC frame buffer
 extern  int DMAReadfile_fd;								        // DMA read file device (opened by mic samples thread)
@@ -58,12 +57,11 @@ extern  int DMAReadfile_fd;								        // DMA read file device (opened by mi
 // WBParamsChanged set true if parameters have moved
 //
 bool WBParamsChanged;
-uint8_t StoredEnables;
-uint16_t StoredSampleCount;
-uint8_t StoredSampleSize;
-uint8_t StoredRate;
-uint8_t StoredPacketCount;
-
+uint8_t StoredEnables;                                          // enable bits for ADC1 (bit0) & 2 (bit1)
+uint16_t StoredSamplePerPktCount;                               // samples per packet count
+uint8_t StoredSampleSize;                                       // sample resolution in bits (typ 16)
+uint8_t StoredRate;                                             // update rate in ms
+uint8_t StoredPacketCount;                                      // packets to be transferred out
 
 
 
@@ -78,7 +76,6 @@ bool CreateWBDynamicMemory(void)                              // return true if 
 // first create the buffer for DMA, and initialise its pointers
 //
     posix_memalign((void**)&WBDMAReadBuffer, VALIGNMENT, WBDMABufferSize);
-    WBDMAReadPtr = WBDMAReadBuffer;		                    // pointer into buffer
     if (!WBDMAReadBuffer)
     {
         printf("Wideband read buffer allocation failed\n");
@@ -120,15 +117,18 @@ void FreeWBDynamicMemory(void)
 //
 void SetWidebandParams(uint8_t Enables, uint16_t SampleCount, uint8_t SampleSize, uint8_t Rate, uint8_t PacketCount)
 {
-    if((Enables != StoredEnables) || (SampleCount != StoredSampleCount) || (SampleSize != StoredSampleSize)
+    if((Enables != StoredEnables) || (SampleCount != StoredSamplePerPktCount) || (SampleSize != StoredSampleSize)
        || (Rate != StoredRate) || (PacketCount != StoredPacketCount))
         WBParamsChanged = true;
 
-    StoredEnables = Enables;
-    StoredSampleCount = SampleCount;
-    StoredSampleSize = SampleSize;
-    StoredRate = Rate;
-    StoredPacketCount = PacketCount;
+    StoredEnables = Enables;                            // enable bits for ADC1 (bit0) & 2 (bit1)
+    StoredSamplePerPktCount = SampleCount;                    // samples per packet count
+    StoredSampleSize = SampleSize;                      // sample resolution in bits (typ 16)
+    StoredRate = Rate;                                  // update rate in ms
+    StoredPacketCount = PacketCount;                    // packets to be transferred out
+
+    if(WBParamsChanged)
+        printf("New WB data: Enables=%d, Sample/pkt = %d, Samplesize=%d, Rate=%d, PktCount=%d\n", Enables, SampleCount, SampleSize, Rate, PacketCount);
 }
 
 
@@ -189,7 +189,10 @@ void *OutgoingWidebandSamples(void *arg)
     uint32_t RegisterValue;
     bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;
     int ADC;                                                    // iterator
-
+    uint32_t SampleWordCount;                                   // no of 64 bit words required
+    bool ADC1, ADC2;                                            // true if data available
+    uint32_t PacketCounter;
+    uint32_t StartAddress;                                      // data locations in wideband collected data
     struct ThreadSocketData *ThreadData;                        // socket etc data for each thread.
                                                                 // points to 1st one
 //
@@ -268,7 +271,7 @@ void *OutgoingWidebandSamples(void *arg)
             datagram[ADC].msg_iov = &iovecinst[ADC];
             datagram[ADC].msg_iovlen = 1;
             datagram[ADC].msg_name = &DestAddr[ADC];                   // MAC addr & port to send to
-            datagram[ADC].msg_namelen = sizeof(DestAddr);
+            datagram[ADC].msg_namelen = sizeof(struct sockaddr_in);
         }
       //
       // enable Saturn WB IP to transfer data
@@ -287,9 +290,12 @@ void *OutgoingWidebandSamples(void *arg)
                 SetWidebandEnable(false, false, false);                 // turn off data collection
                 usleep(150);                                            // wait dfor any current write to end
                 ReadFIFOContent();                                      // then empty the FIFO discarding data
-                SetWidebandSampleCount(StoredSampleCount);
+                SampleWordCount = (StoredSamplePerPktCount * StoredPacketCount) / 4;    // no. 64 bit words
+                SetWidebandSampleCount(SampleWordCount);
                 SetWidebandUpdateRate(StoredRate);
                 SetWidebandEnable((bool)(StoredEnables&1), (bool)(StoredEnables&2), false);
+                printf("Setting WB IP: WordCount = %d, Rate = %d, ADC1 = %d, ADC2=%d\n", SampleWordCount, StoredRate, (StoredEnables&1), (StoredEnables&2));
+                WBParamsChanged = false;
             }
 //
 // then if enabled:
@@ -301,8 +307,37 @@ void *OutgoingWidebandSamples(void *arg)
 //
             if(StoredEnables != 0)                      // if active
             {
+                GetWidebandStatus(&ADC1, &ADC2);      // get flags for data available
+                if(ADC1 || ADC2)                                        // if data available for either
+                {
+                    SampleWordCount = ReadFIFOContent();                // then read FIFO till empty
+                    printf("WB data available, ADC sample count = %d\n", SampleWordCount);
+                    SetWidebandEnable((bool)(StoredEnables&1), (bool)(StoredEnables&2), true);  // re-enable record
+                    //
+                    // now transfer data out on UDP packets
+                    // first select the buffer set yo use based on what data is available
+                    //
+                    if(ADC2)
+                        ADC=1;
+                    else
+                        ADC=0;
+                    for(PacketCounter = 0; PacketCounter < StoredPacketCount; PacketCounter++)
+                    {
+                        *(uint32_t*)WBUDPBuffer[ADC] = htonl(SequenceCounter[ADC]++);     // add sequence count
+                        //
+                        // now add I/Q data & send outgoing packet
+                        //
+                        StartAddress = PacketCounter * StoredSamplePerPktCount * 2;         // byte address
+                        memcpy(WBUDPBuffer[ADC] + 4, WBDMAReadBuffer + StartAddress, StoredSamplePerPktCount * 2);
+                        iovecinst[ADC].iov_len = StoredSamplePerPktCount * 2 + 4;           // P2 data dependent
 
+                        int Error;
+                        Error = sendmsg((ThreadData+ADC)->Socketid, &datagram[ADC], 0);
+                        usleep(200);                    // gap between outgoing messages
+                    }
+                }
             }
+            usleep(5000);
 
         }     // end of while(!InitError&& SDRActive) loop - typically when comm with SDR client stops
         StoredEnables = false;                                          // force a re-config if comm continues later
