@@ -385,7 +385,8 @@
       "axis_data_fifo_0": "",
       "util_vector_logic_0": "",
       "Wideband_Collect_0": "",
-      "axis_data_fifo_1": ""
+      "axis_data_fifo_1": "",
+      "byteswap_64_0": ""
     },
     "interface_ports": {
       "PROM_SPI": {
@@ -24283,7 +24284,7 @@
                 "vlnv": "xilinx.com:interface:aximm_rtl:1.0",
                 "parameters": {
                   "ADDR_WIDTH": {
-                    "value": "15",
+                    "value": "17",
                     "value_src": "strong"
                   },
                   "ARUSER_WIDTH": {
@@ -26757,7 +26758,7 @@
         "variant_info": {
           "audio_codec.bd": {
             "scoped_diagram": "audio_codec_inst_0.bd",
-            "design_checksum": "0x6D9C5DA8",
+            "design_checksum": "0xE4486C06",
             "ref_name": "audio_codec",
             "ref_subinst_path": "saturn_top_audio_codec_0",
             "ref_type": "Block Design",
@@ -28336,6 +28337,194 @@
             "value": "8"
           }
         }
+      },
+      "byteswap_64_0": {
+        "vlnv": "xilinx.com:module_ref:byteswap_64:1.0",
+        "xci_name": "saturn_top_byteswap_64_0_0",
+        "xci_path": "ip\\saturn_top_byteswap_64_0_0\\saturn_top_byteswap_64_0_0.xci",
+        "inst_hier_path": "byteswap_64_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "byteswap_64",
+          "boundary_crc": "0x0"
+        },
+        "interface_ports": {
+          "m_axis": {
+            "mode": "Master",
+            "vlnv_bus_definition": "xilinx.com:interface:axis:1.0",
+            "vlnv": "xilinx.com:interface:axis_rtl:1.0",
+            "parameters": {
+              "TDATA_NUM_BYTES": {
+                "value": "8",
+                "value_src": "constant"
+              },
+              "TDEST_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "TID_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "TUSER_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TREADY": {
+                "value": "1",
+                "value_src": "constant"
+              },
+              "HAS_TSTRB": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TKEEP": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TLAST": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "ip_prop"
+              },
+              "PHASE": {
+                "value": "0.0",
+                "value_src": "ip_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "saturn_top_clk_wiz_0_0_clk_out1",
+                "value_src": "default_prop"
+              }
+            },
+            "port_maps": {
+              "TDATA": {
+                "physical_name": "m_axis_tdata",
+                "direction": "O",
+                "left": "63",
+                "right": "0"
+              },
+              "TVALID": {
+                "physical_name": "m_axis_tvalid",
+                "direction": "O"
+              },
+              "TREADY": {
+                "physical_name": "m_axis_tready",
+                "direction": "I"
+              }
+            }
+          },
+          "s_axis": {
+            "mode": "Slave",
+            "vlnv_bus_definition": "xilinx.com:interface:axis:1.0",
+            "vlnv": "xilinx.com:interface:axis_rtl:1.0",
+            "parameters": {
+              "TDATA_NUM_BYTES": {
+                "value": "8",
+                "value_src": "constant"
+              },
+              "TDEST_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "TID_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "TUSER_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TREADY": {
+                "value": "1",
+                "value_src": "constant"
+              },
+              "HAS_TSTRB": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TKEEP": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TLAST": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "ip_prop"
+              },
+              "PHASE": {
+                "value": "0.0",
+                "value_src": "ip_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "saturn_top_clk_wiz_0_0_clk_out1",
+                "value_src": "default_prop"
+              }
+            },
+            "port_maps": {
+              "TDATA": {
+                "physical_name": "s_axis_tdata",
+                "direction": "I",
+                "left": "63",
+                "right": "0"
+              },
+              "TVALID": {
+                "physical_name": "s_axis_tvalid",
+                "direction": "I"
+              },
+              "TREADY": {
+                "physical_name": "s_axis_tready",
+                "direction": "O"
+              }
+            }
+          }
+        },
+        "ports": {
+          "aclk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_BUSIF": {
+                "value": "m_axis:s_axis",
+                "value_src": "constant"
+              },
+              "ASSOCIATED_RESET": {
+                "value": "aresetn",
+                "value_src": "constant"
+              },
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "ip_prop"
+              },
+              "PHASE": {
+                "value": "0.0",
+                "value_src": "ip_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "saturn_top_clk_wiz_0_0_clk_out1",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "aresetn": {
+            "type": "rst",
+            "direction": "I",
+            "parameters": {
+              "POLARITY": {
+                "value": "ACTIVE_LOW",
+                "value_src": "constant"
+              }
+            }
+          },
+          "swap": {
+            "direction": "I"
+          }
+        }
       }
     },
     "interface_nets": {
@@ -28425,14 +28614,20 @@
       },
       "Wideband_Collect_0_m_axis": {
         "interface_ports": [
-          "Wideband_Collect_0/m_axis",
-          "axis_data_fifo_1/S_AXIS"
+          "byteswap_64_0/s_axis",
+          "Wideband_Collect_0/m_axis"
         ]
       },
       "axis_data_fifo_0_M_AXIS": {
         "interface_ports": [
           "axis_data_fifo_0/M_AXIS",
           "audio_codec_0/S_AXIS_KeyerAmpl"
+        ]
+      },
+      "byteswap_64_0_m_axis": {
+        "interface_ports": [
+          "byteswap_64_0/m_axis",
+          "axis_data_fifo_1/S_AXIS"
         ]
       },
       "diff_clock_rtl_0_1": {
@@ -28582,7 +28777,8 @@
           "PCIe/Byteswap",
           "Transmitter/Byteswap",
           "Receiver/Byteswap",
-          "audio_codec_0/Byteswap"
+          "audio_codec_0/Byteswap",
+          "byteswap_64_0/swap"
         ]
       },
       "CodecConfig_1": {
@@ -29017,7 +29213,8 @@
           "clock_monitor_0/ck3",
           "axis_data_fifo_0/s_axis_aclk",
           "Wideband_Collect_0/aclk",
-          "axis_data_fifo_1/s_axis_aclk"
+          "axis_data_fifo_1/s_axis_aclk",
+          "byteswap_64_0/aclk"
         ]
       },
       "clock_generator_clock_122_out_ADC": {
@@ -29149,7 +29346,8 @@
           "xlslice_3/Dout",
           "Receiver/rstn1",
           "Wideband_Collect_0/aresetn",
-          "axis_data_fifo_1/s_axis_aresetn"
+          "axis_data_fifo_1/s_axis_aresetn",
+          "byteswap_64_0/aresetn"
         ]
       },
       "xlslice_4_Dout": {
