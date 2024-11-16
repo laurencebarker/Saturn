@@ -150,6 +150,7 @@ uint32_t ReadFIFOContent()
         DMAReadFromFPGA(DMAReadfile_fd, WBDMAReadBuffer, WordCount * 8, VADDRWIDEBANDREAD);
         sem_post(&MicWBDMAMutex);                       // get protected access
         SampleCount = WordCount * 4;
+        printf("word count in readFIFOContent = %d\n", WordCount);
     }
     return SampleCount;
 }
@@ -321,6 +322,7 @@ void *OutgoingWidebandSamples(void *arg)
                         ADC=1;
                     else
                         ADC=0;
+                    SequenceCounter[ADC] = 0;                           // restart at 0 for each frame
                     for(PacketCounter = 0; PacketCounter < StoredPacketCount; PacketCounter++)
                     {
                         *(uint32_t*)WBUDPBuffer[ADC] = htonl(SequenceCounter[ADC]++);     // add sequence count

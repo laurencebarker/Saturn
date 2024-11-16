@@ -1800,6 +1800,7 @@ void SetWidebandUpdateRate(unsigned int Period_ms)
 // returns the number of 64 bit words in the Wideband data FIFO
 // also returns as paramters the flags saying if there is readable data
 // from each ADC.
+// one sample word will already be in the FIFO reader IP, so safe to DMA the FIFO depth + 1 location.
 //
 uint32_t GetWidebandStatus(bool *ADC0Data, bool *ADC1Data)
 {
@@ -1808,6 +1809,7 @@ uint32_t GetWidebandStatus(bool *ADC0Data, bool *ADC1Data)
     *ADC0Data = (bool)((Register >> 30) & 1);
     *ADC1Data = (bool)((Register >> 31) & 1);
     Depth = (Register & 0x3FFFFFFF);                        // strip top 2 bits to get FIFO depth
+    //Depth += 1;
 
     return Depth;
 }
