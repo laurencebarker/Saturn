@@ -28325,7 +28325,7 @@
         "inst_hier_path": "axis_data_fifo_1",
         "parameters": {
           "FIFO_DEPTH": {
-            "value": "4096"
+            "value": "8192"
           },
           "HAS_WR_DATA_COUNT": {
             "value": "1"
