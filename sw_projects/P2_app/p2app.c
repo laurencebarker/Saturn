@@ -61,12 +61,11 @@
 #define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
-// it won't work with an old version. This means p2app will always need to be updated if the formware is updated. 
-// at minimum to update FIRMWARE_MAX_VERSION
+// it won't work with an old version. This means p2app will always need to be updated if the firmware is updated to new major version.
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
-// V30: 31/10/2024:  initial prep for wideband record to be added
+// V30: 17/11/2024:  wideband record added.
 // V29: 15/10/2024   DL1YCF CW ramp; CW amplitude corrected; added support to detect & check FPGA major version
 // V27: 4/8/2024:    merged G2V2 panel support code into main
 // V26: 17/7/2024:   initial support for G2V2 panel implemented. Polling CAT for LED states.

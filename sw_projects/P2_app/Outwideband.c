@@ -150,7 +150,7 @@ uint32_t ReadFIFOContent()
         DMAReadFromFPGA(DMAReadfile_fd, WBDMAReadBuffer, WordCount * 8, VADDRWIDEBANDREAD);
         sem_post(&MicWBDMAMutex);                       // get protected access
         SampleCount = WordCount * 4;
-        printf("word count in readFIFOContent = %d\n", WordCount);
+//        printf("word count in readFIFOContent = %d\n", WordCount);
     }
     return SampleCount;
 }
@@ -289,9 +289,9 @@ void *OutgoingWidebandSamples(void *arg)
             if(WBParamsChanged)
             {
                 SetWidebandEnable(false, false, false);                 // turn off data collection
-                usleep(150);                                            // wait dfor any current write to end
+                usleep(150);                                            // wait for any current write to end
                 ReadFIFOContent();                                      // then empty the FIFO discarding data
-                SampleWordCount = (StoredSamplePerPktCount * StoredPacketCount) / 4;    // no. 64 bit words
+                SampleWordCount = ((StoredSamplePerPktCount * StoredPacketCount) / 4) + 8;    // no. 64 bit words; over-read by 8 words
                 SetWidebandSampleCount(SampleWordCount);
                 SetWidebandUpdateRate(StoredRate);
                 SetWidebandEnable((bool)(StoredEnables&1), (bool)(StoredEnables&2), false);
@@ -312,7 +312,7 @@ void *OutgoingWidebandSamples(void *arg)
                 if(ADC1 || ADC2)                                        // if data available for either
                 {
                     SampleWordCount = ReadFIFOContent();                // then read FIFO till empty
-                    printf("WB data available, ADC sample count = %d\n", SampleWordCount);
+//                    printf("WB data available, ADC sample count = %d\n", SampleWordCount);
                     SetWidebandEnable((bool)(StoredEnables&1), (bool)(StoredEnables&2), true);  // re-enable record
                     //
                     // now transfer data out on UDP packets
@@ -329,7 +329,7 @@ void *OutgoingWidebandSamples(void *arg)
                         //
                         // now add I/Q data & send outgoing packet
                         //
-                        StartAddress = PacketCounter * StoredSamplePerPktCount * 2;         // byte address
+                        StartAddress = (PacketCounter * StoredSamplePerPktCount * 2) + 32;   // byte address; inset 4 words into recording
                         memcpy(WBUDPBuffer[ADC] + 4, WBDMAReadBuffer + StartAddress, StoredSamplePerPktCount * 2);
                         iovecinst[ADC].iov_len = StoredSamplePerPktCount * 2 + 4;           // P2 data dependent
 
