@@ -4881,6 +4881,9 @@
             "direction": "I",
             "left": "3",
             "right": "0"
+          },
+          "CK_KEYER_ACTIVE": {
+            "direction": "I"
           }
         },
         "components": {
@@ -4977,13 +4980,13 @@
                 "value": "1"
               },
               "IN3_WIDTH": {
-                "value": "19"
-              },
-              "IN4_WIDTH": {
                 "value": "1"
               },
+              "IN4_WIDTH": {
+                "value": "18"
+              },
               "NUM_PORTS": {
-                "value": "5"
+                "value": "6"
               }
             }
           },
@@ -10143,7 +10146,7 @@
                 "value": "0"
               },
               "CONST_WIDTH": {
-                "value": "19"
+                "value": "18"
               }
             }
           },
@@ -10590,6 +10593,12 @@
               "nADC_CS"
             ]
           },
+          "CK_KEYER_ACTIVE_1": {
+            "ports": [
+              "CK_KEYER_ACTIVE",
+              "xlconcat_0/In3"
+            ]
+          },
           "CK_KEY_DOWN_1": {
             "ports": [
               "CK_KEY_DOWN",
@@ -10654,7 +10663,7 @@
           "TX_ENABLE_1": {
             "ports": [
               "TX_ENABLE",
-              "xlconcat_0/In4"
+              "xlconcat_0/In5"
             ]
           },
           "Usr_Reg_Access_0_Usr_Reg_Data": {
@@ -10829,7 +10838,7 @@
           "xlconstant_0_dout": {
             "ports": [
               "xlconstant_0/dout",
-              "xlconcat_0/In3"
+              "xlconcat_0/In4"
             ]
           },
           "xlconstant_2_dout": {
