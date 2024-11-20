@@ -241,7 +241,8 @@ uint32_t DDCRegisters[VNUMDDC] =
 #define V13_8VDETECTBIT 8
 #define VATUTUNECOMPLETEBIT 9
 #define VPLLLOCKED 10
-#define VCWKEYDOWN 11                   // keyer output 
+#define VCWKEYDOWN 11                   // key ramp generator output 
+#define VCWKEYPRESSED 12                // keyer request for TX active
 #define VEXTTXENABLEBIT 31
 
 
@@ -2021,6 +2022,7 @@ bool GetCWKeyDown(void)
 // bit 1 - true if CW dot input active
 // bit 2 - true if CW dash input active or IO8 active
 // bit 4 - true if 10MHz to 122MHz PLL is locked
+// bit 7 - CW key down (ie key input, not keyer ramp PTT)
 // note that PTT declared if PTT pressed, or CW key is pressed.
 // note that PTT & key bits are inverted by hardware, but IO4/5/6/8 are not.
 //
@@ -2041,8 +2043,8 @@ unsigned int GetP2PTTKeyInputs(void)
         Result |= 4;                                                        // set dash output bit if IO8 active
     if ((GStatusRegister >> VPLLLOCKED) & 1)
         Result |= 16;                                                       // set PLL output bit
-    if ((GStatusRegister >> VCWKEYDOWN) & 1)
-        Result |= 1;                                                        // set PTT if keyer asserted TX
+    if ((GStatusRegister >> VCWKEYPRESSED) & 1)
+        Result |= 128;                                                      // set PTT if keyer requested TX
     return Result;
 }
 
