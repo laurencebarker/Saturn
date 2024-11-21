@@ -91,10 +91,9 @@ bool GSidetoneEnabled;                              // true if sidetone is enabl
 unsigned int GSidetoneVolume;                       // assigned sidetone volume (8 bit signed)
 bool GWidebandADC1;                                 // true if wideband on ADC1. For P2 - not used yet.
 bool GWidebandADC2;                                 // true if wideband on ADC2. For P2 - not used yet.
-unsigned int GWidebandSampleCount;                  // P2 - not used yet
-unsigned int GWidebandSamplesPerPacket;             // P2 - not used yet
-unsigned int GWidebandUpdateRate;                   // update rate in ms. P2 - not used yet. 
-unsigned int GWidebandPacketsPerFrame;              // P2 - not used yet
+uint32_t GWidebandSampleCount;                      // sample count (in 64 bit words) for wideband collection
+uint32_t GWidebandUpdateRate;                       // update rate in clock ticks
+uint32_t GWidebandControl;                          // Wideband control register
 unsigned int GAlexEnabledBits;                      // P2. True if Alex1-8 enabled. NOT USED YET.
 bool GPAEnabled;                                    // P2. True if PA enabled. NOT USED YET.
 unsigned int GTXDACCount;                           // P2. #TX DACs. NOT USED YET.
@@ -242,7 +241,8 @@ uint32_t DDCRegisters[VNUMDDC] =
 #define V13_8VDETECTBIT 8
 #define VATUTUNECOMPLETEBIT 9
 #define VPLLLOCKED 10
-#define VCWKEYDOWN 11                   // keyer output 
+#define VCWKEYDOWN 11                   // key ramp generator output 
+#define VCWKEYPRESSED 12                // keyer request for TX active
 #define VEXTTXENABLEBIT 31
 
 
@@ -284,7 +284,6 @@ uint32_t DDCRegisters[VNUMDDC] =
 #define VTXCONFIGMUXRESETBIT 29
 #define VTXCONFIGIQDEINTERLEAVEBIT 30
 #define VTXCONFIGIQSTREAMENABLED 31
-
 
 
 
@@ -1460,6 +1459,7 @@ void SetRXDDCEnabled(bool IsEnabled)
 #define VMINCWRAMPDURATION 3000                     // 3ms min
 #define VMAXCWRAMPDURATION 10000                    // 10ms max
 #define VMAXCWRAMPDURATIONV14PLUS 20000             // 20ms max
+#define VCWAMPLITUDE 7549746.0F                     // 0.9*max amplitude to match Tune etc
 
 
 //
@@ -1537,11 +1537,11 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
             x8 = x * eightpi;       // 8 Pi x
             x10 = x * tenpi;        // 10 Pi x
             rampsample = x + c1 * sin(x2) + c2 * sin(x4) + c3 * sin(x6) + c4 * sin(x8) + c5 * sin(x10);
-            Sample = (uint32_t) (rampsample * 8388607.0);
+            Sample = (uint32_t) (rampsample * VCWAMPLITUDE);
             RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, Sample);
         }
         for(Cntr = RampLength; Cntr < VRAMPSIZE; Cntr++)                        // fill remainder of RAM
-            RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, 8388607);
+            RegisterWrite(VADDRCWKEYERRAM + 4*Cntr, (unsigned long)VCWAMPLITUDE);
 
     //
     // finally write the ramp length
@@ -1732,63 +1732,87 @@ void SetXvtrEnable(bool Enabled)
 }
 
 
-//
-// SetWidebandEnable(EADCSelect ADC, bool Enabled)
-// enables wideband sample collection from an ADC.
-// P2 - not yet implemented
-//
-void SetWidebandEnable(EADCSelect ADC, bool Enabled)
-{
-    if(ADC == eADC1)                        // if ADC1 save its state
-        GWidebandADC1 = Enabled; 
-    else if(ADC == eADC2)                   // similarly for ADC2
-        GWidebandADC2 = Enabled; 
 
+unsigned int GWidebandSampleCount;                  // P2 - not used yet
+unsigned int GWidebandUpdateRate;                   // update rate in ms. P2 - not used yet. 
+unsigned int GWidebandControl;                      // P2 - wideband control register
+#define VADDRWIDEBANDCONTROLREG 0xD000
+#define VADDRWIDEBANDPERIODREG 0xD004
+#define VADDRWIDEBANDDEPTHREG 0xD008
+#define VADDRWIDEBANDSTATUSREG 0xD00C
+
+
+//
+// SetWidebandEnable(bool ADC0, bool ADC1, bool DataCollected)
+// enables wideband sample collection from an ADC.
+// enable bits for each ADC; and a bit to set the "data collected" flag
+// ALWAYS DO A WRITE to the control register;
+//
+void SetWidebandEnable(bool ADC0, bool ADC1, bool DataCollected)
+{
+    uint32_t Register = 0;
+    Register = ((uint32_t)ADC0)&1;
+    Register |= (((uint32_t)ADC1)&1)<<1;
+    Register |= (((uint32_t)DataCollected)&1)<<2;
+
+    RegisterWrite(VADDRWIDEBANDCONTROLREG, Register);   // and write to it
 }
 
 
+
 //
-// SetWidebandSampleCount(unsigned int Samples)
-// sets the wideband data collected count
-// P2 - not yet implemented
+// SetWidebandSampleCount(uint32_t SampleWords)
+// sets the wideband data collected count, in 64 bit words
+// the register setting is one less than this!
 //
 void SetWidebandSampleCount(unsigned int Samples)
 {
-    GWidebandSampleCount = Samples;
+    uint32_t Register;
+    Register = Samples - 1;
+    if(Register != GWidebandSampleCount)                     // write back if different
+    {
+        GWidebandSampleCount = Register;                     // store it back
+        RegisterWrite(VADDRWIDEBANDDEPTHREG, Register);   // and write to it
+    }
 }
 
-
-//
-// SetWidebandSampleSize(unsigned int Bits)
-// sets the sample size per packet used for wideband data transfers
-// P2 - not yet implemented
-//
-void SetWidebandSampleSize(unsigned int Bits)
-{
-    GWidebandSamplesPerPacket = Bits;
-}
 
 
 //
 // SetWidebandUpdateRate(unsigned int Period_ms)
-// sets the period (ms) between collections of wideband data
-// P2 - not yet implemented
+// sets the period (milliseconds) between collections of wideband data
 //
 void SetWidebandUpdateRate(unsigned int Period_ms)
 {
-    GWidebandUpdateRate = Period_ms;
+    uint32_t Register;
+    Register = Period_ms * 122880;                          // convert to ticks
+    if(Register != GWidebandUpdateRate)                     // write back if different
+    {
+        GWidebandUpdateRate = Register;                     // store it back
+        RegisterWrite(VADDRWIDEBANDPERIODREG, Register);    // and write to it
+    }
 }
 
 
+
+
 //
-// SetWidebandPacketsPerFrame(unsigned int Count)
-// sets the number of packets to be transferred per wideband data frame
-// P2 - not yet implemented
+// uint32_t GetWidebandStatus(bool *ADC0Data, bool *ADC1Data)
+// returns the number of 64 bit words in the Wideband data FIFO
+// also returns as paramters the flags saying if there is readable data
+// from each ADC.
 //
-void SetWidebandPacketsPerFrame(unsigned int Count)
+uint32_t GetWidebandStatus(bool *ADC0Data, bool *ADC1Data)
 {
-    GWidebandPacketsPerFrame = Count;
+    uint32_t Register, Depth;
+    Register = RegisterRead(VADDRWIDEBANDSTATUSREG);         // read status reg
+    *ADC0Data = (bool)((Register >> 30) & 1);
+    *ADC1Data = (bool)((Register >> 31) & 1);
+    Depth = (Register & 0x3FFFFFFF);                        // strip top 2 bits to get FIFO depth
+    return Depth;
 }
+
+
 
 
 //
@@ -1998,6 +2022,7 @@ bool GetCWKeyDown(void)
 // bit 1 - true if CW dot input active
 // bit 2 - true if CW dash input active or IO8 active
 // bit 4 - true if 10MHz to 122MHz PLL is locked
+// bit 7 - CW key down (ie key input, not keyer ramp PTT)
 // note that PTT declared if PTT pressed, or CW key is pressed.
 // note that PTT & key bits are inverted by hardware, but IO4/5/6/8 are not.
 //
@@ -2018,8 +2043,8 @@ unsigned int GetP2PTTKeyInputs(void)
         Result |= 4;                                                        // set dash output bit if IO8 active
     if ((GStatusRegister >> VPLLLOCKED) & 1)
         Result |= 16;                                                       // set PLL output bit
-    if ((GStatusRegister >> VCWKEYDOWN) & 1)
-        Result |= 1;                                                        // set PTT if keyer asserted TX
+    if ((GStatusRegister >> VCWKEYPRESSED) & 1)
+        Result |= 128;                                                      // set PTT if keyer requested TX
     return Result;
 }
 

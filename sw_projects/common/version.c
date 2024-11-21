@@ -130,6 +130,7 @@ void PrintVersionInfo(void)
 	uint32_t ProdVer, ProdID;				// product version and id
 	uint32_t ClockInfo;						// clock status
 	uint32_t Cntr;
+	uint32_t MajorVersion;
 
 	char* ProdString;
 	char* SWString;
@@ -144,7 +145,8 @@ void PrintVersionInfo(void)
 
 	ClockInfo = (SoftwareInformation & 0xF);				// 4 clock bits
 	SWVer = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version
-	SWID = SoftwareInformation >> 20;						// 12 bit software ID
+	SWID = (SoftwareInformation >> 20) & 0x1F;				// 5 bit software ID
+	MajorVersion = SoftwareInformation >> 25;				// 7 bit major version
 
 	ProdVer = ProductInformation & 0xFFFF;					// 16 bit product version
 	ProdID = ProductInformation >> 16;						// 16 bit product ID
@@ -163,7 +165,7 @@ void PrintVersionInfo(void)
 		SWString = SWIDStrings[SWID];
 
 	printf(" Product: %s; Version = %d\n", ProdString, ProdVer);
-	printf(" FPGA Firmware loaded: %s; FW Version = %d\n", SWString, SWVer);
+	printf(" FPGA Firmware loaded: %s; FW Version = %d, major version = %d\n", SWString, SWVer, MajorVersion);
 
 	if (ClockInfo == 0xF)
 		printf("All clocks present\n");
@@ -192,8 +194,21 @@ unsigned int GetFirmwareVersion(ESoftwareID* ID)
 
 	SoftwareInformation = RegisterRead(VADDRSWVERSIONREG);
 	Version = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version
-	*ID = (ESoftwareID)(SoftwareInformation >> 20);						// 12 bit software ID
+	*ID = (ESoftwareID)((SoftwareInformation >> 20) & 0x1F);						// 5 bit software ID
 	return Version;
 }
 
 
+
+//
+// function call to get firmware major version
+//
+unsigned int GetFirmwareMajorVersion(void)
+{
+	unsigned int MajorVersion = 0;
+	uint32_t SoftwareInformation;			// swid & version
+
+	SoftwareInformation = RegisterRead(VADDRSWVERSIONREG);
+	MajorVersion = (SoftwareInformation >> 25) & 0x7F;			// 7 bit major fw version
+	return MajorVersion;
+}

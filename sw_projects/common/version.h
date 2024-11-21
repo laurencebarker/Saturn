@@ -49,6 +49,13 @@ typedef enum
 //
 unsigned int GetFirmwareVersion(ESoftwareID* ID);
 
+
+//
+// function call to get firmware major version
+//
+unsigned int GetFirmwareMajorVersion(void);
+
+
 //
 // prints version information from the registers
 //
