@@ -57,7 +57,7 @@
 #include "LDGATU.h"
 #include "frontpanelhandler.h"
 
-#define P2APPVERSION 30
+#define P2APPVERSION 31
 #define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
@@ -65,6 +65,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V31: 21/11/2024:  added CW keyer keydown bit to high priority status byte 4 bit 7 for Thetis generated sidetone
 // V30: 17/11/2024:  wideband record added.
 // V29: 15/10/2024   DL1YCF CW ramp; CW amplitude corrected; added support to detect & check FPGA major version
 // V27: 4/8/2024:    merged G2V2 panel support code into main
