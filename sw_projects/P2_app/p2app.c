@@ -52,20 +52,22 @@
 #include "OutMicAudio.h"
 #include "OutDDCIQ.h"
 #include "OutHighPriority.h"
+#include "Outwideband.h"
 #include "cathandler.h"
 #include "LDGATU.h"
 #include "frontpanelhandler.h"
 
-#define P2APPVERSION 27
-#define FIRMWARE_MIN_VERSION  8               // Minimum FPGA software version that this software requires
-#define FIRMWARE_MAX_VERSION 17               // Maximum FPGA software version that this software is tested on
+#define P2APPVERSION 31
+#define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
-// it won't work with an old version. This means p2app will always need to be updated if the formware is updated. 
-// at minimum to update FIRMWARE_MAX_VERSION
+// it won't work with an old version. This means p2app will always need to be updated if the firmware is updated to new major version.
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V31: 21/11/2024:  added CW keyer keydown bit to high priority status byte 4 bit 7 for Thetis generated sidetone
+// V30: 17/11/2024:  wideband record added.
+// V29: 15/10/2024   DL1YCF CW ramp; CW amplitude corrected; added support to detect & check FPGA major version
 // V27: 4/8/2024:    merged G2V2 panel support code into main
 // V26: 17/7/2024:   initial support for G2V2 panel implemented. Polling CAT for LED states.
 // V25: 22/6/2024:   merged branch with beta code for G2 panel controls to communicate via CAT over TCP/IP
@@ -104,6 +106,7 @@ extern sem_t DDCInSelMutex;                 // protect access to shared DDC inpu
 extern sem_t DDCResetFIFOMutex;             // protect access to FIFO reset register
 extern sem_t RFGPIOMutex;                   // protect access to RF GPIO register
 extern sem_t CodecRegMutex;                 // protect writes to codec
+sem_t MicWBDMAMutex;                        // protect one DMA read channel shared by mic and WB read
 
 struct sockaddr_in reply_addr;              // destination address for outgoing data
 
@@ -175,6 +178,8 @@ pthread_t DUCIQThread;
 pthread_t DDCIQThread[VNUMDDC];               // array, but not sure how many
 pthread_t MicThread;
 pthread_t HighPriorityFromSDRThread;
+pthread_t WidebandDataThread;
+
 pthread_t CheckForExitThread;                 // thread looks for types "exit" command
 pthread_t CheckForNoActivityThread;           // thread looks for inactvity
 
@@ -352,6 +357,7 @@ void Shutdown()
   sem_destroy(&DDCResetFIFOMutex);
   sem_destroy(&RFGPIOMutex);
   sem_destroy(&CodecRegMutex);
+  sem_destroy(&DDCResetFIFOMutex);                        // for DMA
   SetMOX(false);
   SetTXEnable(false);
   EnableCW(false, false);
@@ -403,7 +409,11 @@ int main(int argc, char *argv[])
   char BuildDate[]=GIT_DATE;
 	ESoftwareID ID;
 	unsigned int Version = 0;
+  unsigned int MajorVersion = 0;
   bool IncompatibleFirmware = false;                                // becomes set if firmware is not compatible with this version
+
+
+
 
   //
   // initialise register access semaphores
@@ -411,8 +421,9 @@ int main(int argc, char *argv[])
   sem_init(&DDCInSelMutex, 0, 1);                                   // for DDC input select register
   sem_init(&DDCResetFIFOMutex, 0, 1);                               // for FIFO reset register
   sem_init(&RFGPIOMutex, 0, 1);                                     // for RF GPIO register
-  sem_init(&CodecRegMutex, 0, 1);                                   // for codec writes
-
+  sem_init(&CodecRegMutex, 0, 1);                                   // for codec accesss
+  sem_init(&MicWBDMAMutex, 0, 1);                                   // for mic and WB DMA
+    
 //
 // setup Saturn hardware
 //
@@ -424,10 +435,11 @@ int main(int argc, char *argv[])
   PrintAuxADCInfo();
   if (IsFallbackConfig())
       printf("FPGA load is a fallback - you should re-flash the primary FPGA image!\n");
-
+  
   CodecInitialise();
   InitialiseDACAttenROMs();
-  InitialiseCWKeyerRamp(true, 5000);                                // create initial default 5 ms ramp, P2
+//  InitialiseCWKeyerRamp(true, 5000);                                // create initial default 5 ms ramp, P2
+  InitialiseCWKeyerRamp(true, 9000);                                // create initial default 9ms DL1YCF amp, P2
   SetCWSidetoneEnabled(true);
   SetTXProtocol(true);                                              // set to protocol 2
   SetTXModulationSource(eIQData);                                   // disable debug options
@@ -436,6 +448,8 @@ int main(int argc, char *argv[])
   SetSpkrMute(false);
 
   Version = GetFirmwareVersion(&ID);                                // TX scaling changed at FW V13
+  MajorVersion = GetFirmwareMajorVersion();
+
   if(Version < 13)
     SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR);
   else if (Version < 17)
@@ -445,14 +459,13 @@ int main(int argc, char *argv[])
   
 
 
-  if (Version < FIRMWARE_MIN_VERSION || Version > FIRMWARE_MAX_VERSION)
+  if (MajorVersion != FWREQUIREDMAJORVERSION)
   {
     printf("\n***************************************************************************\n");
     printf("***************************************************************************\n");
-    printf("Incompatible Saturn FPGA firmware v%d; this version of p2app needs %d ... %d\n",
-             Version,
-             FIRMWARE_MIN_VERSION,
-             FIRMWARE_MAX_VERSION);
+    printf("Incompatible Saturn FPGA firmware v%d; major version%d\n",
+             Version,  MajorVersion);
+    printf("This version of p2app requires major version = %d\n, FWREQUIREDMAJORVERSION");
     printf("You must update your copy of p2app to use that firmware version - see User manual\n");
     printf("p2app will refuse a connection request until this is resolved!\n");
     printf("\n\n\n***************************************************************************\n");
@@ -673,9 +686,6 @@ int main(int argc, char *argv[])
   pthread_detach(MicThread);
 
 
-
-
-
 //
 // create outgoing high priority data thread
 // note this shares a port with incoming DDC specific, so don't create a new port
@@ -711,6 +721,26 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
   pthread_detach(DDCIQThread[0]);
+
+//
+// create outgoing wideband data thread which services bothe wideband0 and wideband1
+// both sockets already exist so copy socket settings from existing sockets:
+// wideband0 shares port 1027 with incoming high priority data
+// wideband1 shares port 1028 with incoming DDC audio
+//
+  SocketData[VPORTWIDEBAND0].Socketid = SocketData[VPORTHIGHPRIORITYTOSDR].Socketid;
+  SocketData[VPORTWIDEBAND1].Socketid = SocketData[VPORTSPKRAUDIO].Socketid;
+  memcpy(&SocketData[VPORTWIDEBAND0].addr_cmddata, &SocketData[VPORTHIGHPRIORITYTOSDR].addr_cmddata, sizeof(struct sockaddr_in));
+  memcpy(&SocketData[VPORTWIDEBAND1].addr_cmddata, &SocketData[VPORTSPKRAUDIO].addr_cmddata, sizeof(struct sockaddr_in));
+  if(pthread_create(&WidebandDataThread, NULL, OutgoingWidebandSamples, (void*)&SocketData[VPORTWIDEBAND0]) < 0)
+  {
+    perror("pthread_create outgoing wideband data");
+    return EXIT_FAILURE;
+  }
+  pthread_detach(WidebandDataThread);
+
+
+
 
 
   //
