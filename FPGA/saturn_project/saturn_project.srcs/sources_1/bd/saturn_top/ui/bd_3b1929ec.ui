@@ -1,7 +1,7 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"0.824692",
-   "Default View_TopLeft":"-323,195",
+   "Default View_TopLeft":"-332,591",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
@@ -36,38 +36,38 @@ preplace inst axis_dwidth_converter_64to32bit -pg 1 -lvl 5 -x 1390 -y 1330 -defa
 preplace inst xlconstant_val0 -pg 1 -lvl 2 -x 320 -y 720 -defaultsOSRD
 preplace inst FIFO_Monitor_0 -pg 1 -lvl 3 -x 700 -y 540 -defaultsOSRD
 preplace inst AXI_Stream_Reader_Wr_1 -pg 1 -lvl 4 -x 1050 -y 1100 -defaultsOSRD
-preplace netloc ACLK_1 1 0 4 N 600 150 660 540 960 870
-preplace netloc CLK12_1 1 0 5 -110 1280 140 1380 NJ 1380 890J 1410 1240
-preplace netloc CodecMicResetn_1 1 0 2 -120 1260 N
-preplace netloc CodecSpkResetn_1 1 0 4 NJ 1400 N 1400 NJ 1400 830
-preplace netloc M10_ARESETN_1 1 0 4 N 800 160 800 550 1130 N
-preplace netloc Net1 1 0 5 -140 790 130 790 570J 770 880 990 1250
-preplace netloc Net2 1 0 2 N 110 130
-preplace netloc TX_FIFO_aresetn_1 1 0 4 NJ 250 N 250 NJ 250 890
-preplace netloc aresetn_122_1 1 0 5 NJ 320 NJ 320 NJ 320 NJ 320 1260
-preplace netloc aresetn_12_1 1 0 5 -130J 1250 110 1420 NJ 1420 NJ 1420 1260
-preplace netloc axis_data_fifo_DDC0_axis_rd_data_count 1 2 1 480 500n
-preplace netloc axis_data_fifo_DUC_axis_wr_data_count 1 2 3 560 370 NJ 370 1210
-preplace netloc axis_data_fifo_codecmic_axis_rd_data_count 1 2 1 500 580n
-preplace netloc axis_data_fifo_codecspk_axis_wr_data_count 1 2 3 570 380 NJ 380 1220
-preplace netloc txmux_reset_1 1 0 5 NJ 870 NJ 870 560J 760 NJ 760 1240
-preplace netloc xlconstant_val0_dout 1 2 1 530 520n
-preplace netloc AXIS00_WB_1 1 0 4 -150J 780 NJ 780 NJ 780 840
+preplace netloc ACLK_1 1 0 4 N 600 140 660 530 960 860
+preplace netloc CLK12_1 1 0 5 -100 1280 130 1380 NJ 1380 880J 1410 1250
+preplace netloc CodecMicResetn_1 1 0 2 -110 1260 N
+preplace netloc CodecSpkResetn_1 1 0 4 NJ 1400 N 1400 NJ 1400 840
+preplace netloc M10_ARESETN_1 1 0 4 N 800 150 800 540 1130 N
+preplace netloc Net1 1 0 5 -140 790 120 790 560J 770 870 990 1260
+preplace netloc Net2 1 0 2 N 110 120
+preplace netloc TX_FIFO_aresetn_1 1 0 4 NJ 250 N 250 NJ 250 880
+preplace netloc aresetn_122_1 1 0 5 NJ 320 NJ 320 NJ 320 NJ 320 1270
+preplace netloc aresetn_12_1 1 0 5 -120J 1250 100 1420 NJ 1420 NJ 1420 1270
+preplace netloc axis_data_fifo_DDC0_axis_rd_data_count 1 2 1 490 500n
+preplace netloc axis_data_fifo_DUC_axis_wr_data_count 1 2 3 550 370 NJ 370 1220
+preplace netloc axis_data_fifo_codecmic_axis_rd_data_count 1 2 1 510 580n
+preplace netloc axis_data_fifo_codecspk_axis_wr_data_count 1 2 3 560 380 NJ 380 1230
+preplace netloc txmux_reset_1 1 0 5 NJ 870 NJ 870 550J 760 NJ 760 1250
+preplace netloc xlconstant_val0_dout 1 2 1 520 520n
+preplace netloc AXIS00_WB_1 1 0 4 -150J 780 NJ 780 NJ 780 850
 preplace netloc AXIS_Sizer_64to48_0_m_axis 1 5 1 1510 890n
 preplace netloc AXI_Stream_Reader_Wr_0_m_axis 1 3 1 N 870
 preplace netloc AXI_Stream_Reader_Wr_10_m_axis 1 3 1 N 1290
 preplace netloc Conn1 1 0 2 NJ 540 N
-preplace netloc Conn14 1 0 2 NJ 950 110
+preplace netloc Conn14 1 0 2 NJ 950 100
 preplace netloc Conn15 1 0 3 NJ 440 N 440 NJ
 preplace netloc S_AXIS_codec_1 1 0 1 -160 1140n
-preplace netloc axi_interconnect_0_M00_AXI 1 2 1 570 860n
-preplace netloc axi_interconnect_0_M01_AXI 1 2 1 510 1040n
-preplace netloc axi_interconnect_0_M02_AXI 1 2 2 NJ 1060 830
-preplace netloc axis_data_fifo_DDC0_M_AXIS 1 2 1 490 560n
-preplace netloc axis_data_fifo_DUC_M_AXIS 1 4 1 1230 880n
+preplace netloc axi_interconnect_0_M00_AXI 1 2 1 560 860n
+preplace netloc axi_interconnect_0_M01_AXI 1 2 1 520 1040n
+preplace netloc axi_interconnect_0_M02_AXI 1 2 2 NJ 1060 840
+preplace netloc axis_data_fifo_DDC0_M_AXIS 1 2 1 500 560n
+preplace netloc axis_data_fifo_DUC_M_AXIS 1 4 1 1240 880n
 preplace netloc axis_data_fifo_codecmic_M_AXIS 1 2 1 N 1260
 preplace netloc axis_data_fifo_codecspk_M_AXIS 1 4 1 N 1310
-preplace netloc axis_dwidth_converter_1_M_AXIS 1 1 1 110 1160n
+preplace netloc axis_dwidth_converter_1_M_AXIS 1 1 1 100 1160n
 preplace netloc axis_dwidth_converter_64to32bit_M_AXIS 1 5 1 1510 1310n
 levelinfo -pg 1 -180 0 320 700 1050 1390 1530
 pagesize -pg 1 -db -bbox -sgen -350 -130 1680 3140

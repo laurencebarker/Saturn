@@ -1,7 +1,7 @@
 {
    "ActiveEmotionalView":"Default View",
-   "Default View_ScaleFactor":"1.02543",
-   "Default View_TopLeft":"841,-465",
+   "Default View_ScaleFactor":"0.631226",
+   "Default View_TopLeft":"-260,-467",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
@@ -54,35 +54,35 @@ preplace netloc Byteswap_1 1 0 2 -60J 650 560
 preplace netloc ClockDivider_0_TC 1 2 2 NJ -400 1370
 preplace netloc Deinterleave_1 1 0 3 NJ 660 NJ 660 NJ
 preplace netloc IQEnable_1 1 0 3 NJ 680 NJ 680 NJ
-preplace netloc Net 1 0 3 NJ 1060 613 1060 1020J
-preplace netloc Net1 1 0 6 293 690 593 -250 940 20 1410 290 1657 290 1947
-preplace netloc TX_ENABLE_1 1 0 6 NJ 1240 NJ 1240 1020J 1260 NJ 1260 N 1260 1940
-preplace netloc TX_Strobe_1 1 0 3 NJ 1180 NJ 1180 920J
+preplace netloc Net 1 0 3 NJ 1060 623 1060 1010J
+preplace netloc Net1 1 0 6 293 690 603 -250 940 20 1410 290 1657 290 1947
+preplace netloc TX_ENABLE_1 1 0 6 NJ 1240 NJ 1240 1010J 1260 NJ 1260 N 1260 1940
+preplace netloc TX_Strobe_1 1 0 3 NJ 1180 NJ 1180 910J
 preplace netloc TX_Test_Freq_1 1 0 1 NJ 770
 preplace netloc blk_mem_gen_0_douta 1 2 4 1030 190 1390 310 N 310 1967
+preplace netloc blk_mem_gen_1_douta 1 2 3 1030 -310 NJ -310 1470
 preplace netloc cw_key_down_1 1 0 3 -60J 60 NJ 60 1000J
 preplace netloc cw_key_ramp_0_CW_PTT 1 3 4 1370J 330 N 330 1880 280 2270J
 preplace netloc cw_key_ramp_0_bram_addr 1 3 3 1430 360 N 360 N
 preplace netloc cw_key_ramp_0_bram_enable 1 3 3 1370 380 N 380 1880
 preplace netloc cw_key_ramp_0_bram_web 1 3 3 1430 400 N 400 1910
+preplace netloc cw_key_ramp_1_bram_addr 1 3 2 1420 -250 NJ
 preplace netloc cw_key_ramp_1_bram_enable 1 3 2 1420 280 1667
-preplace netloc keyer_config_1 1 0 2 NJ 130 613
-preplace netloc resetn_1 1 0 6 NJ 590 603 -230 980 740 NJ 740 N 740 1870
+preplace netloc keyer_config_1 1 0 2 NJ 130 623
+preplace netloc resetn_1 1 0 6 NJ 590 613 -230 980 740 NJ 740 N 740 1870
 preplace netloc util_reduced_logic_0_Res 1 6 1 NJ 1060
 preplace netloc util_vector_OR_TXgate_Res 1 3 3 N 1190 N 1190 1870
 preplace netloc util_vector_TXgate1_Res 1 6 1 NJ 1230
-preplace netloc xlconst_amplQ_dout 1 2 1 920J 940n
+preplace netloc xlconst_amplQ_dout 1 2 1 910J 940n
 preplace netloc xlconstant_0_dout 1 2 1 990 -140n
-preplace netloc xlconstant_1_dout 1 2 1 920 -150n
+preplace netloc xlconstant_1_dout 1 2 1 910 -150n
 preplace netloc xlslice_0_Dout 1 2 1 960J 330n
 preplace netloc xlslice_TXsel_Dout 1 3 3 N 1080 N 1080 1967
 preplace netloc xlslice_keyerdelay_Dout 1 2 1 1010J -190n
 preplace netloc xlslice_keyeren_Dout 1 2 1 950J -130n
 preplace netloc xlslice_keyerhang_Dout 1 2 1 1020J -170n
-preplace netloc xlslice_opgate_Dout 1 2 1 1020J 1120n
+preplace netloc xlslice_opgate_Dout 1 2 1 1010J 1120n
 preplace netloc xlslice_rate_Dout 1 0 3 -50J 70 NJ 70 970J
-preplace netloc blk_mem_gen_1_douta 1 2 3 1030 -310 NJ -310 1470
-preplace netloc cw_key_ramp_1_bram_addr 1 3 2 1420 -250 NJ
 preplace netloc AXIS_Deinterleaver_0_m00_axis 1 3 3 N 630 N 630 1880
 preplace netloc Conn1 1 0 3 NJ 50 NJ 50 990J
 preplace netloc Conn3 1 3 4 NJ 650 N 650 1890 630 NJ
@@ -91,10 +91,10 @@ preplace netloc axi_bram_ctrl_0_BRAM_PORTA 1 3 3 1400 300 N 300 1957
 preplace netloc axis_constant_1_m_axis 1 1 1 N 760
 preplace netloc axis_mux_4_0_output_axis 1 6 1 NJ 820
 preplace netloc axis_subset_converter_32to48bit_M_AXIS 1 3 3 1430 800 N 800 N
-preplace netloc byteswap_48_0_m_axis 1 2 1 920 570n
+preplace netloc byteswap_48_0_m_axis 1 2 1 910 570n
 preplace netloc cw_key_ramp_0_m0_axis 1 3 3 1380 320 N 320 1900
 preplace netloc cw_key_ramp_1_m1_axis 1 3 4 1430 270 NJ 270 NJ 270 NJ
-preplace netloc dds_compiler_testsource_M_AXIS_DATA 1 2 1 920 780n
+preplace netloc dds_compiler_testsource_M_AXIS_DATA 1 2 1 910 780n
 preplace netloc reg_to_axis_0_m_axis 1 3 3 1370 780 N 780 N
 levelinfo -pg 1 -80 423 763 1200 1450 1767 2117 2290
 pagesize -pg 1 -db -bbox -sgen -280 -550 2530 1380
