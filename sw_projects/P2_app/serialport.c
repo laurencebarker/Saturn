@@ -1,5 +1,18 @@
 
-
+/////////////////////////////////////////////////////////////
+//
+// Saturn project: Artix7 FPGA + Raspberry Pi4 Compute Module
+// PCI Express interface from linux on Raspberry pi
+// this application uses C code to emulate HPSDR protocol 2 
+//
+// copyright Laurence Barker November 2021
+// licenced under GNU GPL3
+//
+// serialport.c:
+//
+// handle simple access to serial port
+//
+//////////////////////////////////////////////////////////////
 
 #include <termios.h>
 #include <stdlib.h>
@@ -10,7 +23,18 @@
 #include <stdio.h>
 
 #include "serialport.h"
+#include "cathandler.h"
 
+
+//
+// names of devices that thread has been opened for
+//
+char* DeviceNames[] =
+{
+  "G2V2 Panel",
+  "G2V1 Panel Adapter",
+  "AriesATU"
+};
 
 //
 // open and set up a serial port for read/write access
@@ -71,4 +95,55 @@ bool AreCharactersPresent(int Device)
     if(Chars != 0)                                  // if we get none, panel not present; close device
         Result = true;
     return Result;
+}
+
+
+#define VESERINSIZE 120                 // large enough to hold a whole CAT message
+//
+// serial read thread
+// the paramter passed is a pointer to a struct with the required settings
+//
+void G2V2PanelSerial(void *arg)
+{
+    char SerialInputBuffer[VESERINSIZE];
+    char CATMessageBuffer[VESERINSIZE];
+    int ReadCnt;
+    int Cntr;
+    int CATWritePtr = 0;
+    char ch;                                    // individual read character
+    int MatchPosition;
+    TSerialThreadData *DeviceData;
+
+    DeviceData = (TSerialThreadData *) arg;
+    printf("CAT Serial read handler thread established for device %s\n", DeviceNames[(int)DeviceData->Device]);
+//
+// now loop waiting for characters, then form them into CAT messages terminated by semicolon
+//
+    while(DeviceData -> DeviceActive)
+    {
+        ReadCnt = read(DeviceData -> DeviceHandle, &SerialInputBuffer, VESERINSIZE);
+        if (ReadCnt > 0)
+        {
+//
+// we have input data available, so read it one char at a time and write to buffer
+// if we find a terminating semicolon, process the command
+// if we get a control character, abandon the line so far and start again
+//
+            for(Cntr=0; Cntr < ReadCnt; Cntr++)
+            {
+                ch=SerialInputBuffer[Cntr];
+                CATMessageBuffer[CATWritePtr++] = ch;
+                if (ch == ';')
+                {
+                    CATMessageBuffer[CATWritePtr++] = 0;            // terminate the string
+                    MatchPosition = (int)(strstr(CATMessageBuffer, "ZZZS") - CATMessageBuffer);
+                    if(MatchPosition == 0)
+                        ParseCATCmd(CATMessageBuffer, DeviceData -> DeviceHandle);              // if ZZZS, process locally; else send to TCPIP CAT port
+                    else
+                        SendCATMessage(CATMessageBuffer);           // send unprocessed to SDR client app via TCP/IP
+                    CATWritePtr = 0;                                // reset for next CAT message
+                }
+            }
+        }
+    }
 }

@@ -62,8 +62,7 @@ bool G2ToneState;                                   // true if 2 tone test in pr
 bool GVFOBSelected;                                 // true if VFO B selected
 uint32_t GCombinedVFOState;                         // reported VFO state bits
 uint16_t GLEDState;                                 // LED state settings
-int SerialDev;                                      // serial device
-
+TSerialThreadData G2V2Data;                         // data for G2V2 read thread
 
 #define VKEEPALIVECOUNT 150                         // 15s period between keepalive requests (based on 100ms tick)
 
@@ -75,79 +74,45 @@ int SerialDev;                                      // serial device
 //
 void SendCATtoPanel(char* Message)
 {
-    SendStringToSerial(SerialDev, Message);
+    SendStringToSerial(G2V2Data.DeviceHandle, Message);
 }
 
 
 
 
-
-
 //
-// function to check if panel is present. 
+// function to check if panel is present. This is called before panel initialise.
 // file can be left open if "yes".
 //
 bool CheckG2V2PanelPresent(void)
 {
+    int SerialDev;                                      // serial device
     bool CharsPresent;                                      // returned character count
+
 //  return (access(G2ARDUINOPATH, F_OK)==0);        // this wirks for USB, but not for the always-present on board serial
+    printf("checking for G2V2\n");
+
     SerialDev = OpenSerialPort(G2ARDUINOPATH);
+    G2V2Data.DeviceHandle = SerialDev;
+    G2V2Data.DeviceActive = true;
+    G2V2Data.Device = eG2V2Panel;
     SendCATtoPanel("ZZZS;");
     sleep(1);      
     CharsPresent = AreCharactersPresent(SerialDev);                                 // if any chars come back, there is a panel attached
 
     if(!CharsPresent)                                  // if we get none, panel not present; close device
         close(SerialDev);
+    else
+    {
+        printf("found characters from G2V2; spinning up thread\n");
+        if(pthread_create(&G2V2PanelSerialThread, NULL, G2V2PanelSerial, (void *)&G2V2Data) < 0)
+            perror("pthread_create G2 panel tick");
+        pthread_detach(G2V2PanelSerialThread);
+    }
     return(CharsPresent);
 }
 
 
-#define VESERINSIZE 120                 // large enough to hold a whole CAT message
-//
-// serial read thread
-//
-void G2V2PanelSerial(void *arg)
-{
-    char SerialInputBuffer[VESERINSIZE];
-    char CATMessageBuffer[VESERINSIZE];
-    int ReadCnt;
-    int Cntr;
-    int CATWritePtr = 0;
-    char ch;                                    // individual read character
-    int MatchPosition;
-
-    printf("G2 panel Serial read handler thread established\n");
-//
-// now loop waiting for characters, then form them into CAT messages terminated by semicolon
-//
-    while(G2V2PanelActive)
-    {
-        ReadCnt = read(SerialDev, &SerialInputBuffer, VESERINSIZE);
-        if (ReadCnt > 0)
-        {
-//
-// we have input data available, so read it one char at a time and write to buffer
-// if we find a terminating semicolon, process the command
-// if we get a control character, abandon the line so far and start again
-//
-            for(Cntr=0; Cntr < ReadCnt; Cntr++)
-            {
-                ch=SerialInputBuffer[Cntr];
-                CATMessageBuffer[CATWritePtr++] = ch;
-                if (ch == ';')
-                {
-                    CATMessageBuffer[CATWritePtr++] = 0;            // terminate the string
-                    MatchPosition = (int)(strstr(CATMessageBuffer, "ZZZS") - CATMessageBuffer);
-                    if(MatchPosition == 0)
-                        ParseCATCmd(CATMessageBuffer, SerialDev);              // if ZZZS, process locally; else send to TCPIP CAT port
-                    else
-                        SendCATMessage(CATMessageBuffer);           // send unprocessed to SDR client app via TCP/IP
-                    CATWritePtr = 0;                                // reset for next CAT message
-                }
-            }
-        }
-    }
-}
 
 
 
@@ -243,7 +208,7 @@ void G2V2PanelTick(void *arg)
                 {
                     NewState = (NewLEDStates & Mask) >> Cntr;
                     Param = ((Cntr +1)* 10) + NewState;
-                    MakeCATMessageNumeric(SerialDev, eZZZI, Param);
+                    MakeCATMessageNumeric(G2V2Data.DeviceHandle, eZZZI, Param);
 
                 }
                 Mask = Mask << 1;                               // bitmask for next bit
@@ -261,7 +226,8 @@ void G2V2PanelTick(void *arg)
 
 //
 // function to initialise a connection to the G2 V2 front panel; call if selected as a command line option
-// initialise serial; and create threads for tick andserial read
+// this is called *after* the G2V2 panel has been discovered.
+// create threads for tick
 //
 void InitialiseG2V2PanelHandler(void)
 {
@@ -272,11 +238,6 @@ void InitialiseG2V2PanelHandler(void)
     if(pthread_create(&G2V2PanelTickThread, NULL, G2V2PanelTick, NULL) < 0)
         perror("pthread_create G2 panel tick");
     pthread_detach(G2V2PanelTickThread);
-
-    if(pthread_create(&G2V2PanelSerialThread, NULL, G2V2PanelSerial, NULL) < 0)
-        perror("pthread_create G2 panel tick");
-    pthread_detach(G2V2PanelSerialThread);
-
 }
 
 
@@ -286,7 +247,7 @@ void InitialiseG2V2PanelHandler(void)
 void ShutdownG2V2PanelHandler(void)
 {
     G2V2PanelActive = false;
-    close(SerialDev);
+    close(G2V2Data.DeviceHandle);
 }
 
 
@@ -342,6 +303,8 @@ void SetG2V2ZZZSState(uint32_t Param)
 void SetG2V2ZZZIState(uint32_t Param)
 {
     GZZZIReceived = true;
-    MakeCATMessageNumeric(SerialDev, eZZZI, Param);
+    MakeCATMessageNumeric(G2V2Data.DeviceHandle, eZZZI, Param);
 
 }
+
+

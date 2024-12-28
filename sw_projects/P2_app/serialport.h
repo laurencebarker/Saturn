@@ -46,4 +46,20 @@ void SendStringToSerial(int Device, char* Message);
 //
 bool AreCharactersPresent(int Device);
 
+//
+// struct with settings for a serial reader thread
+//
+typedef struct
+{
+  int DeviceHandle;
+  ESerialDeviceType Device;
+  bool DeviceActive;
+} TSerialThreadData;
+
+//
+// serial read thread
+//
+void G2V2PanelSerial(void *arg);
+
+
 #endif
