@@ -57,10 +57,19 @@ typedef struct
   void (*handler)(void);          // handler function; no param and no return value
 } SCATCommands;
 
-
-
 extern SCATCommands GCATCommands[];
 
+#define DESTCATPORT -1                          // selects CAT Port as the destination
+
+//
+// define the potential sources of CAT messages
+//
+typedef enum 
+{
+  eCatPort,
+  ePanel, 
+  eATU
+} CATMsgSource;
 
 //
 // initialise CAT handler
@@ -72,27 +81,31 @@ void InitCATHandler();
 // create CAT message:
 // this creates a "basic" CAT command with no parameter
 // (for example to send a "get" command)
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageNoParam(ECATCommands Cmd);
+void MakeCATMessageNoParam(int Device, ECATCommands Cmd);
 
 
 //
 // make a CAT command with a numeric parameter
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageNumeric(ECATCommands Cmd, long Param);
+void MakeCATMessageNumeric(int Device, ECATCommands Cmd, long Param);
 
 
 //
 // make a CAT command with a bool parameter
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageBool(ECATCommands Cmd, bool Param);
+void MakeCATMessageBool(int Device, ECATCommands Cmd, bool Param);
 
 
 //
 // make a CAT command with a string parameter
 // the string is truncated if too long, or padded with spaces if too short
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageString(ECATCommands Cmd, char* Param);
+void MakeCATMessageString(int Device, ECATCommands Cmd, char* Param);
 
 
 //
@@ -113,14 +126,9 @@ void SendCATMessage(char* CatString);
 
 //
 // parse a CAT command, and call appropriate handler
+// message source provided so potentially different handlers can be used
 //
-void ParseCATCmd(char* CATString);
-
-//
-// make a CAT command with a numeric parameter into the provided string
-// (used to send messages to local panel)
-//
-void MakeCATMessageNumeric_Local(ECATCommands Cmd, long Param, char* Str);
+void ParseCATCmd(char* CATString, CATMsgSource Source);
 
 
 #endif  //#ifndef

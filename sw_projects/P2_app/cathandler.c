@@ -36,6 +36,7 @@
 #include "../common/debugaids.h"
 #include "cathandler.h"
 #include "catmessages.h"
+#include "serialport.h"
 
 
 
@@ -212,7 +213,7 @@ bool isNumeric(char ch)
 // Parse a single command in the local input buffer
 // process it if it is a valid command
 //
-void ParseCATCmd(char* Buffer)
+void ParseCATCmd(char* Buffer,  CATMsgSource Source)
 {
   int CharCnt;                              // number of characters in the buffer (same as length of string)
   unsigned long MatchWord;                  // 32 bit compressed input cmd
@@ -378,8 +379,9 @@ void Append(char* s, char ch)
 // create CAT message:
 // this creates a "basic" CAT command with no parameter
 // (for example to send a "get" command)
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageNoParam(ECATCommands Cmd)
+void MakeCATMessageNoParam(int Device, ECATCommands Cmd)
 {
   char Output[VOPSTRSIZE];                                // TX CAT msg buffer
   SCATCommands* StructPtr;
@@ -387,15 +389,19 @@ void MakeCATMessageNoParam(ECATCommands Cmd)
   StructPtr = GCATCommands + (int)Cmd;
   strcpy(Output, StructPtr->CATString);
   strcat(Output, ";");
-  SendCATMessage(Output);
+  if(Device < 0)
+    SendCATMessage(Output);
+  else
+    SendStringToSerial(Device, Output);
 }
 
 
 
 //
 // make a CAT command with a numeric parameter
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageNumeric(ECATCommands Cmd, long Param)
+void MakeCATMessageNumeric(int Device, ECATCommands Cmd, long Param)
 {
   char Output[VOPSTRSIZE];                                // TX CAT msg buffer
   byte CharCount;                  // character count to add
@@ -450,14 +456,18 @@ void MakeCATMessageNumeric(ECATCommands Cmd, long Param)
   ASCIIDigit = (char)(Param + '0');           // ASCII version of units digit
   Append(Output, ASCIIDigit);
   strcat(Output, ";");
-  SendCATMessage(Output);
+  if(Device < 0)
+    SendCATMessage(Output);
+  else
+    SendStringToSerial(Device, Output);
 }
 
 
 //
 // make a CAT command with a bool parameter
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageBool(ECATCommands Cmd, bool Param) 
+void MakeCATMessageBool(int Device, ECATCommands Cmd, bool Param) 
 {
   char Output[VOPSTRSIZE];                                // TX CAT msg buffer
   SCATCommands* StructPtr;
@@ -468,7 +478,10 @@ void MakeCATMessageBool(ECATCommands Cmd, bool Param)
     strcat(Output, "1;");
   else
     strcat(Output, "0;");
-  SendCATMessage(Output);
+  if(Device < 0)
+    SendCATMessage(Output);
+  else
+    SendStringToSerial(Device, Output);
 }
 
 
@@ -476,8 +489,9 @@ void MakeCATMessageBool(ECATCommands Cmd, bool Param)
 //
 // make a CAT command with a string parameter
 // the string is truncated if too long, or padded with spaces if too short
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageString(ECATCommands Cmd, char* Param) 
+void MakeCATMessageString(int Device, ECATCommands Cmd, char* Param) 
 {
   char Output[VOPSTRSIZE];                                // TX CAT msg buffer
   byte ParamLength, ReqdLength;                        // string lengths
@@ -502,7 +516,10 @@ void MakeCATMessageString(ECATCommands Cmd, char* Param)
 // finally terminate and send  
 //
   strcat(Output, ";");                                // add the terminating semicolon
-  SendCATMessage(Output);
+  if(Device < 0)
+    SendCATMessage(Output);
+  else
+    SendStringToSerial(Device, Output);
 }
 
 
@@ -651,62 +668,3 @@ void ShutdownCATHandler(void)
 }
 
 
-//
-// make a CAT command with a numeric parameter into the provided string
-// (used to send messages to local panel)
-//
-void MakeCATMessageNumeric_Local(ECATCommands Cmd, long Param, char* Str)
-{
-  byte CharCount;                  // character count to add
-  unsigned long Divisor;           // initial divisor to convert to ascii
-  unsigned long Digit;             // decimal digit found
-  char ASCIIDigit;
-  SCATCommands* StructPtr;
-
-  StructPtr = GCATCommands + (int)Cmd;
-  strcpy(Str, StructPtr->CATString);
-  CharCount = StructPtr->NumParams;
-//
-// clip the parameter to the allowed numeric range
-//
-  if (Param > StructPtr->MaxParamValue)
-    Param = StructPtr->MaxParamValue;
-  else if (Param < StructPtr->MinParamValue)
-    Param = StructPtr->MinParamValue;
-//
-// now add sign if needed
-//
-  if (StructPtr -> AlwaysSigned)
-  {
-    if (Param < 0)
-    {
-      strcat(Str, "-");
-      Param = -Param;                   // make positive
-    }
-    else
-      strcat(Str, "+");
-    CharCount--;
-  }
-  else if (Param < 0)                   // not always signed, but neg so it needs a sign
-  {
-      strcat(Str, "-");
-      Param = -Param;      
-      CharCount--;                      // make positive
-  }
-//
-// we now have a positive number to fit into <CharCount> digits
-// pad with zeros if needed
-//
-  Divisor = DivisorTable[CharCount];
-  while (Divisor > 1)
-  {
-    Digit = Param / Divisor;                  // get the digit for this decimal position
-    ASCIIDigit = (char)(Digit + '0');         // ASCII version - and output it
-    Append(Str, ASCIIDigit);
-    Param = Param - (Digit * Divisor);        // get remainder
-    Divisor = Divisor / 10;                   // set for next digit
-  }
-  ASCIIDigit = (char)(Param + '0');           // ASCII version of units digit
-  Append(Str, ASCIIDigit);
-  strcat(Str, ";");
-}

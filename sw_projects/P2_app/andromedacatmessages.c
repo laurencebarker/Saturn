@@ -38,15 +38,16 @@
 #include "cathandler.h"
 
 
+
 //
 // make VFO encoder message
 //
 void MakeVFOEncoderCAT(int8_t Steps)
 {
     if (Steps<0)
-        MakeCATMessageNumeric(eZZZD, -Steps);
+        MakeCATMessageNumeric(DESTCATPORT, eZZZD, -Steps);
     else if(Steps > 0)
-        MakeCATMessageNumeric(eZZZU, Steps);
+        MakeCATMessageNumeric(DESTCATPORT, eZZZU, Steps);
 }
 
 
@@ -64,7 +65,7 @@ void MakeEncoderCAT(int8_t Steps, uint8_t Encoder)
         if (Steps > 9)                                  // limited to 9 steps
             Steps = 9;
         CatParam = (Encoder * 10) + Steps;
-        MakeCATMessageNumeric(eZZZE, CatParam);
+        MakeCATMessageNumeric(DESTCATPORT, eZZZE, CatParam);
     }
     else if(Steps < 0)
     {
@@ -72,7 +73,7 @@ void MakeEncoderCAT(int8_t Steps, uint8_t Encoder)
         if (Steps > 9)                                  // limited to 9 steps
             Steps = 9;
         CatParam = (Encoder * 10) +500 + Steps;
-        MakeCATMessageNumeric(eZZZE, CatParam);
+        MakeCATMessageNumeric(DESTCATPORT, eZZZE, CatParam);
     }
 }
 
@@ -87,7 +88,7 @@ void MakePushbuttonCAT(uint8_t ScanCode, uint8_t Event)
 {
     uint32_t CatParam;
     CatParam = ScanCode * 10 + Event;
-    MakeCATMessageNumeric(eZZZP, CatParam);
+    MakeCATMessageNumeric(DESTCATPORT, eZZZP, CatParam);
 }
 
 
@@ -100,7 +101,7 @@ void MakeProductVersionCAT(uint8_t ProductID, uint8_t HWVersion, uint8_t SWVersi
 {
     uint32_t CatParam;
     CatParam = (ProductID * 100000) + (HWVersion*1000) + SWVersion;
-    MakeCATMessageNumeric(eZZZS, CatParam);
+    MakeCATMessageNumeric(DESTCATPORT, eZZZS, CatParam);
 
 }
 

@@ -30,7 +30,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
-#include <termios.h>
+#include "serialport.h"
 
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
@@ -75,76 +75,11 @@ int SerialDev;                                      // serial device
 //
 void SendCATtoPanel(char* Message)
 {
-    int Length;                                     // message length in charactera
-    int Cntr;
-
-    Length = strlen(Message);
-    write(SerialDev, Message, Length);
+    SendStringToSerial(SerialDev, Message);
 }
 
 
 
-
-
-//
-// setup serial port
-//
-void SetupG2V2PanelSerial(void)
-{
-    int Retval;
-    bool Error;                                                     // i2c error flag
-    int bits;
-    struct termios Ser;
-
-//
-// setup serial; then send CAT message to read product ID and version register
-//
-    SerialDev = open(G2ARDUINOPATH, O_RDWR);
-    if(SerialDev == 0)
-    {
-        printf("serial open failed\n");
-    }
-
-
-// this removed code is needed for USB serial, but not for native serial port
-//	if (ioctl(SerialDev, TIOCMGET, &bits) < 0) 
-//    {
-//		close(SerialDev);
-//		perror("ioctl(TCIOMGET)");
-//		return -1;
-//	}
-
-//	bits &= ~(TIOCM_DTR | TIOCM_RTS);
-//	if (ioctl(SerialDev, TIOCMSET, &bits) < 0) {
-//		close(SerialDev);
-//		perror("ioctl(TIOCMSET)");
-//		return -1;
-//	}
-//	sleep(1);
-//	tcflush(SerialDev, TCIFLUSH);
-//	bits &= TIOCM_DTR;
-//	if (ioctl(SerialDev, TIOCMSET, &bits) < 0) 
-//    {
-//		close(SerialDev);
-//		perror("ioctl(TIOCMSET)");
-//		return -1;
-//	}
-
-	memset(&Ser, 0, sizeof(Ser));
-	Ser.c_iflag = IGNBRK | IGNPAR;
-	Ser.c_cflag = CS8 | CREAD | HUPCL | CLOCAL;
-	cfsetospeed(&Ser, B9600);
-	cfsetispeed(&Ser, B9600);
-    Ser.c_cc[VTIME] = 0;                // no timeout on read
-    Ser.c_cc[VMIN] = 1;                 // read will return just one character
-
-	if (tcsetattr(SerialDev, TCSANOW, &Ser) < 0) 
-    {
-		perror("tcsetattr()");
-		return -1;
-	}
-	tcflush(SerialDev, TCIFLUSH);
-}
 
 
 
@@ -154,16 +89,16 @@ void SetupG2V2PanelSerial(void)
 //
 bool CheckG2V2PanelPresent(void)
 {
-    int Chars;                                      // returned character count
+    bool CharsPresent;                                      // returned character count
 //  return (access(G2ARDUINOPATH, F_OK)==0);        // this wirks for USB, but not for the always-present on board serial
-    SetupG2V2PanelSerial();
+    SerialDev = OpenSerialPort(G2ARDUINOPATH);
     SendCATtoPanel("ZZZS;");
-    sleep(1);                                       // if any chars come back, there is a panel attached
-    ioctl(SerialDev, FIONREAD, &Chars);             // see if any characters returned
+    sleep(1);      
+    CharsPresent = AreCharactersPresent(SerialDev);                                 // if any chars come back, there is a panel attached
 
-    if(Chars == 0)                                  // if we get none, panel not present; close device
+    if(!CharsPresent)                                  // if we get none, panel not present; close device
         close(SerialDev);
-    return(Chars != 0);
+    return(CharsPresent);
 }
 
 
@@ -245,15 +180,15 @@ void G2V2PanelTick(void *arg)
             switch(CATPollCntr++)
             {
                 case 0:
-                    MakeCATMessageNoParam(eZZXV);
+                    MakeCATMessageNoParam(DESTCATPORT, eZZXV);
                     break;
 
                 case 1:
-                    MakeCATMessageNoParam(eZZUT);
+                    MakeCATMessageNoParam(DESTCATPORT, eZZUT);
                     break;
 
                 case 2:
-                    MakeCATMessageNoParam(eZZYR);
+                    MakeCATMessageNoParam(DESTCATPORT, eZZYR);
                     break;
 
                 default:
@@ -267,7 +202,7 @@ void G2V2PanelTick(void *arg)
         if(VKeepAliveCnt++ > VKEEPALIVECOUNT)
         {
             VKeepAliveCnt = 0;
-            MakeCATMessageNoParam(eZZXV);
+            MakeCATMessageNoParam(DESTCATPORT, eZZXV);
         }
 //
 // Set LEDs from values reported by CAT messages
@@ -301,7 +236,6 @@ void G2V2PanelTick(void *arg)
             int Mask = 1;
             int NewState;
             int Param;
-            char IndicatorMessage[10];
 
             for(Cntr=0; Cntr < VNUMG2V2INDICATORS; Cntr++)
             {
@@ -309,8 +243,7 @@ void G2V2PanelTick(void *arg)
                 {
                     NewState = (NewLEDStates & Mask) >> Cntr;
                     Param = ((Cntr +1)* 10) + NewState;
-                    MakeCATMessageNumeric_Local(eZZZI, Param, IndicatorMessage);
-                    SendCATtoPanel(IndicatorMessage);
+                    MakeCATMessageNumeric(SerialDev, eZZZI, Param);
 
                 }
                 Mask = Mask << 1;                               // bitmask for next bit
@@ -408,9 +341,7 @@ void SetG2V2ZZZSState(uint32_t Param)
 //
 void SetG2V2ZZZIState(uint32_t Param)
 {
-    char IndicatorMessage[10];
     GZZZIReceived = true;
-    MakeCATMessageNumeric_Local(eZZZI, Param, IndicatorMessage);
-    SendCATtoPanel(IndicatorMessage);
+    MakeCATMessageNumeric(SerialDev, eZZZI, Param);
 
 }
