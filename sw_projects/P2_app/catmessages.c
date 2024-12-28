@@ -69,6 +69,7 @@ SCATCommands GCATCommands[VNUMCATCMDS] =
 
 //
 // ZZFA
+// received from SDR client app
 // only really here for test - not used operationally
 //
 void HandleZZFA(void)
@@ -79,6 +80,7 @@ void HandleZZFA(void)
 
 //
 // combined VFO status 
+// received from SDR client app
 //
 void HandleZZXV(void)                          // VFO status
 {
@@ -89,6 +91,7 @@ void HandleZZXV(void)                          // VFO status
 
 //
 // 2 Tone test 
+// received from SDR client app
 //
 void HandleZZUT(void)                          // 2 tone test
 {
@@ -99,6 +102,7 @@ void HandleZZUT(void)                          // 2 tone test
 
 //
 // RX1/RX2
+// received from SDR client app
 //
 void HandleZZYR(void)                          // RX1/2
 {
@@ -118,6 +122,7 @@ void HandleZZZS(void)                          // ID
 
 //
 // Indicator settings
+// received from SDR client app
 //
 void HandleZZZI(void)                          // indicator
 {

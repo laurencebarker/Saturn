@@ -59,7 +59,7 @@ typedef struct
 
 extern SCATCommands GCATCommands[];
 
-#define DESTCATPORT -1                          // selects CAT Port as the destination
+#define DESTTCPCATPORT -1                          // selects CAT Port as the destination
 
 //
 // define the potential sources of CAT messages

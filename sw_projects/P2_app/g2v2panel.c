@@ -139,7 +139,7 @@ void G2V2PanelSerial(void *arg)
                     CATMessageBuffer[CATWritePtr++] = 0;            // terminate the string
                     MatchPosition = (int)(strstr(CATMessageBuffer, "ZZZS") - CATMessageBuffer);
                     if(MatchPosition == 0)
-                        ParseCATCmd(CATMessageBuffer);              // if ZZZS, process locally; else send to TCPIP CAT port
+                        ParseCATCmd(CATMessageBuffer, SerialDev);              // if ZZZS, process locally; else send to TCPIP CAT port
                     else
                         SendCATMessage(CATMessageBuffer);
                     CATWritePtr = 0;                                // reset for next CAT message
@@ -180,15 +180,15 @@ void G2V2PanelTick(void *arg)
             switch(CATPollCntr++)
             {
                 case 0:
-                    MakeCATMessageNoParam(DESTCATPORT, eZZXV);
+                    MakeCATMessageNoParam(DESTTCPCATPORT, eZZXV);
                     break;
 
                 case 1:
-                    MakeCATMessageNoParam(DESTCATPORT, eZZUT);
+                    MakeCATMessageNoParam(DESTTCPCATPORT, eZZUT);
                     break;
 
                 case 2:
-                    MakeCATMessageNoParam(DESTCATPORT, eZZYR);
+                    MakeCATMessageNoParam(DESTTCPCATPORT, eZZYR);
                     break;
 
                 default:
@@ -202,7 +202,7 @@ void G2V2PanelTick(void *arg)
         if(VKeepAliveCnt++ > VKEEPALIVECOUNT)
         {
             VKeepAliveCnt = 0;
-            MakeCATMessageNoParam(DESTCATPORT, eZZXV);
+            MakeCATMessageNoParam(DESTTCPCATPORT, eZZXV);
         }
 //
 // Set LEDs from values reported by CAT messages

@@ -309,15 +309,15 @@ void G2V2PanelTick(void *arg)
         switch(CATPollCntr++)
         {
             case 0:
-                MakeCATMessageNoParam(eZZXV);
+                MakeCATMessageNoParam(DESTTCPCATPORT, eZZXV);
                 break;
 
             case 1:
-                MakeCATMessageNoParam(eZZUT);
+                MakeCATMessageNoParam(DESTTCPCATPORT, eZZUT);
                 break;
 
             case 2:
-                MakeCATMessageNoParam(eZZYR);
+                MakeCATMessageNoParam(DESTTCPCATPORT, eZZYR);
                 break;
 
             default:
@@ -331,7 +331,7 @@ void G2V2PanelTick(void *arg)
         if(VKeepAliveCnt++ > VKEEPALIVECOUNT)
         {
             VKeepAliveCnt = 0;
-            MakeCATMessageNoParam(eZZXV);
+            MakeCATMessageNoParam(DESTTCPCATPORT, eZZXV);
         }
 //
 // Set LEDs from values reported by CAT messages

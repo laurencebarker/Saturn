@@ -603,7 +603,7 @@ void* CATHandlerThread(void *arg)
           ReadResult = recv(CATSocketid, ReadBuffer, 1023, 0);
           if(ReadResult > 0)
           {
-              ParseCATCmd(ReadBuffer);
+              ParseCATCmd(ReadBuffer, DESTTCPCATPORT);
               memset(ReadBuffer, 0, sizeof(ReadBuffer));
           }
           //

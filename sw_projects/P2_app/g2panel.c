@@ -403,7 +403,7 @@ void G2PanelTick(void *arg)
             if(VKeepAliveCount++ > VKEEPALIVECOUNT)
             {
                 VKeepAliveCount = 0;
-                MakeCATMessageNoParam(eZZXV);
+                MakeCATMessageNoParam(DESTTCPCATPORT, eZZXV);
             }
 
         }
