@@ -72,9 +72,10 @@ SCATCommands GCATCommands[VNUMCATCMDS] =
 // received from SDR client app
 // only really here for test - not used operationally
 //
-void HandleZZFA(void)
+void HandleZZFA(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam)
 {
-    printf("ZZFA: Frequency=%s\n", ParsedString);
+    if((SourceDevice == DESTTCPCATPORT) && (Type == eStr))
+        printf("ZZFA: Frequency=%s\n", StringParam);
 }
 
 
@@ -82,10 +83,10 @@ void HandleZZFA(void)
 // combined VFO status 
 // received from SDR client app
 //
-void HandleZZXV(void)                          // VFO status
+void HandleZZXV(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam)                          // VFO status
 {
-    SetG2V2ZZXVState((uint32_t)ParsedInt);
-//    printf("ZZXV: param=%04x\n", ParsedInt);
+    if((SourceDevice == DESTTCPCATPORT) && (Type == eNum))
+        SetG2V2ZZXVState((uint32_t)NumParam);
 }
 
 
@@ -93,10 +94,10 @@ void HandleZZXV(void)                          // VFO status
 // 2 Tone test 
 // received from SDR client app
 //
-void HandleZZUT(void)                          // 2 tone test
+void HandleZZUT(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam)                          // 2 tone test
 {
-    SetG2V2ZZUTState(ParsedBool);
-    //printf("ZZUT: param=%04x\n", (int)ParsedBool);
+    if((SourceDevice == DESTTCPCATPORT) && (Type == eBool))
+        SetG2V2ZZUTState(BoolParam);
 }
 
 
@@ -104,19 +105,22 @@ void HandleZZUT(void)                          // 2 tone test
 // RX1/RX2
 // received from SDR client app
 //
-void HandleZZYR(void)                          // RX1/2
+void HandleZZYR(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam)                          // RX1/2
 {
-    SetG2V2ZZYRState(ParsedBool);
+    if((SourceDevice == DESTTCPCATPORT) && (Type == eBool))
+        SetG2V2ZZYRState(BoolParam);
 //    printf("ZZUT: param=%04x\n", (int)ParsedBool);
 }
 
 
 //
 // product ID and version
+// This handles a response from a local device (front panel, ATU etc)
 //
-void HandleZZZS(void)                          // ID
+void HandleZZZS(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam)                          // ID
 {
-    SetG2V2ZZZSState((uint32_t)ParsedInt);
+    if(Type == eNum)
+        SetG2V2ZZZSState((uint32_t)NumParam);
 }
 
 
@@ -124,7 +128,8 @@ void HandleZZZS(void)                          // ID
 // Indicator settings
 // received from SDR client app
 //
-void HandleZZZI(void)                          // indicator
+void HandleZZZI(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam)                          // indicator
 {
-    SetG2V2ZZZIState((uint32_t)ParsedInt);
+    if((SourceDevice == DESTTCPCATPORT) && (Type == eNum))
+        SetG2V2ZZZIState((uint32_t)NumParam);
 }

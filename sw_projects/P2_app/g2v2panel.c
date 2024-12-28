@@ -141,7 +141,7 @@ void G2V2PanelSerial(void *arg)
                     if(MatchPosition == 0)
                         ParseCATCmd(CATMessageBuffer, SerialDev);              // if ZZZS, process locally; else send to TCPIP CAT port
                     else
-                        SendCATMessage(CATMessageBuffer);
+                        SendCATMessage(CATMessageBuffer);           // send unprocessed to SDR client app via TCP/IP
                     CATWritePtr = 0;                                // reset for next CAT message
                 }
             }

@@ -46,13 +46,6 @@ bool ThreadActive = false;                  // true while CAT thread running
 bool SignalThreadEnd = false;               // asserted to terminate thread
 pthread_t CATThread;                        // thread reads/writes CAT commands
 
-//
-// these are treated as global, and used by the message handlers
-//
-bool ParsedBool;                            // if a bool expected, it goes here
-long ParsedInt;                             // if int expected, it goes here
-char ParsedString[20];                      // if string expected, it goes here
-
 
 
 #define VNUMOPSTRINGS 16                    // size of output queue
@@ -213,7 +206,7 @@ bool isNumeric(char ch)
 // Parse a single command in the local input buffer
 // process it if it is a valid command
 //
-void ParseCATCmd(char* Buffer,  CATMsgSource Source)
+void ParseCATCmd(char* Buffer,  int Source)
 {
   int CharCnt;                              // number of characters in the buffer (same as length of string)
   unsigned long MatchWord;                  // 32 bit compressed input cmd
@@ -224,7 +217,11 @@ void ParseCATCmd(char* Buffer,  CATMsgSource Source)
   int ByteCntr;
   char ch;
   bool ValidResult = true;                  // true if we get a valid parse result
-  void (*HandlerPtr)(void); 
+  bool ParsedBool;                            // if a bool expected, it goes here
+  long ParsedInt;                             // if int expected, it goes here
+  char ParsedString[20];                      // if string expected, it goes here
+
+  void (*HandlerPtr)(int SourceDevice, ERXParamType HasParam, bool BoolParam, int NumParam, char* StringParam); 
   
   CharCnt = strlen(Buffer) - 1;
 //
@@ -321,7 +318,7 @@ void ParseCATCmd(char* Buffer,  CATMsgSource Source)
 //    }
     HandlerPtr = GCATCommands[MatchedCAT].handler;
     if(HandlerPtr != NULL)
-      (*HandlerPtr)();
+      (*HandlerPtr)(Source, ParsedType, ParsedBool, ParsedInt, ParsedString);
   }
   else
   {

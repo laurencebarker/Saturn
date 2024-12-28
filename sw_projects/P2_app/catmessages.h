@@ -16,6 +16,9 @@
 #ifndef __catmessages_h
 #define __catmessages_h
 
+#include "cattypes.h"
+//#include "cathandler.h"
+
 
 
 //
@@ -47,31 +50,31 @@ typedef enum
 //
 // VFO A frequency 
 //
-void HandleZZFA(void);                          // frequency
+void HandleZZFA(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam);                          // frequency
 
 //
 // combined VFO status 
 //
-void HandleZZXV(void);                          // VFO status
+void HandleZZXV(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam);                          // VFO status
 
 //
 // 2 Tone test 
 //
-void HandleZZUT(void);                          // 2 tone test
+void HandleZZUT(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam);                          // 2 tone test
 
 //
 // RX1/RX2
 //
-void HandleZZYR(void);                          // RX1/2
+void HandleZZYR(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam);                          // RX1/2
 
 //
 // product ID and version
 //
-void HandleZZZS(void);                          // ID
+void HandleZZZS(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam);                          // ID
 
 //
 // Indicator settings
 //
-void HandleZZZI(void);                         // indicator
+void HandleZZZI(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam);                         // indicator
 
 #endif  //#ifndef
