@@ -10,6 +10,7 @@
 // g2panel.c:
 //
 // interface G2V2 front panel using asynchronous serial
+// also interfaces a G2V1 panel if it has an RP2040 serial adapter
 //
 //////////////////////////////////////////////////////////////
 
@@ -47,12 +48,15 @@
 bool G2V2PanelControlled = false;
 bool G2V2PanelActive = false;                       // true while panel active and threads should run
 bool G2V2CATDetected = false;                       // true if panel ID message has been sent
+bool G2V2Detected = false;                          // true if G2V2 panel detected from ZZZS response
+bool G2V1AdapterDetected = false;                   // true if G2V1 adapter detected from ZZZS response
 bool GZZZIReceived = false;                         // true if a ZZZI message received (so halt polling)
 
 extern int i2c_fd;                                  // file reference
 char* gpio_dev = NULL;
 pthread_t G2V2PanelTickThread;                      // thread with periodic tick
 pthread_t G2V2PanelSerialThread;                    // thread wfor serial read from panel
+pthread_t G2V1AdapterSerialThread;                    // thread wfor serial read from panel
 uint8_t G2V2PanelSWID;
 uint8_t G2V2PanelHWVersion;
 uint8_t G2V2PanelProductID;
@@ -63,19 +67,13 @@ bool GVFOBSelected;                                 // true if VFO B selected
 uint32_t GCombinedVFOState;                         // reported VFO state bits
 uint16_t GLEDState;                                 // LED state settings
 TSerialThreadData G2V2Data;                         // data for G2V2 read thread
+TSerialThreadData G2V1AdapterData;                  // data for G2V1 adapter read thread
 
 #define VKEEPALIVECOUNT 150                         // 15s period between keepalive requests (based on 100ms tick)
 
 
-
-
-//
-// send a CAT message to the panel
-//
-void SendCATtoPanel(char* Message)
-{
-    SendStringToSerial(G2V2Data.DeviceHandle, Message);
-}
+#define G2ARDUINOPATH "/dev/ttyAMA1"                // G2 panel, Raspberry pi serial port
+#define G2V1ADAPTERPATH "/dev/ttyACM0"              // G2V1 adapter, USB serial
 
 
 
@@ -84,36 +82,62 @@ void SendCATtoPanel(char* Message)
 // function to check if panel is present. This is called before panel initialise.
 // file can be left open if "yes".
 //
+// change to open the thread, which opens file and sends ZZZS;
+// then wait for response to come back via CAT handler. Making a proper "closed loop" identification. 
+//
 bool CheckG2V2PanelPresent(void)
 {
-    int SerialDev;                                      // serial device
-    bool CharsPresent;                                      // returned character count
+    bool Result = false;
 
-//  return (access(G2ARDUINOPATH, F_OK)==0);        // this wirks for USB, but not for the always-present on board serial
-    printf("checking for G2V2\n");
+    printf("checking for G2V2 or G2V1 adapter\n");
 
-    SerialDev = OpenSerialPort(G2ARDUINOPATH);
-    G2V2Data.DeviceHandle = SerialDev;
-    G2V2Data.DeviceActive = true;
+//
+// launch handler for G2V2
+//
+    strcpy(G2V2Data.PathName, G2ARDUINOPATH);
+    G2V2Data.IsOpen = false;
+    G2V2Data.RequestID = true;
     G2V2Data.Device = eG2V2Panel;
-    SendCATtoPanel("ZZZS;");
-    sleep(1);      
-    CharsPresent = AreCharactersPresent(SerialDev);                                 // if any chars come back, there is a panel attached
 
-    if(!CharsPresent)                                  // if we get none, panel not present; close device
-        close(SerialDev);
+    if(pthread_create(&G2V2PanelSerialThread, NULL, CATSerial, (void *)&G2V2Data) < 0)
+        perror("pthread_create G2 panel tick");
+    pthread_detach(G2V2PanelSerialThread);
+
+//
+// launch handler for G2V1 serial adapter
+//
+    strcpy(G2V1AdapterData.PathName, G2V1ADAPTERPATH);
+    G2V1AdapterData.IsOpen = false;
+    G2V1AdapterData.RequestID = true;
+    G2V1AdapterData.Device = eG2V1PanelAdapter;
+
+    if(pthread_create(&G2V1AdapterSerialThread, NULL, CATSerial, (void *)&G2V1AdapterData) < 0)
+        perror("pthread_create G2 panel tick");
+    pthread_detach(G2V1AdapterSerialThread);
+
+    sleep(2);
+//
+// now see if anything came back from CAT handler
+// disable devices not to be used - this will cause them to close their files
+//
+    if(G2V1AdapterDetected)
+    {
+        Result = true;
+        G2V2Data.DeviceActive = false;
+    }
+    else if(G2V2Detected)
+    {
+        Result = true;
+        G2V1AdapterData.DeviceActive = false;
+    }
     else
     {
-        printf("found characters from G2V2; spinning up thread\n");
-        if(pthread_create(&G2V2PanelSerialThread, NULL, G2V2PanelSerial, (void *)&G2V2Data) < 0)
-            perror("pthread_create G2 panel tick");
-        pthread_detach(G2V2PanelSerialThread);
+        G2V1AdapterData.DeviceActive = false;
+        G2V2Data.DeviceActive = false;
     }
-    return(CharsPresent);
+
+    return Result;
 }
-
-
-
 
 
 
@@ -243,11 +267,14 @@ void InitialiseG2V2PanelHandler(void)
 
 //
 // function to shutdown a connection to the G2 front panel; call if selected as a command line option
+// serial files closed by setting DeviceActive to false; the thread then closes the file. 
 //
 void ShutdownG2V2PanelHandler(void)
 {
     G2V2PanelActive = false;
-    close(G2V2Data.DeviceHandle);
+    G2V1AdapterData.DeviceActive = false;
+    G2V2Data.DeviceActive = false;
+    sleep(1);
 }
 
 
@@ -282,16 +309,22 @@ void SetG2V2ZZXVState(uint32_t NewState)
 
 //
 // receive ZZZS state
+// this has already been decoded by the CAT handler
 //
-void SetG2V2ZZZSState(uint32_t Param)
+void SetG2V2ZZZSState(uint8_t ProductID, uint8_t HWVersion, uint8_t SWID)
 {
-    G2V2PanelProductID = Param / 100000;
-    Param = Param % 100000;
-    G2V2PanelHWVersion = Param / 1000;
-    G2V2PanelSWID= Param % 1000;
-    printf("found panel product ID=%d", G2V2PanelProductID);
-    printf("; H/W verson = %d", G2V2PanelHWVersion);
-    printf("; S/W verson = %d\n", G2V2PanelSWID);
+    if(ProductID == 4)
+    {
+        printf("found G2V1 adapter, product ID=%d", ProductID);
+        G2V1AdapterDetected = true;
+    }
+    else if(ProductID == 5)
+    {
+        printf("found G2V2 panel, product ID=%d", ProductID);
+        G2V2Detected = true;
+    }
+    printf("; H/W verson = %d", HWVersion);
+    printf("; S/W verson = %d\n", SWID);
 }
 
 

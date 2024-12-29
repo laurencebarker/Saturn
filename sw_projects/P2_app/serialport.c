@@ -10,7 +10,9 @@
 //
 // serialport.c:
 //
-// handle simple access to serial port
+// handle simple CAT access to serial port
+// CAT messages are forwarded to CAT handler
+// port is opened and read performed by creating a thread
 //
 //////////////////////////////////////////////////////////////
 
@@ -36,6 +38,8 @@ char* DeviceNames[] =
   "AriesATU"
 };
 
+
+
 //
 // open and set up a serial port for read/write access
 //
@@ -45,26 +49,27 @@ int OpenSerialPort(char* DeviceName)
     struct termios Ser;
 
     Device = open(DeviceName, O_RDWR);
-    if(Device == 0)
+    if(Device == -1)
     {
         printf("serial open failed on device %s\n", DeviceName);
     }
-
-	memset(&Ser, 0, sizeof(Ser));
-	Ser.c_iflag = IGNBRK | IGNPAR;
-	Ser.c_cflag = CS8 | CREAD | HUPCL | CLOCAL;
-	cfsetospeed(&Ser, B9600);
-	cfsetispeed(&Ser, B9600);
-    Ser.c_cc[VTIME] = 0;                // no timeout on read
-    Ser.c_cc[VMIN] = 1;                 // read will return just one character
-
-	if (tcsetattr(Device, TCSANOW, &Ser) < 0) 
+    else
     {
-		perror("tcsetattr()");
-		return -1;
-	}
-	tcflush(Device, TCIFLUSH);
+        memset(&Ser, 0, sizeof(Ser));
+        Ser.c_iflag = IGNBRK | IGNPAR;
+        Ser.c_cflag = CS8 | CREAD | HUPCL | CLOCAL;
+        cfsetospeed(&Ser, B9600);
+        cfsetispeed(&Ser, B9600);
+        Ser.c_cc[VTIME] = 5;                // 0.5s timeout on read
+        Ser.c_cc[VMIN] = 0;                 // read can return wioth no characters
 
+        if (tcsetattr(Device, TCSANOW, &Ser) < 0) 
+        {
+            perror("tcsetattr()");
+            return -1;
+        }
+        tcflush(Device, TCIFLUSH);
+    }
     return Device;
 }
 
@@ -82,20 +87,6 @@ void SendStringToSerial(int Device, char* Message)
 }
 
 
-//
-// function ot test whether any characters are present in the serial port
-// return true if there are.
-//
-bool AreCharactersPresent(int Device)
-{
-    bool Result = false;
-    int Chars;
-
-    ioctl(Device, FIONREAD, &Chars);             // see if any characters returned
-    if(Chars != 0)                                  // if we get none, panel not present; close device
-        Result = true;
-    return Result;
-}
 
 
 #define VESERINSIZE 120                 // large enough to hold a whole CAT message
@@ -103,7 +94,7 @@ bool AreCharactersPresent(int Device)
 // serial read thread
 // the paramter passed is a pointer to a struct with the required settings
 //
-void G2V2PanelSerial(void *arg)
+void CATSerial(void *arg)
 {
     char SerialInputBuffer[VESERINSIZE];
     char CATMessageBuffer[VESERINSIZE];
@@ -115,35 +106,62 @@ void G2V2PanelSerial(void *arg)
     TSerialThreadData *DeviceData;
 
     DeviceData = (TSerialThreadData *) arg;
-    printf("CAT Serial read handler thread established for device %s\n", DeviceNames[(int)DeviceData->Device]);
-//
-// now loop waiting for characters, then form them into CAT messages terminated by semicolon
-//
-    while(DeviceData -> DeviceActive)
+    DeviceData -> DeviceHandle = OpenSerialPort(DeviceData -> PathName);
+    if(DeviceData -> DeviceHandle != -1)
     {
-        ReadCnt = read(DeviceData -> DeviceHandle, &SerialInputBuffer, VESERINSIZE);
-        if (ReadCnt > 0)
+        printf("Setting up CAT Serial read handler thread for device %s\n", DeviceNames[(int)DeviceData->Device]);
+        DeviceData -> IsOpen = true;
+        DeviceData -> DeviceActive = true;
+        sleep(1);                                   // allow serial to start (particularly for USB)
+
+        if(DeviceData -> RequestID)
+            write(DeviceData ->DeviceHandle, "ZZZS;", 5);
+
+    //
+    // now loop waiting for characters, then form them into CAT messages terminated by semicolon
+    // read() will return after timoeut with no characters, so do check the count!
+    //
+        while(DeviceData -> DeviceActive)
         {
-//
-// we have input data available, so read it one char at a time and write to buffer
-// if we find a terminating semicolon, process the command
-// if we get a control character, abandon the line so far and start again
-//
-            for(Cntr=0; Cntr < ReadCnt; Cntr++)
+            ReadCnt = read(DeviceData -> DeviceHandle, &SerialInputBuffer, VESERINSIZE);
+            if (ReadCnt > 0)
             {
-                ch=SerialInputBuffer[Cntr];
-                CATMessageBuffer[CATWritePtr++] = ch;
-                if (ch == ';')
+    //
+    // we have input data available, so read it one char at a time and write to buffer
+    // if we find a terminating semicolon, process the command
+    // if we get a control character, abandon the line so far and start again
+    //
+                for(Cntr=0; Cntr < ReadCnt; Cntr++)
                 {
-                    CATMessageBuffer[CATWritePtr++] = 0;            // terminate the string
-                    MatchPosition = (int)(strstr(CATMessageBuffer, "ZZZS") - CATMessageBuffer);
-                    if(MatchPosition == 0)
-                        ParseCATCmd(CATMessageBuffer, DeviceData -> DeviceHandle);              // if ZZZS, process locally; else send to TCPIP CAT port
-                    else
-                        SendCATMessage(CATMessageBuffer);           // send unprocessed to SDR client app via TCP/IP
-                    CATWritePtr = 0;                                // reset for next CAT message
+                    ch=SerialInputBuffer[Cntr];
+                    CATMessageBuffer[CATWritePtr++] = ch;
+                    if (ch == ';')                                      // found end of a complete CAT message
+                    {
+                        CATMessageBuffer[CATWritePtr++] = 0;            // terminate the string
+                        MatchPosition = (int)(strstr(CATMessageBuffer, "ZZZS") - CATMessageBuffer);
+                        if((DeviceData -> Device == eG2V2Panel) ||(DeviceData -> Device == eG2V1PanelAdapter))
+                        {
+                        //
+                        // if ZZZS, send to local handler; else send to SDR client app
+                        //
+                            if(MatchPosition == 0)
+                                ParseCATCmd(CATMessageBuffer, DeviceData -> DeviceHandle);              // if ZZZS, process locally; else send to TCPIP CAT port
+                            else
+                                SendCATMessage(CATMessageBuffer);           // send unprocessed to SDR client app via TCP/IP
+                        }
+                        else
+                        {
+                        //
+                        // for non front panel devices, process CAT commands locally
+                        //
+                            ParseCATCmd(CATMessageBuffer, DeviceData -> DeviceHandle);
+                        }
+                        CATWritePtr = 0;                                // reset for next CAT message
+                    }
                 }
             }
         }
+        close(DeviceData -> DeviceHandle);
+        DeviceData -> IsOpen = false;
     }
 }

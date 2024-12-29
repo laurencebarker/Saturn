@@ -20,7 +20,6 @@
 #include <stdint.h>
 
 
-#define G2ARDUINOPATH "/dev/ttyAMA1"
 
 
 //
@@ -61,7 +60,7 @@ void SetG2V2ZZXVState(uint32_t NewState);
 //
 // receive ZZZS state
 //
-void SetG2V2ZZZSState(uint32_t Param);
+void SetG2V2ZZZSState(uint8_t ProductID, uint8_t HWVersion, uint8_t SWID);
 
 //
 // receive ZZZI state

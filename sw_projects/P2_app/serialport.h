@@ -10,6 +10,7 @@
 // serialport.h:
 //
 // handle simple access to serial port
+// port is opened and read performed by creating a thread
 //
 //////////////////////////////////////////////////////////////
 
@@ -30,36 +31,28 @@ typedef enum
 
 
 //
-// open and set up a serial port for read/write access
-//
-int OpenSerialPort(char* DeviceName);
-
-
-//
 // send a string to the serial port
 //
 void SendStringToSerial(int Device, char* Message);
 
-//
-// function ot test whether any characters are present in the serial port
-// return true if there are.
-//
-bool AreCharactersPresent(int Device);
 
 //
 // struct with settings for a serial reader thread
 //
 typedef struct
 {
-  int DeviceHandle;
-  ESerialDeviceType Device;
-  bool DeviceActive;
+  char PathName[120];               // device path name
+  int DeviceHandle;                 // file device, returned from OS
+  ESerialDeviceType Device;         // expected device type
+  bool DeviceActive;                // true if device is active
+  bool RequestID;                   // true if thread should request device ID using ZZZS;
+  bool IsOpen;                      // true if file device is open
 } TSerialThreadData;
 
 //
 // serial read thread
 //
-void G2V2PanelSerial(void *arg);
+void CATSerial(void *arg);
 
 
 #endif

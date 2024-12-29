@@ -116,11 +116,23 @@ void HandleZZYR(int SourceDevice, ERXParamType Type, bool BoolParam, int NumPara
 //
 // product ID and version
 // This handles a response from a local device (front panel, ATU etc)
+// decode the message, and call appropriate handler
 //
 void HandleZZZS(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam)                          // ID
 {
+    uint8_t SWID;
+    uint8_t HWVersion;
+    uint8_t ProductID;
+
     if(Type == eNum)
-        SetG2V2ZZZSState((uint32_t)NumParam);
+    {
+        ProductID = NumParam / 100000;
+        NumParam = NumParam % 100000;
+        HWVersion = NumParam / 1000;
+        SWID= NumParam % 1000;
+        if((ProductID == 4) || (ProductID == 5))                // if G2V1 adater or G2V2
+            SetG2V2ZZZSState(ProductID, HWVersion, SWID);
+    }
 }
 
 
