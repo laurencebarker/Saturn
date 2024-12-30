@@ -35,6 +35,7 @@
 #include "../common/hwaccess.h"
 #include "../common/debugaids.h"
 #include "g2v2panel.h"
+#include "AriesATU.h"
 #include "catmessages.h"
 #include "cathandler.h"
 
@@ -132,6 +133,8 @@ void HandleZZZS(int SourceDevice, ERXParamType Type, bool BoolParam, int NumPara
         SWID= NumParam % 1000;
         if((ProductID == 4) || (ProductID == 5))                // if G2V1 adater or G2V2
             SetG2V2ZZZSState(ProductID, HWVersion, SWID);
+        else if(ProductID == 2)
+            SetAriesZZZSState(ProductID, HWVersion, SWID);
     }
 }
 

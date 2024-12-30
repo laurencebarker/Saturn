@@ -100,7 +100,7 @@ bool CheckG2V2PanelPresent(void)
     G2V2Data.Device = eG2V2Panel;
 
     if(pthread_create(&G2V2PanelSerialThread, NULL, CATSerial, (void *)&G2V2Data) < 0)
-        perror("pthread_create G2 panel tick");
+        perror("pthread_create G2V2 serial thread");
     pthread_detach(G2V2PanelSerialThread);
 
 //
@@ -112,7 +112,7 @@ bool CheckG2V2PanelPresent(void)
     G2V1AdapterData.Device = eG2V1PanelAdapter;
 
     if(pthread_create(&G2V1AdapterSerialThread, NULL, CATSerial, (void *)&G2V1AdapterData) < 0)
-        perror("pthread_create G2 panel tick");
+        perror("pthread_create G2V1 Adapter serial thread");
     pthread_detach(G2V1AdapterSerialThread);
 
     sleep(2);
@@ -140,9 +140,10 @@ bool CheckG2V2PanelPresent(void)
 }
 
 
-
-
 #define VNUMG2V2INDICATORS 9
+
+
+
 //
 // periodic timestep
 //

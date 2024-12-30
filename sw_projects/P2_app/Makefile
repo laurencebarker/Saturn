@@ -14,7 +14,7 @@ GIT_DATE := $(wordlist 2,5, $(shell git log -1 --format=%cd --date=rfc))
 # ****************************************************
 # Targets needed to bring the executable up to date
 
-OBJS=    $(TARGET).o hwaccess.o saturnregisters.o codecwrite.o saturndrivers.o version.o generalpacket.o IncomingDDCSpecific.o  IncomingDUCSpecific.o InHighPriority.o InDUCIQ.o InSpkrAudio.o OutMicAudio.o OutDDCIQ.o OutHighPriority.o debugaids.o auxadc.o cathandler.o frontpanelhandler.o catmessages.o g2panel.o LDGATU.o g2v2panel.o i2cdriver.o andromedacatmessages.o Outwideband.o serialport.o
+OBJS=    $(TARGET).o hwaccess.o saturnregisters.o codecwrite.o saturndrivers.o version.o generalpacket.o IncomingDDCSpecific.o  IncomingDUCSpecific.o InHighPriority.o InDUCIQ.o InSpkrAudio.o OutMicAudio.o OutDDCIQ.o OutHighPriority.o debugaids.o auxadc.o cathandler.o frontpanelhandler.o catmessages.o g2panel.o LDGATU.o g2v2panel.o i2cdriver.o andromedacatmessages.o Outwideband.o serialport.o AriesATU.o
 
 all: $(OBJS)
 	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)

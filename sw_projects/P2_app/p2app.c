@@ -57,7 +57,7 @@
 #include "LDGATU.h"
 #include "frontpanelhandler.h"
 
-#define P2APPVERSION 31
+#define P2APPVERSION 32
 #define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
@@ -65,6 +65,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V32: 30/12/2024:  added support for Arduino G2V1 front panel adapter, for processor upgrades. 
 // V31: 21/11/2024:  added CW keyer keydown bit to high priority status byte 4 bit 7 for Thetis generated sidetone
 // V30: 17/11/2024:  wideband record added.
 // V29: 15/10/2024   DL1YCF CW ramp; CW amplitude corrected; added support to detect & check FPGA major version
@@ -121,6 +122,7 @@ bool ThreadError = false;                   // true if a thread reports an error
 bool UseDebug = false;                      // true if to enable debugging
 bool UseControlPanel = false;               // true if to use a control panel
 bool UseLDGATU = false;                     // true if to use an LDG ATU via CAT
+bool UseAriesATU = false;                   // true if to use an Aries ATU
 
 
 #define SDRBOARDID 1                        // Hermes
@@ -349,8 +351,10 @@ void* CheckForActivity(void *arg)
 void Shutdown()
 {
   ShutdownCATHandler();                                   // close CAT connection socket
-    if(UseControlPanel)
+  if(UseControlPanel)
     ShutdownFrontPanelHandler();
+  if(UseAriesATU)
+    ShutdownAriesHandler();
 
   close(SocketData[0].Socketid);                          // close incoming data socket
   sem_destroy(&DDCInSelMutex);
@@ -502,6 +506,7 @@ int main(int argc, char *argv[])
         printf("usage: ./p2app <optional arguments>\n");
         printf("optional arguments:\n");
         printf("-a LDG        control TUNE for LDG ATU\n");
+        printf("-a Aries      control TUNE for Aries ATU\n");
         printf("-f <frequency in Hz> turns on test source for all DDCs\n");
         printf("-i saturn     board responds as board id = Saturn\n");
         printf("-i orionmk2   board responds as board id = Orion mk 2\n");
@@ -519,10 +524,16 @@ int main(int argc, char *argv[])
           printf("TUNE command for LDG ATU via CAT\n");
           UseLDGATU = true;
         }
+        else if(strcmp(optarg,"Aries") == 0)
+        {
+          printf("Interface for Aries ATU vRequested\n");
+          UseAriesATU = true;
+        }
         else
         {
           printf("error parsing ATU type. Command is case sensitive\n");
           printf("-a LDG    selects LDG ATU\n");
+          printf("-a Aries      control TUNE for Aries ATU\n");
           return EXIT_SUCCESS;
         }
         break;
@@ -598,6 +609,12 @@ int main(int argc, char *argv[])
 //
   if(UseLDGATU)
     InitialiseLDGHandler();
+
+//
+// startup ATU handler if needed
+//
+  if(UseAriesATU)
+    InitialiseAriesHandler();
 
 //
 // startup G2 front panel handler if needed
