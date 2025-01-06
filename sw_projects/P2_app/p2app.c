@@ -34,6 +34,9 @@
 #include <net/if.h>
 #include <semaphore.h>
 #include <signal.h>
+#include <ifaddrs.h>
+#include <netdb.h>
+
 
 #include "../common/saturntypes.h"
 #include "../common/hwaccess.h"                     // access to PCIe read & write
@@ -415,8 +418,10 @@ int main(int argc, char *argv[])
 	unsigned int Version = 0;
   unsigned int MajorVersion = 0;
   bool IncompatibleFirmware = false;                                // becomes set if firmware is not compatible with this version
-
-
+  struct ifaddrs *ifaddr;                                           // used to find ethernet device name
+  int family, s;                                                    // used to find ethernet device name
+  char host[NI_MAXHOST];                                            // used to find ethernet device name
+  char if_string[NI_MAXHOST];                                       // used to find ethernet device name
 
 
   //
@@ -643,10 +648,56 @@ int main(int argc, char *argv[])
   //
   // get this device MAC address
   //
+  //memset(&hwaddr, 0, sizeof(hwaddr));
+  //strncpy(hwaddr.ifr_name, "eth0", IFNAMSIZ - 1);
+  //ioctl(SocketData[VPORTCOMMAND].Socketid, SIOCGIFHWADDR, &hwaddr);
+  //for(i = 0; i < 6; ++i) DiscoveryReply[i + 5] = hwaddr.ifr_addr.sa_data[i];         // copy MAC to reply message
+  //
+  // get IP and interface name, we use the 1st one found
+  // on Saturn this should be OK unless someone adds
+  // another ethernet adapter
+  //
+  if (getifaddrs(&ifaddr) == -1) 
+  {
+      perror("getifaddrs");
+      return(EXIT_FAILURE);
+  }
+
+  for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) 
+  {
+      if (ifa->ifa_addr == NULL)
+          continue;
+
+      family = ifa->ifa_addr->sa_family;
+
+      /* ignore AF_INET6 and lo */
+      if (family == AF_INET && !strstr("lo", ifa->ifa_name)) {
+          s = getnameinfo(ifa->ifa_addr,
+                  (family == AF_INET) ? sizeof(struct sockaddr_in) :
+                                        sizeof(struct sockaddr_in6),
+                  host, NI_MAXHOST,
+                  NULL, 0, NI_NUMERICHOST);
+          if (s != 0) {
+              printf("getnameinfo() failed: %s\n", gai_strerror(s));
+              return(EXIT_FAILURE);
+          }
+
+          printf("\tname: %s\taddress: <%s>\n", ifa->ifa_name, host);
+          strncpy(if_string, ifa->ifa_name, IFNAMSIZ - 1);
+      }
+  }
+  freeifaddrs(ifaddr);
+
+  //
+  // get this device MAC address
+  //
   memset(&hwaddr, 0, sizeof(hwaddr));
-  strncpy(hwaddr.ifr_name, "eth0", IFNAMSIZ - 1);
+  strncpy(hwaddr.ifr_name, if_string, IFNAMSIZ - 1);
   ioctl(SocketData[VPORTCOMMAND].Socketid, SIOCGIFHWADDR, &hwaddr);
   for(i = 0; i < 6; ++i) DiscoveryReply[i + 5] = hwaddr.ifr_addr.sa_data[i];         // copy MAC to reply message
+
+
+
 
   MakeSocket(SocketData+VPORTDDCSPECIFIC, 0);            // create and bind a socket
   if(pthread_create(&DDCSpecificThread, NULL, IncomingDDCSpecific, (void*)&SocketData[VPORTDDCSPECIFIC]) < 0)
