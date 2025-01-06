@@ -37,44 +37,23 @@ typedef enum
   eZZZI,                          // indicator
   eZZZS,                          // s/w version
   eZZTU,                          // tune
-  eZZFA,
+  eZZFA,                          // VFO A frequency
   eZZXV,
   eZZUT,
   eZZYR,
+  eZZFT,                          // TX frequency
+  eZZOA,                          // RX antenna
+  eZZOC,                          // TX antenna
+  eZZOV,                          // ATU enable
+  eZZOX,                          // ATU Tune success/fail
+  eZZOY,                          // ATU options
+  eZZOZ,                          // erase ATU tune solutions
   eNoCommand                      // this is an exception condition
 }ECATCommands;
 
 
 
 
-//
-// VFO A frequency 
-//
-void HandleZZFA(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam);                          // frequency
 
-//
-// combined VFO status 
-//
-void HandleZZXV(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam);                          // VFO status
-
-//
-// 2 Tone test 
-//
-void HandleZZUT(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam);                          // 2 tone test
-
-//
-// RX1/RX2
-//
-void HandleZZYR(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam);                          // RX1/2
-
-//
-// product ID and version
-//
-void HandleZZZS(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam);                          // ID
-
-//
-// Indicator settings
-//
-void HandleZZZI(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam);                         // indicator
 
 #endif  //#ifndef

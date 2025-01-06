@@ -607,7 +607,7 @@ void SetOpenCollectorOutputs(unsigned int bits)
     Register = GPIORegValue;                        // get current settings
     BitMask = (0b1111111) << VOPENCOLLECTORBITS;
     Register = Register & ~BitMask;                 // strip old bits, add new
-    Register |= (bits << VOPENCOLLECTORBITS);
+    Register |= (bits << (VOPENCOLLECTORBITS-1));   // OC bits are in bits (7:1) not (6:0)
     GPIORegValue = Register;                    // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);  // and write to it
     sem_post(&RFGPIOMutex);                         // clear protected access

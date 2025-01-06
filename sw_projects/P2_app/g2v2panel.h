@@ -21,7 +21,6 @@
 
 
 
-
 //
 // function to initialise a connection to the G2 V2 front panel; call if selected as a command line option
 //
@@ -67,6 +66,22 @@ void SetG2V2ZZZSState(uint8_t ProductID, uint8_t HWVersion, uint8_t SWID);
 //
 void SetG2V2ZZZIState(uint32_t Param);
 
+//
+// receive a ZZZP message from front panel
+//
+void HandleG2V2ZZZPMessage(uint32_t Param);
 
+//
+// see if serial device belongs to a front panel open serial port
+// return true if this handle belongs to a front panel
+//
+bool IsFrontPanelSerial(uint32_t Handle);
+
+//
+// set ATU LED states
+// bool true if lit.
+// safe to call if the thread isn't active, because it just sets states.
+//
+void SetATULEDs(bool GreenLED, bool RedLED);
 
 #endif      // file sentry

@@ -124,6 +124,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       //
       LongWord = ntohl(*(uint32_t *)(UDPInBuffer+329));
       SetDUCFrequency(LongWord, true);
+      SetAriesTXFrequency(LongWord);
       Byte = (uint8_t)(UDPInBuffer[345]);
       SetTXDriveLevel(Byte);
       //
@@ -149,6 +150,8 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       // if we don't have a new TX ant bit set, just write "old" word data (byte 1432) to both registers
       // this is to allow safe operation with legacy client apps
       // 1st read bytes and see if a TX ant bit is set
+      // Aries will only work with newer FPGA and client app support
+      //
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1428));
       //printf("Alex 1 TX word = 0x%x\n", Word);
       Word = (Word >> 8) & 0x0007;                          // new data TX ant bits. if not set, must be legacy client app
@@ -158,6 +161,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
         //printf("new FPGA code, new client data\n");
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1428));      // copy word with TX ant settings to filt/TXant register
         AlexManualTXFilters(Word, true);
+        SetAriesAlexTXWord(Word);
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with RX ant settings to filt/RXant register
         //printf("Alex 0 TX word = 0x%x\n", Word);
         AlexManualTXFilters(Word, false);
@@ -182,6 +186,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       //printf("Alex 1 RX word = 0x%x\n", Word);
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1434));
       AlexManualRXFilters(Word, 0);
+      SetAriesAlexRXWord(Word);
       //printf("Alex 0 RX word = 0x%x\n", Word);
       //
       // RX atten during TX and RX

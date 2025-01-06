@@ -102,7 +102,8 @@ void CATSerial(void *arg)
     int Cntr;
     int CATWritePtr = 0;
     char ch;                                    // individual read character
-    int MatchPosition;
+    int MatchPositionZZZS;
+    int MatchPositionZZZP;
     TSerialThreadData *DeviceData;
 
     DeviceData = (TSerialThreadData *) arg;
@@ -138,13 +139,14 @@ void CATSerial(void *arg)
                     if (ch == ';')                                      // found end of a complete CAT message
                     {
                         CATMessageBuffer[CATWritePtr++] = 0;            // terminate the string
-                        MatchPosition = (int)(strstr(CATMessageBuffer, "ZZZS") - CATMessageBuffer);
+                        MatchPositionZZZS = (int)(strstr(CATMessageBuffer, "ZZZS") - CATMessageBuffer);
+                        MatchPositionZZZP = (int)(strstr(CATMessageBuffer, "ZZZP") - CATMessageBuffer);
                         if((DeviceData -> Device == eG2V2Panel) ||(DeviceData -> Device == eG2V1PanelAdapter))
                         {
                         //
-                        // if ZZZS, send to local handler; else send to SDR client app
+                        // if ZZZS or ZZZP, send to local handler; else send to SDR client app
                         //
-                            if(MatchPosition == 0)
+                            if((MatchPositionZZZS == 0) || (MatchPositionZZZP == 0))
                                 ParseCATCmd(CATMessageBuffer, DeviceData -> DeviceHandle);              // if ZZZS, process locally; else send to TCPIP CAT port
                             else
                                 SendCATMessage(CATMessageBuffer);           // send unprocessed to SDR client app via TCP/IP
@@ -161,6 +163,7 @@ void CATSerial(void *arg)
                 }
             }
         }
+        printf("Closing CAT Serial read handler thread for device %s\n", DeviceNames[(int)DeviceData->Device]);
         close(DeviceData -> DeviceHandle);
         DeviceData -> IsOpen = false;
     }

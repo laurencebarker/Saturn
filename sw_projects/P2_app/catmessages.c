@@ -46,26 +46,6 @@
 // the parsed result will be in ParsedString, ParsedInt or ParsedBool as set in message table
 //
 
-//
-// array of records. This must exactly match the enum ECATCommands in tiger.h
-// and the number of commands defined here must be correct
-// (not including the final eNoCommand)
-// if there is no handler needed, set function pointer to NULL
-
-SCATCommands GCATCommands[VNUMCATCMDS] = 
-{
-  {"ZZZD", eNum, 0, 99, 2, false, NULL},                        // VFO down
-  {"ZZZU", eNum, 0, 99, 2, false, NULL},                        // VFO up
-  {"ZZZE", eNum, 0, 999, 3, false, NULL},                       // encoder
-  {"ZZZP", eNum, 0, 999, 3, false, NULL},                       // pushbutton
-  {"ZZZI", eNum, 0, 999, 3, false, HandleZZZI},                 // indicator
-  {"ZZZS", eNum, 0, 9999999, 7, false, HandleZZZS},             // s/w version
-  {"ZZTU", eBool, 0, 1, 1, false, NULL},                        // tune
-  {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA},                  // VFO A frequency
-  {"ZZXV", eNum, 0, 1023, 4, false, HandleZZXV},                // VFO status
-  {"ZZUT", eBool, 0, 1, 1, false, HandleZZUT},                  // 2 tone test
-  {"ZZYR", eBool, 0, 1, 1, false, HandleZZYR}                   // RX1/RX2 buttons
-};
 
 
 //
@@ -148,3 +128,68 @@ void HandleZZZI(int SourceDevice, ERXParamType Type, bool BoolParam, int NumPara
     if((SourceDevice == DESTTCPCATPORT) && (Type == eNum))
         SetG2V2ZZZIState((uint32_t)NumParam);
 }
+
+
+//
+// Pushbutton
+// received from Aries or from Front Panel
+// pass onto code for those devices
+//
+void HandleZZZP(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam)                          // pushbutton
+{
+    if(IsFrontPanelSerial(SourceDevice))
+        HandleG2V2ZZZPMessage(NumParam);
+    else if (IsAriesSerial(SourceDevice))
+        HandleAriesZZZPMessage(NumParam);
+}
+
+
+//
+// erase tuning solutions: this sends result back to radio
+//
+void HandleZZOZ(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam)                          // ATU erase
+{
+    if (IsAriesSerial(SourceDevice))
+        HandleAriesZZOZMessage((bool)NumParam);
+}
+
+
+//
+// ATU tune success/fail
+//
+void HandleZZOX(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam)                          // ATU success/fail
+{
+    if (IsAriesSerial(SourceDevice))
+        HandleAriesZZOXMessage(BoolParam);
+}
+
+
+
+//
+// array of records. This must exactly match the enum ECATCommands in tiger.h
+// and the number of commands defined here must be correct
+// (not including the final eNoCommand)
+// if there is no handler needed, set function pointer to NULL
+// ***this must be at the end of the file after the handlers! ***
+//
+SCATCommands GCATCommands[VNUMCATCMDS] = 
+{
+  {"ZZZD", eNum, 0, 99, 2, false, NULL},                        // VFO down
+  {"ZZZU", eNum, 0, 99, 2, false, NULL},                        // VFO up
+  {"ZZZE", eNum, 0, 999, 3, false, NULL},                       // encoder
+  {"ZZZP", eNum, 0, 999, 3, false, HandleZZZP},                 // pushbutton
+  {"ZZZI", eNum, 0, 999, 3, false, HandleZZZI},                 // indicator
+  {"ZZZS", eNum, 0, 9999999, 7, false, HandleZZZS},             // s/w version
+  {"ZZTU", eBool, 0, 1, 1, false, NULL},                        // tune
+  {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA},                  // VFO A frequency
+  {"ZZXV", eNum, 0, 1023, 4, false, HandleZZXV},                // VFO status
+  {"ZZUT", eBool, 0, 1, 1, false, HandleZZUT},                  // 2 tone test
+  {"ZZYR", eBool, 0, 1, 1, false, HandleZZYR},                  // RX1/RX2 buttons
+  {"ZZFT", eStr, 0, 0, 11, false, NULL},                        // TX frequency (sent to Aries)
+  {"ZZOA", eNum, 0, 3, 1, false, NULL},                         // RX antenna
+  {"ZZOC", eNum, 0, 3, 1, false, NULL},                         // TX antenna
+  {"ZZOV", eBool, 0, 1, 1, false, NULL},                        // ATU enable/disable
+  {"ZZOX", eBool, 0, 1, 1, false, HandleZZOX},                  // ATU tune success/fail
+  {"ZZOY", eBool, 0, 1, 1, false, NULL},                        // set ATU option
+  {"ZZOZ", eNum, 0, 3, 1, false, HandleZZOZ}                    // erase tuning solutions (reply is 0/1 only: fail/success)
+};

@@ -45,9 +45,9 @@ pthread_t AriesSerialThread;                        // thread for serial read fr
 pthread_t AriesTickThread;                          // thread with periodic tick
 
 
-#define ARIESPATH "/dev/ttyACM0"                    // Aries ATU (note conflicts with G2V1 adapter)
+#define ARIESPATH "/dev/serial/by-id/usb-Arduino_LLC_Arduino_NANO_33_IoT_C707453A5050323339202020FF081E22-if00"                    // Aries ATU (note conflicts with G2V1 adapter)
 
-
+// previously /dev/ttyACM0
 
 
 //
@@ -134,4 +134,95 @@ void SetAriesZZZSState(uint8_t ProductID, uint8_t HWVersion, uint8_t SWID)
         printf("; S/W verson = %d\n", SWID);
         AriesDetected = true;
     }
+}
+
+
+
+//
+// receive a ZZZP message from Aries
+//
+void HandleAriesZZZPMessage(uint32_t Param)
+{
+
+}
+
+
+//
+// receive a ZZOX tune success message from Aries
+//
+void HandleAriesZZOXMessage(bool Param)
+{
+
+}
+
+//
+// receive a ZZOZ erase success message from Aries
+//
+void HandleAriesZZOZMessage(bool Param)
+{
+
+}
+
+
+//
+// see if serial device belongs to an Aries open serial port
+// return true if this handle belongs to Aries ATU
+//
+bool IsAriesSerial(uint32_t Handle)
+{
+    bool Result = false;
+    if((Handle==AriesData.DeviceHandle) && (AriesData.IsOpen == true))
+        Result = true;
+    return Result;
+}
+
+
+//
+// set TX frequency from SDR App
+// This is passed a delta phase word: convert to frequency
+//
+void SetAriesTXFrequency(uint32_t Newfreq)
+{
+    
+}
+
+
+//
+// set Alex TX word from SDR App
+//
+void SetAriesAlexTXWord(uint16_t Word)
+{
+
+}
+
+//
+// set Alex RX word from SDR App
+//
+void SetAriesAlexRXWord(uint16_t Word)
+{
+
+}
+
+bool GState = false;
+bool RState = false;
+//
+// handle ATU button press on the G2V2 front panel
+// State = 0: released; 1: pressed; 2: long pressed
+//
+void HandleATUButtonPress(uint8_t Event)
+{
+    printf("Aries ATU Button Press, Event=%d\n", Event);
+    if(Event == 2)
+    {
+        RState = true;
+        GState = false;
+    }    
+    else if(Event == 1)
+        GState = true;
+    else
+    {
+        GState = false;
+        RState = false;
+    }
+    SetATULEDs(GState, RState);
 }

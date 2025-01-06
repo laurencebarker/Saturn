@@ -68,6 +68,9 @@ uint32_t GCombinedVFOState;                         // reported VFO state bits
 uint16_t GLEDState;                                 // LED state settings
 TSerialThreadData G2V2Data;                         // data for G2V2 read thread
 TSerialThreadData G2V1AdapterData;                  // data for G2V1 adapter read thread
+bool ATURedLED = false;
+bool ATUGreenLED = false;                           // LED states
+
 
 #define VKEEPALIVECOUNT 150                         // 15s period between keepalive requests (based on 100ms tick)
 
@@ -208,6 +211,10 @@ void G2V2PanelTick(void *arg)
                 NewLEDStates |= (1 << 1);                   // TUNE bit
             if(G2ToneState)
                 NewLEDStates |= (1 << 2);                   // 2 tone bit
+            if(ATURedLED)
+                NewLEDStates |= (1 << 3);                   // red ATU bit
+            if(ATUGreenLED)
+                NewLEDStates |= (1 << 4);                   // green ATU bit
             if((GCombinedVFOState & (1<<8)) != 0)
                 NewLEDStates |= (1 << 6);                   // XIT bit
             if((GCombinedVFOState & (1<<0)) != 0)
@@ -221,7 +228,9 @@ void G2V2PanelTick(void *arg)
 
 //
 // now loop through to find differences
-// do bitwise compares; if differences found, senz a ZZZI message
+// do bitwise compares; if differences found, send a ZZZI message
+// only send to G2V2, not to G2V1 adapter because it has no LEDs
+//
             int Cntr;
             int Mask = 1;
             int NewState;
@@ -233,7 +242,8 @@ void G2V2PanelTick(void *arg)
                 {
                     NewState = (NewLEDStates & Mask) >> Cntr;
                     Param = ((Cntr +1)* 10) + NewState;
-                    MakeCATMessageNumeric(G2V2Data.DeviceHandle, eZZZI, Param);
+                    if(G2V2Data.IsOpen)
+                        MakeCATMessageNumeric(G2V2Data.DeviceHandle, eZZZI, Param);
 
                 }
                 Mask = Mask << 1;                               // bitmask for next bit
@@ -340,5 +350,53 @@ void SetG2V2ZZZIState(uint32_t Param)
     MakeCATMessageNumeric(G2V2Data.DeviceHandle, eZZZI, Param);
 
 }
+
+#define VATUBUTTONSCANCODE 4
+//
+// receive a ZZZP message from front panel
+// for now, send straight to client SDR app via TCP/IP
+//
+void HandleG2V2ZZZPMessage(uint32_t Param)
+{
+    uint8_t ScanCode;
+    uint8_t State;
+
+    ScanCode = Param / 10;
+    State = Param % 10;
+    if(ScanCode == 4)
+        HandleATUButtonPress(State);
+    else
+        MakeCATMessageNumeric(DESTTCPCATPORT, eZZZP, Param);
+
+}
+
+
+
+//
+// see if serial device belongs to a front panel open serial port
+// return true if this handle belongs to a front panel
+//
+bool IsFrontPanelSerial(uint32_t Handle)
+{
+    bool Result = false;
+    if((Handle==G2V2Data.DeviceHandle) && (G2V2Data.IsOpen == true))
+        Result = true;
+    else if((Handle==G2V1AdapterData.DeviceHandle) && (G2V1AdapterData.IsOpen == true))
+        Result = true;
+    return Result;
+
+}
+
+
+//
+// set ATU LED states
+// bool true if lit
+//
+void SetATULEDs(bool GreenLED, bool RedLED)
+{
+    ATURedLED = RedLED;
+    ATUGreenLED = GreenLED;
+}
+
 
 
