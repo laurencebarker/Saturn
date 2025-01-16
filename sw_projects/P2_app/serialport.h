@@ -18,6 +18,19 @@
 #define __SERIALPORT_C
 
 #include <stdbool.h>
+#include <termios.h>
+
+
+//
+//struct to hold name and baud rate for potential serial ports to use
+//
+typedef struct
+{
+  char *port;
+  int baud;
+} SaturnSerialPort;
+
+
 
 //
 // define the potential types of serial device
@@ -47,6 +60,7 @@ typedef struct
   bool DeviceActive;                // true if device is active
   bool RequestID;                   // true if thread should request device ID using ZZZS;
   bool IsOpen;                      // true if file device is open
+  unsigned int Baud;
 } TSerialThreadData;
 
 //

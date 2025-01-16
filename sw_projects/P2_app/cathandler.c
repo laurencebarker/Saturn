@@ -40,11 +40,12 @@
 
 
 
-bool CATPortAssigned;                       // true if CAT set up and active
-int CATPort;
+bool CATPortAssigned = false;                // true if CAT set up and active
+int CATPort = 0;
 bool ThreadActive = false;                  // true while CAT thread running
 bool SignalThreadEnd = false;               // asserted to terminate thread
 pthread_t CATThread;                        // thread reads/writes CAT commands
+bool CATDebugPrint = false;                 // true if to print generated CAT messages
 
 
 
@@ -346,12 +347,16 @@ int GetCATOPBufferUsed(void)
 //
 void SendCATMessage(char* Msg)
 {
-  if((GetCATOPBufferUsed() <= (VNUMOPSTRINGS - 1))&&(CATPortAssigned == true))
+  if(SDRActive == true)
   {
-    strcpy(OutputStrings[CATWritePtr++], Msg);
-    printf("Sent CAT msg %s\n", Msg);                       // debug
-    if(CATWritePtr >= VNUMOPSTRINGS)
-      CATWritePtr = 0;
+    if((GetCATOPBufferUsed() <= (VNUMOPSTRINGS - 1))&&(CATPortAssigned == true))
+    {
+      strcpy(OutputStrings[CATWritePtr++], Msg);
+      if (CATDebugPrint)
+        printf("Sent CAT msg %s\n", Msg);                       // debug
+      if(CATWritePtr >= VNUMOPSTRINGS)
+        CATWritePtr = 0;
+    }
   }
 }
 
@@ -539,10 +544,19 @@ void* CATHandlerThread(void *arg)
     struct sockaddr_in addr_cat;
     int ActiveCATPort;
     int ReadResult;
+    int Cntr = 0;
     char ReadBuffer[1024] = {0};
     char SendBuffer[1024] = {0};
     unsigned int TXMessageLength;
 //    bool DebugMessageSent = false;
+
+//
+// wait up to 10s for SDR active to become set
+// (there seems to be a race condition between general packet to SDR and high priority data packet
+// and we can get here without it set)
+//
+    while((Cntr++ < 10 && !SDRActive))
+      sleep(1);
 
     //
     // loop, creating then using socket
@@ -560,6 +574,7 @@ void* CATHandlerThread(void *arg)
       {
           perror("CAT socket fail");
           return NULL;
+          CATPort = 0;
       }
 
     //
@@ -582,6 +597,7 @@ void* CATHandlerThread(void *arg)
       if(connect(CATSocketid, (struct sockaddr *)&addr_cat, sizeof(struct sockaddr_in)) < 0)
       {
           perror("CAT connect");
+          ActiveCATPort = 0;
           return NULL;
       }
       ThreadActive = true;
@@ -617,6 +633,7 @@ void* CATHandlerThread(void *arg)
 
       }                                                       // end of thread main loop
       close(CATSocketid);
+      printf("Closing CAT Port & terminating thread\n");
       ActiveCATPort = 0;
       CATPort = 0;                                            // set port not assigned
       CATPortAssigned = false;
@@ -632,17 +649,28 @@ void* CATHandlerThread(void *arg)
 // save port number, and create a thread if needed
 // note this will be called a lot of times: every time a high priority command message received. 
 // only process this if the port is not yet assigned
+//
+// there is a race condition. This is called from inhighpriority.c, but a necessary condition
+// for SDRActive to be set is for general packet to SDR to have arrived too. So the CAT thread
+// may be established before SDRActive is set, and it must wait for it.
+// We can't test here for it, or we'd miss the first high priority message and have to wait for the next
+// which may only be after a tuning action or other user event.
+//
 void SetupCATPort(int Port)
 {
     if (CATPort == 0)
     {
         CATPort = Port;
-        if((!ThreadActive) && SDRActive && (CATPort != 0))
-        {
+        printf("CATPort initiailised to %d\n", Port);
+        SignalThreadEnd = false;
+        ThreadActive = false;
 
+        if((!ThreadActive) && (CATPort != 0))
+        {
           if(pthread_create(&CATThread, NULL, CATHandlerThread, NULL) < 0)
           {
               perror("pthread_create CAT handler");
+              CATPort = 0;
               return;
           }
           pthread_detach(CATThread);

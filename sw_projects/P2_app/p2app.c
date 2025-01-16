@@ -670,8 +670,9 @@ int main(int argc, char *argv[])
 
       family = ifa->ifa_addr->sa_family;
 
-      /* ignore AF_INET6 and lo */
-      if (family == AF_INET && !strstr("lo", ifa->ifa_name)) {
+      // ignore AF_INET6 and lo any any wireless LAN - may need better name check
+      if (family == AF_INET && !strstr("lo", ifa->ifa_name) && !strstr("wlan", ifa->ifa_name))
+      {
           s = getnameinfo(ifa->ifa_addr,
                   (family == AF_INET) ? sizeof(struct sockaddr_in) :
                                         sizeof(struct sockaddr_in6),
@@ -682,7 +683,7 @@ int main(int argc, char *argv[])
               return(EXIT_FAILURE);
           }
 
-          printf("\tname: %s\taddress: <%s>\n", ifa->ifa_name, host);
+          printf("found ethernet adapter name: %s\taddress: <%s>\n", ifa->ifa_name, host);
           strncpy(if_string, ifa->ifa_name, IFNAMSIZ - 1);
       }
   }

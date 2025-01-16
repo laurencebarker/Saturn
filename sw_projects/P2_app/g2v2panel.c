@@ -67,7 +67,6 @@ bool GVFOBSelected;                                 // true if VFO B selected
 uint32_t GCombinedVFOState;                         // reported VFO state bits
 uint16_t GLEDState;                                 // LED state settings
 TSerialThreadData G2V2Data;                         // data for G2V2 read thread
-TSerialThreadData G2V1AdapterData;                  // data for G2V1 adapter read thread
 bool ATURedLED = false;
 bool ATUGreenLED = false;                           // LED states
 
@@ -81,9 +80,18 @@ bool ATUGreenLED = false;                           // LED states
 
 
 
+static SaturnSerialPort SaturnSerialPortsList[] = 
+{
+  {"/dev/serial/by-id/g2-front-115200", B115200},
+  {"/dev/serial/by-id/g2-front-9600", B9600},
+  {NULL, 0}
+};
+
+
+
+ 
 //
 // function to check if panel is present. This is called before panel initialise.
-// file can be left open if "yes".
 //
 // change to open the thread, which opens file and sends ZZZS;
 // then wait for response to come back via CAT handler. Making a proper "closed loop" identification. 
@@ -91,52 +99,63 @@ bool ATUGreenLED = false;                           // LED states
 bool CheckG2V2PanelPresent(void)
 {
     bool Result = false;
+    char* Name;
+    int Rate;
+    int Cntr;
+    int Found = 0;
 
     printf("checking for G2V2 or G2V1 adapter\n");
 
 //
-// launch handler for G2V2
+// try to find a device that exists
 //
-    strcpy(G2V2Data.PathName, G2ARDUINOPATH);
-    G2V2Data.IsOpen = false;
-    G2V2Data.RequestID = true;
-    G2V2Data.Device = eG2V2Panel;
-
-    if(pthread_create(&G2V2PanelSerialThread, NULL, CATSerial, (void *)&G2V2Data) < 0)
-        perror("pthread_create G2V2 serial thread");
-    pthread_detach(G2V2PanelSerialThread);
-
-//
-// launch handler for G2V1 serial adapter
-//
-    strcpy(G2V1AdapterData.PathName, G2V1ADAPTERPATH);
-    G2V1AdapterData.IsOpen = false;
-    G2V1AdapterData.RequestID = true;
-    G2V1AdapterData.Device = eG2V1PanelAdapter;
-
-    if(pthread_create(&G2V1AdapterSerialThread, NULL, CATSerial, (void *)&G2V1AdapterData) < 0)
-        perror("pthread_create G2V1 Adapter serial thread");
-    pthread_detach(G2V1AdapterSerialThread);
-
-    sleep(2);
-//
-// now see if anything came back from CAT handler
-// disable devices not to be used - this will cause them to close their files
-//
-    if(G2V1AdapterDetected)
+    Cntr=0;
+    while(1)
     {
-        Result = true;
-        G2V2Data.DeviceActive = false;
+        Name = SaturnSerialPortsList[Cntr].port;
+        Rate = SaturnSerialPortsList[Cntr++].baud;
+
+        if(Name == NULL)                                // if last entry
+            break;
+        else
+        {
+            if(access(Name, W_OK)==0)
+            {
+                printf("table access identifies device %s\n", Name);
+                Found = Cntr;
+                break;
+            }
+        }
     }
-    else if(G2V2Detected)
+
+    if(Found != 0)                      // we found a serial port
     {
-        Result = true;
-        G2V1AdapterData.DeviceActive = false;
-    }
-    else
-    {
-        G2V1AdapterData.DeviceActive = false;
-        G2V2Data.DeviceActive = false;
+        Found--;                           // get back to 0 base
+    //
+    // launch handler for G2V2
+    //
+        strcpy(G2V2Data.PathName, SaturnSerialPortsList[Found].port);
+        G2V2Data.Baud = SaturnSerialPortsList[Found].baud;
+        G2V2Data.IsOpen = false;
+        G2V2Data.RequestID = true;
+        G2V2Data.Device = eG2V2Panel;
+
+        if(pthread_create(&G2V2PanelSerialThread, NULL, CATSerial, (void *)&G2V2Data) < 0)
+            perror("pthread_create G2V2 serial thread");
+        pthread_detach(G2V2PanelSerialThread);
+
+
+        sleep(2);
+    //
+    // now see if anything came back from CAT handler
+    // disable devices not to be used - this will cause them to close their files
+    //
+        if(G2V1AdapterDetected || G2V2Detected)
+        {
+            Result = true;
+        }
+        else
+            G2V2Data.DeviceActive = false;
     }
 
     return Result;
@@ -283,7 +302,6 @@ void InitialiseG2V2PanelHandler(void)
 void ShutdownG2V2PanelHandler(void)
 {
     G2V2PanelActive = false;
-    G2V1AdapterData.DeviceActive = false;
     G2V2Data.DeviceActive = false;
     sleep(1);
 }
@@ -381,10 +399,7 @@ bool IsFrontPanelSerial(uint32_t Handle)
     bool Result = false;
     if((Handle==G2V2Data.DeviceHandle) && (G2V2Data.IsOpen == true))
         Result = true;
-    else if((Handle==G2V1AdapterData.DeviceHandle) && (G2V1AdapterData.IsOpen == true))
-        Result = true;
     return Result;
-
 }
 
 
