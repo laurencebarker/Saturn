@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Audiotest
+Comment=Saturn FPGA Mic and speaker audio Test app
+Icon=/usr/share/pixmaps/obconf.png
+Exec=/home/pi/github/Saturn/sw_projects/audiotest/audiotest
+Type=Application
+Encoding=UTF-8
+Terminal=false
+Path=/home/pi/github/Saturn/sw_projects/audiotest
+StartupNotify=false
