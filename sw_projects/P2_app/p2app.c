@@ -62,7 +62,7 @@
 #include "LDGATU.h"
 #include "frontpanelhandler.h"
 
-#define P2APPVERSION 33
+#define P2APPVERSION 34
 #define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
@@ -70,6 +70,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V34: 21/01/2025:  changed code to find ethernet device name, not fixed eth0
 // V33: 16/01/2025:  fix for OC outputs in wrong bit positions. CAT serial reliability fixed for front panel.
 // V32: 30/12/2024:  added support for Arduino G2V1 front panel adapter, for processor upgrades. 
 // V31: 21/11/2024:  added CW keyer keydown bit to high priority status byte 4 bit 7 for Thetis generated sidetone
