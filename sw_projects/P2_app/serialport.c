@@ -104,6 +104,7 @@ void CATSerial(void *arg)
     char ch;                                    // individual read character
     int MatchPositionZZZS;
     int MatchPositionZZZP;
+
     TSerialThreadData *DeviceData;
 
     DeviceData = (TSerialThreadData *) arg;

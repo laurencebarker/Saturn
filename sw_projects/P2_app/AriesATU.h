@@ -62,9 +62,14 @@ void HandleAriesZZOXMessage(bool Param);
 void HandleAriesZZOZMessage(bool Param);
 
 //
+// response from a ZZTU; tune state request
+//
+void SetAriesTuneState(bool Param);
+
+//
 // set TX frequency from SDR App
 //
-void SetAriesTXFrequency(uint32_t Newfreq);
+void SetAriesTXFrequency(uint32_t NewFreq);
 
 //
 // set Alex TX word from SDR App

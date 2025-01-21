@@ -101,6 +101,8 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       {
         SDRActive = false;                                       // set state of whole app
         SetTXEnable(false);
+        IsTXMode = false;
+        SetMOX(false);
         EnableCW(false, false);
         printf("set to inactive by client app\n");
         StartBitReceived = false;
@@ -135,12 +137,13 @@ void *IncomingHighPriority(void *arg)                   // listener thread
         SetupCATPort(Word);
       //
       // transverter, speaker mute, open collector, user outputs
+      // open collector data is in bits 7:1; move to 6:0
       //
       Byte = (uint8_t)(UDPInBuffer[1400]);
       SetXvtrEnable((bool)(Byte&1));
       SetSpkrMute((bool)((Byte>>1)&1));
       Byte = (uint8_t)(UDPInBuffer[1401]);
-      SetOpenCollectorOutputs(Byte);
+      SetOpenCollectorOutputs(Byte >> 1);
       Byte = (uint8_t)(UDPInBuffer[1402]);
       SetUserOutputBits(Byte);
       //
@@ -165,6 +168,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with RX ant settings to filt/RXant register
         //printf("Alex 0 TX word = 0x%x\n", Word);
         AlexManualTXFilters(Word, false);
+        SetAriesAlexRXWord(Word);
       }
       else if(FPGAVersion >= 12)                            // new hardware but no client app support
       {
@@ -186,7 +190,6 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       //printf("Alex 1 RX word = 0x%x\n", Word);
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1434));
       AlexManualRXFilters(Word, 0);
-      SetAriesAlexRXWord(Word);
       //printf("Alex 0 RX word = 0x%x\n", Word);
       //
       // RX atten during TX and RX

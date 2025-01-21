@@ -36,6 +36,8 @@
 #include <signal.h>
 #include <ifaddrs.h>
 #include <netdb.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 
 #include "../common/saturntypes.h"
@@ -334,6 +336,8 @@ void* CheckForActivity(void *arg)
     if (!NewMessageReceived && HW_Timer_Enable) // if no messages received,
     {
       SDRActive = false;                        // set back to inactive
+      IsTXMode = false;
+      SetMOX(false);
       SetTXEnable(false);
       EnableCW(false, false);
       ReplyAddressSet = false;
@@ -646,58 +650,55 @@ int main(int argc, char *argv[])
   //
   MakeSocket(SocketData, 0);
 
-  //
-  // get this device MAC address
-  //
-  //memset(&hwaddr, 0, sizeof(hwaddr));
-  //strncpy(hwaddr.ifr_name, "eth0", IFNAMSIZ - 1);
-  //ioctl(SocketData[VPORTCOMMAND].Socketid, SIOCGIFHWADDR, &hwaddr);
-  //for(i = 0; i < 6; ++i) DiscoveryReply[i + 5] = hwaddr.ifr_addr.sa_data[i];         // copy MAC to reply message
-  //
-  // get IP and interface name, we use the 1st one found
-  // on Saturn this should be OK unless someone adds
-  // another ethernet adapter
-  //
-  if (getifaddrs(&ifaddr) == -1) 
-  {
-      perror("getifaddrs");
-      return(EXIT_FAILURE);
-  }
-
-  for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) 
-  {
-      if (ifa->ifa_addr == NULL)
-          continue;
-
-      family = ifa->ifa_addr->sa_family;
-
-      // ignore AF_INET6 and lo any any wireless LAN - may need better name check
-      if (family == AF_INET && !strstr("lo", ifa->ifa_name) && !strstr("wlan", ifa->ifa_name))
-      {
-          s = getnameinfo(ifa->ifa_addr,
-                  (family == AF_INET) ? sizeof(struct sockaddr_in) :
-                                        sizeof(struct sockaddr_in6),
-                  host, NI_MAXHOST,
-                  NULL, 0, NI_NUMERICHOST);
-          if (s != 0) {
-              printf("getnameinfo() failed: %s\n", gai_strerror(s));
-              return(EXIT_FAILURE);
-          }
-
-          printf("found ethernet adapter name: %s\taddress: <%s>\n", ifa->ifa_name, host);
-          strncpy(if_string, ifa->ifa_name, IFNAMSIZ - 1);
-      }
-  }
-  freeifaddrs(ifaddr);
+  
 
   //
   // get this device MAC address
+  // original code joust picked up interface eth0, but that doesn't work with Radxa CM5
+  // revised code enumerated the interfaces, but had a startup race condition
   //
+
+  
+#if 0 // original p2app code
   memset(&hwaddr, 0, sizeof(hwaddr));
-  strncpy(hwaddr.ifr_name, if_string, IFNAMSIZ - 1);
+  strncpy(hwaddr.ifr_name, "eth0", IFNAMSIZ - 1);
   ioctl(SocketData[VPORTCOMMAND].Socketid, SIOCGIFHWADDR, &hwaddr);
   for(i = 0; i < 6; ++i) DiscoveryReply[i + 5] = hwaddr.ifr_addr.sa_data[i];         // copy MAC to reply message
 
+#else // newer way
+  DIR *dp;
+  struct dirent *ep;   
+  char *posp;
+  char filename[48];
+  int ch = 'e';                                    // start character ethernet
+
+    dp = opendir("/sys/class/net");
+    if (dp != NULL) 
+    {
+      while ((ep = readdir(dp)) != NULL)
+      {
+        if ( !strcmp(ep->d_name, ".") || !strcmp(ep->d_name, "..") )
+        { 
+          continue;
+        }
+        posp = strchr(ep->d_name, ch);
+        if ( posp == ep->d_name ) { 
+          printf("%s: interface name: %s\n", __FUNCTION__, ep->d_name);
+          break;
+        }
+      }
+      (void) closedir(dp);
+    }
+    else
+    {
+      printf("%s: Couldn't open the directory\n", __FUNCTION__);
+      return -1; 
+    }   
+    memset(&hwaddr, 0, sizeof(hwaddr));
+    strncpy(hwaddr.ifr_name, ep->d_name, IFNAMSIZ - 1); 
+    ioctl(SocketData[VPORTCOMMAND].Socketid, SIOCGIFHWADDR, &hwaddr);
+    for(i = 0; i < 6; ++i) DiscoveryReply[i + 5] = hwaddr.ifr_addr.sa_data[i];         // copy MAC to reply message
+#endif
 
 
 

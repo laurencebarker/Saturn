@@ -10,6 +10,7 @@ echo "pulling new files from repository"
 echo ""
 echo "##############################################################"
 cd ~/github/Saturn
+git config pull.rebase false
 git pull
 
 

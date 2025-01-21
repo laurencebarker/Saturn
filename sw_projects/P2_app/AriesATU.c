@@ -43,29 +43,66 @@ bool AriesDetected;                                 // true if Aries detected fr
 TSerialThreadData AriesData;                        // data for G2V1 adapter read thread
 pthread_t AriesSerialThread;                        // thread for serial read from Aries
 pthread_t AriesTickThread;                          // thread with periodic tick
+unsigned int CurrentTXAntenna = 0;                  // 0 if not known.
+unsigned int CurrentRXAntenna = 0;                  // 0 if not known.
+uint32_t CurrentFrequency = 0;                      // 10KHz units. 0 if not known
+bool EnabledForAntenna[4] = {false, false, false, false};  // enabled state for each possible TX antenna 0 entry is "unknown antenna"
+bool GreenLEDState = false;                                    // green LED state
+bool RedLEDState = false;                                    // red LED state
 
 
-#define ARIESPATH "/dev/serial/by-id/usb-Arduino_LLC_Arduino_NANO_33_IoT_C707453A5050323339202020FF081E22-if00"                    // Aries ATU (note conflicts with G2V1 adapter)
+extern bool IsTXMode;                               // true if in TX
 
-// previously /dev/ttyACM0
+
+#define ARIESPATH "/dev/serial/by-id/aries-atu-115200"                    // Aries ATU (note needs udev rule to map name)
+
 
 
 //
 // Aries periodic timestep
+// this runs as a thread,created at startup if Aries is detected.
 //
 void AriesTick(void *arg)
 {
+    bool PreviousTXMode = false;                                    // for detecting TX state change
+    bool PreviousSDRActive = false;                                 // for detecting SDR active state change
 
+    printf("opened Aries periodic tick thread\n");
     while(AriesATUActive)
     {
-        usleep(100000);                                                  // 100ms period
+        //
+        // look for a change in SDR active
+        //
+        if(SDRActive != PreviousSDRActive)                          // state change
+        {
+            PreviousSDRActive = SDRActive;                          // state change recognised
+            if(SDRActive == false)
+            {
+                CurrentTXAntenna = 0;
+                CurrentRXAntenna = 0;
+                CurrentFrequency = 0;
+            }
+        }
+
+        //
+        // look for a change in TX state
+        // if we enter TX, send out a TUNE request message to find if this is a TUNE or not. 
+        //
+        if(IsTXMode != PreviousTXMode)                              // state change
+        {
+            PreviousTXMode = IsTXMode;                          // state change recognised
+            if(IsTXMode)
+                MakeCATMessageNoParam(DESTTCPCATPORT, eZZTU);
+        }
+        usleep(20000);                                              // 20ms period
     }
+    printf("Closing Aries tick thread\n");
 
 }
 
 
 //
-// function to initialise a connection to the  ATU; call if selected as a command line option
+// function to initialise a connection to the  ATU; call at startup if selected as a command line option
 // create serial handler, and ask it to send a ZZZS. Then wait to see if a response provided.
 // if a response from an Aries is received, set up periodic tick handler. 
 //
@@ -80,13 +117,14 @@ void InitialiseAriesHandler(void)
     AriesData.IsOpen = false;
     AriesData.RequestID = true;
     AriesData.Device = eAriesATU;
+    AriesData.Baud = B9600;
 
     if(pthread_create(&AriesSerialThread, NULL, CATSerial, (void *)&AriesData) < 0)
         perror("pthread_create Aries ATU thread");
     pthread_detach(AriesSerialThread);
 
 
-    sleep(2);
+    sleep(2);                               // ID request only goes out after 1s
 //
 // now see if anything came back from CAT handler
 // disable devices if not used - this will cause it to close the file
@@ -102,10 +140,7 @@ void InitialiseAriesHandler(void)
 
     }
     else
-    {
         AriesData.DeviceActive = false;
-    }
-
 }
 
 
@@ -165,6 +200,19 @@ void HandleAriesZZOZMessage(bool Param)
 
 
 //
+// response from a ZZTU; tune state request
+//
+void SetAriesTuneState(bool Param)
+{
+    if(Param)
+        printf("Aries detected TUNE state\n");
+    else
+        printf("Aries detected normal TX state\n");
+}
+
+
+
+//
 // see if serial device belongs to an Aries open serial port
 // return true if this handle belongs to Aries ATU
 //
@@ -177,34 +225,96 @@ bool IsAriesSerial(uint32_t Handle)
 }
 
 
+
+//
+// set ATU Enabled or Disabled
+// send message to ATU, and set LED appropriately
+//
+void SetAriesEnabledState(bool IsEnabled)
+{
+//  MakeCATMessageBool(AriesData.DeviceHandle, eZZOV, IsEnabled);            // set enabled state
+
+}
+
 //
 // set TX frequency from SDR App
-// This is passed a delta phase word: convert to frequency
+// This is passed a delta phase word: convert to frequency first
 //
-void SetAriesTXFrequency(uint32_t Newfreq)
+void SetAriesTXFrequency(uint32_t NewFreq)
 {
-    
+    double Frequency;
+    uint32_t Freq_Hz;
+    uint32_t Freq_10KHz;
+    Frequency = (double)(NewFreq * 0.0286102 + 0.5);            // convert to Hz, rounded
+    Freq_Hz = (uint32_t)Frequency;
+    Freq_10KHz = Frequency / 10000;
+    if(Freq_10KHz != CurrentFrequency)
+    {
+        CurrentFrequency = Freq_10KHz;
+        printf("Aries get Freq in 10KHz units = %d\n", Freq_10KHz);
+    }
 }
 
 
 //
-// set Alex TX word from SDR App
+// set Alex TX word from SDR App, bytes 1428, 29 from V4.3 protocol.
+// we should require that the newer Thetis is used for this.
+// ANT1 is bit 8; ANT3 is bit 10 
 //
 void SetAriesAlexTXWord(uint16_t Word)
 {
-
+    unsigned int Antenna = 0;
+    if(Word & 0x0100)
+        Antenna = 1;
+    else if(Word & 0x0200)
+        Antenna = 2;
+    else if(Word & 0x0400)
+        Antenna = 3;
+    if((CurrentTXAntenna != Antenna) && (Antenna != 0))
+    {
+        CurrentTXAntenna = Antenna;
+        if(AriesATUActive)
+        {
+            printf("Aries detected TX Ant=%d\n", Antenna);
+            if(EnabledForAntenna[Antenna])
+            {
+//                MakeCATMessageNumeric(AriesData.DeviceHandle, eZZOC, Antenna);      // set antenna
+                SetAriesEnabledState(true);            // set enabled state
+            }
+            else
+            {
+                SetAriesEnabledState(false);            // set enabled state
+//                MakeCATMessageNumeric(AriesData.DeviceHandle, eZZOC, Antenna);      // set antenna
+            }
+        }
+    }
 }
 
 //
-// set Alex RX word from SDR App
+// set Alex RX word from SDR App. bytes 1430, 31 from V4.3 protocol.
+// we should require that the newer Thetis is used for this.
+// ANT1 is bit 8; ANT3 is bit 10 
 //
 void SetAriesAlexRXWord(uint16_t Word)
 {
-
+    unsigned int Antenna = 0;
+    if(Word & 0x0100)
+        Antenna = 1;
+    else if(Word & 0x0200)
+        Antenna = 2;
+    else if(Word & 0x0400)
+        Antenna = 3;
+    if(CurrentRXAntenna != Antenna)
+    {
+        CurrentRXAntenna = Antenna;
+        if(AriesATUActive)
+        {   
+//            MakeCATMessageNumeric(AriesData.DeviceHandle, eZZOA, Antenna);
+            printf("Aries detected RX Ant=%d\n", Antenna);
+        }
+    }
 }
 
-bool GState = false;
-bool RState = false;
 //
 // handle ATU button press on the G2V2 front panel
 // State = 0: released; 1: pressed; 2: long pressed
@@ -214,15 +324,15 @@ void HandleATUButtonPress(uint8_t Event)
     printf("Aries ATU Button Press, Event=%d\n", Event);
     if(Event == 2)
     {
-        RState = true;
-        GState = false;
+        RedLEDState = true;
+        GreenLEDState = false;
     }    
     else if(Event == 1)
-        GState = true;
+        GreenLEDState = true;
     else
     {
-        GState = false;
-        RState = false;
+        GreenLEDState = false;
+        RedLEDState = false;
     }
-    SetATULEDs(GState, RState);
+    SetATULEDs(GreenLEDState, RedLEDState);
 }

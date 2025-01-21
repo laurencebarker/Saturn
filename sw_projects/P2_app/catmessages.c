@@ -166,6 +166,15 @@ void HandleZZOX(int SourceDevice, ERXParamType Type, bool BoolParam, int NumPara
 
 
 //
+// TUNE active request
+//
+void HandleZZTU(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam)                          // ATU success/fail
+{
+    SetAriesTuneState(BoolParam);
+}
+
+
+//
 // array of records. This must exactly match the enum ECATCommands in tiger.h
 // and the number of commands defined here must be correct
 // (not including the final eNoCommand)
@@ -180,7 +189,7 @@ SCATCommands GCATCommands[VNUMCATCMDS] =
   {"ZZZP", eNum, 0, 999, 3, false, HandleZZZP},                 // pushbutton
   {"ZZZI", eNum, 0, 999, 3, false, HandleZZZI},                 // indicator
   {"ZZZS", eNum, 0, 9999999, 7, false, HandleZZZS},             // s/w version
-  {"ZZTU", eBool, 0, 1, 1, false, NULL},                        // tune
+  {"ZZTU", eBool, 0, 1, 1, false, HandleZZTU},                  // tune
   {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA},                  // VFO A frequency
   {"ZZXV", eNum, 0, 1023, 4, false, HandleZZXV},                // VFO status
   {"ZZUT", eBool, 0, 1, 1, false, HandleZZUT},                  // 2 tone test
