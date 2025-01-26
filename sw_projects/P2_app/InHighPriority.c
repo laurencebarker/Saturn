@@ -28,6 +28,8 @@
 #include "../common/version.h"
 #include "cathandler.h"
 
+extern bool AriesATUActive;                             // true if Aries is operating
+
 
 
 //
@@ -163,8 +165,10 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       {
         //printf("new FPGA code, new client data\n");
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1428));      // copy word with TX ant settings to filt/TXant register
-        AlexManualTXFilters(Word, true);
         SetAriesAlexTXWord(Word);
+        if(AriesATUActive)                                  // if Aries active, set TX antenna to 1
+          Word = (Word & 0xF8FF) | 0x0100;
+        AlexManualTXFilters(Word, true);
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with RX ant settings to filt/RXant register
         //printf("Alex 0 TX word = 0x%x\n", Word);
         AlexManualTXFilters(Word, false);

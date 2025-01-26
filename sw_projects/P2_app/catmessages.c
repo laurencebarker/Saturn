@@ -150,7 +150,7 @@ void HandleZZZP(int SourceDevice, ERXParamType Type, bool BoolParam, int NumPara
 void HandleZZOZ(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam)                          // ATU erase
 {
     if (IsAriesSerial(SourceDevice))
-        HandleAriesZZOZMessage((bool)NumParam);
+        HandleAriesZZOZMessage(NumParam);
 }
 
 
@@ -194,7 +194,7 @@ SCATCommands GCATCommands[VNUMCATCMDS] =
   {"ZZXV", eNum, 0, 1023, 4, false, HandleZZXV},                // VFO status
   {"ZZUT", eBool, 0, 1, 1, false, HandleZZUT},                  // 2 tone test
   {"ZZYR", eBool, 0, 1, 1, false, HandleZZYR},                  // RX1/RX2 buttons
-  {"ZZFT", eStr, 0, 0, 11, false, NULL},                        // TX frequency (sent to Aries)
+  {"ZZFT", eStr, 0, 64000000, 11, false, NULL},                 // TX frequency (sent to Aries)
   {"ZZOA", eNum, 0, 3, 1, false, NULL},                         // RX antenna
   {"ZZOC", eNum, 0, 3, 1, false, NULL},                         // TX antenna
   {"ZZOV", eBool, 0, 1, 1, false, NULL},                        // ATU enable/disable

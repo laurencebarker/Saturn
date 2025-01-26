@@ -385,7 +385,6 @@ void HandleG2V2ZZZPMessage(uint32_t Param)
         HandleATUButtonPress(State);
     else
         MakeCATMessageNumeric(DESTTCPCATPORT, eZZZP, Param);
-
 }
 
 

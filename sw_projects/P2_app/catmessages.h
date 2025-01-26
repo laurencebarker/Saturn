@@ -26,7 +26,7 @@
 // ordered as per documentation, not alphabetically!
 // this list must match exactly the table GCATCommands
 //
-#define VNUMCATCMDS 11
+#define VNUMCATCMDS 18
 
 typedef enum 
 {

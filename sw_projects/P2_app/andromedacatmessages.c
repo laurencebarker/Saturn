@@ -102,7 +102,6 @@ void MakeProductVersionCAT(uint8_t ProductID, uint8_t HWVersion, uint8_t SWVersi
     uint32_t CatParam;
     CatParam = (ProductID * 100000) + (HWVersion*1000) + SWVersion;
     MakeCATMessageNumeric(DESTTCPCATPORT, eZZZS, CatParam);
-
 }
 
 

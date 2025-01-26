@@ -36,6 +36,8 @@
 #include "../common/debugaids.h"
 #include "cathandler.h"
 #include "serialport.h"
+#include "g2v2panel.h"
+#include "AriesATU.h"
 
 
 bool AriesATUActive;                                // true if Aries is operating
@@ -47,14 +49,38 @@ unsigned int CurrentTXAntenna = 0;                  // 0 if not known.
 unsigned int CurrentRXAntenna = 0;                  // 0 if not known.
 uint32_t CurrentFrequency = 0;                      // 10KHz units. 0 if not known
 bool EnabledForAntenna[4] = {false, false, false, false};  // enabled state for each possible TX antenna 0 entry is "unknown antenna"
-bool GreenLEDState = false;                                    // green LED state
-bool RedLEDState = false;                                    // red LED state
-
+bool TuneSolutionFound = false;                     // true if there is a tune solution for current frequency
 
 extern bool IsTXMode;                               // true if in TX
 
 
 #define ARIESPATH "/dev/serial/by-id/aries-atu-115200"                    // Aries ATU (note needs udev rule to map name)
+
+
+
+//
+// work out Aries LED State
+//
+void CalculateAriesLEDs(void)
+{
+    bool RedLEDState = false;
+    bool GreenLEDState = false;
+    bool Enabled = false;
+
+    if(CurrentTXAntenna != 0)                       // if we have antenna set, see if enabled
+    {
+        Enabled = EnabledForAntenna[CurrentTXAntenna];
+        if(Enabled)
+        {
+            if(TuneSolutionFound)
+                GreenLEDState = true;
+            else
+                RedLEDState = true; 
+        }
+    }
+    SetATULEDs(GreenLEDState, RedLEDState);
+}
+
 
 
 
@@ -78,10 +104,14 @@ void AriesTick(void *arg)
             PreviousSDRActive = SDRActive;                          // state change recognised
             if(SDRActive == false)
             {
-                CurrentTXAntenna = 0;
+                CurrentTXAntenna = 0;                               // mark ants and freq as "uknown"
                 CurrentRXAntenna = 0;
                 CurrentFrequency = 0;
+                TuneSolutionFound = false;                          // no tune solution
+                SetAriesEnabledState(false);                        // disable while SDR not active
             }
+            else
+                CalculateAriesLEDs();
         }
 
         //
@@ -174,38 +204,39 @@ void SetAriesZZZSState(uint8_t ProductID, uint8_t HWVersion, uint8_t SWID)
 
 
 //
-// receive a ZZZP message from Aries
-//
-void HandleAriesZZZPMessage(uint32_t Param)
-{
-
-}
-
-
-//
 // receive a ZZOX tune success message from Aries
+// display success on green LED
 //
 void HandleAriesZZOXMessage(bool Param)
 {
-
+    TuneSolutionFound = Param;
+    printf("Aries reports tune solution = %d\n", Param);
+    CalculateAriesLEDs();
 }
+
 
 //
 // receive a ZZOZ erase success message from Aries
+// parameter is 1-3: the antenna fir which solutions were erased.
 //
-void HandleAriesZZOZMessage(bool Param)
+void HandleAriesZZOZMessage(int Param)
 {
-
+    printf("Aries erased tune solutions for Antenna %d\n", Param);
 }
+
 
 
 //
 // response from a ZZTU; tune state request
+// will be received back from the TCP/IP connected SDR client
 //
 void SetAriesTuneState(bool Param)
 {
     if(Param)
+    {
         printf("Aries detected TUNE state\n");
+        MakeCATMessageBool(AriesData.DeviceHandle, eZZTU, true);            // tell Aries it is in TUNE
+    }
     else
         printf("Aries detected normal TX state\n");
 }
@@ -216,7 +247,7 @@ void SetAriesTuneState(bool Param)
 // see if serial device belongs to an Aries open serial port
 // return true if this handle belongs to Aries ATU
 //
-bool IsAriesSerial(uint32_t Handle)
+bool IsAriesSerial(int Handle)
 {
     bool Result = false;
     if((Handle==AriesData.DeviceHandle) && (AriesData.IsOpen == true))
@@ -232,8 +263,8 @@ bool IsAriesSerial(uint32_t Handle)
 //
 void SetAriesEnabledState(bool IsEnabled)
 {
-//  MakeCATMessageBool(AriesData.DeviceHandle, eZZOV, IsEnabled);            // set enabled state
-
+    MakeCATMessageBool(AriesData.DeviceHandle, eZZOV, IsEnabled);            // set enabled state
+    CalculateAriesLEDs();
 }
 
 //
@@ -245,13 +276,17 @@ void SetAriesTXFrequency(uint32_t NewFreq)
     double Frequency;
     uint32_t Freq_Hz;
     uint32_t Freq_10KHz;
-    Frequency = (double)(NewFreq * 0.0286102 + 0.5);            // convert to Hz, rounded
-    Freq_Hz = (uint32_t)Frequency;
-    Freq_10KHz = Frequency / 10000;
-    if(Freq_10KHz != CurrentFrequency)
+    if(AriesATUActive)
     {
-        CurrentFrequency = Freq_10KHz;
-        printf("Aries get Freq in 10KHz units = %d\n", Freq_10KHz);
+        Frequency = (double)(NewFreq * 0.028610229 + 0.5);            // convert to Hz, rounded
+        Freq_Hz = (uint32_t)Frequency;
+        Freq_10KHz = Frequency / 10000;
+        if(Freq_10KHz != CurrentFrequency)
+        {
+            CurrentFrequency = Freq_10KHz;
+            printf("Aries get Freq = %d\n", Freq_Hz);
+            MakeCATMessageNumeric(AriesData.DeviceHandle, eZZFT, Freq_Hz);            // set enabled state
+        }
     }
 }
 
@@ -264,30 +299,32 @@ void SetAriesTXFrequency(uint32_t NewFreq)
 void SetAriesAlexTXWord(uint16_t Word)
 {
     unsigned int Antenna = 0;
-    if(Word & 0x0100)
-        Antenna = 1;
-    else if(Word & 0x0200)
-        Antenna = 2;
-    else if(Word & 0x0400)
-        Antenna = 3;
-    if((CurrentTXAntenna != Antenna) && (Antenna != 0))
+
+    if(AriesATUActive)
     {
-        CurrentTXAntenna = Antenna;
-        if(AriesATUActive)
+        if(Word & 0x0100)
+            Antenna = 1;
+        else if(Word & 0x0200)
+            Antenna = 2;
+        else if(Word & 0x0400)
+            Antenna = 3;
+        if((CurrentTXAntenna != Antenna) && (Antenna != 0))
         {
+            CurrentTXAntenna = Antenna;
             printf("Aries detected TX Ant=%d\n", Antenna);
             if(EnabledForAntenna[Antenna])
             {
-//                MakeCATMessageNumeric(AriesData.DeviceHandle, eZZOC, Antenna);      // set antenna
+                MakeCATMessageNumeric(AriesData.DeviceHandle, eZZOC, Antenna);      // set antenna
                 SetAriesEnabledState(true);            // set enabled state
             }
             else
             {
                 SetAriesEnabledState(false);            // set enabled state
-//                MakeCATMessageNumeric(AriesData.DeviceHandle, eZZOC, Antenna);      // set antenna
+                MakeCATMessageNumeric(AriesData.DeviceHandle, eZZOC, Antenna);      // set antenna
             }
         }
     }
+
 }
 
 //
@@ -298,18 +335,18 @@ void SetAriesAlexTXWord(uint16_t Word)
 void SetAriesAlexRXWord(uint16_t Word)
 {
     unsigned int Antenna = 0;
-    if(Word & 0x0100)
-        Antenna = 1;
-    else if(Word & 0x0200)
-        Antenna = 2;
-    else if(Word & 0x0400)
-        Antenna = 3;
-    if(CurrentRXAntenna != Antenna)
-    {
-        CurrentRXAntenna = Antenna;
-        if(AriesATUActive)
-        {   
-//            MakeCATMessageNumeric(AriesData.DeviceHandle, eZZOA, Antenna);
+    if(AriesATUActive)
+    {   
+        if(Word & 0x0100)
+            Antenna = 1;
+        else if(Word & 0x0200)
+            Antenna = 2;
+        else if(Word & 0x0400)
+            Antenna = 3;
+        if(CurrentRXAntenna != Antenna)
+        {
+            CurrentRXAntenna = Antenna;
+            MakeCATMessageNumeric(AriesData.DeviceHandle, eZZOA, Antenna);
             printf("Aries detected RX Ant=%d\n", Antenna);
         }
     }
@@ -318,21 +355,44 @@ void SetAriesAlexRXWord(uint16_t Word)
 //
 // handle ATU button press on the G2V2 front panel
 // State = 0: released; 1: pressed; 2: long pressed
+// only take action if SDR is running, & we know TX antenna
+// otherwise it is meaningless
 //
 void HandleATUButtonPress(uint8_t Event)
 {
-    printf("Aries ATU Button Press, Event=%d\n", Event);
-    if(Event == 2)
-    {
-        RedLEDState = true;
-        GreenLEDState = false;
-    }    
-    else if(Event == 1)
-        GreenLEDState = true;
-    else
-    {
-        GreenLEDState = false;
-        RedLEDState = false;
+    if((AriesATUActive) && (CurrentTXAntenna != 0))
+    {   
+        printf("Aries ATU Button Press, Event=%d\n", Event);
+        if(Event == 2)                      // long press: set not enabled, erase for current antenna
+        {
+            SetAriesEnabledState(false);            // set enabled state
+            MakeCATMessageNumeric(AriesData.DeviceHandle, eZZOZ, CurrentTXAntenna);
+        }    
+        else if(Event == 1)                 // short press. toggle enabled/not for antenna.
+        {
+            EnabledForAntenna[CurrentTXAntenna] = !EnabledForAntenna[CurrentTXAntenna];
+            SetAriesEnabledState(EnabledForAntenna[CurrentTXAntenna]);            // set enabled state
+        }
+        CalculateAriesLEDs();
     }
-    SetATULEDs(GreenLEDState, RedLEDState);
 }
+
+
+
+//
+// receive a ZZZP message from Aries
+// same function as ATU button on front panel
+// pushbutton scan code 1 can control the ATU. Call same code.
+//
+void HandleAriesZZZPMessage(uint32_t Param)
+{
+    uint8_t ScanCode;
+    uint8_t State;
+
+    ScanCode = Param / 10;
+    State = Param % 10;
+    if(ScanCode == 1)
+        HandleATUButtonPress(State);
+}
+
+
