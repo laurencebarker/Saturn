@@ -59,7 +59,7 @@ void HandleAriesZZOXMessage(bool Param);
 //
 // receive a ZZOZ erase success message from Aries
 //
-void HandleAriesZZOZMessage(int Param);
+void HandleAriesZZOZMessage(bool Param);
 
 //
 // response from a ZZTU; tune state request

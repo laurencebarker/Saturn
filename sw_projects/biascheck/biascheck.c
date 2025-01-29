@@ -26,6 +26,7 @@
 #include <semaphore.h>
 #include <pthread.h>
 
+
 #include "../common/saturntypes.h"
 #include "../common/hwaccess.h"                     // access to PCIe read & write
 #include "../common/saturnregisters.h"              // register I/O for Saturn
@@ -42,7 +43,7 @@ GtkBuilder      *Builder;
 GtkWidget       *Window;
 GtkTextBuffer   *TextBuffer;
 GtkStatusbar      *StatusBar;
-GtkCheckButton *TXCheck;
+GtkToggleButton *TXCheck;
 GtkEntry *DriverCurrentText;
 GtkEntry *PACurrentText;
 //
@@ -88,6 +89,7 @@ void HandlerSetEERMode(bool Unused)
 //
 void on_TXButton_toggled()
 {
+//    GPTTPressed = gtk_check_button_get_active(TXCheck);
     GPTTPressed = gtk_toggle_button_get_active(TXCheck);
     if (GPTTPressed)
         gtk_text_buffer_insert_at_cursor(TextBuffer, "TX Enabled...  ", -1);
@@ -167,7 +169,7 @@ int main(int argc, char *argv[])
     Window = GTK_WIDGET(gtk_builder_get_object(Builder, "window_main"));
     StatusBar = GTK_STATUSBAR(gtk_builder_get_object(Builder, "statusbar_main"));
     TextBuffer = GTK_TEXT_BUFFER(gtk_builder_get_object(Builder, "textbuffer_main"));
-    TXCheck = GTK_CHECK_BUTTON(gtk_builder_get_object(Builder, "TXButton"));
+    TXCheck = GTK_TOGGLE_BUTTON(gtk_builder_get_object(Builder, "TXButton"));
 	DriverCurrentText = GTK_ENTRY(gtk_builder_get_object(Builder, "DriverCurrentBox"));
 	PACurrentText = GTK_ENTRY(gtk_builder_get_object(Builder, "PACurrentBox"));
 

@@ -60,6 +60,7 @@
 #include "Outwideband.h"
 #include "cathandler.h"
 #include "LDGATU.h"
+#include "AriesATU.h"
 #include "frontpanelhandler.h"
 
 #define P2APPVERSION 34

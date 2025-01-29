@@ -171,8 +171,10 @@ void *IncomingHighPriority(void *arg)                   // listener thread
         AlexManualTXFilters(Word, true);
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with RX ant settings to filt/RXant register
         //printf("Alex 0 TX word = 0x%x\n", Word);
-        AlexManualTXFilters(Word, false);
         SetAriesAlexRXWord(Word);
+        if(AriesATUActive)                                  // if Aries active, set RX antenna to 1
+          Word = (Word & 0xF8FF) | 0x0100;
+        AlexManualTXFilters(Word, false);
       }
       else if(FPGAVersion >= 12)                            // new hardware but no client app support
       {

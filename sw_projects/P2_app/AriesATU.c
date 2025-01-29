@@ -210,18 +210,19 @@ void SetAriesZZZSState(uint8_t ProductID, uint8_t HWVersion, uint8_t SWID)
 void HandleAriesZZOXMessage(bool Param)
 {
     TuneSolutionFound = Param;
-    printf("Aries reports tune solution = %d\n", Param);
+    printf("ZZOX handler: Aries reports tune solution = %d\n", Param);
     CalculateAriesLEDs();
 }
 
 
 //
 // receive a ZZOZ erase success message from Aries
-// parameter is 1-3: the antenna fir which solutions were erased.
+// parameter is bool: 1 if success.
+// not paramter different from outgoing message)
 //
-void HandleAriesZZOZMessage(int Param)
+void HandleAriesZZOZMessage(bool Param)
 {
-    printf("Aries erased tune solutions for Antenna %d\n", Param);
+    printf("Aries erased tune solutions for TX Antenna %d, success = %d\n", CurrentTXAntenna, (int)Param);
 }
 
 

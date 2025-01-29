@@ -24,4 +24,11 @@
 void InitialiseFrontPanelHandler(void);
 
 
+//
+// function to shutdown a connection to the front panel; call if selected as a command line option
+// close any open files
+//
+void ShutdownFrontPanelHandler(void);
+
+
 #endif  //#ifndef

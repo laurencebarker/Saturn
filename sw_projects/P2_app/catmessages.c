@@ -146,11 +146,12 @@ void HandleZZZP(int SourceDevice, ERXParamType Type, bool BoolParam, int NumPara
 
 //
 // erase tuning solutions: this sends result back to radio
+// (when sent by Aries it only encodes a 0 or 1 "success" parameter, not the antenna number)
 //
 void HandleZZOZ(int SourceDevice, ERXParamType Type, bool BoolParam, int NumParam, char* StringParam)                          // ATU erase
 {
     if (IsAriesSerial(SourceDevice))
-        HandleAriesZZOZMessage(NumParam);
+        HandleAriesZZOZMessage(BoolParam);
 }
 
 
