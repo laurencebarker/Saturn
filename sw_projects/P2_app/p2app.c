@@ -425,10 +425,6 @@ int main(int argc, char *argv[])
 	unsigned int Version = 0;
   unsigned int MajorVersion = 0;
   bool IncompatibleFirmware = false;                                // becomes set if firmware is not compatible with this version
-  struct ifaddrs *ifaddr;                                           // used to find ethernet device name
-  int family, s;                                                    // used to find ethernet device name
-  char host[NI_MAXHOST];                                            // used to find ethernet device name
-  char if_string[NI_MAXHOST];                                       // used to find ethernet device name
 
 
   //
@@ -481,7 +477,7 @@ int main(int argc, char *argv[])
     printf("***************************************************************************\n");
     printf("Incompatible Saturn FPGA firmware v%d; major version%d\n",
              Version,  MajorVersion);
-    printf("This version of p2app requires major version = %d\n, FWREQUIREDMAJORVERSION");
+    printf("This version of p2app requires major version = %d\n", FWREQUIREDMAJORVERSION);
     printf("You must update your copy of p2app to use that firmware version - see User manual\n");
     printf("p2app will refuse a connection request until this is resolved!\n");
     printf("\n\n\n***************************************************************************\n");
@@ -671,7 +667,6 @@ int main(int argc, char *argv[])
   DIR *dp;
   struct dirent *ep;   
   char *posp;
-  char filename[48];
   int ch = 'e';                                    // start character ethernet
 
     dp = opendir("/sys/class/net");

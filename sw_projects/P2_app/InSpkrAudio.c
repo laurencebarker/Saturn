@@ -130,7 +130,7 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
         if(size < 0 && errno != EAGAIN)
         {
             perror("recvfrom fail, Speaker data");
-            return EXIT_FAILURE;
+            return;
         }
         if(size == VSPEAKERAUDIOSIZE)                           // we have received a packet!
         {

@@ -739,7 +739,7 @@ void SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)		// only accepts DUC
 
     if(!IsDeltaPhase)                       // ieif protocol 1
     {
-        fDeltaPhase = (double)(2^32) * (double)Value / (double) VSAMPLERATE;
+        fDeltaPhase = VTWOEXP32 * (double)Value / (double) VSAMPLERATE;
         DeltaPhase = (uint32_t)fDeltaPhase;
     }
     else
@@ -1486,12 +1486,8 @@ void InitialiseCWKeyerRamp(bool Protocol2, uint32_t Length_us)
     const double eightpi = 25.13274122871830;
     const double tenpi = 31.41592653589790;
 
-    double LargestSample;
-    double Fraction;                        // fractional position in ramp
     double SamplePeriod;                    // sample period in us
-    double Length;                          // length required in us
     uint32_t RampLength;                    // integer length in WORDS not bytes!
-    double RampSample[VRAMPSIZE];           // array samples
     uint32_t Cntr;
     uint32_t Sample;                        // ramp sample value
     uint32_t Register;

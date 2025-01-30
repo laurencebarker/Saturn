@@ -132,7 +132,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
         if(size < 0 && errno != EAGAIN)
         {
             perror("recvfrom fail, TX I/Q data");
-            return EXIT_FAILURE;
+            return;
         }
         if(size == VDUCIQSIZE)
         {

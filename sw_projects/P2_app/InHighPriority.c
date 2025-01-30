@@ -77,7 +77,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
     {
       perror("recvfrom, high priority");
       printf("error number = %d\n", errno);
-      return EXIT_FAILURE;
+      EXIT_FAILURE;
     }
 
     //

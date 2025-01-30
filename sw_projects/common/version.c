@@ -92,10 +92,6 @@ bool IsFallbackConfig(void)
 	uint32_t SWVer, SWID;					// s/w version and id
 	uint32_t ProdVer, ProdID;				// product version and id
 	uint32_t ClockInfo;						// clock status
-	uint32_t Cntr;
-
-	char* ProdString;
-	char* SWString;
 
 	//
 	// read the raw data from registers
