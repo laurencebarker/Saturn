@@ -180,7 +180,7 @@ uint8_t GetThetisScanCode(uint8_t V2Code, bool* Shifted)
 //
 // interrupt thread
 //
-void G2V2PanelInterrupt(void *arg)
+void G2V2PanelInterrupt(__attribute__((unused)) void *arg)
 {
     uint16_t Retval;
     uint8_t EventCount;
@@ -287,7 +287,7 @@ void G2V2PanelInterrupt(void *arg)
 //
 // periodic timestep
 //
-void G2V2PanelTick(void *arg)
+void G2V2PanelTick(__attribute__((unused)) void *arg)
 {
     uint32_t NewLEDStates = 0;
 

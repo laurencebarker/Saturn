@@ -537,7 +537,7 @@ void MakeCATMessageString(int Device, ECATCommands Cmd, char* Param)
 // (connection to SDR client list so no port to make use of)
 // this is called when a connection port available; create socket on entry.
 //
-void* CATHandlerThread(void *arg)
+void* CATHandlerThread(__attribute__((unused)) void *arg)
 {
     bool ThreadError = false;
     int CATSocketid;                                 // socket to access internet

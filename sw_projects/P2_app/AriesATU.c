@@ -88,7 +88,7 @@ void CalculateAriesLEDs(void)
 // Aries periodic timestep
 // this runs as a thread,created at startup if Aries is detected.
 //
-void AriesTick(void *arg)
+void* AriesTick(__attribute__((unused)) void *arg)
 {
     bool PreviousTXMode = false;                                    // for detecting TX state change
     bool PreviousSDRActive = false;                                 // for detecting SDR active state change
@@ -127,7 +127,7 @@ void AriesTick(void *arg)
         usleep(20000);                                              // 20ms period
     }
     printf("Closing Aries tick thread\n");
-
+    return NULL;
 }
 
 

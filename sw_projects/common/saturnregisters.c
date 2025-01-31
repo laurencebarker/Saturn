@@ -2300,7 +2300,7 @@ void SetTXModulationSource(ETXModulationSource Source)
 // SetDuplex(bool Enabled)
 // if Enabled, the RX signal is transferred back during TX; else TX drive signal
 //
-void SetDuplex(bool Enabled)
+void SetDuplex(__attribute__((unused)) bool Enabled)
 {
 
 }
@@ -2310,7 +2310,7 @@ void SetDuplex(bool Enabled)
 // SetOperateMode(bool IsRunMode)
 // enables or disables operation & data transfer.
 //
-void SetOperateMode(bool IsRunMode)
+void SetOperateMode(__attribute__((unused)) bool IsRunMode)
 {
 
 }
@@ -2320,7 +2320,7 @@ void SetOperateMode(bool IsRunMode)
 // SetFreqPhaseWord(bool IsPhase)
 // for protocol 2, sets whether DDC/DUC frequency is phase word or frequency in Hz.
 //
-void SetFreqPhaseWord(bool IsPhase)
+void SetFreqPhaseWord(__attribute__((unused)) bool IsPhase)
 {
     
 }
@@ -2330,7 +2330,7 @@ void SetFreqPhaseWord(bool IsPhase)
 // SetDDCSampleSize(unsigned int DDC, unsgned int Size)
 // set sample resolution for DDC (only 24 bits supported, so ignore)
 //
-void SetDDCSampleSize(unsigned int DDC, unsigned int Size)
+void SetDDCSampleSize(__attribute__((unused)) unsigned int DDC, __attribute__((unused)) unsigned int Size)
 {
 
 }

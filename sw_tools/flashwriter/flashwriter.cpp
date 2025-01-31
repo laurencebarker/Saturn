@@ -273,7 +273,7 @@ void on_program_button_clicked()
             gtk_text_buffer_insert_at_cursor(TextBuffer, "file is empty\n", -1);
         else
         {
-            sprintf(TempString, "programming %d bytes at address 0x%08x\n", data_to_write.size(), FlashStartAddress);
+            sprintf(TempString, "programming %ld bytes at address 0x%08x\n", data_to_write.size(), FlashStartAddress);
             gtk_text_buffer_insert_at_cursor(TextBuffer, TempString, -1);
             // update the window
             while(gtk_events_pending())

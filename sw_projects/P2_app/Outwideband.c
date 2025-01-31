@@ -182,13 +182,8 @@ void *OutgoingWidebandSamples(void *arg)
 //
 // memory buffers
 //
-    uint32_t WBDMATransferSize;
     bool InitError = false;                                     // becomes true if we get an initialisation error
     
-    uint32_t Depth = 0;
-    
-    uint32_t RegisterValue;
-    bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;
     int ADC;                                                    // iterator
     uint32_t SampleWordCount;                                   // no of 64 bit words required
     bool ADC1, ADC2;                                            // true if data available
@@ -204,7 +199,6 @@ void *OutgoingWidebandSamples(void *arg)
     struct msghdr datagram[VNUMWBADC];
     uint32_t SequenceCounter[VNUMWBADC];                        // UDP sequence count
     
-    unsigned int StartupCount;
 
 //
 // initialise. Create memory buffers and open DMA file devices
@@ -257,7 +251,6 @@ void *OutgoingWidebandSamples(void *arg)
             usleep(100);
         }
         printf("starting outgoing Wideband data\n");
-        StartupCount = VSTARTUPDELAY;
         //
         // initialise outgoing WB packet buffers - 1 per ADC
         //
@@ -333,8 +326,7 @@ void *OutgoingWidebandSamples(void *arg)
                         memcpy(WBUDPBuffer[ADC] + 4, WBDMAReadBuffer + StartAddress, StoredSamplePerPktCount * 2);
                         iovecinst[ADC].iov_len = StoredSamplePerPktCount * 2 + 4;           // P2 data dependent
 
-                        int Error;
-                        Error = sendmsg((ThreadData+ADC)->Socketid, &datagram[ADC], 0);
+                        sendmsg((ThreadData+ADC)->Socketid, &datagram[ADC], 0);
                         usleep(200);                    // gap between outgoing messages
                     }
                 }

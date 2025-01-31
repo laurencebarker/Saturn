@@ -139,7 +139,8 @@ void CreateTestData(char* MemPtr, uint32_t Samples, uint32_t Freq)
 void DMAWriteToCodec(char* MemPtr, uint32_t Length)
 {
 	uint32_t Depth = 0;
-	bool FIFOOverflow;
+	bool FIFOOverflow, FIFOOverThreshold, FIFOUnderflowed;
+	uint32_t CurrentCount;
 	uint32_t DMACount;
 	uint32_t  TotalDMACount;
 
@@ -148,12 +149,12 @@ void DMAWriteToCodec(char* MemPtr, uint32_t Length)
 
 	for(DMACount = 0; DMACount < TotalDMACount; DMACount++)
 	{
-		Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow);        // read the FIFO free locations
+		Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflowed, &CurrentCount);        // read the FIFO free locations
 //		printf("FIFO monitor read; depth = %d\n", Depth);
 		while (Depth < VDMAWORDSPERDMA)       // loop till space available
 		{
 			usleep(1000);								                    // 1ms wait
-			Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow);    // read the FIFO free locations
+		Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflowed, &CurrentCount);        // read the FIFO free locations
 		}
 		// DMA write next batch
 		DMAWriteToFPGA(DMAWritefile_fd, MemPtr, VDMATRANSFERSIZE, AXIBaseAddress);
@@ -170,7 +171,7 @@ void DMAWriteToCodec(char* MemPtr, uint32_t Length)
 // Length = number of MIC bytes to transfer
 // need to read the bytes in, then write 2 copies to output buffer
 //
-void CopyMicToSpeaker(char* Read, char *Write, uint32_t Length)
+void CopyMicToSpeaker(unsigned char* Read, char *Write, uint32_t Length)
 {
 	uint32_t *WritePtr;
 	uint16_t *ReadPtr;
@@ -196,10 +197,11 @@ void CopyMicToSpeaker(char* Read, char *Write, uint32_t Length)
 // DMA read sample data from Codec
 // Length = number of bytes to transfer
 // need to read the bytes in, then write 2 copies to output buffer
-void DMAReadFromCodec(char* MemPtr, uint32_t Length)
+void DMAReadFromCodec(unsigned char* MemPtr, uint32_t Length)
 {
 	uint32_t Depth = 0;
-	bool FIFOOverflow;
+	bool FIFOOverflow, FIFOOverThreshold, FIFOUnderflowed;
+	uint32_t CurrentCount;
 	uint32_t DMACount;
 	uint32_t  TotalDMACount;
 	int16_t *MicReadPtr;
@@ -212,12 +214,12 @@ void DMAReadFromCodec(char* MemPtr, uint32_t Length)
 
 	for(DMACount = 0; DMACount < TotalDMACount; DMACount++)
 	{
-		Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow);        // read the FIFO free locations
+		Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflowed, &CurrentCount);        // read the FIFO free locations
 		//printf("FIFO monitor read; depth = %d\n", Depth);
 		while (Depth < VDMAWORDSPERDMA)       // loop till enough data available
 		{
 			usleep(1000);								                    // 1ms wait
-			Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow);    // read the FIFO free locations
+			Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflowed, &CurrentCount);    // read the FIFO free locations
 		}
 		// DMA read next batch of 16 bit mic samples
 		// then updatre mic amplitude
@@ -244,7 +246,7 @@ void DMAReadFromCodec(char* MemPtr, uint32_t Length)
 int main(int argc, char *argv[])
 {
   	char* WriteBuffer = NULL;											// data for DMA write
-  	char* ReadBuffer = NULL;											// data for DMA read
+  	unsigned char* ReadBuffer = NULL;											// data for DMA read
 	uint32_t BufferSize = VMEMBUFFERSIZE;
 	uint32_t Frequency;
 	uint32_t Length;
@@ -253,7 +255,7 @@ int main(int argc, char *argv[])
 	bool EnableBoost =false;
 	bool PTTState = false;
 	bool IsXLR = false;
-	uint32_t Cntr;
+	int32_t Cntr;
 	float PercentLevel;
 
 	if (argc < 2)

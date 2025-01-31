@@ -306,7 +306,7 @@ int MakeSocket(struct ThreadSocketData* Ptr, int DDCid)
 // this runs as its own thread to monitor command line activity. A string "exist" exits the application. 
 // thread initiated at the start.
 //
-void* CheckForExitCommand(void *arg)
+void* CheckForExitCommand(__attribute__((unused)) void *arg)
 {
   char ch;
   printf("spinning up Check For Exit thread\n");
@@ -321,6 +321,7 @@ void* CheckForExitCommand(void *arg)
       break;
     }
   }
+  return NULL;
 }
 
 
@@ -328,7 +329,7 @@ void* CheckForExitCommand(void *arg)
 // this runs as its own thread to see if messages have stopped being received.
 // if nomessages in a second, goes back to "inactive" state.
 //
-void* CheckForActivity(void *arg)
+void* CheckForActivity(__attribute__((unused)) void *arg)
 {
   bool PreviouslyActiveState;               
   while(1)

@@ -68,7 +68,7 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
     if(size < 0 && errno != EAGAIN)
     {
       perror("recvfrom, DDC Specific");
-      return;
+      return NULL;
     }
     if(size == VDDCSPECIFICSIZE)
     {

@@ -68,8 +68,6 @@ void *OutgoingMicSamples(void *arg)
 //
     uint8_t* MicReadBuffer = NULL;							// data for DMA read from DDC
     uint32_t MicBufferSize = VDMABUFFERSIZE;
-    unsigned char* MicReadPtr;								// pointer for reading out a mic sample
-    unsigned char* MicHeadPtr;								// ptr to 1st free location in mic memory
     unsigned char* MicBasePtr;								// ptr to DMA location in mic memory
     uint32_t Depth = 0;
     uint32_t RegisterValue;
@@ -96,8 +94,6 @@ void *OutgoingMicSamples(void *arg)
         printf("mic read buffer allocation failed\n");
         InitError = true;
     }
-    MicReadPtr = MicReadBuffer + VBASE;							// offset 4096 bytes into buffer
-    MicHeadPtr = MicReadBuffer + VBASE;
     MicBasePtr = MicReadBuffer + VBASE;
     memset(MicReadBuffer, 0, MicBufferSize);
 

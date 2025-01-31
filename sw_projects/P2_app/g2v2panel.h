@@ -75,7 +75,7 @@ void HandleG2V2ZZZPMessage(uint32_t Param);
 // see if serial device belongs to a front panel open serial port
 // return true if this handle belongs to a front panel
 //
-bool IsFrontPanelSerial(uint32_t Handle);
+bool IsFrontPanelSerial(int32_t Handle);
 
 //
 // set ATU LED states

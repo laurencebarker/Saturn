@@ -94,7 +94,7 @@ void SendStringToSerial(int Device, char* Message)
 // serial read thread
 // the paramter passed is a pointer to a struct with the required settings
 //
-void CATSerial(void *arg)
+void* CATSerial(void *arg)
 {
     char SerialInputBuffer[VESERINSIZE];
     char CATMessageBuffer[VESERINSIZE];
@@ -168,4 +168,5 @@ void CATSerial(void *arg)
         close(DeviceData -> DeviceHandle);
         DeviceData -> IsOpen = false;
     }
+    return NULL;
 }

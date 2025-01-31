@@ -66,7 +66,7 @@ typedef struct
 //
 // serial read thread
 //
-void CATSerial(void *arg);
+void* CATSerial(void *arg);
 
 
 #endif

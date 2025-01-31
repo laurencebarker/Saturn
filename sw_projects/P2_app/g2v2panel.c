@@ -43,6 +43,7 @@
 #include "i2cdriver.h"
 #include "gpiod.h"
 #include "andromedacatmessages.h"
+#include "AriesATU.h"
 
 
 bool G2V2PanelControlled = false;
@@ -100,7 +101,6 @@ bool CheckG2V2PanelPresent(void)
 {
     bool Result = false;
     char* Name;
-    int Rate;
     int Cntr;
     int Found = 0;
 
@@ -112,8 +112,7 @@ bool CheckG2V2PanelPresent(void)
     Cntr=0;
     while(1)
     {
-        Name = SaturnSerialPortsList[Cntr].port;
-        Rate = SaturnSerialPortsList[Cntr++].baud;
+        Name = SaturnSerialPortsList[Cntr++].port;
 
         if(Name == NULL)                                // if last entry
             break;
@@ -127,7 +126,7 @@ bool CheckG2V2PanelPresent(void)
             }
         }
     }
-
+    printf("got to here\n");
     if(Found != 0)                      // we found a serial port
     {
         Found--;                           // get back to 0 base
@@ -169,7 +168,7 @@ bool CheckG2V2PanelPresent(void)
 //
 // periodic timestep
 //
-void G2V2PanelTick(void *arg)
+void* G2V2PanelTick(__attribute__((unused)) void *arg)
 {
     uint32_t NewLEDStates = 0;
 
@@ -273,7 +272,7 @@ void G2V2PanelTick(void *arg)
         usleep(100000);                                                  // 100ms period
 
     }
-
+    return NULL;
 }
 
 
@@ -393,7 +392,7 @@ void HandleG2V2ZZZPMessage(uint32_t Param)
 // see if serial device belongs to a front panel open serial port
 // return true if this handle belongs to a front panel
 //
-bool IsFrontPanelSerial(uint32_t Handle)
+bool IsFrontPanelSerial(int32_t Handle)
 {
     bool Result = false;
     if((Handle==G2V2Data.DeviceHandle) && (G2V2Data.IsOpen == true))

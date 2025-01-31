@@ -27,6 +27,7 @@
 #include "../common/hwaccess.h"                   // low level access
 #include "../common/version.h"
 #include "cathandler.h"
+#include "AriesATU.h"
 
 extern bool AriesATUActive;                             // true if Aries is operating
 
@@ -44,14 +45,12 @@ void *IncomingHighPriority(void *arg)                   // listener thread
   struct msghdr datagram;                               // multiple incoming message header
   int size;                                             // UDP datagram length
   bool RunBit;                                          // true if "run" bit set
-  uint32_t DDCPhaseIncrement;                           // delta phase for a DDC
   uint8_t Byte, Byte2;                                  // received dat being decoded
   uint32_t LongWord;
   uint16_t Word;
   int i;                                                // counter
   ESoftwareID FPGASWID;                                 // preprod/release etc
   unsigned int FPGAVersion;                             // firmware version
-  bool PAEnable;
 
 
   ThreadData = (struct ThreadSocketData *)arg;

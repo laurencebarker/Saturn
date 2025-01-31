@@ -36,17 +36,17 @@ GtkStatusbar      *StatusBar;
 GtkLabel *MicActivityLbl;
 GtkLabel *PTTLbl;
 GtkProgressBar *MicProgressBar;
-GtkScale *VolumeScale;
+GtkRange *VolumeScale;
 GtkSpinButton *MicDurationSpin;
 GtkSpinButton *GainSpin;
 GtkProgressBar *MicLevelBar;   
 GtkAdjustment *VolAdjustment; 
 GtkAdjustment *GainAdjustment;
-GtkCheckButton *MicBoostCheck;
-GtkCheckButton *MicXLRCheck;
-GtkCheckButton *MicTipCheck;
-GtkCheckButton *MicBiasCheck;
-GtkCheckButton *LineCheck;
+GtkToggleButton *MicBoostCheck;
+GtkToggleButton *MicXLRCheck;
+GtkToggleButton *MicTipCheck;
+GtkToggleButton *MicBiasCheck;
+GtkToggleButton *LineCheck;
 
 //
 // mem read/write variables:
@@ -57,7 +57,7 @@ pthread_t CheckForPTTThread;        // thread looks for PTT press
 pthread_t MicTestThread;        	// thread runs microphone test
 pthread_t SpeakerTestThread;        // thread runs speaker test
 bool GMicTestInitiated;				// true if to start mic test
-bool GSpeakerTestInitiated;			// true if to start speaker test
+bool GSpeakerTestInitiated;			// true if to start speaker test2
 bool GSpeakerTestIsLeftChannel;		// true for left channel speaker test
 
 #define VALIGNMENT 4096
@@ -507,17 +507,17 @@ int main(int argc, char *argv[])
     MicActivityLbl = GTK_LABEL(gtk_builder_get_object(Builder, "MicActivityLabel"));
     PTTLbl = GTK_LABEL(gtk_builder_get_object(Builder, "PTTLabel"));
     MicProgressBar = GTK_PROGRESS_BAR(gtk_builder_get_object(Builder, "id_progress"));
-    VolumeScale = GTK_SCALE(gtk_builder_get_object(Builder, "VolumeScale"));
+    VolumeScale = GTK_RANGE(gtk_builder_get_object(Builder, "VolumeScale"));
     MicDurationSpin = GTK_SPIN_BUTTON(gtk_builder_get_object(Builder, "MicDurationSpin"));
     GainSpin = GTK_SPIN_BUTTON(gtk_builder_get_object(Builder, "GainSpin"));
     MicLevelBar = GTK_PROGRESS_BAR(gtk_builder_get_object(Builder, "MicLevelBar"));    
     VolAdjustment = GTK_ADJUSTMENT(gtk_builder_get_object(Builder, "id_voladjustment"));
     GainAdjustment = GTK_ADJUSTMENT(gtk_builder_get_object(Builder, "id_gainadjustment"));
-    MicBoostCheck = GTK_CHECK_BUTTON(gtk_builder_get_object(Builder, "MicBoostCheck"));
-    MicXLRCheck = GTK_CHECK_BUTTON(gtk_builder_get_object(Builder, "MicXLRCheck"));
-    MicTipCheck = GTK_CHECK_BUTTON(gtk_builder_get_object(Builder, "MicTipCheck"));
-    MicBiasCheck = GTK_CHECK_BUTTON(gtk_builder_get_object(Builder, "MicBiasCheck"));
-    LineCheck = GTK_CHECK_BUTTON(gtk_builder_get_object(Builder, "LineCheck"));
+    MicBoostCheck = GTK_TOGGLE_BUTTON(gtk_builder_get_object(Builder, "MicBoostCheck"));
+    MicXLRCheck = GTK_TOGGLE_BUTTON(gtk_builder_get_object(Builder, "MicXLRCheck"));
+    MicTipCheck = GTK_TOGGLE_BUTTON(gtk_builder_get_object(Builder, "MicTipCheck"));
+    MicBiasCheck = GTK_TOGGLE_BUTTON(gtk_builder_get_object(Builder, "MicBiasCheck"));
+    LineCheck = GTK_TOGGLE_BUTTON(gtk_builder_get_object(Builder, "LineCheck"));
 
     gtk_builder_add_callback_symbol (Builder, "on_testL_button_clicked", G_CALLBACK (on_testL_button_clicked));
     gtk_builder_add_callback_symbol (Builder, "on_testR_button_clicked", G_CALLBACK (on_testR_button_clicked));
