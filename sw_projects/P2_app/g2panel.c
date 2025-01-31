@@ -453,7 +453,7 @@ void SetupG2PanelGPIO(void)
 
         printf("assigning line inputs for pushbuttons & encoders\n");
         gpiod_chip_get_lines(chip, PBIOPins, VNUMGPIO, &PBInLines);
-        gpiod_line_request_bulk(&PBInLines, &config, &IOPinValues);
+        gpiod_line_request_bulk(&PBInLines, &config, IOPinValues);
     }
 }
 
