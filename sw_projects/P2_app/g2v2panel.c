@@ -126,7 +126,7 @@ bool CheckG2V2PanelPresent(void)
             }
         }
     }
-    printf("got to here\n");
+
     if(Found != 0)                      // we found a serial port
     {
         Found--;                           // get back to 0 base
