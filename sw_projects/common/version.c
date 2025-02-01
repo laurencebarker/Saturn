@@ -87,24 +87,26 @@ bool IsFallbackConfig(void)
 	bool Result = false;
 	uint32_t SoftwareInformation;			// swid & version
 	uint32_t ProductInformation;			// product id & version
-	uint32_t DateCode;						// date code from user register in FPGA
+//	uint32_t DateCode;						// date code from user register in FPGA
 
-	uint32_t SWVer, SWID;					// s/w version and id
-	uint32_t ProdVer, ProdID;				// product version and id
-	uint32_t ClockInfo;						// clock status
+//	uint32_t SWVer;							// s/w version
+	uint32_t SWID;							// s/w id
+//	uint32_t ProdVer;						// product version
+	uint32_t ProdID;						// product id
+//	uint32_t ClockInfo;						// clock status
 
 	//
 	// read the raw data from registers
 	//
 	SoftwareInformation = RegisterRead(VADDRSWVERSIONREG);
 	ProductInformation = RegisterRead(VADDRPRODVERSIONREG);
-	DateCode = RegisterRead(VADDRUSERVERSIONREG);
+//	DateCode = RegisterRead(VADDRUSERVERSIONREG);
 
-	ClockInfo = (SoftwareInformation & 0xF);				// 4 clock bits
-	SWVer = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version
+//	ClockInfo = (SoftwareInformation & 0xF);				// 4 clock bits
+//	SWVer = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version
 	SWID = SoftwareInformation >> 20;						// 12 bit software ID
 
-	ProdVer = ProductInformation & 0xFFFF;					// 16 bit product version
+//	ProdVer = ProductInformation & 0xFFFF;					// 16 bit product version
 	ProdID = ProductInformation >> 16;						// 16 bit product ID
 
 	if ((ProdID == SATURNPRODUCTID) && (SWID == SATURNGOLDENCONFIGID))
