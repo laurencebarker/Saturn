@@ -338,7 +338,7 @@ int GetCATOPBufferUsed(void)
   int Used;                           // number of occupied locations
   Used = CATWritePtr - CATReadPtr;
   if(Used < 0)
-    Used +=  + VNUMOPSTRINGS;
+    Used += VNUMOPSTRINGS;
   return Used;
 }
 
@@ -354,10 +354,10 @@ void SendCATMessage(char* Msg)
     if((GetCATOPBufferUsed() <= (VNUMOPSTRINGS - 1))&&(CATPortAssigned == true))
     {
       strcpy(OutputStrings[CATWritePtr++], Msg);
-      if (CATDebugPrint)
-        printf("Sent CAT msg %s\n", Msg);                       // debug
       if(CATWritePtr >= VNUMOPSTRINGS)
         CATWritePtr = 0;
+      if (CATDebugPrint)
+        printf("Sent CAT msg %s\n", Msg);                       // debug
     }
   }
 }
@@ -546,10 +546,15 @@ void* CATKeepaliveThreadFunction(__attribute__((unused)) void *arg)
     while((Cntr++ < 10 && !SDRActive))
         sleep(1);
 
-    while(SDRActive)
+    Cntr = 0;
+    while(SDRActive && !SignalThreadEnd)
     {
-        MakeCATMessageNoParam(DESTTCPCATPORT, eZZXV);
-        sleep(15);                                                  // 15 sec delay between keepalives
+        if(Cntr++ == 150)
+        {
+            MakeCATMessageNoParam(DESTTCPCATPORT, eZZXV);
+            Cntr = 0;
+        }
+        usleep(100000);                                                  // 100ms * 150 = 15 sec delay between keepalives
     }
     printf("closing CAT keepalive thread\n");
     return NULL;
@@ -647,6 +652,11 @@ void* CATHandlerThread(__attribute__((unused)) void *arg)
               ParseCATCmd(ReadBuffer, DESTTCPCATPORT);
               memset(ReadBuffer, 0, sizeof(ReadBuffer));
           }
+          else if((ReadResult == -1) && (errno != 11))            // error 11 happens if there was no data and the imeout is triggered
+          {
+            printf("error from CAT read, errno=%d\n", errno);
+          }
+
           //
           // if there are CAT messages available, send them
           //
@@ -694,7 +704,7 @@ void SetupCATPort(int Port)
     if (CATPort == 0)
     {
         CATPort = Port;
-        printf("CATPort initiailised to %d\n", Port);
+        printf("CATPort initialised to %d\n", Port);
         SignalThreadEnd = false;
         ThreadActive = false;
 
