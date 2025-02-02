@@ -28,6 +28,9 @@
 #include "../common/version.h"
 #include "cathandler.h"
 #include "AriesATU.h"
+#include <pthread.h>
+#include <syscall.h>
+
 
 extern bool AriesATUActive;                             // true if Aries is operating
 
@@ -55,7 +58,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
 
   ThreadData = (struct ThreadSocketData *)arg;
   ThreadData->Active = true;
-  printf("spinning up high priority incoming thread with port %d\n", ThreadData->Portid);
+  printf("spinning up high priority incoming thread with port %d, pid=%ld\n", ThreadData->Portid, syscall(SYS_gettid));
   FPGAVersion = GetFirmwareVersion(&FPGASWID);          // get version of FPGA code
 
   //

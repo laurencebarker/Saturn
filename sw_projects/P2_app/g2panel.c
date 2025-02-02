@@ -32,6 +32,7 @@
 #include <pthread.h>
 #include <gpiod.h>
 #include <pthread.h>
+#include <syscall.h>
 
 #include <linux/i2c-dev.h>
 #include "../common/saturnregisters.h"
@@ -83,7 +84,6 @@ struct timespec ts = {1, 0};
 bool G2PanelActive = false;                         // true while panel active and threads should run
 bool EncodersInitialised = false;                   // true after 1st scan
 bool CATDetected = false;                           // true if panel ID message has been sent
-uint32_t VKeepAliveCount;                           // count of ticks for keepalive
 
 #define VNUMGPIOPUSHBUTTONS 4
 #define VNUMMCPPUSHBUTTONS 16
@@ -259,6 +259,7 @@ void* VFOEventHandler(__attribute__((unused)) void *arg)
     uint8_t DirectionBit;
     struct gpiod_line_event Event;
 
+    printf("Started VFO event handler thread, pid=%ld\n", syscall(SYS_gettid));
     while(G2PanelActive)
     {
         returnval = gpiod_line_event_wait(VFO1, &ts);
@@ -325,6 +326,7 @@ void* G2PanelTick(__attribute__((unused)) void *arg)
     uint32_t Cntr;
     bool I2Cerror;
 
+    printf("Started G2 panel tick thread, pid=%ld\n", syscall(SYS_gettid));
     while(G2PanelActive)
     {
         if(CATPortAssigned)                     // see if CAT has become available for the 1st time
@@ -395,14 +397,6 @@ void* G2PanelTick(__attribute__((unused)) void *arg)
             //
             Steps = ReadOpticalEncoder();
             MakeVFOEncoderCAT(Steps);
-            //
-            // check keepalive
-            //
-            if(VKeepAliveCount++ > VKEEPALIVECOUNT)
-            {
-                VKeepAliveCount = 0;
-                MakeCATMessageNoParam(DESTTCPCATPORT, eZZXV);
-            }
 
         }
 

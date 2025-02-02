@@ -23,6 +23,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <pthread.h>
+#include <syscall.h>
+
 
 #include "serialport.h"
 #include "cathandler.h"
@@ -111,7 +114,7 @@ void* CATSerial(void *arg)
     DeviceData -> DeviceHandle = OpenSerialPort(DeviceData -> PathName, DeviceData -> Baud);
     if(DeviceData -> DeviceHandle != -1)
     {
-        printf("Setting up CAT Serial read handler thread for device %s\n", DeviceNames[(int)DeviceData->Device]);
+        printf("Setting up CAT Serial read handler thread for device %s, pid=%ld\n", DeviceNames[(int)DeviceData->Device], syscall(SYS_gettid));
         DeviceData -> IsOpen = true;
         DeviceData -> DeviceActive = true;
         sleep(1);                                   // allow serial to start (particularly for USB)

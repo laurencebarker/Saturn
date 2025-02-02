@@ -27,6 +27,9 @@
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
 #include "../common/hwaccess.h"
+#include <pthread.h>
+#include <syscall.h>
+
 
 
 
@@ -72,7 +75,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
 
     ThreadData = (struct ThreadSocketData *)arg;
     ThreadData->Active = true;
-    printf("spinning up DUC I/Q thread with port %d\n", ThreadData->Portid);
+    printf("spinning up DUC I/Q thread with port %d, pid=%ld\n", ThreadData->Portid, syscall(SYS_gettid));
   
     //
     // setup DMA buffer

@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
+#include <pthread.h>
+#include <syscall.h>
 #include "../common/saturnregisters.h"
 #include "../common/hwaccess.h"
 #include "../common/debugaids.h"
@@ -210,7 +212,7 @@ void *OutgoingWidebandSamples(void *arg)
     //
 
     ThreadData = (struct ThreadSocketData*)arg;
-    printf("spinning up outgoing Wideband sample thread with port %d\n", ThreadData->Portid);
+    printf("spinning up outgoing Wideband sample thread with port %d, pid=%ld\n", ThreadData->Portid, syscall(SYS_gettid));
 
     //
     // set up per-ADC data structures

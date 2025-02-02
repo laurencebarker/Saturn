@@ -31,6 +31,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <syscall.h>
 
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
@@ -291,6 +292,7 @@ void G2V2PanelTick(__attribute__((unused)) void *arg)
 {
     uint32_t NewLEDStates = 0;
 
+    printf("Started G2V2 panel tick thread, pid=%ld\n", syscall(SYS_gettid));
     while(G2V2PanelActive)
     {
         if(CATPortAssigned)                     // see if CAT has become available for the 1st time

@@ -26,6 +26,8 @@
 #include <string.h>
 #include "../common/saturnregisters.h"
 #include "OutDDCIQ.h"
+#include <pthread.h>
+#include <syscall.h>
 
 
 
@@ -50,7 +52,7 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
 
   ThreadData = (struct ThreadSocketData *)arg;
   ThreadData->Active = true;
-  printf("spinning up DDC specific thread with port %d\n", ThreadData->Portid);
+  printf("spinning up DDC specific thread with port %d, pid=%ld\n", ThreadData->Portid, syscall(SYS_gettid));
   //
   // main processing loop
   //

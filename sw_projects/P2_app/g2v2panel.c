@@ -61,7 +61,6 @@ pthread_t G2V1AdapterSerialThread;                    // thread wfor serial read
 uint8_t G2V2PanelSWID;
 uint8_t G2V2PanelHWVersion;
 uint8_t G2V2PanelProductID;
-uint32_t VKeepAliveCnt;                             // count of ticks for keepalive
 uint8_t CATPollCntr;                                // determines which message to poll for
 bool G2ToneState;                                   // true if 2 tone test in progress
 bool GVFOBSelected;                                 // true if VFO B selected
@@ -207,15 +206,6 @@ void* G2V2PanelTick(__attribute__((unused)) void *arg)
                     break;
             }
 //
-// check keepalive
-// keep this in case we can ditch the polling at some point
-//
-        if(VKeepAliveCnt++ > VKEEPALIVECOUNT)
-        {
-            VKeepAliveCnt = 0;
-            MakeCATMessageNoParam(DESTTCPCATPORT, eZZXV);
-        }
-//
 // Set LEDs from values reported by CAT messages
 // store into NewLEDStates; then set to I2C create ZZZI if different from what we had before
 // ATU tune LEDs are internal to P2app, not Thetis
@@ -353,6 +343,9 @@ void SetG2V2ZZZSState(uint8_t ProductID, uint8_t HWVersion, uint8_t SWID)
     }
     printf("; H/W verson = %d", HWVersion);
     printf("; S/W verson = %d\n", SWID);
+    G2V2PanelProductID = ProductID;
+    G2V2PanelHWVersion = HWVersion;
+    G2V2PanelSWID = SWID;
 }
 
 

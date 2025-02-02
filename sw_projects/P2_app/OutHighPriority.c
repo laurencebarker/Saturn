@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
+#include <pthread.h>
+#include <syscall.h>
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
 #include "LDGATU.h"
@@ -64,7 +66,7 @@ void *OutgoingHighPriority(void *arg)
 //
   ThreadData = (struct ThreadSocketData *)arg;
   ThreadData->Active = true;
-  printf("spinning up outgoing high priority with port %d\n", ThreadData->Portid);
+  printf("spinning up outgoing high priority with port %d, pid=%ld\n", ThreadData->Portid, syscall(SYS_gettid));
 
 //
 // OK, now the main work

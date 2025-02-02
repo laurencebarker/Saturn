@@ -38,6 +38,8 @@
 #include <netdb.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <pthread.h>
+#include <syscall.h>
 
 
 #include "../common/saturntypes.h"
@@ -63,7 +65,7 @@
 #include "AriesATU.h"
 #include "frontpanelhandler.h"
 
-#define P2APPVERSION 35
+#define P2APPVERSION 36
 #define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
@@ -71,6 +73,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V36: 2/2/2025:    fixed G2V2 panel ID sent to Thetis. Fixed CAT thread 100% loading after 30s operation if no keepalive message sent (added keepalive thread). Thread PIDs displayed.
 // V35: 1/2/2025:    removed warnings; no functional change
 // V34: 21/01/2025:  changed code to find ethernet device name, not fixed eth0
 // V33: 16/01/2025:  fix for OC outputs in wrong bit positions. CAT serial reliability fixed for front panel.
@@ -310,7 +313,7 @@ int MakeSocket(struct ThreadSocketData* Ptr, int DDCid)
 void* CheckForExitCommand(__attribute__((unused)) void *arg)
 {
   char ch;
-  printf("spinning up Check For Exit thread\n");
+  printf("spinning up Check For Exit thread, pid=%ld\n", syscall(SYS_gettid));
   
   while (1)
   {
@@ -333,6 +336,7 @@ void* CheckForExitCommand(__attribute__((unused)) void *arg)
 void* CheckForActivity(__attribute__((unused)) void *arg)
 {
   bool PreviouslyActiveState;               
+  printf("Started check for activity thread, pid=%ld\n", syscall(SYS_gettid));
   while(1)
   {
     sleep(1);                                   // wait for 1 second

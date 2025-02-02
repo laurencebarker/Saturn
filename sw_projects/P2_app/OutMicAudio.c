@@ -24,6 +24,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <pthread.h>
+#include <syscall.h>
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
 #include "../common/hwaccess.h"
@@ -83,7 +85,7 @@ void *OutgoingMicSamples(void *arg)
 //
     ThreadData = (struct ThreadSocketData *)arg;
     ThreadData->Active = true;
-    printf("spinning up outgoing mic thread with port %d\n", ThreadData->Portid);
+    printf("spinning up outgoing mic thread with port %d, pid=%ld\n", ThreadData->Portid, syscall(SYS_gettid));
 
 //
 // setup DMA buffer

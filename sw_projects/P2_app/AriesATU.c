@@ -29,6 +29,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <syscall.h>
 
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
@@ -93,7 +94,7 @@ void* AriesTick(__attribute__((unused)) void *arg)
     bool PreviousTXMode = false;                                    // for detecting TX state change
     bool PreviousSDRActive = false;                                 // for detecting SDR active state change
 
-    printf("opened Aries periodic tick thread\n");
+    printf("opened Aries periodic tick thread, pid=%ld\n", syscall(SYS_gettid));
     while(AriesATUActive)
     {
         //
