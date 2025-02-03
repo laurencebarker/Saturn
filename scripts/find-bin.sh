@@ -7,4 +7,5 @@ cd ~/github/Saturn/FPGA
 latest_file=$(ls saturnprimary*.bin | sort -V | tail -n 1)
 
 #Output the latest file
-echo "The latest file is: $latest_file"
+echo "The latest FPGA firmware image file is: $latest_file"
+echo "update using flashwriter app if needed"
