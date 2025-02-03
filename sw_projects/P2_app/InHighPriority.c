@@ -134,11 +134,14 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       Byte = (uint8_t)(UDPInBuffer[345]);
       SetTXDriveLevel(Byte);
       //
-      // CAT port (if set)
+      // create CAT port (if set)
+      // shut down CAT port if not set and the CAT thread is active
       //
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1398));
       if(Word != 0)
         SetupCATPort(Word);
+      else if (Word == 0 && CATPortAssigned)
+        ShutdownCATHandler();
       //
       // transverter, speaker mute, open collector, user outputs
       // open collector data is in bits 7:1; move to 6:0

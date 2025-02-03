@@ -44,6 +44,7 @@
 bool CATPortAssigned = false;                // true if CAT set up and active
 int CATPort = 0;
 bool ThreadActive = false;                  // true while CAT thread running
+bool CATKeepaliveActive = false;            // true while keepalive thread running
 bool SignalThreadEnd = false;               // asserted to terminate thread
 pthread_t CATThread;                        // thread reads/writes CAT commands
 pthread_t CATKeepaliveThread;               // thread requests activity every 15s
@@ -547,16 +548,18 @@ void* CATKeepaliveThreadFunction(__attribute__((unused)) void *arg)
         sleep(1);
 
     Cntr = 0;
+    CATKeepaliveActive = true;
     while(SDRActive && !SignalThreadEnd)
     {
-        if(Cntr++ == 150)
+        if(Cntr++ == 1500)
         {
             MakeCATMessageNoParam(DESTTCPCATPORT, eZZXV);
             Cntr = 0;
         }
-        usleep(100000);                                                  // 100ms * 150 = 15 sec delay between keepalives
+        usleep(10000);                                                  // 10ms * 1500 = 15 sec delay between keepalives
     }
     printf("closing CAT keepalive thread\n");
+    CATKeepaliveActive = false;
     return NULL;
 }
 
@@ -652,15 +655,16 @@ void* CATHandlerThread(__attribute__((unused)) void *arg)
               ParseCATCmd(ReadBuffer, DESTTCPCATPORT);
               memset(ReadBuffer, 0, sizeof(ReadBuffer));
           }
-          else if((ReadResult == -1) && (errno != 11))            // error 11 happens if there was no data and the imeout is triggered
+          else if((ReadResult == -1) && (errno == 104))            // error 104 happens if server drops connection
           {
-            printf("error from CAT read, errno=%d\n", errno);
+            printf("CAT server dropped connection\n");
+            ThreadError = true;
           }
 
           //
           // if there are CAT messages available, send them
           //
-          while(GetCATOPBufferUsed() != 0)
+          while((GetCATOPBufferUsed() != 0) && !SignalThreadEnd && !ThreadError)
           {
             TXMessageLength = strlen(OutputStrings[CATReadPtr]);
             strcpy(SendBuffer, OutputStrings[CATReadPtr++]);
@@ -733,13 +737,13 @@ void SetupCATPort(int Port)
 
 //
 // function to shut down CAT handler
-// only returns when shutdown is complete
+// only returns when shutdown of CAT handler and the keepalive is complete
 // signal thread to shut down, then wait
 //
 void ShutdownCATHandler(void)
 {
     SignalThreadEnd = true;
-    while(ThreadActive)
+    while(ThreadActive || CATKeepaliveActive)
         usleep(1000);
     SignalThreadEnd = false;
 }
