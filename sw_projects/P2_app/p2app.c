@@ -65,7 +65,7 @@
 #include "AriesATU.h"
 #include "frontpanelhandler.h"
 
-#define P2APPVERSION 37
+#define P2APPVERSION 38
 #define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
@@ -73,6 +73,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V38: 13/2/2025:   added FPGA version 18 required to run wideband code
 // V37: 3/2/2025:    CAT reliability issues addressed to prevent crash if thetis CAT server turned off. 
 // V36: 2/2/2025:    fixed G2V2 panel ID sent to Thetis. Fixed CAT thread 100% loading after 30s operation if no keepalive message sent (added keepalive thread). Thread PIDs displayed.
 // V35: 1/2/2025:    removed warnings; no functional change
@@ -797,22 +798,25 @@ int main(int argc, char *argv[])
   }
   pthread_detach(DDCIQThread[0]);
 
+  if(Version >= 18)
+  {
 //
 // create outgoing wideband data thread which services bothe wideband0 and wideband1
 // both sockets already exist so copy socket settings from existing sockets:
 // wideband0 shares port 1027 with incoming high priority data
 // wideband1 shares port 1028 with incoming DDC audio
 //
-  SocketData[VPORTWIDEBAND0].Socketid = SocketData[VPORTHIGHPRIORITYTOSDR].Socketid;
-  SocketData[VPORTWIDEBAND1].Socketid = SocketData[VPORTSPKRAUDIO].Socketid;
-  memcpy(&SocketData[VPORTWIDEBAND0].addr_cmddata, &SocketData[VPORTHIGHPRIORITYTOSDR].addr_cmddata, sizeof(struct sockaddr_in));
-  memcpy(&SocketData[VPORTWIDEBAND1].addr_cmddata, &SocketData[VPORTSPKRAUDIO].addr_cmddata, sizeof(struct sockaddr_in));
-  if(pthread_create(&WidebandDataThread, NULL, OutgoingWidebandSamples, (void*)&SocketData[VPORTWIDEBAND0]) < 0)
-  {
-    perror("pthread_create outgoing wideband data");
-    return EXIT_FAILURE;
+    SocketData[VPORTWIDEBAND0].Socketid = SocketData[VPORTHIGHPRIORITYTOSDR].Socketid;
+    SocketData[VPORTWIDEBAND1].Socketid = SocketData[VPORTSPKRAUDIO].Socketid;
+    memcpy(&SocketData[VPORTWIDEBAND0].addr_cmddata, &SocketData[VPORTHIGHPRIORITYTOSDR].addr_cmddata, sizeof(struct sockaddr_in));
+    memcpy(&SocketData[VPORTWIDEBAND1].addr_cmddata, &SocketData[VPORTSPKRAUDIO].addr_cmddata, sizeof(struct sockaddr_in));
+    if(pthread_create(&WidebandDataThread, NULL, OutgoingWidebandSamples, (void*)&SocketData[VPORTWIDEBAND0]) < 0)
+    {
+      perror("pthread_create outgoing wideband data");
+      return EXIT_FAILURE;
+    }
+    pthread_detach(WidebandDataThread);
   }
-  pthread_detach(WidebandDataThread);
 
 
 
