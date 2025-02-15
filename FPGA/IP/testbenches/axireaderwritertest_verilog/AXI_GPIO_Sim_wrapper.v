@@ -13,20 +13,24 @@ module AXI_GPIO_Sim_wrapper
    (aclk,
     aresetn,
     rd_count,
-    wr_count);
+    wr_count,
+    tx_enable);
   input aclk;
   input aresetn;
   output [15:0]rd_count;
   output [15:0]wr_count;
+  output tx_enable;
 
   wire aclk;
   wire aresetn;
   wire [15:0]rd_count;
   wire [15:0]wr_count;
+  wire       tx_enable;
 
   AXI_GPIO_Sim AXI_GPIO_Sim_i
        (.aclk(aclk),
         .aresetn(aresetn),
         .rd_count(rd_count),
-        .wr_count(wr_count));
+        .wr_count(wr_count),
+        .tx_enable(tx_enable));
 endmodule

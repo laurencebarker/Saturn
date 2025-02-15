@@ -1,9 +1,9 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"0.810309",
-   "Default View_TopLeft":"-565,-380",
+   "Default View_TopLeft":"-565,-376",
    "ExpandedHierarchyInLayout":"",
-   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
+   "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
 preplace port port-id_ADC1_CLKin_N -pg 1 -lvl 0 -x -230 -y 370 -defaultsOSRD
 preplace port port-id_ADC1_CLKin_P -pg 1 -lvl 0 -x -230 -y 350 -defaultsOSRD
@@ -24,49 +24,49 @@ preplace portBus ADC2_In_N -pg 1 -lvl 0 -x -230 -y 60 -defaultsOSRD
 preplace portBus ADC2_In_P -pg 1 -lvl 0 -x -230 -y 40 -defaultsOSRD
 preplace portBus ADC2_SingleEnded -pg 1 -lvl 5 -x 1110 -y -50 -defaultsOSRD
 preplace portBus adcrand -pg 1 -lvl 0 -x -230 -y -280 -defaultsOSRD
-preplace inst util_ds_buf_4 -pg 1 -lvl 1 -x 40 -y 220 -defaultsOSRD
-preplace inst util_ds_buf_5 -pg 1 -lvl 1 -x 40 -y 620 -defaultsOSRD
-preplace inst LTC2208_derandomise_0 -pg 1 -lvl 4 -x 900 -y -300 -defaultsOSRD
-preplace inst LTC2208_derandomise_1 -pg 1 -lvl 4 -x 900 -y -50 -defaultsOSRD
 preplace inst xlslice_0 -pg 1 -lvl 2 -x 390 -y -300 -defaultsOSRD
 preplace inst xlslice_1 -pg 1 -lvl 2 -x 390 -y -10 -defaultsOSRD
-preplace inst selectio_wiz_0 -pg 1 -lvl 1 -x 40 -y -90 -defaultsOSRD
-preplace inst selectio_wiz_1 -pg 1 -lvl 1 -x 40 -y 70 -defaultsOSRD
-preplace inst xlconstant_0 -pg 1 -lvl 1 -x 40 -y -220 -defaultsOSRD
-preplace inst selectio_wiz_2 -pg 1 -lvl 1 -x 40 -y 470 -defaultsOSRD
-preplace inst selectio_wiz_3 -pg 1 -lvl 1 -x 40 -y 790 -defaultsOSRD
 preplace inst D_register_norst_0 -pg 1 -lvl 3 -x 650 -y 40 -defaultsOSRD
 preplace inst D_register_norst_1 -pg 1 -lvl 3 -x 650 -y -150 -defaultsOSRD
 preplace inst D_register_norst_2 -pg 1 -lvl 3 -x 650 -y 300 -defaultsOSRD
 preplace inst D_register_norst_3 -pg 1 -lvl 3 -x 650 -y 430 -defaultsOSRD
+preplace inst selectio_wiz_0 -pg 1 -lvl 1 -x 40 -y -90 -defaultsOSRD
+preplace inst selectio_wiz_1 -pg 1 -lvl 1 -x 40 -y 70 -defaultsOSRD
+preplace inst selectio_wiz_2 -pg 1 -lvl 1 -x 40 -y 470 -defaultsOSRD
+preplace inst selectio_wiz_3 -pg 1 -lvl 1 -x 40 -y 790 -defaultsOSRD
+preplace inst util_ds_buf_4 -pg 1 -lvl 1 -x 40 -y 220 -defaultsOSRD
+preplace inst util_ds_buf_5 -pg 1 -lvl 1 -x 40 -y 620 -defaultsOSRD
+preplace inst xlconstant_0 -pg 1 -lvl 1 -x 40 -y -220 -defaultsOSRD
+preplace inst LTC2208_derandomise_0 -pg 1 -lvl 4 -x 900 -y -300 -defaultsOSRD
+preplace inst LTC2208_derandomise_1 -pg 1 -lvl 4 -x 900 -y -50 -defaultsOSRD
 preplace netloc ADC1_CLKin_N_1 1 0 1 -200J 240n
 preplace netloc ADC1_CLKin_P_1 1 0 1 -210J 220n
+preplace netloc ADC1_In_N_1 1 0 1 -180 -100n
+preplace netloc ADC1_In_P_1 1 0 1 N -120
+preplace netloc ADC1_Ovr_In_N_1 1 0 1 -190 460n
+preplace netloc ADC1_Ovr_In_P_1 1 0 1 -210 440n
 preplace netloc ADC2_CLKin_N_1 1 0 1 -170J 640n
 preplace netloc ADC2_CLKin_P_1 1 0 1 -170J 620n
-preplace netloc ARC_Randomise_1 1 0 2 -180 -290 240
-preplace netloc adc1_1 1 3 1 770 -280n
-preplace netloc adc2_1 1 3 1 770 -30n
-preplace netloc xlslice_0_Dout 1 2 2 N -300 N
-preplace netloc xlslice_1_Dout 1 2 2 500 -50 N
-preplace netloc ADC1_In_P_1 1 0 1 N -120
-preplace netloc ADC1_In_N_1 1 0 1 -180 -100n
-preplace netloc ADC2_In_P_1 1 0 1 N 40
 preplace netloc ADC2_In_N_1 1 0 1 N 60
-preplace netloc ADC1_Ovr_In_P_1 1 0 1 -210 440n
-preplace netloc ADC1_Ovr_In_N_1 1 0 1 -190 460n
-preplace netloc ADC2_Ovr_In_P_1 1 0 1 -170 760n
+preplace netloc ADC2_In_P_1 1 0 1 N 40
 preplace netloc ADC2_Ovr_In_N_1 1 0 1 -170 780n
-preplace netloc Net1 1 0 2 -160 -280 230
-preplace netloc Net2 1 0 1 -180 -80n
+preplace netloc ADC2_Ovr_In_P_1 1 0 1 -170 760n
+preplace netloc ARC_Randomise_1 1 0 2 -180 -290 290
+preplace netloc D_register_norst_2_dout 1 3 2 NJ 300 N
+preplace netloc D_register_norst_3_dout 1 3 2 NJ 430 N
 preplace netloc LTC2208_derandomise_0_dout 1 4 1 N -300
 preplace netloc LTC2208_derandomise_1_dout 1 4 1 N -50
-preplace netloc Net3 1 0 4 -190 300 N 300 490 -70 780
-preplace netloc selectio_wiz_0_data_in_to_device 1 1 2 230 -140 NJ
-preplace netloc selectio_wiz_1_data_in_to_device 1 1 2 240 50 NJ
-preplace netloc selectio_wiz_2_data_in_to_device 1 1 2 230 310 NJ
-preplace netloc selectio_wiz_3_data_in_to_device 1 1 2 240 440 NJ
-preplace netloc D_register_norst_3_dout 1 3 2 NJ 430 N
-preplace netloc D_register_norst_2_dout 1 3 2 NJ 300 N
+preplace netloc Net1 1 0 2 -160 -280 240
+preplace netloc Net2 1 0 1 -180 -80n
+preplace netloc Net3 1 0 4 -190 300 N 300 520 -70 780
+preplace netloc adc1_1 1 3 1 770 -280n
+preplace netloc adc2_1 1 3 1 770 -30n
+preplace netloc selectio_wiz_0_data_in_to_device 1 1 2 240 -140 NJ
+preplace netloc selectio_wiz_1_data_in_to_device 1 1 2 250 50 NJ
+preplace netloc selectio_wiz_2_data_in_to_device 1 1 2 240 310 NJ
+preplace netloc selectio_wiz_3_data_in_to_device 1 1 2 250 440 NJ
+preplace netloc xlslice_0_Dout 1 2 2 N -300 N
+preplace netloc xlslice_1_Dout 1 2 2 530 -50 N
 levelinfo -pg 1 -230 40 390 650 900 1110
 pagesize -pg 1 -db -bbox -sgen -400 -380 1390 1130
 "
