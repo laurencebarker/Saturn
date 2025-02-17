@@ -57,7 +57,8 @@
         "FIFO_Monitor_0": "",
         "AXI_Stream_Reader_Wr_0": "",
         "AXI_Stream_Reader_Wr_1": "",
-        "AXI_Stream_Reader_Wr_codec": ""
+        "AXI_Stream_Reader_Wr_codec": "",
+        "Watchdog_0": ""
       },
       "PCIe": {
         "xadc_wiz_0": "",
@@ -207,7 +208,8 @@
         "util_vector_logic_0": "",
         "xlconstant_drive0": "",
         "xlconstant_drive1": "",
-        "AXILite_Alex_SPI_0": ""
+        "AXILite_Alex_SPI_0": "",
+        "Double_D_register_0": ""
       },
       "Receiver": {
         "dualDDC10": {
@@ -1940,6 +1942,9 @@
           },
           "txmux_reset": {
             "direction": "I"
+          },
+          "TXWatchdogEnable": {
+            "direction": "O"
           }
         },
         "components": {
@@ -3544,6 +3549,9 @@
                     "value_src": "constant"
                   }
                 }
+              },
+              "Activity": {
+                "direction": "O"
               }
             }
           },
@@ -3976,6 +3984,9 @@
                     "value_src": "constant"
                   }
                 }
+              },
+              "Activity": {
+                "direction": "O"
               }
             }
           },
@@ -4408,6 +4419,64 @@
                     "value_src": "constant"
                   }
                 }
+              },
+              "Activity": {
+                "direction": "O"
+              }
+            }
+          },
+          "Watchdog_0": {
+            "vlnv": "xilinx.com:module_ref:Watchdog:1.0",
+            "xci_name": "saturn_top_Watchdog_0_0",
+            "xci_path": "ip\\saturn_top_Watchdog_0_0\\saturn_top_Watchdog_0_0.xci",
+            "inst_hier_path": "FIFO_Interfaces/Watchdog_0",
+            "parameters": {
+              "TimeoutClocks": {
+                "value": "245760000"
+              }
+            },
+            "reference_info": {
+              "ref_type": "hdl",
+              "ref_name": "Watchdog",
+              "boundary_crc": "0x0"
+            },
+            "ports": {
+              "aclk": {
+                "type": "clk",
+                "direction": "I",
+                "parameters": {
+                  "ASSOCIATED_RESET": {
+                    "value": "aresetn",
+                    "value_src": "constant"
+                  },
+                  "FREQ_HZ": {
+                    "value": "125000000",
+                    "value_src": "user_prop"
+                  },
+                  "CLK_DOMAIN": {
+                    "value": "saturn_top_xdma_0_0_axi_aclk",
+                    "value_src": "default_prop"
+                  }
+                }
+              },
+              "aresetn": {
+                "type": "rst",
+                "direction": "I",
+                "parameters": {
+                  "POLARITY": {
+                    "value": "ACTIVE_LOW",
+                    "value_src": "constant"
+                  }
+                }
+              },
+              "activity1": {
+                "direction": "I"
+              },
+              "activity2": {
+                "direction": "I"
+              },
+              "TXEnable": {
+                "direction": "O"
               }
             }
           }
@@ -4532,7 +4601,20 @@
               "axi_interconnect_0/M02_ACLK",
               "AXI_Stream_Reader_Wr_0/aclk",
               "AXI_Stream_Reader_Wr_1/aclk",
-              "AXI_Stream_Reader_Wr_codec/aclk"
+              "AXI_Stream_Reader_Wr_codec/aclk",
+              "Watchdog_0/aclk"
+            ]
+          },
+          "AXI_Stream_Reader_Wr_0_Activity": {
+            "ports": [
+              "AXI_Stream_Reader_Wr_0/Activity",
+              "Watchdog_0/activity2"
+            ]
+          },
+          "AXI_Stream_Reader_Wr_codec_Activity": {
+            "ports": [
+              "AXI_Stream_Reader_Wr_codec/Activity",
+              "Watchdog_0/activity1"
             ]
           },
           "CLK12_1": {
@@ -4567,7 +4649,8 @@
               "axi_interconnect_0/M02_ARESETN",
               "AXI_Stream_Reader_Wr_0/aresetn",
               "AXI_Stream_Reader_Wr_1/aresetn",
-              "AXI_Stream_Reader_Wr_codec/aresetn"
+              "AXI_Stream_Reader_Wr_codec/aresetn",
+              "Watchdog_0/aresetn"
             ]
           },
           "Net1": {
@@ -4588,6 +4671,12 @@
             "ports": [
               "TX_FIFO_aresetn",
               "axis_data_fifo_DUC/s_axis_aresetn"
+            ]
+          },
+          "Watchdog_0_TXEnable": {
+            "ports": [
+              "Watchdog_0/TXEnable",
+              "TXWatchdogEnable"
             ]
           },
           "aresetn_122_1": {
@@ -4884,6 +4973,9 @@
           },
           "CK_KEYER_ACTIVE": {
             "direction": "I"
+          },
+          "Watchdog_TXEN": {
+            "direction": "I"
           }
         },
         "components": {
@@ -4983,10 +5075,16 @@
                 "value": "1"
               },
               "IN4_WIDTH": {
-                "value": "18"
+                "value": "1"
+              },
+              "IN5_WIDTH": {
+                "value": "17"
+              },
+              "IN6_WIDTH": {
+                "value": "1"
               },
               "NUM_PORTS": {
-                "value": "6"
+                "value": "7"
               }
             }
           },
@@ -9996,7 +10094,7 @@
                 "value": "0"
               },
               "CONST_WIDTH": {
-                "value": "18"
+                "value": "17"
               }
             }
           },
@@ -10129,7 +10227,7 @@
             "inst_hier_path": "PCIe/xlconstant_swversion",
             "parameters": {
               "CONST_VAL": {
-                "value": "18"
+                "value": "20"
               },
               "CONST_WIDTH": {
                 "value": "16"
@@ -10663,13 +10761,19 @@
           "TX_ENABLE_1": {
             "ports": [
               "TX_ENABLE",
-              "xlconcat_0/In5"
+              "xlconcat_0/In6"
             ]
           },
           "Usr_Reg_Access_0_Usr_Reg_Data": {
             "ports": [
               "Usr_Reg_Access_0/Usr_Reg_Data",
               "AXIL_ReadReg_64_0/readdata1"
+            ]
+          },
+          "Watchdog_TXEN_1": {
+            "ports": [
+              "Watchdog_TXEN",
+              "xlconcat_0/In4"
             ]
           },
           "c_addsub_0_S": {
@@ -10838,7 +10942,7 @@
           "xlconstant_0_dout": {
             "ports": [
               "xlconstant_0/dout",
-              "xlconcat_0/In4"
+              "xlconcat_0/In5"
             ]
           },
           "xlconstant_2_dout": {
@@ -11095,6 +11199,14 @@
           },
           "Driver_PA_En": {
             "direction": "O"
+          },
+          "TXWatchdogEnable": {
+            "direction": "I"
+          },
+          "Watchdog_TXEN": {
+            "direction": "O",
+            "left": "0",
+            "right": "0"
           }
         },
         "components": {
@@ -12028,6 +12140,9 @@
               },
               "rstn": {
                 "direction": "I"
+              },
+              "TXWatchdogEnable": {
+                "direction": "I"
               }
             },
             "components": {
@@ -12052,7 +12167,7 @@
                 "inst_hier_path": "RF_interfaces/Strobes/util_reduced_logic_1",
                 "parameters": {
                   "C_SIZE": {
-                    "value": "2"
+                    "value": "3"
                   }
                 }
               },
@@ -12106,6 +12221,9 @@
                   },
                   "IN1_WIDTH": {
                     "value": "1"
+                  },
+                  "NUM_PORTS": {
+                    "value": "3"
                   }
                 }
               },
@@ -12389,6 +12507,12 @@
                   "xlslice_7/Din",
                   "xlslice_8/Din",
                   "xlslice_9/Din"
+                ]
+              },
+              "TXWatchdogEnable_1": {
+                "ports": [
+                  "TXWatchdogEnable",
+                  "xlconcat_1/In2"
                 ]
               },
               "aclk_1": {
@@ -13763,6 +13887,52 @@
                 }
               }
             }
+          },
+          "Double_D_register_0": {
+            "vlnv": "xilinx.com:module_ref:Double_D_register:1.0",
+            "xci_name": "saturn_top_Double_D_register_0_0",
+            "xci_path": "ip\\saturn_top_Double_D_register_0_0\\saturn_top_Double_D_register_0_0.xci",
+            "inst_hier_path": "RF_interfaces/Double_D_register_0",
+            "parameters": {
+              "DATA_WIDTH": {
+                "value": "1"
+              }
+            },
+            "reference_info": {
+              "ref_type": "hdl",
+              "ref_name": "Double_D_register",
+              "boundary_crc": "0x0"
+            },
+            "ports": {
+              "aclk": {
+                "type": "clk",
+                "direction": "I",
+                "parameters": {
+                  "FREQ_HZ": {
+                    "value": "122880000",
+                    "value_src": "ip_prop"
+                  },
+                  "PHASE": {
+                    "value": "0.0",
+                    "value_src": "ip_prop"
+                  },
+                  "CLK_DOMAIN": {
+                    "value": "saturn_top_clk_wiz_0_0_clk_out1",
+                    "value_src": "default_prop"
+                  }
+                }
+              },
+              "din": {
+                "direction": "I",
+                "left": "0",
+                "right": "0"
+              },
+              "dout": {
+                "direction": "O",
+                "left": "0",
+                "right": "0"
+              }
+            }
           }
         },
         "interface_nets": {
@@ -13796,6 +13966,13 @@
             "ports": [
               "AXILite_Alex_SPI_0/Tx_load_strobe",
               "RF_SPI_TX_LOAD"
+            ]
+          },
+          "Double_D_register_0_dout": {
+            "ports": [
+              "Double_D_register_0/dout",
+              "Strobes/TXWatchdogEnable",
+              "Watchdog_TXEN"
             ]
           },
           "Net": {
@@ -13871,12 +14048,19 @@
               "AttenDrivers/tx_strobe"
             ]
           },
+          "TXWatchdogEnable_1": {
+            "ports": [
+              "TXWatchdogEnable",
+              "Double_D_register_0/din"
+            ]
+          },
           "aclk_1": {
             "ports": [
               "aclk",
               "AttenDrivers/clk122",
               "Strobes/aclk",
-              "AXILite_Alex_SPI_0/aclk"
+              "AXILite_Alex_SPI_0/aclk",
+              "Double_D_register_0/aclk"
             ]
           },
           "clk_1": {
@@ -29138,6 +29322,12 @@
           "Transmitter/TXConfig"
         ]
       },
+      "TXEnable_1": {
+        "ports": [
+          "FIFO_Interfaces/TXWatchdogEnable",
+          "RF_interfaces/TXWatchdogEnable"
+        ]
+      },
       "TXLOTune_1": {
         "ports": [
           "PCIe/TXFreqData",
@@ -29168,6 +29358,12 @@
         "ports": [
           "Transmitter/txmux_reset",
           "FIFO_Interfaces/txmux_reset"
+        ]
+      },
+      "Watchdog_TXEN_1": {
+        "ports": [
+          "RF_interfaces/Watchdog_TXEN",
+          "PCIe/Watchdog_TXEN"
         ]
       },
       "aclk_1": {

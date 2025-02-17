@@ -216,6 +216,10 @@ set_false_path -from [get_ports {pcb_version_id[1]}]
 set_false_path -from [get_ports {pcb_version_id[2]}]
 set_false_path -from [get_ports {pcb_version_id[3]}]
 
+#
+# watchdog
+#
+set_false_path -to [get_pins {saturn_top_i/RF_interfaces/Double_D_register_0/inst/Intermediate_reg[0]/D}]
 
 
 
