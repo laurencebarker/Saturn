@@ -37,12 +37,7 @@ module AXI_Stream_Reader_Writer #
 )
 (
   // System signals
-(* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 ACLK CLK" *)
-(* X_INTERFACE_PARAMETER = "ASSOCIATED_RESET aresetn" *)
   input  wire                      aclk,
-
-(* X_INTERFACE_INFO = "xilinx.com:signal:reset:1.0 aresetn RST" *)
-(* X_INTERFACE_PARAMETER = "POLARITY ACTIVE_LOW" *)
   input  wire                      aresetn,
 
   // Slave side
@@ -83,7 +78,10 @@ module AXI_Stream_Reader_Writer #
   // AXI stream Slave (for AXI read transactions)
   output wire                      s_axis_tready,
   input  wire [AXI_DATA_WIDTH-1:0] s_axis_tdata,
-  input  wire                      s_axis_tvalid
+  input  wire                      s_axis_tvalid,
+  
+  // activity indicator (1 bit if read or write transfer occurs)
+  output wire Activity
 );
 
   reg awreadyreg;                            // false when write address has been latched
@@ -100,6 +98,7 @@ module AXI_Stream_Reader_Writer #
   reg arreadyreg;                            // false when write address has been latched
   reg s_axis_treadyreg;                      // false when axi stream data in latched
   reg rvalidreg;                             // true when read data out is valid
+  reg ActivityReg;                           // set true when a transfer occurs
 
 
 // strategy for write transaction:
@@ -117,6 +116,8 @@ module AXI_Stream_Reader_Writer #
   assign s_axi_bresp = 2'd0;
   assign m_axis_tvalid = m_axis_tvalidreg;
   assign m_axis_tdata = write_data;
+  
+  assign Activity = ActivityReg;
 //
 // now set the "address latched" when address valid and ready are true
 // set "data latched" when data valid and ready are true
@@ -180,16 +181,18 @@ module AXI_Stream_Reader_Writer #
 
 //
 // read transaction strategy:
-// 1. at reset, assert arready and tready, to be able to accept address and stream transfers 
-// 2. latch the incoming stream data as soon as it is available (this should be before a bus read happens)
-// 2a. dassert tready once latched
-// 3. when arvalid is true, signalling address transfer, deassert arready 
-// 4. assert rvalid when arvalid is false, and tready is false 
-// 5. when rvalid and rready both true, data is transferred:
-// 5a. clear the data;
-// 5b. deassert rvalid
-// 5c. reassert tready    
-// 5d. reassert arready
+// modified from 1st version so that it only initiates a FIFO read once the bus read has begun.
+// this is so that the true FIFO depth can be established beforehand
+// (if the FIFO reader held a word, that couldn't be counted but wasn't known)
+// 1. at reset, assert arready, to be able to accept address transfer 
+// 2. when arvalid is true, signalling address transfer, deassert arready & assert tready 
+// 3. latch the incoming stream data as soon as it is available (this should be before a bus read happens)
+// 3a. dassert tready once latched
+// 4. when rvalid and rready both true, data is transferred:
+// 4a. clear the data;
+// 4b. deassert rvalid
+// 4c. reassert tready    
+// 4d. reassert arready
 //
 
   assign s_axi_rdata = rdatareg;
@@ -207,7 +210,7 @@ module AXI_Stream_Reader_Writer #
 // step 1
       rdatareg <= {(AXI_DATA_WIDTH){1'b0}};
       arreadyreg <= 1'b1;                           // ready for address transfer
-      s_axis_treadyreg <= 1'b1;                     // ready for stream data
+      s_axis_treadyreg <= 1'b0;                     // ready for stream data
       rvalidreg <= 1'b0;                            // not ready to transfer read data
       rlastreg <= 1'b0;                             // not last data
       rlenreg <= 8'b0;                              // clear burst length
@@ -215,42 +218,53 @@ module AXI_Stream_Reader_Writer #
     end
     else
     begin
-// step 2. axi stream slave data transfer: latch data & clear tready when valid is true
-      if(s_axis_tvalid & s_axis_treadyreg)
-      begin
-        s_axis_treadyreg <= 1'b0;           // clear when data transaction happens
-        rdatareg <= s_axis_tdata;           // latch data
-      end
-// step 3. read address transaction: latch when arvalid and arready both true    
+// step 2. read address transaction: latch when arvalid and arready both true    
       if(s_axi_arvalid & arreadyreg)
       begin
         arreadyreg <= 1'b0;                  // clear when address transaction happens
         rlenreg <= s_axi_arlen;              // store burst length
         ridreg <= s_axi_arid;                // store transaction ID 
+        s_axis_treadyreg <= 1'b1;            // ready for stream data
       end
-// step 4. assert rvalid when address and stream data transfers are ready
-// be aware that either cycle can finish first, or both can complete in the same clock tick
-      if((s_axi_arvalid & arreadyreg & !s_axis_treadyreg) ||       // address completes and stream already complete
-      (!arreadyreg & s_axis_tvalid & s_axis_treadyreg) ||          // address already complete & stream completes
-      (s_axi_arvalid & arreadyreg & s_axis_tvalid & s_axis_treadyreg))     // address and stream data complete in same cycle
+// step 3. axi stream slave data transfer: latch data & clear tready when valid is true
+// only do this when a read transaction has begun
+      if(s_axis_tvalid & s_axis_treadyreg & !arreadyreg)
       begin
+        s_axis_treadyreg <= 1'b0;           // clear when data transaction happens
+        rdatareg <= s_axis_tdata;           // latch data
         rvalidreg <= 1'b1;                                  // signal ready to complete data
       end
-// step 5. When rvalid and rready, terminate the transaction & clear data.
+// step 4. When rvalid and rready, terminate the transaction & clear data.
       if(rvalidreg & s_axi_rready)
       begin
         rvalidreg <= 1'b0;                                  // deassert rvalid
-        s_axis_treadyreg <= 1'b1;                           // ready for new stream data
         rdatareg <= {(AXI_DATA_WIDTH){1'b0}};
-        ridreg <= {(AXI_ID_WIDTH){1'b0}};                   // clear ID register
         if (rlenreg != 0)                                   // decrement beat count
+        begin
           rlenreg <= rlenreg-1;
+          s_axis_treadyreg <= 1'b1;                           // ready for new stream data
+        end
         else
+        begin
           arreadyreg <= 1'b1;                                 // ready for new address
-        
+          ridreg <= {(AXI_ID_WIDTH){1'b0}};                   // clear ID register
+          s_axis_treadyreg <= 1'b0;                           // NOT ready for new stream data
+        end
       end
     end
   end
 
+
+  always @(posedge aclk)
+  begin
+    if(~aresetn)
+    begin
+        ActivityReg <= 0;
+    end
+    else
+    begin
+        ActivityReg <= ((m_axis_tvalidreg & m_axis_tready) || (s_axis_tvalid & s_axis_treadyreg));
+    end
+  end
 
 endmodule

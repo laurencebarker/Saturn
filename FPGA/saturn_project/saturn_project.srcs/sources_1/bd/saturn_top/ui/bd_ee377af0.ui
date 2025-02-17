@@ -1,7 +1,7 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"0.781586",
-   "Default View_TopLeft":"-267,761",
+   "Default View_TopLeft":"-267,33",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
@@ -38,13 +38,13 @@ preplace inst AXI_FIFO_overflow_re_0 -pg 1 -lvl 6 -x 2350 -y -40 -defaultsOSRD
 preplace inst AXIS_DDC_Multiplexer_0 -pg 1 -lvl 6 -x 2350 -y 750 -defaultsOSRD
 preplace inst dds_compiler_0 -pg 1 -lvl 3 -x 960 -y 990 -defaultsOSRD
 preplace inst xlconstant_0 -pg 1 -lvl 5 -x 1810 -y 190 -defaultsOSRD
-preplace netloc ADC1_2 1 0 5 N 1190 N 1190 N 1190 1140 1250 1630
+preplace netloc ADC1_2 1 0 5 N 1190 N 1190 N 1190 1130 1250 1630
 preplace netloc ADC2_2 1 0 5 -90 1290 N 1290 N 1290 N 1290 1640
 preplace netloc AXIL_ConfigReg_256_RX_0_config_reg0 1 2 3 630 -90 N -90 N
 preplace netloc AXIL_ConfigReg_256_RX_0_config_reg1 1 2 3 640 -70 N -70 N
-preplace netloc AXIL_ConfigReg_256_RX_1_config_reg0 1 2 3 630J 490 NJ 490 1420
+preplace netloc AXIL_ConfigReg_256_RX_1_config_reg0 1 2 3 630J 490 NJ 490 1430
 preplace netloc AXIL_ConfigReg_256_RX_1_config_reg2 1 1 2 350 780 630
-preplace netloc AXIL_ConfigReg_256_RX_1_config_reg3 1 2 4 NJ 640 1190J 730 NJ 730 1950
+preplace netloc AXIL_ConfigReg_256_RX_1_config_reg3 1 2 4 NJ 640 1180J 730 NJ 730 1950
 preplace netloc Byteswap_1 1 0 5 NJ 1470 240 1540 NJ 1540 NJ 1540 1580
 preplace netloc DDCAFreq_1 1 2 3 NJ 250 NJ 250 1660
 preplace netloc DDCAFreq_2 1 2 3 NJ 290 NJ 290 1620
@@ -52,50 +52,50 @@ preplace netloc DDCAFreq_3 1 2 3 NJ 330 NJ 330 1570
 preplace netloc DDCBFreq_1 1 2 3 NJ 270 NJ 270 1650
 preplace netloc DDCBFreq_2 1 2 3 NJ 310 NJ 310 1590
 preplace netloc DDCBFreq_3 1 2 3 NJ 350 NJ 350 1530
-preplace netloc DDCBFreq_4 1 2 3 640J 500 NJ 500 1400
+preplace netloc DDCBFreq_4 1 2 3 640J 500 NJ 500 1410
 preplace netloc DualDDCConfig_1 1 4 1 1660 60n
-preplace netloc InputFIFO_rstn_1 1 4 3 1670 580 2070 560 2520
-preplace netloc Net 1 2 2 750 660 1170
-preplace netloc Net1 1 3 4 1200 510 1560 570 2040 550 2510
-preplace netloc Net2 1 5 1 2000 40n
+preplace netloc InputFIFO_rstn_1 1 4 3 1670 580 2060 560 2530
+preplace netloc Net 1 2 2 760 660 1160
+preplace netloc Net1 1 3 4 1190 510 1560 570 2030 550 2520
+preplace netloc Net2 1 5 1 1990 40n
 preplace netloc RX_Test_1 1 3 2 N 1000 1600
-preplace netloc TX_samples_1 1 0 5 N 1070 N 1070 N 1070 1140 1020 1610
-preplace netloc aclk_1 1 0 6 N 900 340 1060 780 1080 1190 1030 1510 -200 2100
+preplace netloc TX_samples_1 1 0 5 N 1070 N 1070 N 1070 1130 1020 1610
+preplace netloc aclk_1 1 0 6 N 900 340 1060 790 1080 1180 1030 1510 -200 2090
 preplace netloc dualDDC10_DDC0_ovr 1 5 1 1950 -160n
 preplace netloc dualDDC10_DDC1_ovr 1 5 1 1960 -140n
 preplace netloc dualDDC32_DDC0_ovr 1 5 1 1970 -120n
 preplace netloc dualDDC32_DDC1_ovr 1 5 1 1980 -100n
-preplace netloc dualDDC54_DDC0_ovr 1 5 1 2010 -80n
-preplace netloc dualDDC54_DDC1_ovr 1 5 1 2020 -60n
-preplace netloc dualDDC76_DDC0_ovr 1 5 1 2080 -40n
-preplace netloc dualDDC76_DDC1_ovr 1 5 1 2120 -20n
-preplace netloc dualDDC98_DDC0_ovr 1 5 1 2140 0n
-preplace netloc dualDDC98_DDC1_ovr 1 5 1 2160 20n
-preplace netloc rstn1_1 1 0 6 N 920 330 910 760 910 N 910 1520 -190 2060
-preplace netloc xlslice_10rate_Dout 1 4 1 1400 30n
+preplace netloc dualDDC54_DDC0_ovr 1 5 1 2000 -80n
+preplace netloc dualDDC54_DDC1_ovr 1 5 1 2010 -60n
+preplace netloc dualDDC76_DDC0_ovr 1 5 1 2070 -40n
+preplace netloc dualDDC76_DDC1_ovr 1 5 1 2110 -20n
+preplace netloc dualDDC98_DDC0_ovr 1 5 1 2130 0n
+preplace netloc dualDDC98_DDC1_ovr 1 5 1 2150 20n
+preplace netloc rstn1_1 1 0 6 N 920 330 910 770 910 N 910 1520 -190 2050
+preplace netloc xlslice_10rate_Dout 1 4 1 1410 30n
 preplace netloc xlslice_32config_Dout 1 4 1 1550 500n
 preplace netloc xlslice_32rate_Dout 1 4 1 1540 480n
-preplace netloc xlslice_54config_Dout 1 4 1 1430 1090n
+preplace netloc xlslice_54config_Dout 1 4 1 1440 1090n
 preplace netloc xlslice_54rate_Dout 1 4 1 1590 1030n
-preplace netloc xlslice_76config_Dout 1 4 1 1410 1380n
-preplace netloc xlslice_76rate_Dout 1 4 1 1430 1340n
-preplace netloc xlslice_98config_Dout 1 4 1 1400 1680n
+preplace netloc xlslice_76config_Dout 1 4 1 1420 1380n
+preplace netloc xlslice_76rate_Dout 1 4 1 1440 1340n
+preplace netloc xlslice_98config_Dout 1 4 1 1410 1680n
 preplace netloc xlslice_98rate_Dout 1 4 1 1660 1650n
-preplace netloc xlslice_enable_Dout 1 3 3 1180 860 NJ 860 NJ
+preplace netloc xlslice_enable_Dout 1 3 3 1170 860 NJ 860 NJ
 preplace netloc AXIS_DDC_Multiplexer_0_m_axis 1 6 1 N 720
 preplace netloc Conn3 1 0 2 NJ 260 N
 preplace netloc Conn4 1 0 2 NJ 630 N
-preplace netloc axis_constant_0_m_axis 1 2 1 770 970n
-preplace netloc dualDDC10_m_axis_0 1 5 1 2130 -50n
-preplace netloc dualDDC10_m_axis_1 1 5 1 2090 -30n
-preplace netloc dualDDC32_m_axis_0 1 5 1 2050 380n
-preplace netloc dualDDC32_m_axis_1 1 5 1 2030 400n
-preplace netloc dualDDC54_m_axis_0 1 5 1 2110 700n
-preplace netloc dualDDC54_m_axis_1 1 5 1 2130 720n
-preplace netloc dualDDC76_m_axis_0 1 5 1 2150 740n
-preplace netloc dualDDC76_m_axis_1 1 5 1 2170 760n
-preplace netloc dualDDC98_m_axis_0 1 5 1 2180 780n
-preplace netloc dualDDC98_m_axis_1 1 5 1 2190 800n
+preplace netloc axis_constant_0_m_axis 1 2 1 780 970n
+preplace netloc dualDDC10_m_axis_0 1 5 1 2120 -50n
+preplace netloc dualDDC10_m_axis_1 1 5 1 2080 -30n
+preplace netloc dualDDC32_m_axis_0 1 5 1 2040 380n
+preplace netloc dualDDC32_m_axis_1 1 5 1 2020 400n
+preplace netloc dualDDC54_m_axis_0 1 5 1 2100 700n
+preplace netloc dualDDC54_m_axis_1 1 5 1 2120 720n
+preplace netloc dualDDC76_m_axis_0 1 5 1 2140 740n
+preplace netloc dualDDC76_m_axis_1 1 5 1 2160 760n
+preplace netloc dualDDC98_m_axis_0 1 5 1 2170 780n
+preplace netloc dualDDC98_m_axis_1 1 5 1 2180 800n
 preplace netloc s_axi_2_1 1 0 6 -90 -220 N -220 N -220 N -220 N -220 N
 levelinfo -pg 1 -110 220 490 960 1300 1810 2350 2550
 pagesize -pg 1 -db -bbox -sgen -280 -340 2660 2220

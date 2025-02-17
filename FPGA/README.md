@@ -8,6 +8,7 @@ saturnprinaryxx.bin: primary config file for FPGA version XX. This should be pro
 
 Version history:
 
+V20, 1702/2025:  added watchdog to cancel TX if client s/w does not service FIFOs for more that 2 seconds
 V19, 26/11/2024: minor update
 V18, 20/11/2024: introduced wideband data collection
 V17: 20/6/2024: fixed edge rate sidetone added alongside the variable edge rate RF envelope
