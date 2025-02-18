@@ -65,7 +65,7 @@
 #include "AriesATU.h"
 #include "frontpanelhandler.h"
 
-#define P2APPVERSION 38
+#define P2APPVERSION 39
 #define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
@@ -73,6 +73,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V39: 18/02/2025:  ADC overflow now reported immediately while in RX
 // V38: 13/2/2025:   added FPGA version 18 required to run wideband code
 // V37: 3/2/2025:    CAT reliability issues addressed to prevent crash if thetis CAT server turned off. 
 // V36: 2/2/2025:    fixed G2V2 panel ID sent to Thetis. Fixed CAT thread 100% loading after 30s operation if no keepalive message sent (added keepalive thread). Thread PIDs displayed.
