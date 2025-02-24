@@ -10,16 +10,23 @@ LIBS = -lgpiod -li2c
 TARGET = p2app
 VPATH=.:../common
 GIT_DATE := $(wordlist 2,5, $(shell git log -1 --format=%cd --date=rfc))
+
+SRCS = $(TARGET).c hwaccess.c saturnregisters.c codecwrite.c saturndrivers.c version.c generalpacket.c IncomingDDCSpecific.c  IncomingDUCSpecific.c InHighPriority.c InDUCIQ.c InSpkrAudio.c OutMicAudio.c OutDDCIQ.c OutHighPriority.c debugaids.c auxadc.c cathandler.c frontpanelhandler.c catmessages.c g2panel.c LDGATU.c g2v2panel.c i2cdriver.c andromedacatmessages.c Outwideband.c serialport.c AriesATU.c
+OBJS = $(SRCS:.c=.o)
+
+# for cppcheck
+CPP_OPTIONS= --inline-suppr --enable=all --suppress=unmatchedSuppression
+CPP_OPTIONS += -D__linux__ --suppress=missingIncludeSystem --suppress=unusedFunction
  
 # ****************************************************
 # Targets needed to bring the executable up to date
 
-OBJS=    $(TARGET).o hwaccess.o saturnregisters.o codecwrite.o saturndrivers.o version.o generalpacket.o IncomingDDCSpecific.o  IncomingDUCSpecific.o InHighPriority.o InDUCIQ.o InSpkrAudio.o OutMicAudio.o OutDDCIQ.o OutHighPriority.o debugaids.o auxadc.o cathandler.o frontpanelhandler.o catmessages.o g2panel.o LDGATU.o g2v2panel.o i2cdriver.o andromedacatmessages.o Outwideband.o serialport.o AriesATU.o
-
 all: $(OBJS)
 	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)
  
- 
+cppcheck:
+	cppcheck $(CPP_OPTIONS) $(SRCS)
+
 %.o: %.c
 	$(CC) -c -o $(@F) $(CFLAGS) -D GIT_DATE='"$(GIT_DATE)"' $<
 
