@@ -61,6 +61,13 @@ int OpenXDMADriver(void)
 }
 
 
+//
+// close connection
+//
+void CloseXDMADriver(void)
+{
+    close(register_fd);
+}
 
 
 //

@@ -23,7 +23,10 @@
 //
 int OpenXDMADriver(void);
 
-
+//
+// close connection
+//
+void CloseXDMADriver(void);
 
 
 //
