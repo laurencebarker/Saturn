@@ -16,12 +16,13 @@
 #define __hwaccess_h
 
 #include <stdint.h>
+#include <stdbool.h>
 
 
 //
 // open connection to the XDMA device driver for register and DMA access
 //
-int OpenXDMADriver(void);
+int OpenXDMADriver(bool Silent);
 
 //
 // close connection

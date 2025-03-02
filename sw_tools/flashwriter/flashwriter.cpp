@@ -409,7 +409,7 @@ int main(int argc, char *argv[])
 //
 // get current FPGA version
 //
-    OpenXDMADriver();
+    OpenXDMADriver(true);
     int FWVersion;
     ESoftwareID FWID;
     char VersionString[50];

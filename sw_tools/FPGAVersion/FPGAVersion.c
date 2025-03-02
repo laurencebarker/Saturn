@@ -26,10 +26,9 @@
 #include <sys/types.h>
 
 
-#include "../common/saturntypes.h"
-#include "../common/hwaccess.h"                     // access to PCIe read & write
-//#include "../common/saturnregisters.h"              // register I/O for Saturn
-#include "../common/version.h"                      // version I/O for Saturn
+#include "../../sw_projects/common/hwaccess.h"                     // access to PCIe read & write
+//#include "../../sw_projects/common/saturnregisters.h"              // register I/O for Saturn
+#include "../../sw_projects/common/version.h"                      // version I/O for Saturn
 
 //------------------------------------------------------------------------------------------
 // VERSION History
@@ -48,7 +47,7 @@ int main()
   int FWVersion;
   ESoftwareID FWID;
 
-  OpenXDMADriver();
+  OpenXDMADriver(true);
   FWVersion = GetFirmwareVersion(&FWID);
   printf("FPGA Firmware version = %d\n", FWVersion);
 }

@@ -27,6 +27,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #define VMEMBUFFERSIZE 32768										// memory buffer to reserve
 #define AXIBaseAddress 0x10000									// address of StreamRead/Writer IP
@@ -45,16 +46,18 @@
 //
 // open connection to the XDMA device driver for register and DMA access
 //
-int OpenXDMADriver(void)
+int OpenXDMADriver(bool Silent)
 {
     int Result = 0;
 	if ((register_fd = open("/dev/xdma0_user", O_RDWR)) == -1)
     {
-		printf("register R/W address space not available\n");
+		if(!Silent)
+			printf("register R/W address space not available\n");
     }
     else
     {
-		printf("register access connected to /dev/xdma0_user\n");
+		if(!Silent)
+			printf("register access connected to /dev/xdma0_user\n");
         Result = 1;
     }
     return Result;

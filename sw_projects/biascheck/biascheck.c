@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
   	sem_init(&RFGPIOMutex, 0, 1);                                     // for RF GPIO register
   	sem_init(&CodecRegMutex, 0, 1);                                   // for codec writes
 
-	OpenXDMADriver();
+	OpenXDMADriver(true);
 	PrintVersionInfo();
 	CodecInitialise();
 	SetByteSwapping(false);                                            // h/w to generate normalbyte order

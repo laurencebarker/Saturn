@@ -7,7 +7,7 @@ LD = gcc
 CFLAGS = -Wall -Wextra -Wno-unused-function -g -D_GNU_SOURCE
 LDFLAGS = -lm -lpthread
 TARGET = FPGAVersion
-VPATH=.:../common
+VPATH=.:../../sw_projects/common
  
 # ****************************************************
 # Targets needed to bring the executable up to date

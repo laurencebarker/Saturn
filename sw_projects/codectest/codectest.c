@@ -253,7 +253,6 @@ int main(int argc, char *argv[])
 	bool MicRing = false;
 	bool EnableBias =false;
 	bool EnableBoost =false;
-	bool PTTState = false;
 	bool IsXLR = false;
 	int32_t Cntr;
 	float PercentLevel;
@@ -311,7 +310,7 @@ int main(int argc, char *argv[])
   		sem_init(&RFGPIOMutex, 0, 1);                                     // for RF GPIO register
   		sem_init(&CodecRegMutex, 0, 1);                                   // for codec writes
 
-		OpenXDMADriver();
+		OpenXDMADriver(false);
 		PrintVersionInfo();
 		CodecInitialise();
 		SetByteSwapping(false);                                            // h/w to generate normalbyte order
