@@ -14,12 +14,10 @@
       "xlconstant_16x0": "",
       "xlslice_2": "",
       "xlslice_3": "",
-      "D_register_2": "",
       "axis_constant_0": "",
       "axis_variable_0": "",
       "axis_variable_1": "",
       "cvt_offset_binary_0": "",
-      "regmux_2_1_0": "",
       "axis_broadcaster_cic_path_split": "",
       "axis_combiner_0": "",
       "axis_dwidth_converter_0": "",
@@ -30,7 +28,9 @@
       "dds_compiler_txfreq": "",
       "fir_compiler_0": "",
       "mult_gen_0": "",
-      "LFSR_Random_Number_G_0": ""
+      "LFSR_Random_Number_G_0": "",
+      "D_register_2": "",
+      "regmux_2_1_0": ""
     },
     "interface_ports": {
       "S_AXIS": {
@@ -224,74 +224,6 @@
           },
           "DOUT_WIDTH": {
             "value": "18"
-          }
-        }
-      },
-      "D_register_2": {
-        "vlnv": "xilinx.com:module_ref:D_register:1.0",
-        "xci_name": "TX_DUC_D_register_2_1",
-        "xci_path": "ip\\TX_DUC_D_register_2_1\\TX_DUC_D_register_2_1.xci",
-        "inst_hier_path": "D_register_2",
-        "parameters": {
-          "DATA_WIDTH": {
-            "value": "16"
-          }
-        },
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "D_register",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "aclk": {
-            "type": "clk",
-            "direction": "I",
-            "parameters": {
-              "ASSOCIATED_RESET": {
-                "value": "resetn",
-                "value_src": "constant"
-              },
-              "FREQ_HZ": {
-                "value": "122880000",
-                "value_src": "user_prop"
-              },
-              "CLK_DOMAIN": {
-                "value": "TX_DUC_clk122",
-                "value_src": "default_prop"
-              }
-            }
-          },
-          "resetn": {
-            "type": "rst",
-            "direction": "I",
-            "parameters": {
-              "POLARITY": {
-                "value": "ACTIVE_LOW",
-                "value_src": "constant"
-              }
-            }
-          },
-          "din": {
-            "direction": "I",
-            "left": "15",
-            "right": "0",
-            "parameters": {
-              "LAYERED_METADATA": {
-                "value": [
-                  "xilinx.com:interface:datatypes:1.0 {",
-                  "DATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value data} bitwidth {attribs {resolve_type generated dependency bitwidth format long minimum",
-                  "{} maximum {}} value 16} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} integer {signed {attribs {resolve_type generated dependency signed format",
-                  "bool minimum {} maximum {}} value TRUE}}}} DATA_WIDTH 16",
-                  "}"
-                ],
-                "value_src": "ip_prop"
-              }
-            }
-          },
-          "dout": {
-            "direction": "O",
-            "left": "15",
-            "right": "0"
           }
         }
       },
@@ -661,82 +593,6 @@
             "direction": "I",
             "left": "15",
             "right": "0"
-          },
-          "dout": {
-            "direction": "O",
-            "left": "15",
-            "right": "0"
-          }
-        }
-      },
-      "regmux_2_1_0": {
-        "vlnv": "xilinx.com:module_ref:regmux_2_1:1.0",
-        "xci_name": "TX_DUC_regmux_2_1_0_1",
-        "xci_path": "ip\\TX_DUC_regmux_2_1_0_1\\TX_DUC_regmux_2_1_0_1.xci",
-        "inst_hier_path": "regmux_2_1_0",
-        "parameters": {
-          "DATA_WIDTH": {
-            "value": "16"
-          }
-        },
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "regmux_2_1",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "sel": {
-            "direction": "I"
-          },
-          "aclk": {
-            "type": "clk",
-            "direction": "I",
-            "parameters": {
-              "ASSOCIATED_RESET": {
-                "value": "resetn",
-                "value_src": "constant"
-              },
-              "FREQ_HZ": {
-                "value": "122880000",
-                "value_src": "user_prop"
-              },
-              "CLK_DOMAIN": {
-                "value": "TX_DUC_clk122",
-                "value_src": "default_prop"
-              }
-            }
-          },
-          "resetn": {
-            "type": "rst",
-            "direction": "I",
-            "parameters": {
-              "POLARITY": {
-                "value": "ACTIVE_LOW",
-                "value_src": "constant"
-              }
-            }
-          },
-          "din0": {
-            "direction": "I",
-            "left": "15",
-            "right": "0"
-          },
-          "din1": {
-            "direction": "I",
-            "left": "15",
-            "right": "0",
-            "parameters": {
-              "LAYERED_METADATA": {
-                "value": [
-                  "xilinx.com:interface:datatypes:1.0 {",
-                  "DATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value data} bitwidth {attribs {resolve_type generated dependency bitwidth format long minimum",
-                  "{} maximum {}} value 16} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} integer {signed {attribs {resolve_type generated dependency signed format",
-                  "bool minimum {} maximum {}} value TRUE}}}} DATA_WIDTH 16",
-                  "}"
-                ],
-                "value_src": "ip_prop"
-              }
-            }
           },
           "dout": {
             "direction": "O",
@@ -1239,6 +1095,150 @@
             }
           }
         }
+      },
+      "D_register_2": {
+        "vlnv": "xilinx.com:module_ref:D_register:1.0",
+        "xci_name": "TX_DUC_D_register_2_1",
+        "xci_path": "ip\\TX_DUC_D_register_2_1\\TX_DUC_D_register_2_1.xci",
+        "inst_hier_path": "D_register_2",
+        "parameters": {
+          "DATA_WIDTH": {
+            "value": "16"
+          }
+        },
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "D_register",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "aclk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_RESET": {
+                "value": "resetn",
+                "value_src": "constant"
+              },
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "user_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "TX_DUC_clk122",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "resetn": {
+            "type": "rst",
+            "direction": "I",
+            "parameters": {
+              "POLARITY": {
+                "value": "ACTIVE_LOW",
+                "value_src": "constant"
+              }
+            }
+          },
+          "din": {
+            "direction": "I",
+            "left": "15",
+            "right": "0",
+            "parameters": {
+              "LAYERED_METADATA": {
+                "value": [
+                  "xilinx.com:interface:datatypes:1.0 {",
+                  "DATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value data} bitwidth {attribs {resolve_type generated dependency bitwidth format long minimum",
+                  "{} maximum {}} value 16} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} integer {signed {attribs {resolve_type generated dependency signed format",
+                  "bool minimum {} maximum {}} value TRUE}}}} DATA_WIDTH 16",
+                  "}"
+                ],
+                "value_src": "ip_prop"
+              }
+            }
+          },
+          "dout": {
+            "direction": "O",
+            "left": "15",
+            "right": "0"
+          }
+        }
+      },
+      "regmux_2_1_0": {
+        "vlnv": "xilinx.com:module_ref:regmux_2_1:1.0",
+        "xci_name": "TX_DUC_regmux_2_1_0_1",
+        "xci_path": "ip\\TX_DUC_regmux_2_1_0_1\\TX_DUC_regmux_2_1_0_1.xci",
+        "inst_hier_path": "regmux_2_1_0",
+        "parameters": {
+          "DATA_WIDTH": {
+            "value": "16"
+          }
+        },
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "regmux_2_1",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "sel": {
+            "direction": "I"
+          },
+          "aclk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_RESET": {
+                "value": "resetn",
+                "value_src": "constant"
+              },
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "user_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "TX_DUC_clk122",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "resetn": {
+            "type": "rst",
+            "direction": "I",
+            "parameters": {
+              "POLARITY": {
+                "value": "ACTIVE_LOW",
+                "value_src": "constant"
+              }
+            }
+          },
+          "din0": {
+            "direction": "I",
+            "left": "15",
+            "right": "0"
+          },
+          "din1": {
+            "direction": "I",
+            "left": "15",
+            "right": "0",
+            "parameters": {
+              "LAYERED_METADATA": {
+                "value": [
+                  "xilinx.com:interface:datatypes:1.0 {",
+                  "DATA {datatype {name {attribs {resolve_type immediate dependency {} format string minimum {} maximum {}} value data} bitwidth {attribs {resolve_type generated dependency bitwidth format long minimum",
+                  "{} maximum {}} value 16} bitoffset {attribs {resolve_type immediate dependency {} format long minimum {} maximum {}} value 0} integer {signed {attribs {resolve_type generated dependency signed format",
+                  "bool minimum {} maximum {}} value TRUE}}}} DATA_WIDTH 16",
+                  "}"
+                ],
+                "value_src": "ip_prop"
+              }
+            }
+          },
+          "dout": {
+            "direction": "O",
+            "left": "15",
+            "right": "0"
+          }
+        }
       }
     },
     "interface_nets": {
@@ -1337,12 +1337,10 @@
       "Net5": {
         "ports": [
           "clk122",
-          "D_register_2/aclk",
           "axis_constant_0/aclk",
           "axis_variable_0/aclk",
           "axis_variable_1/aclk",
           "cvt_offset_binary_0/clk",
-          "regmux_2_1_0/aclk",
           "axis_broadcaster_cic_path_split/aclk",
           "axis_combiner_0/aclk",
           "axis_dwidth_converter_0/aclk",
@@ -1353,7 +1351,9 @@
           "dds_compiler_txfreq/aclk",
           "fir_compiler_0/aclk",
           "mult_gen_0/CLK",
-          "LFSR_Random_Number_G_0/aclk"
+          "LFSR_Random_Number_G_0/aclk",
+          "D_register_2/aclk",
+          "regmux_2_1_0/aclk"
         ]
       },
       "TXConfig_1": {
@@ -1403,10 +1403,8 @@
       "resetn_2": {
         "ports": [
           "resetn1",
-          "D_register_2/resetn",
           "axis_variable_0/aresetn",
           "axis_variable_1/aresetn",
-          "regmux_2_1_0/resetn",
           "axis_broadcaster_cic_path_split/aresetn",
           "axis_combiner_0/aresetn",
           "axis_dwidth_converter_0/aresetn",
@@ -1415,7 +1413,9 @@
           "cic_compiler_1/aresetn",
           "dds_compiler_txfreq/aresetn",
           "fir_compiler_0/aresetn",
-          "LFSR_Random_Number_G_0/aresetn"
+          "LFSR_Random_Number_G_0/aresetn",
+          "D_register_2/resetn",
+          "regmux_2_1_0/resetn"
         ]
       },
       "xlconstant_16x0_dout": {

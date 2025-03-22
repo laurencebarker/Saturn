@@ -31,6 +31,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <syscall.h>
 
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
@@ -180,7 +181,7 @@ uint8_t GetThetisScanCode(uint8_t V2Code, bool* Shifted)
 //
 // interrupt thread
 //
-void G2V2PanelInterrupt(void *arg)
+void G2V2PanelInterrupt(__attribute__((unused)) void *arg)
 {
     uint16_t Retval;
     uint8_t EventCount;
@@ -287,10 +288,11 @@ void G2V2PanelInterrupt(void *arg)
 //
 // periodic timestep
 //
-void G2V2PanelTick(void *arg)
+void G2V2PanelTick(__attribute__((unused)) void *arg)
 {
     uint32_t NewLEDStates = 0;
 
+    printf("Started G2V2 panel tick thread, pid=%ld\n", syscall(SYS_gettid));
     while(G2V2PanelActive)
     {
         if(CATPortAssigned)                     // see if CAT has become available for the 1st time
@@ -309,15 +311,15 @@ void G2V2PanelTick(void *arg)
         switch(CATPollCntr++)
         {
             case 0:
-                MakeCATMessageNoParam(eZZXV);
+                MakeCATMessageNoParam(DESTTCPCATPORT, eZZXV);
                 break;
 
             case 1:
-                MakeCATMessageNoParam(eZZUT);
+                MakeCATMessageNoParam(DESTTCPCATPORT, eZZUT);
                 break;
 
             case 2:
-                MakeCATMessageNoParam(eZZYR);
+                MakeCATMessageNoParam(DESTTCPCATPORT, eZZYR);
                 break;
 
             default:
@@ -331,7 +333,7 @@ void G2V2PanelTick(void *arg)
         if(VKeepAliveCnt++ > VKEEPALIVECOUNT)
         {
             VKeepAliveCnt = 0;
-            MakeCATMessageNoParam(eZZXV);
+            MakeCATMessageNoParam(DESTTCPCATPORT, eZZXV);
         }
 //
 // Set LEDs from values reported by CAT messages

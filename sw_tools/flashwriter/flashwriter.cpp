@@ -16,6 +16,9 @@
 #include <unistd.h>
 
 #include "spi-s25fl.hpp"                // class to access S25FL256x devices
+#include "../../sw_projects/common/version.h"
+#include "../../sw_projects/common/hwaccess.h"
+
 
 //
 // global variables: for GUI:
@@ -273,7 +276,7 @@ void on_program_button_clicked()
             gtk_text_buffer_insert_at_cursor(TextBuffer, "file is empty\n", -1);
         else
         {
-            sprintf(TempString, "programming %d bytes at address 0x%08x\n", data_to_write.size(), FlashStartAddress);
+            sprintf(TempString, "programming %ld bytes at address 0x%08x\n", data_to_write.size(), FlashStartAddress);
             gtk_text_buffer_insert_at_cursor(TextBuffer, TempString, -1);
             // update the window
             while(gtk_events_pending())
@@ -402,6 +405,19 @@ int main(int argc, char *argv[])
     g_object_unref(Builder);
     gtk_widget_show(Window);                
     Context = gtk_statusbar_get_context_id(StatusBar, "context");
+
+//
+// get current FPGA version
+//
+    OpenXDMADriver(true);
+    int FWVersion;
+    ESoftwareID FWID;
+    char VersionString[50];
+    FWVersion = GetFirmwareVersion(&FWID);
+    sprintf(VersionString, "Current FPGA Firmware version = %d\n", FWVersion);
+    gtk_text_buffer_insert_at_cursor(TextBuffer, VersionString, -1);
+    CloseXDMADriver();
+
 //
 // try to open PCIe device temporarily
 //

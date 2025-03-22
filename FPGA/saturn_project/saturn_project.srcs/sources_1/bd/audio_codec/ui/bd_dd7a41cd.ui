@@ -1,7 +1,7 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"0.757021",
-   "Default View_TopLeft":"-748,-166",
+   "Default View_TopLeft":"-654,-165",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
@@ -26,7 +26,6 @@ preplace inst axis_constant_3 -pg 1 -lvl 3 -x 140 -y 800 -defaultsOSRD
 preplace inst i2s_clk_lrclk_gen_0 -pg 1 -lvl 6 -x 1110 -y -180 -defaultsOSRD
 preplace inst I2S_xmit_0 -pg 1 -lvl 9 -x 2130 -y 380 -defaultsOSRD
 preplace inst I2S_rcv_0 -pg 1 -lvl 6 -x 1110 -y 70 -defaultsOSRD
-preplace inst byteswap_32_0 -pg 1 -lvl 3 -x 140 -y -30 -defaultsOSRD
 preplace inst byteswap_32_1 -pg 1 -lvl 7 -x 1490 -y 60 -defaultsOSRD
 preplace inst axis_multiplier_vol_star_sine -pg 1 -lvl 4 -x 440 -y 780 -defaultsOSRD
 preplace inst axis_multiplier_vol_star_sine_star_ramp -pg 1 -lvl 5 -x 750 -y 820 -defaultsOSRD
@@ -35,6 +34,7 @@ preplace inst axis_broadcaster_1 -pg 1 -lvl 6 -x 1110 -y 870 -defaultsOSRD
 preplace inst axis_combiner_0 -pg 1 -lvl 8 -x 1800 -y 650 -defaultsOSRD
 preplace inst axis_subset_converter_0 -pg 1 -lvl 8 -x 1800 -y 70 -defaultsOSRD
 preplace inst dds_compiler_0 -pg 1 -lvl 3 -x 140 -y 670 -defaultsOSRD
+preplace inst byteswap_32_0 -pg 1 -lvl 3 -x 140 -y -30 -defaultsOSRD
 preplace netloc Byteswap_1 1 0 7 NJ 240 NJ 240 -10 220 NJ 220 NJ 220 NJ 220 1290J
 preplace netloc CodecConfig_1 1 0 2 -540 810 NJ
 preplace netloc I2S_xmit_0_outbit 1 9 1 2290 100n

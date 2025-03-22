@@ -16,15 +16,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="1,105.440 ns"></ZoomStartTime>
-      <ZoomEndTime time="1,894.441 ns"></ZoomEndTime>
-      <Cursor1Time time="1,270.000 ns"></Cursor1Time>
+      <ZoomStartTime time="142,535.352 ns"></ZoomStartTime>
+      <ZoomEndTime time="143,404.471 ns"></ZoomEndTime>
+      <Cursor1Time time="3,105,890.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="180"></NameColumnWidth>
-      <ValueColumnWidth column_width="59"></ValueColumnWidth>
+      <NameColumnWidth column_width="231"></NameColumnWidth>
+      <ValueColumnWidth column_width="121"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="53" />
+   <WVObjectSize size="31" />
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/aclk" type="logic">
       <obj_property name="ElementShortName">aclk</obj_property>
       <obj_property name="ObjectShortName">aclk</obj_property>
@@ -45,113 +45,9 @@
       <obj_property name="ElementShortName">wr_count[15:0]</obj_property>
       <obj_property name="ObjectShortName">wr_count[15:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_ARADDR" type="array">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_ARADDR[31:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_ARADDR[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_ARBURST" type="array">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_ARBURST[1:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_ARBURST[1:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_ARID" type="array">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_ARID[1:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_ARID[1:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_ARLEN" type="array">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_ARLEN[7:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_ARLEN[7:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_ARREADY" type="logic">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_ARREADY</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_ARREADY</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_ARVALID" type="logic">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_ARVALID</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_ARVALID</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_AWADDR" type="array">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_AWADDR[31:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_AWADDR[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_AWBURST" type="array">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_AWBURST[1:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_AWBURST[1:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_AWID" type="array">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_AWID[1:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_AWID[1:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_AWLEN" type="array">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_AWLEN[7:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_AWLEN[7:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_AWREADY" type="logic">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_AWREADY</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_AWREADY</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_AWVALID" type="logic">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_AWVALID</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_AWVALID</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_BREADY" type="logic">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_BREADY</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_BREADY</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_BRESP" type="array">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_BRESP[1:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_BRESP[1:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_BVALID" type="logic">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_BVALID</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_BVALID</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_RDATA" type="array">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_RDATA[31:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_RDATA[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_RID" type="array">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_RID[7:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_RID[7:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_RLAST" type="logic">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_RLAST</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_RLAST</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_RREADY" type="logic">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_RREADY</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_RREADY</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_RRESP" type="array">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_RRESP[1:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_RRESP[1:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_RVALID" type="logic">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_RVALID</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_RVALID</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_WDATA" type="array">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_WDATA[31:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_WDATA[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_WLAST" type="logic">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_WLAST</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_WLAST</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_WREADY" type="logic">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_WREADY</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_WREADY</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_WSTRB" type="array">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_WSTRB[3:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_WSTRB[3:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_interconnect_0_M00_AXI_WVALID" type="logic">
-      <obj_property name="ElementShortName">axi_interconnect_0_M00_AXI_WVALID</obj_property>
-      <obj_property name="ObjectShortName">axi_interconnect_0_M00_AXI_WVALID</obj_property>
-   </wvobject>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axis_data_fifo_0_M_AXIS_TDATA" type="array">
-      <obj_property name="ElementShortName">axis_data_fifo_0_M_AXIS_TDATA[31:0]</obj_property>
-      <obj_property name="ObjectShortName">axis_data_fifo_0_M_AXIS_TDATA[31:0]</obj_property>
+      <obj_property name="ElementShortName">axis_data_fifo_0_M_AXIS_TDATA[63:0]</obj_property>
+      <obj_property name="ObjectShortName">axis_data_fifo_0_M_AXIS_TDATA[63:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axis_data_fifo_0_M_AXIS_TREADY" type="logic">
       <obj_property name="ElementShortName">axis_data_fifo_0_M_AXIS_TREADY</obj_property>
@@ -190,8 +86,8 @@
       <obj_property name="ObjectShortName">s_axi_arburst[1:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_Wr_0/s_axi_rdata" type="array">
-      <obj_property name="ElementShortName">s_axi_rdata[31:0]</obj_property>
-      <obj_property name="ObjectShortName">s_axi_rdata[31:0]</obj_property>
+      <obj_property name="ElementShortName">s_axi_rdata[63:0]</obj_property>
+      <obj_property name="ObjectShortName">s_axi_rdata[63:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_Wr_0/s_axi_rresp" type="array">
       <obj_property name="ElementShortName">s_axi_rresp[1:0]</obj_property>
@@ -213,21 +109,17 @@
       <obj_property name="ElementShortName">s_axi_rlast</obj_property>
       <obj_property name="ObjectShortName">s_axi_rlast</obj_property>
    </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_Wr_0/s_axis_tvalid" type="logic">
+      <obj_property name="ElementShortName">s_axis_tvalid</obj_property>
+      <obj_property name="ObjectShortName">s_axis_tvalid</obj_property>
+   </wvobject>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_Wr_0/s_axis_tready" type="logic">
       <obj_property name="ElementShortName">s_axis_tready</obj_property>
       <obj_property name="ObjectShortName">s_axis_tready</obj_property>
    </wvobject>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_Wr_0/s_axis_tdata" type="array">
-      <obj_property name="ElementShortName">s_axis_tdata[31:0]</obj_property>
-      <obj_property name="ObjectShortName">s_axis_tdata[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_Wr_0/s_axis_tvalid" type="logic">
-      <obj_property name="ElementShortName">s_axis_tvalid</obj_property>
-      <obj_property name="ObjectShortName">s_axis_tvalid</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_Wr_0/m_axis_tdata" type="array">
-      <obj_property name="ElementShortName">m_axis_tdata[31:0]</obj_property>
-      <obj_property name="ObjectShortName">m_axis_tdata[31:0]</obj_property>
+      <obj_property name="ElementShortName">s_axis_tdata[63:0]</obj_property>
+      <obj_property name="ObjectShortName">s_axis_tdata[63:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_Wr_0/m_axis_tvalid" type="logic">
       <obj_property name="ElementShortName">m_axis_tvalid</obj_property>
@@ -236,5 +128,26 @@
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_Wr_0/m_axis_tready" type="logic">
       <obj_property name="ElementShortName">m_axis_tready</obj_property>
       <obj_property name="ObjectShortName">m_axis_tready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_Wr_0/m_axis_tdata" type="array">
+      <obj_property name="ElementShortName">m_axis_tdata[63:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axis_tdata[63:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axis_data_fifo_1/axis_rd_data_count" type="array">
+      <obj_property name="ElementShortName">axis_rd_data_count[31:0]</obj_property>
+      <obj_property name="ObjectShortName">axis_rd_data_count[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXI_Stream_Reader_Wr_0/Activity" type="logic">
+      <obj_property name="ElementShortName">Activity</obj_property>
+      <obj_property name="ObjectShortName">Activity</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/tx_enable" type="logic">
+      <obj_property name="ElementShortName">tx_enable</obj_property>
+      <obj_property name="ObjectShortName">tx_enable</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/Watchdog_0/inst/counter" type="array">
+      <obj_property name="ElementShortName">counter[31:0]</obj_property>
+      <obj_property name="ObjectShortName">counter[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
 </wave_config>

@@ -4,6 +4,7 @@ This repository holds the source for the Xilinx Artix-7 FPGA created using Vivad
 
 Current version create using Vivado 2023.1; you **must** use the same version of vivado.
 
+
 The file structure is:
 
 FPGA				FPGA design files
@@ -14,6 +15,8 @@ sw_projects			software projects for Saturn
 sw_tools			software tools including debugging tools
 testing				project test resources
 desktop                         desktop shortcuts to application files
+scripts				shell scripts to update applications
+rules				udev rules files
 
 
 FPGA\sources

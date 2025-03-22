@@ -62,7 +62,7 @@ void RequestATUTune(bool TuneRequested)
             if(TuneRequested != TuneRequestedState)         // act on change only
             {
                 TuneRequestedState = TuneRequested;
-                MakeCATMessageBool(eZZTU, TuneRequested);
+                MakeCATMessageBool(DESTTCPCATPORT, eZZTU, TuneRequested);
             }
         }
         else

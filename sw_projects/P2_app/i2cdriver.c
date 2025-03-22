@@ -64,6 +64,7 @@ int i2c_write_word_data(uint8_t reg, uint16_t data)
 
 //
 // 8 bit read
+// used to detect presence of an MCP23017 in tests for G2V1 panel presence
 //
 uint8_t i2c_read_byte_data(uint8_t reg, bool *error) 
 {
@@ -74,7 +75,7 @@ uint8_t i2c_read_byte_data(uint8_t reg, bool *error)
   if(data < 0)
   {
     *error = true;
-    printf("error on i2c byte read, code=%d\n", data);
+    printf("I2C register not found, code=%d\n", data);
   }
   return (uint8_t) (data & 0xFF);
 }
@@ -93,7 +94,7 @@ uint16_t i2c_read_word_data(uint8_t reg, bool *error)
   if(data < 0)
   {
     *error = true;
-    printf("error on i2c word read, code=%d\n", data);
+    printf("I2C register not found, code=%d\n", data);
   }
   return (uint16_t) (data & 0xFFFF);
 }

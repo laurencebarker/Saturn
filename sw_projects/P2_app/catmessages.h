@@ -16,6 +16,9 @@
 #ifndef __catmessages_h
 #define __catmessages_h
 
+#include "cattypes.h"
+//#include "cathandler.h"
+
 
 
 //
@@ -23,7 +26,7 @@
 // ordered as per documentation, not alphabetically!
 // this list must match exactly the table GCATCommands
 //
-#define VNUMCATCMDS 11
+#define VNUMCATCMDS 18
 
 typedef enum 
 {
@@ -34,44 +37,23 @@ typedef enum
   eZZZI,                          // indicator
   eZZZS,                          // s/w version
   eZZTU,                          // tune
-  eZZFA,
+  eZZFA,                          // VFO A frequency
   eZZXV,
   eZZUT,
   eZZYR,
+  eZZFT,                          // TX frequency
+  eZZOA,                          // RX antenna
+  eZZOC,                          // TX antenna
+  eZZOV,                          // ATU enable
+  eZZOX,                          // ATU Tune success/fail
+  eZZOY,                          // ATU options
+  eZZOZ,                          // erase ATU tune solutions
   eNoCommand                      // this is an exception condition
 }ECATCommands;
 
 
 
 
-//
-// VFO A frequency 
-//
-void HandleZZFA(void);                          // frequency
 
-//
-// combined VFO status 
-//
-void HandleZZXV(void);                          // VFO status
-
-//
-// 2 Tone test 
-//
-void HandleZZUT(void);                          // 2 tone test
-
-//
-// RX1/RX2
-//
-void HandleZZYR(void);                          // RX1/2
-
-//
-// product ID and version
-//
-void HandleZZZS(void);                          // ID
-
-//
-// Indicator settings
-//
-void HandleZZZI(void);                         // indicator
 
 #endif  //#ifndef

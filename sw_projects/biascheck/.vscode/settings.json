@@ -1,2 +1,7 @@
 {
+    "files.associations": {
+        "gtkcheckbutton.h": "c",
+        "gtktogglebutton.h": "c",
+        "saturntypes.h": "c"
+    }
 }

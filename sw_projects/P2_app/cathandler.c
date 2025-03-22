@@ -29,6 +29,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <syscall.h>
 
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
@@ -36,21 +37,18 @@
 #include "../common/debugaids.h"
 #include "cathandler.h"
 #include "catmessages.h"
+#include "serialport.h"
 
 
 
-bool CATPortAssigned;                       // true if CAT set up and active
-int CATPort;
+bool CATPortAssigned = false;                // true if CAT set up and active
+int CATPort = 0;
 bool ThreadActive = false;                  // true while CAT thread running
+bool CATKeepaliveActive = false;            // true while keepalive thread running
 bool SignalThreadEnd = false;               // asserted to terminate thread
 pthread_t CATThread;                        // thread reads/writes CAT commands
-
-//
-// these are treated as global, and used by the message handlers
-//
-bool ParsedBool;                            // if a bool expected, it goes here
-long ParsedInt;                             // if int expected, it goes here
-char ParsedString[20];                      // if string expected, it goes here
+pthread_t CATKeepaliveThread;               // thread requests activity every 15s
+bool CATDebugPrint = false;                 // true if to print generated CAT messages
 
 
 
@@ -212,7 +210,7 @@ bool isNumeric(char ch)
 // Parse a single command in the local input buffer
 // process it if it is a valid command
 //
-void ParseCATCmd(char* Buffer)
+void ParseCATCmd(char* Buffer,  int Source)
 {
   int CharCnt;                              // number of characters in the buffer (same as length of string)
   unsigned long MatchWord;                  // 32 bit compressed input cmd
@@ -223,7 +221,11 @@ void ParseCATCmd(char* Buffer)
   int ByteCntr;
   char ch;
   bool ValidResult = true;                  // true if we get a valid parse result
-  void (*HandlerPtr)(void); 
+  bool ParsedBool;                            // if a bool expected, it goes here
+  long ParsedInt;                             // if int expected, it goes here
+  char ParsedString[20];                      // if string expected, it goes here
+
+  void (*HandlerPtr)(int SourceDevice, ERXParamType HasParam, bool BoolParam, int NumParam, char* StringParam); 
   
   CharCnt = strlen(Buffer) - 1;
 //
@@ -320,7 +322,7 @@ void ParseCATCmd(char* Buffer)
 //    }
     HandlerPtr = GCATCommands[MatchedCAT].handler;
     if(HandlerPtr != NULL)
-      (*HandlerPtr)();
+      (*HandlerPtr)(Source, ParsedType, ParsedBool, ParsedInt, ParsedString);
   }
   else
   {
@@ -337,7 +339,7 @@ int GetCATOPBufferUsed(void)
   int Used;                           // number of occupied locations
   Used = CATWritePtr - CATReadPtr;
   if(Used < 0)
-    Used +=  + VNUMOPSTRINGS;
+    Used += VNUMOPSTRINGS;
   return Used;
 }
 
@@ -348,12 +350,16 @@ int GetCATOPBufferUsed(void)
 //
 void SendCATMessage(char* Msg)
 {
-  if((GetCATOPBufferUsed() <= (VNUMOPSTRINGS - 1))&&(CATPortAssigned == true))
+  if(SDRActive == true)
   {
-    strcpy(OutputStrings[CATWritePtr++], Msg);
-    printf("Sent CAT msg %s\n", Msg);                       // debug
-    if(CATWritePtr >= VNUMOPSTRINGS)
-      CATWritePtr = 0;
+    if((GetCATOPBufferUsed() <= (VNUMOPSTRINGS - 1))&&(CATPortAssigned == true))
+    {
+      strcpy(OutputStrings[CATWritePtr++], Msg);
+      if(CATWritePtr >= VNUMOPSTRINGS)
+        CATWritePtr = 0;
+      if (CATDebugPrint)
+        printf("Sent CAT msg %s\n", Msg);                       // debug
+    }
   }
 }
 
@@ -378,8 +384,9 @@ void Append(char* s, char ch)
 // create CAT message:
 // this creates a "basic" CAT command with no parameter
 // (for example to send a "get" command)
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageNoParam(ECATCommands Cmd)
+void MakeCATMessageNoParam(int Device, ECATCommands Cmd)
 {
   char Output[VOPSTRSIZE];                                // TX CAT msg buffer
   SCATCommands* StructPtr;
@@ -387,15 +394,19 @@ void MakeCATMessageNoParam(ECATCommands Cmd)
   StructPtr = GCATCommands + (int)Cmd;
   strcpy(Output, StructPtr->CATString);
   strcat(Output, ";");
-  SendCATMessage(Output);
+  if(Device < 0)
+    SendCATMessage(Output);
+  else
+    SendStringToSerial(Device, Output);
 }
 
 
 
 //
 // make a CAT command with a numeric parameter
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageNumeric(ECATCommands Cmd, long Param)
+void MakeCATMessageNumeric(int Device, ECATCommands Cmd, long Param)
 {
   char Output[VOPSTRSIZE];                                // TX CAT msg buffer
   byte CharCount;                  // character count to add
@@ -450,14 +461,18 @@ void MakeCATMessageNumeric(ECATCommands Cmd, long Param)
   ASCIIDigit = (char)(Param + '0');           // ASCII version of units digit
   Append(Output, ASCIIDigit);
   strcat(Output, ";");
-  SendCATMessage(Output);
+  if(Device < 0)
+    SendCATMessage(Output);
+  else
+    SendStringToSerial(Device, Output);
 }
 
 
 //
 // make a CAT command with a bool parameter
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageBool(ECATCommands Cmd, bool Param) 
+void MakeCATMessageBool(int Device, ECATCommands Cmd, bool Param) 
 {
   char Output[VOPSTRSIZE];                                // TX CAT msg buffer
   SCATCommands* StructPtr;
@@ -468,7 +483,10 @@ void MakeCATMessageBool(ECATCommands Cmd, bool Param)
     strcat(Output, "1;");
   else
     strcat(Output, "0;");
-  SendCATMessage(Output);
+  if(Device < 0)
+    SendCATMessage(Output);
+  else
+    SendStringToSerial(Device, Output);
 }
 
 
@@ -476,8 +494,9 @@ void MakeCATMessageBool(ECATCommands Cmd, bool Param)
 //
 // make a CAT command with a string parameter
 // the string is truncated if too long, or padded with spaces if too short
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageString(ECATCommands Cmd, char* Param) 
+void MakeCATMessageString(int Device, ECATCommands Cmd, char* Param) 
 {
   char Output[VOPSTRSIZE];                                // TX CAT msg buffer
   byte ParamLength, ReqdLength;                        // string lengths
@@ -502,13 +521,47 @@ void MakeCATMessageString(ECATCommands Cmd, char* Param)
 // finally terminate and send  
 //
   strcat(Output, ";");                                // add the terminating semicolon
-  SendCATMessage(Output);
+  if(Device < 0)
+    SendCATMessage(Output);
+  else
+    SendStringToSerial(Device, Output);
 }
 
 
 
 
+// this runs as its own thread to create activity at least every 15s
+// otherwise Thetis drops connection after 30s
+//
+void* CATKeepaliveThreadFunction(__attribute__((unused)) void *arg)
+{ 
+    int Cntr = 0;
 
+    printf("spinning up CAT keepalive thread, pid=%ld\n", syscall(SYS_gettid));
+
+//
+// wait up to 10s for SDR active to become set
+// (there seems to be a race condition between general packet to SDR and high priority data packet
+// and we can get here without it set)
+//
+    while((Cntr++ < 10 && !SDRActive))
+        sleep(1);
+
+    Cntr = 0;
+    CATKeepaliveActive = true;
+    while(SDRActive && !SignalThreadEnd)
+    {
+        if(Cntr++ == 1500)
+        {
+            MakeCATMessageNoParam(DESTTCPCATPORT, eZZXV);
+            Cntr = 0;
+        }
+        usleep(10000);                                                  // 10ms * 1500 = 15 sec delay between keepalives
+    }
+    printf("closing CAT keepalive thread\n");
+    CATKeepaliveActive = false;
+    return NULL;
+}
 
 
 
@@ -518,17 +571,28 @@ void MakeCATMessageString(ECATCommands Cmd, char* Param)
 // (connection to SDR client list so no port to make use of)
 // this is called when a connection port available; create socket on entry.
 //
-void* CATHandlerThread(void *arg)
+void* CATHandlerThread(__attribute__((unused)) void *arg)
 {
     bool ThreadError = false;
     int CATSocketid;                                 // socket to access internet
     struct sockaddr_in addr_cat;
     int ActiveCATPort;
     int ReadResult;
+    int Cntr = 0;
     char ReadBuffer[1024] = {0};
     char SendBuffer[1024] = {0};
     unsigned int TXMessageLength;
+    int SendError = 0;
+
 //    bool DebugMessageSent = false;
+
+//
+// wait up to 10s for SDR active to become set
+// (there seems to be a race condition between general packet to SDR and high priority data packet
+// and we can get here without it set)
+//
+    while((Cntr++ < 10 && !SDRActive))
+      sleep(1);
 
     //
     // loop, creating then using socket
@@ -539,13 +603,14 @@ void* CATHandlerThread(void *arg)
       //
       // create socket for TCP/IP connection
       //
-      printf("Creating CAT socket on port %d\n", CATPort);
+      printf("Creating CAT socket on port %d, pid=%ld\n", CATPort, syscall(SYS_gettid));
       struct timeval ReadTimeout;                                       // read timeout
       int yes = 1;
       if((CATSocketid = socket(AF_INET, SOCK_STREAM, 0)) < 0)
       {
           perror("CAT socket fail");
           return NULL;
+          CATPort = 0;
       }
 
     //
@@ -568,6 +633,7 @@ void* CATHandlerThread(void *arg)
       if(connect(CATSocketid, (struct sockaddr *)&addr_cat, sizeof(struct sockaddr_in)) < 0)
       {
           perror("CAT connect");
+          ActiveCATPort = 0;
           return NULL;
       }
       ThreadActive = true;
@@ -586,23 +652,35 @@ void* CATHandlerThread(void *arg)
           ReadResult = recv(CATSocketid, ReadBuffer, 1023, 0);
           if(ReadResult > 0)
           {
-              ParseCATCmd(ReadBuffer);
+              ParseCATCmd(ReadBuffer, DESTTCPCATPORT);
               memset(ReadBuffer, 0, sizeof(ReadBuffer));
           }
+          else if((ReadResult == -1) && (errno == 104))            // error 104 happens if server drops connection
+          {
+            printf("CAT server dropped connection\n");
+            ThreadError = true;
+          }
+
           //
           // if there are CAT messages available, send them
           //
-          while(GetCATOPBufferUsed() != 0)
+          while((GetCATOPBufferUsed() != 0) && !SignalThreadEnd && !ThreadError)
           {
             TXMessageLength = strlen(OutputStrings[CATReadPtr]);
             strcpy(SendBuffer, OutputStrings[CATReadPtr++]);
             if(CATReadPtr >= VNUMOPSTRINGS)
               CATReadPtr = 0;
-            send(CATSocketid, SendBuffer, TXMessageLength, 0);
+            SendError = send(CATSocketid, SendBuffer, TXMessageLength, 0);
+            if(SendError == -1)
+            {
+              perror("CAT send Error");
+              ThreadError = true; 
+              break;
+            }
           }
-
       }                                                       // end of thread main loop
       close(CATSocketid);
+      printf("Closing CAT Port & terminating thread\n");
       ActiveCATPort = 0;
       CATPort = 0;                                            // set port not assigned
       CATPortAssigned = false;
@@ -618,20 +696,40 @@ void* CATHandlerThread(void *arg)
 // save port number, and create a thread if needed
 // note this will be called a lot of times: every time a high priority command message received. 
 // only process this if the port is not yet assigned
+//
+// there is a race condition. This is called from inhighpriority.c, but a necessary condition
+// for SDRActive to be set is for general packet to SDR to have arrived too. So the CAT thread
+// may be established before SDRActive is set, and it must wait for it.
+// We can't test here for it, or we'd miss the first high priority message and have to wait for the next
+// which may only be after a tuning action or other user event.
+//
 void SetupCATPort(int Port)
 {
     if (CATPort == 0)
     {
         CATPort = Port;
-        if((!ThreadActive) && SDRActive && (CATPort != 0))
-        {
+        printf("CATPort initialised to %d\n", Port);
+        SignalThreadEnd = false;
+        ThreadActive = false;
 
+        if((!ThreadActive) && (CATPort != 0))
+        {
           if(pthread_create(&CATThread, NULL, CATHandlerThread, NULL) < 0)
           {
               perror("pthread_create CAT handler");
+              CATPort = 0;
               return;
           }
           pthread_detach(CATThread);
+          
+          // and create the keepalive
+          if(pthread_create(&CATKeepaliveThread, NULL, CATKeepaliveThreadFunction, NULL) < 0)
+          {
+              perror("pthread_create CAT keepalive");
+              CATPort = 0;
+              return;
+          }
+          pthread_detach(CATKeepaliveThread);
         }
     }  
 }
@@ -639,74 +737,15 @@ void SetupCATPort(int Port)
 
 //
 // function to shut down CAT handler
-// only returns when shutdown is complete
+// only returns when shutdown of CAT handler and the keepalive is complete
 // signal thread to shut down, then wait
 //
 void ShutdownCATHandler(void)
 {
     SignalThreadEnd = true;
-    while(ThreadActive)
+    while(ThreadActive || CATKeepaliveActive)
         usleep(1000);
     SignalThreadEnd = false;
 }
 
 
-//
-// make a CAT command with a numeric parameter into the provided string
-// (used to send messages to local panel)
-//
-void MakeCATMessageNumeric_Local(ECATCommands Cmd, long Param, char* Str)
-{
-  byte CharCount;                  // character count to add
-  unsigned long Divisor;           // initial divisor to convert to ascii
-  unsigned long Digit;             // decimal digit found
-  char ASCIIDigit;
-  SCATCommands* StructPtr;
-
-  StructPtr = GCATCommands + (int)Cmd;
-  strcpy(Str, StructPtr->CATString);
-  CharCount = StructPtr->NumParams;
-//
-// clip the parameter to the allowed numeric range
-//
-  if (Param > StructPtr->MaxParamValue)
-    Param = StructPtr->MaxParamValue;
-  else if (Param < StructPtr->MinParamValue)
-    Param = StructPtr->MinParamValue;
-//
-// now add sign if needed
-//
-  if (StructPtr -> AlwaysSigned)
-  {
-    if (Param < 0)
-    {
-      strcat(Str, "-");
-      Param = -Param;                   // make positive
-    }
-    else
-      strcat(Str, "+");
-    CharCount--;
-  }
-  else if (Param < 0)                   // not always signed, but neg so it needs a sign
-  {
-      strcat(Str, "-");
-      Param = -Param;      
-      CharCount--;                      // make positive
-  }
-//
-// we now have a positive number to fit into <CharCount> digits
-// pad with zeros if needed
-//
-  Divisor = DivisorTable[CharCount];
-  while (Divisor > 1)
-  {
-    Digit = Param / Divisor;                  // get the digit for this decimal position
-    ASCIIDigit = (char)(Digit + '0');         // ASCII version - and output it
-    Append(Str, ASCIIDigit);
-    Param = Param - (Digit * Divisor);        // get remainder
-    Divisor = Divisor / 10;                   // set for next digit
-  }
-  ASCIIDigit = (char)(Param + '0');           // ASCII version of units digit
-  Append(Str, ASCIIDigit);
-  strcat(Str, ";");
-}

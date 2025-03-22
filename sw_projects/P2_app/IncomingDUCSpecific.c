@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "../common/saturnregisters.h"
+#include <pthread.h>
+#include <syscall.h>
 
 
 
@@ -52,7 +54,7 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
 
     ThreadData = (struct ThreadSocketData *)arg;
     ThreadData->Active = true;
-    printf("spinning up DUC specific thread with port %d\n", ThreadData->Portid);
+    printf("spinning up DUC specific thread with port %d, pid=%ld\n", ThreadData->Portid, syscall(SYS_gettid));
     //
     // main processing loop
     //
@@ -70,7 +72,7 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
       if(size < 0 && errno != EAGAIN)
       {
           perror("recvfrom, DUC specific");
-          return EXIT_FAILURE;
+          return NULL;
       }
       if(size == VDUCSPECIFICSIZE)
       {

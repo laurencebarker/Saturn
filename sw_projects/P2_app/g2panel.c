@@ -32,6 +32,7 @@
 #include <pthread.h>
 #include <gpiod.h>
 #include <pthread.h>
+#include <syscall.h>
 
 #include <linux/i2c-dev.h>
 #include "../common/saturnregisters.h"
@@ -83,7 +84,6 @@ struct timespec ts = {1, 0};
 bool G2PanelActive = false;                         // true while panel active and threads should run
 bool EncodersInitialised = false;                   // true after 1st scan
 bool CATDetected = false;                           // true if panel ID message has been sent
-uint32_t VKeepAliveCount;                           // count of ticks for keepalive
 
 #define VNUMGPIOPUSHBUTTONS 4
 #define VNUMMCPPUSHBUTTONS 16
@@ -209,7 +209,6 @@ uint8_t LookupButtonCode [] = {47, 50, 45, 44, 31, 32, 30, 34, 35, 33, 36, 37, 3
 bool CheckG2PanelPresent(void)
 {
     bool Result = false;
-    uint16_t i2cdata;
     bool Error;
 
 
@@ -219,7 +218,7 @@ bool CheckG2PanelPresent(void)
     else if(ioctl(i2c_fd, I2C_SLAVE, G2MCP23017) >= 0)
         // check for G2 front panel on i2c. Change device address then byte read
     {
-        i2cdata = i2c_read_byte_data(0x0, &Error);              // trial read
+        i2c_read_byte_data(0x0, &Error);              // trial read
         if (!Error)
             Result = true;
         else
@@ -254,12 +253,13 @@ int8_t ReadOpticalEncoder(void)
 // this executes as a thread; it waits for an event on a VFO encoder pin
 // for a high res encoder at just one interrupt per pulse - use int on one edge and use the sense of the other to set direction.
 //
-void VFOEventHandler(void *arg)
+void* VFOEventHandler(__attribute__((unused)) void *arg)
 {
     int returnval;
     uint8_t DirectionBit;
     struct gpiod_line_event Event;
 
+    printf("Started VFO event handler thread, pid=%ld\n", syscall(SYS_gettid));
     while(G2PanelActive)
     {
         returnval = gpiod_line_event_wait(VFO1, &ts);
@@ -274,6 +274,7 @@ void VFOEventHandler(void *arg)
 //            printf("delta count=%d\n", GDeltaCount);
         }
     }
+    return NULL;
 }
 
 int8_t EncoderStepTable[] =    {0,1,-1,2,
@@ -316,17 +317,16 @@ int8_t GetEncoderCount(uint8_t Enc)
 // periodic timestep
 // perform a "fast tick" and then "slow tick" every N
 //
-void G2PanelTick(void *arg)
+void* G2PanelTick(__attribute__((unused)) void *arg)
 {
     int8_t Steps;                               // encoder strp count
     uint8_t ScanCode;
     uint8_t PinCntr;                            // interates IO pins
     uint32_t MCPData;
     uint32_t Cntr;
-    uint32_t Version;
-    uint32_t CatParam;
     bool I2Cerror;
 
+    printf("Started G2 panel tick thread, pid=%ld\n", syscall(SYS_gettid));
     while(G2PanelActive)
     {
         if(CATPortAssigned)                     // see if CAT has become available for the 1st time
@@ -397,20 +397,13 @@ void G2PanelTick(void *arg)
             //
             Steps = ReadOpticalEncoder();
             MakeVFOEncoderCAT(Steps);
-            //
-            // check keepalive
-            //
-            if(VKeepAliveCount++ > VKEEPALIVECOUNT)
-            {
-                VKeepAliveCount = 0;
-                MakeCATMessageNoParam(eZZXV);
-            }
 
         }
 
 
         usleep(3333);                                                  // 3.3ms period
     }
+    return NULL;
 }
 
 
@@ -454,7 +447,7 @@ void SetupG2PanelGPIO(void)
 
         printf("assigning line inputs for pushbuttons & encoders\n");
         gpiod_chip_get_lines(chip, PBIOPins, VNUMGPIO, &PBInLines);
-        gpiod_line_request_bulk(&PBInLines, &config, &IOPinValues);
+        gpiod_line_request_bulk(&PBInLines, &config, IOPinValues);
     }
 }
 

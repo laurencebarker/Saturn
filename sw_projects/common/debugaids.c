@@ -25,9 +25,8 @@
 //
 void DumpMemoryBuffer(char* MemPtr, uint32_t Length)
 {
-	unsigned char Byte;
 	uint32_t ByteCntr;
-  uint32_t RowCntr;
+  	uint32_t RowCntr;
 
 	for (RowCntr=0; RowCntr < Length/16; RowCntr++)
 	{

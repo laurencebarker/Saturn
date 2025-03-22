@@ -24,6 +24,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <pthread.h>
+#include <syscall.h>
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
 #include "../common/hwaccess.h"
@@ -35,6 +37,10 @@
 #define VBASE 0x1000                                // offset into I/Q buffer for DMA to start
 #define VDMATRANSFERSIZE 128                        // read 1 message at a time
 #define VSTARTUPDELAY 100                           // 100 messages (~100ms) before reporting under or overflows
+
+
+    int DMAReadfile_fd = -1;								// DMA read file device (global, used also by wideband)
+
 
 
 
@@ -64,11 +70,8 @@ void *OutgoingMicSamples(void *arg)
 //
     uint8_t* MicReadBuffer = NULL;							// data for DMA read from DDC
     uint32_t MicBufferSize = VDMABUFFERSIZE;
-    unsigned char* MicReadPtr;								// pointer for reading out a mic sample
-    unsigned char* MicHeadPtr;								// ptr to 1st free location in mic memory
     unsigned char* MicBasePtr;								// ptr to DMA location in mic memory
     uint32_t Depth = 0;
-    int DMAReadfile_fd = -1;								// DMA read file device
     uint32_t RegisterValue;
     bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;
     unsigned int Current;                                   // current occupied locations in FIFO
@@ -82,7 +85,7 @@ void *OutgoingMicSamples(void *arg)
 //
     ThreadData = (struct ThreadSocketData *)arg;
     ThreadData->Active = true;
-    printf("spinning up outgoing mic thread with port %d\n", ThreadData->Portid);
+    printf("spinning up outgoing mic thread with port %d, pid=%ld\n", ThreadData->Portid, syscall(SYS_gettid));
 
 //
 // setup DMA buffer
@@ -93,8 +96,6 @@ void *OutgoingMicSamples(void *arg)
         printf("mic read buffer allocation failed\n");
         InitError = true;
     }
-    MicReadPtr = MicReadBuffer + VBASE;							// offset 4096 bytes into buffer
-    MicHeadPtr = MicReadBuffer + VBASE;
     MicBasePtr = MicReadBuffer + VBASE;
     memset(MicReadBuffer, 0, MicBufferSize);
 
@@ -188,7 +189,10 @@ void *OutgoingMicSamples(void *arg)
 //                    printf("Codec Mic FIFO Underflowed, depth now = %d\n", Current);
             }
 
+            // DMA shared with wideband samples, so get semaphore granting access
+            sem_wait(&MicWBDMAMutex);                       // get protected access
             DMAReadFromFPGA(DMAReadfile_fd, MicBasePtr, VDMATRANSFERSIZE, VADDRMICSTREAMREAD);
+            sem_post(&MicWBDMAMutex);                       // get protected access
 
             // create the packet into UDPBuffer
             *(uint32_t*)UDPBuffer = htonl(SequenceCounter++);        // add sequence count

@@ -52,13 +52,13 @@ void InitialiseFrontPanelHandler(void)
 {
     if(CheckG2V2PanelPresent())
     {
-        printf("found Arduino serial device\n");
+        printf("Found serial device interfaced panel\n");
         FoundG2V2Panel = true;
         InitialiseG2V2PanelHandler();
     }
     else if(CheckG2PanelPresent())
     {
-        printf("found G2 front panel\n");
+        printf("Found G2 front panel\n");
         FoundG2Panel = true;
         InitialiseG2PanelHandler();
     }

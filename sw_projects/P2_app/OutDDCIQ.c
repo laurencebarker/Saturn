@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
+#include <pthread.h>
+#include <syscall.h>
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
 #include "../common/hwaccess.h"
@@ -312,7 +314,7 @@ void *OutgoingDDCIQ(void *arg)
     }
 
     ThreadData = (struct ThreadSocketData*)arg;
-    printf("spinning up outgoing I/Q thread with port %d\n", ThreadData->Portid);
+    printf("spinning up outgoing I/Q thread with port %d, pid=%ld\n", ThreadData->Portid, syscall(SYS_gettid));
 
     //
     // set up per-DDC data structures
@@ -522,7 +524,7 @@ void *OutgoingDDCIQ(void *arg)
             {
                 if(*(DMAReadPtr + 7) != 0x80)
                 {
-                    printf("header not found for rate word at addr %x\n", DMAReadPtr);
+                    printf("header not found for rate word at addr %lx\n", (uint64_t)DMAReadPtr);
                     exit(1);
                 }
                 else                                                                    // analyse word, then process

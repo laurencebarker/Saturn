@@ -9,8 +9,8 @@
     "parameters": {
       "component_parameters": {
         "NUM_MI": [ { "value": "2", "resolve_type": "user", "format": "long", "usage": "all" } ],
-        "M_TDATA_NUM_BYTES": [ { "value": "4", "value_src": "propagated", "value_permission": "bd_and_user", "resolve_type": "user", "format": "long", "usage": "all" } ],
-        "S_TDATA_NUM_BYTES": [ { "value": "4", "value_src": "propagated", "value_permission": "bd_and_user", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "M_TDATA_NUM_BYTES": [ { "value": "4", "value_src": "user", "value_permission": "bd_and_user", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "S_TDATA_NUM_BYTES": [ { "value": "4", "value_src": "user", "value_permission": "bd_and_user", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "HAS_SPLITTER": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "TID_WIDTH": [ { "value": "0", "value_src": "propagated", "value_permission": "bd_and_user", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "TDEST_WIDTH": [ { "value": "0", "value_src": "propagated", "value_permission": "bd_and_user", "resolve_type": "user", "format": "long", "usage": "all" } ],

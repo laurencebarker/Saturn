@@ -27,6 +27,9 @@
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
 #include "../common/hwaccess.h"
+#include <pthread.h>
+#include <syscall.h>
+
 
 
 
@@ -59,9 +62,6 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
 //
     uint8_t* IQWriteBuffer = NULL;							// data for DMA to write to DUC
     uint32_t IQBufferSize = VDMABUFFERSIZE;
-    bool InitError = false;                                 // becomes true if we get an initialisation error
-    unsigned char* IQReadPtr;								// pointer for reading out an I/Q sample
-    unsigned char* IQHeadPtr;								// ptr to 1st free location in I/Q memory
     unsigned char* IQBasePtr;								// ptr to DMA location in I/Q memory
     uint32_t Depth = 0;
     int DMAWritefile_fd = -1;								// DMA read file device
@@ -71,23 +71,18 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     uint8_t* DestPtr;                                       // pointer to DMA buffer data
     unsigned int Current;                                   // current occupied locations in FIFO
     unsigned int StartupCount;                              // used to delay reporting of under & overflows
-    bool PrevSDRActive;                                     // used to detect change of state
+    bool PrevSDRActive = false;                             // used to detect change of state
 
     ThreadData = (struct ThreadSocketData *)arg;
     ThreadData->Active = true;
-    printf("spinning up DUC I/Q thread with port %d\n", ThreadData->Portid);
+    printf("spinning up DUC I/Q thread with port %d, pid=%ld\n", ThreadData->Portid, syscall(SYS_gettid));
   
     //
     // setup DMA buffer
     //
     posix_memalign((void**)&IQWriteBuffer, VALIGNMENT, IQBufferSize);
     if (!IQWriteBuffer)
-    {
         printf("I/Q TX write buffer allocation failed\n");
-        InitError = true;
-    }
-    IQReadPtr = IQWriteBuffer + VBASE;							// offset 4096 bytes into buffer
-    IQHeadPtr = IQWriteBuffer + VBASE;
     IQBasePtr = IQWriteBuffer + VBASE;
     memset(IQWriteBuffer, 0, IQBufferSize);
 
@@ -96,10 +91,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
     //
     DMAWritefile_fd = open(VDUCDMADEVICE, O_RDWR);
     if (DMAWritefile_fd < 0)
-    {
         printf("XDMA write device open failed for TX I/Q data\n");
-        InitError = true;
-    }
         
 //
 // setup hardware
@@ -132,7 +124,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
         if(size < 0 && errno != EAGAIN)
         {
             perror("recvfrom fail, TX I/Q data");
-            return EXIT_FAILURE;
+            return NULL;
         }
         if(size == VDUCIQSIZE)
         {
@@ -166,8 +158,8 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
             // copy data from UDP Buffer & DMA write it
 //            memcpy(IQBasePtr, UDPInBuffer + 4, VDMATRANSFERSIZE);                // copy out I/Q samples
             // need to swap I & Q samples on replay
-            SrcPtr = (uint16_t *) (UDPInBuffer + 4);
-            DestPtr = (uint16_t *) IQBasePtr;
+            SrcPtr = (uint8_t *) (UDPInBuffer + 4);
+            DestPtr = (uint8_t *) IQBasePtr;
             for (Cntr=0; Cntr < VIQSAMPLESPERFRAME; Cntr++)                     // samplecounter
             {
                 *DestPtr++ = *(SrcPtr+3);                           // get I sample (3 bytes)
@@ -197,7 +189,7 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
 // NOTE hardware does not properly support this yet!
 // TX FIFO must be empty. Stop multiplexer; set bit; restart
 // 
-void HandlerSetEERMode(bool EEREnabled)
+void HandlerSetEERMode(__attribute__((unused)) bool EEREnabled)
 {
 
 }

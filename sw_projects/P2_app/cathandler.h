@@ -16,30 +16,13 @@
 #ifndef __CAThandler_h
 #define __CAThandler_h
 
-
+#include "cattypes.h"
 #include "../common/saturntypes.h"
 #include "catmessages.h"
 
 typedef unsigned char byte;                 // copy of an Arduino type
 
 extern bool CATPortAssigned;                // true if CAT set up and active
-
-//
-// these are treated as global, and used by the message handlers
-//
-extern bool ParsedBool;                          // if a bool expected, it goes here
-extern long ParsedInt;                            // if int expected, it goes here
-extern char ParsedString[20];                    // if string expected, it goes here
-
-
-
-typedef enum
-{
-  eNone,                          // no parameter
-  eBool,                          // boolean parameter
-  eNum,                           // numeric parameter     
-  eStr                            // string parameter
-}ERXParamType;
 
 
 
@@ -54,12 +37,12 @@ typedef struct
   long MaxParamValue;             // eg "9999"
   byte NumParams;                 // number of parameter bytes in a "set" command
   bool AlwaysSigned;              // true if the param version should always have a sign
-  void (*handler)(void);          // handler function; no param and no return value
+  void (*handler)(int SourceDevice, ERXParamType HasParam, bool BoolParam, int NumParam, char* StringParam);          // handler function; no param and no return value
 } SCATCommands;
 
-
-
 extern SCATCommands GCATCommands[];
+
+#define DESTTCPCATPORT -1                          // selects CAT Port as the destination
 
 
 //
@@ -72,27 +55,31 @@ void InitCATHandler();
 // create CAT message:
 // this creates a "basic" CAT command with no parameter
 // (for example to send a "get" command)
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageNoParam(ECATCommands Cmd);
+void MakeCATMessageNoParam(int Device, ECATCommands Cmd);
 
 
 //
 // make a CAT command with a numeric parameter
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageNumeric(ECATCommands Cmd, long Param);
+void MakeCATMessageNumeric(int Device, ECATCommands Cmd, long Param);
 
 
 //
 // make a CAT command with a bool parameter
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageBool(ECATCommands Cmd, bool Param);
+void MakeCATMessageBool(int Device, ECATCommands Cmd, bool Param);
 
 
 //
 // make a CAT command with a string parameter
 // the string is truncated if too long, or padded with spaces if too short
+// Device = -1 for CAT port, else a serial device with this file ID
 //
-void MakeCATMessageString(ECATCommands Cmd, char* Param);
+void MakeCATMessageString(int Device, ECATCommands Cmd, char* Param);
 
 
 //
@@ -113,14 +100,9 @@ void SendCATMessage(char* CatString);
 
 //
 // parse a CAT command, and call appropriate handler
+// message source provided so potentially different handlers can be used
 //
-void ParseCATCmd(char* CATString);
-
-//
-// make a CAT command with a numeric parameter into the provided string
-// (used to send messages to local panel)
-//
-void MakeCATMessageNumeric_Local(ECATCommands Cmd, long Param, char* Str);
+void ParseCATCmd(char* CATString, int Source);
 
 
 #endif  //#ifndef

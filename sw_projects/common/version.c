@@ -47,7 +47,7 @@
 #define VMAXPRODUCTID 1							// product ID index limit
 #define VMAXSWID 4								// software ID index limit
 
-char* ProductIDStrings[] =
+const char* ProductIDStrings[] =
 {
 	"invalid product ID",
 	"Saturn"
@@ -56,7 +56,7 @@ char* ProductIDStrings[] =
 //
 // these are relevant to Saturn only!
 //
-char* SWIDStrings[] =
+const char* SWIDStrings[] =
 {
 	"invalid software ID",
 	"Saturn prototype, board test code",
@@ -65,7 +65,7 @@ char* SWIDStrings[] =
 	"Saturn, full function"
 };
 
-char* ClockStrings[] =
+const char* ClockStrings[] =
 {
 	"122.88MHz main clock",
 	"10MHz Reference clock",
@@ -87,28 +87,26 @@ bool IsFallbackConfig(void)
 	bool Result = false;
 	uint32_t SoftwareInformation;			// swid & version
 	uint32_t ProductInformation;			// product id & version
-	uint32_t DateCode;						// date code from user register in FPGA
+//	uint32_t DateCode;						// date code from user register in FPGA
 
-	uint32_t SWVer, SWID;					// s/w version and id
-	uint32_t ProdVer, ProdID;				// product version and id
-	uint32_t ClockInfo;						// clock status
-	uint32_t Cntr;
-
-	char* ProdString;
-	char* SWString;
+//	uint32_t SWVer;							// s/w version
+	uint32_t SWID;							// s/w id
+//	uint32_t ProdVer;						// product version
+	uint32_t ProdID;						// product id
+//	uint32_t ClockInfo;						// clock status
 
 	//
 	// read the raw data from registers
 	//
 	SoftwareInformation = RegisterRead(VADDRSWVERSIONREG);
 	ProductInformation = RegisterRead(VADDRPRODVERSIONREG);
-	DateCode = RegisterRead(VADDRUSERVERSIONREG);
+//	DateCode = RegisterRead(VADDRUSERVERSIONREG);
 
-	ClockInfo = (SoftwareInformation & 0xF);				// 4 clock bits
-	SWVer = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version
+//	ClockInfo = (SoftwareInformation & 0xF);				// 4 clock bits
+//	SWVer = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version
 	SWID = SoftwareInformation >> 20;						// 12 bit software ID
 
-	ProdVer = ProductInformation & 0xFFFF;					// 16 bit product version
+//	ProdVer = ProductInformation & 0xFFFF;					// 16 bit product version
 	ProdID = ProductInformation >> 16;						// 16 bit product ID
 
 	if ((ProdID == SATURNPRODUCTID) && (SWID == SATURNGOLDENCONFIGID))
@@ -130,9 +128,10 @@ void PrintVersionInfo(void)
 	uint32_t ProdVer, ProdID;				// product version and id
 	uint32_t ClockInfo;						// clock status
 	uint32_t Cntr;
+	uint32_t MajorVersion;
 
-	char* ProdString;
-	char* SWString;
+	const char* ProdString;
+	const char* SWString;
 
 	//
 	// read the raw data from registers
@@ -144,7 +143,8 @@ void PrintVersionInfo(void)
 
 	ClockInfo = (SoftwareInformation & 0xF);				// 4 clock bits
 	SWVer = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version
-	SWID = SoftwareInformation >> 20;						// 12 bit software ID
+	SWID = (SoftwareInformation >> 20) & 0x1F;				// 5 bit software ID
+	MajorVersion = SoftwareInformation >> 25;				// 7 bit major version
 
 	ProdVer = ProductInformation & 0xFFFF;					// 16 bit product version
 	ProdID = ProductInformation >> 16;						// 16 bit product ID
@@ -163,7 +163,7 @@ void PrintVersionInfo(void)
 		SWString = SWIDStrings[SWID];
 
 	printf(" Product: %s; Version = %d\n", ProdString, ProdVer);
-	printf(" FPGA Firmware loaded: %s; FW Version = %d\n", SWString, SWVer);
+	printf(" FPGA Firmware loaded: %s; FW Version = %d, major version = %d\n", SWString, SWVer, MajorVersion);
 
 	if (ClockInfo == 0xF)
 		printf("All clocks present\n");
@@ -192,8 +192,21 @@ unsigned int GetFirmwareVersion(ESoftwareID* ID)
 
 	SoftwareInformation = RegisterRead(VADDRSWVERSIONREG);
 	Version = (SoftwareInformation >> 4) & 0xFFFF;			// 16 bit sw version
-	*ID = (ESoftwareID)(SoftwareInformation >> 20);						// 12 bit software ID
+	*ID = (ESoftwareID)((SoftwareInformation >> 20) & 0x1F);						// 5 bit software ID
 	return Version;
 }
 
 
+
+//
+// function call to get firmware major version
+//
+unsigned int GetFirmwareMajorVersion(void)
+{
+	unsigned int MajorVersion = 0;
+	uint32_t SoftwareInformation;			// swid & version
+
+	SoftwareInformation = RegisterRead(VADDRSWVERSIONREG);
+	MajorVersion = (SoftwareInformation >> 25) & 0x7F;			// 7 bit major fw version
+	return MajorVersion;
+}

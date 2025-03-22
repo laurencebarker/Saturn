@@ -550,6 +550,24 @@
             },
             "V43": {
                 "VT": "AC",
+                "BA": "0x0000D000",
+                "HA": "0x0000DFFF",
+                "BP": "C_BASEADDR",
+                "HP": "C_HIGHADDR",
+                "MA": "M_AXI_LITE",
+                "MX": "/PCIe/xdma_0",
+                "MI": "M_AXI_LITE",
+                "MS": "SEG_Wideband_Collect_0_reg0",
+                "MV": "xilinx.com:ip:xdma:4.1",
+                "SX": "/Wideband_Collect_0",
+                "SI": "s_axi",
+                "SS": "reg0",
+                "SV": "xilinx.com:module_ref:Wideband_Collect:1.0",
+                "TM": "both",
+                "TU": "register"
+            },
+            "V44": {
+                "VT": "AC",
                 "BA": "0x00010000",
                 "HA": "0x00013FFF",
                 "BP": "C_BASEADDR",
@@ -566,7 +584,7 @@
                 "TM": "both",
                 "TU": "register"
             },
-            "V44": {
+            "V45": {
                 "VT": "AC",
                 "BA": "0x00014000",
                 "HA": "0x00017FFF",
@@ -584,7 +602,7 @@
                 "TM": "both",
                 "TU": "register"
             },
-            "V45": {
+            "V46": {
                 "VT": "AC",
                 "BA": "0x00018000",
                 "HA": "0x0001BFFF",
@@ -602,7 +620,7 @@
                 "TM": "both",
                 "TU": "register"
             },
-            "V46": {
+            "V47": {
                 "VT": "AC",
                 "BA": "0x0001C000",
                 "HA": "0x0001FFFF",
@@ -620,7 +638,7 @@
                 "TM": "both",
                 "TU": "memory"
             },
-            "V47": {
+            "V48": {
                 "VT": "AC",
                 "BA": "0x0000000000040000",
                 "HA": "0x000000000007FFFF",
@@ -632,6 +650,24 @@
                 "MS": "SEG_AXI_Stream_Reader_Wr_codec_reg0",
                 "MV": "xilinx.com:ip:xdma:4.1",
                 "SX": "/FIFO_Interfaces/AXI_Stream_Reader_Wr_codec",
+                "SI": "s_axi",
+                "SS": "reg0",
+                "SV": "xilinx.com:module_ref:AXI_Stream_Reader_Writer:1.0",
+                "TM": "both",
+                "TU": "register"
+            },
+            "V49": {
+                "VT": "AC",
+                "BA": "0x0000000000080000",
+                "HA": "0x00000000000BFFFF",
+                "BP": "C_BASEADDR",
+                "HP": "C_HIGHADDR",
+                "MA": "M_AXI",
+                "MX": "/PCIe/xdma_0",
+                "MI": "M_AXI",
+                "MS": "SEG_AXI_Stream_Reader_Wr_1_reg0",
+                "MV": "xilinx.com:ip:xdma:4.1",
+                "SX": "/FIFO_Interfaces/AXI_Stream_Reader_Wr_1",
                 "SI": "s_axi",
                 "SS": "reg0",
                 "SV": "xilinx.com:module_ref:AXI_Stream_Reader_Writer:1.0",
@@ -843,6 +879,16 @@
             },
             {
                 "src": "V47",
+                "trg": "V28",
+                "EH": "-1109722098"
+            },
+            {
+                "src": "V48",
+                "trg": "V28",
+                "EH": "-1109722098"
+            },
+            {
+                "src": "V49",
                 "trg": "V28",
                 "EH": "-1109722098"
             }

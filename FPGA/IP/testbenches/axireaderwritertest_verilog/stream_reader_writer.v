@@ -78,7 +78,10 @@ module AXI_Stream_Reader_Writer #
   // AXI stream Slave (for AXI read transactions)
   output wire                      s_axis_tready,
   input  wire [AXI_DATA_WIDTH-1:0] s_axis_tdata,
-  input  wire                      s_axis_tvalid
+  input  wire                      s_axis_tvalid,
+  
+  // activity indicator (1 bit if read or write transfer occurs)
+  output wire Activity
 );
 
   reg awreadyreg;                            // false when write address has been latched
@@ -95,6 +98,7 @@ module AXI_Stream_Reader_Writer #
   reg arreadyreg;                            // false when write address has been latched
   reg s_axis_treadyreg;                      // false when axi stream data in latched
   reg rvalidreg;                             // true when read data out is valid
+  reg ActivityReg;                           // set true when a transfer occurs
 
 
 // strategy for write transaction:
@@ -112,6 +116,8 @@ module AXI_Stream_Reader_Writer #
   assign s_axi_bresp = 2'd0;
   assign m_axis_tvalid = m_axis_tvalidreg;
   assign m_axis_tdata = write_data;
+  
+  assign Activity = ActivityReg;
 //
 // now set the "address latched" when address valid and ready are true
 // set "data latched" when data valid and ready are true
@@ -248,5 +254,17 @@ module AXI_Stream_Reader_Writer #
     end
   end
 
+
+  always @(posedge aclk)
+  begin
+    if(~aresetn)
+    begin
+        ActivityReg <= 0;
+    end
+    else
+    begin
+        ActivityReg <= ((m_axis_tvalidreg & m_axis_tready) || (s_axis_tvalid & s_axis_treadyreg));
+    end
+  end
 
 endmodule

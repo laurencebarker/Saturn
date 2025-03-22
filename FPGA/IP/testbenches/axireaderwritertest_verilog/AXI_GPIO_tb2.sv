@@ -45,6 +45,7 @@ bit aclk = 0, aresetn = 1;
 //Simulation output - FIFO read and write depth
 bit [15:0] wr_count;
 bit [15:0] rd_count;
+bit        tx_enable;
 
 
 //AXI4 bus signals
@@ -86,7 +87,8 @@ AXI_GPIO_Sim_wrapper UUT
     .aclk               (aclk),
     .aresetn            (aresetn),
     .wr_count     (wr_count),
-    .rd_count     (rd_count)
+    .rd_count     (rd_count),
+    .tx_enable    (tx_enable)
 );
 
 // Generate the clock : 50 MHz    
@@ -130,14 +132,14 @@ master_agent.start_master();
 ////////////////////////////////////////////////////////////////////////////////
 //
 // now test the stream reader/writer
-// write 3 words, which should go into FIFO; then read 3 words.
+// write 3 64 bit words, which should go into FIFO; then read 3 words.
 //
 
 
 #200ns
 mtestID = 0;
 mtestADDR = 32'h44A0_0000;
-mtestBurstLength = 'd2;                     // 3 beats
+mtestBurstLength = 'd2;                     // 3 beats each 32 bits
 mtestWDataBlock[31:0] = 32'hdeadbeef;
 mtestWDataBlock[63:32] = 32'hbeef0001;
 mtestWDataBlock[95:64] = 32'hdead0002;
@@ -160,9 +162,9 @@ master_agent.AXI4_WRITE_BURST(
         mtestBresp
       );  
 
-$display("2nd write (1 beat) to stream reader/writer: data = 0x%x", mtestWData);    
 mtestBurstLength = 'd0;                     // 1 beat
 mtestWData = 32'hace80003;
+$display("2nd write (1 beat) to stream reader/writer: data = 0x%x", mtestWData);    
 master_agent.AXI4_WRITE_BURST(
         mtestID,
         mtestADDR,
@@ -180,12 +182,37 @@ master_agent.AXI4_WRITE_BURST(
         mtestBresp
       );  
 
-#200ns
+mtestBurstLength = 'd1;                     // 2 beats each 32 bits
+mtestWDataBlock[31:0] = 32'habc00004;
+mtestWDataBlock[63:32] = 32'hdef00005;
+
+$display("3rd write (2 beats) to stream reader/writer: data = 0x%x", mtestWData);    
+master_agent.AXI4_WRITE_BURST(
+        mtestID,
+        mtestADDR,
+        mtestBurstLength,
+        mtestDataSize,
+        mtestBurstType,
+        mtestLOCK,
+        mtestCacheType,
+        mtestProtectionType,
+        mtestRegion,
+        mtestQOS,
+        mtestAWUSER,
+        mtestWDataBlock,
+        mtestWUSER,
+        mtestBresp
+      );  
+
+
+
+
+#10us
 $display("after write: Read_Count = 0x%x", rd_count);    
 $display("after write: Write_Count = 0x%x", wr_count);    
 
 #100ns
-mtestBurstLength = 'd0;                     // 1 beat
+mtestBurstLength = 'd0;                     // 1 beat read
 master_agent.AXI4_READ_BURST(
 mtestID,
 mtestADDR,
@@ -205,6 +232,7 @@ mtestRUSER
 $display("1st 32bit read stream reader/writer: data = 0x%x", mtestRData);    
 
 
+                     // 1 beat read
 master_agent.AXI4_READ_BURST(
 mtestID,
 mtestADDR,
@@ -224,7 +252,7 @@ mtestRUSER
 $display("2nd 32bit read stream reader/writer: data = 0x%x", mtestRData);    
 
 
-mtestBurstLength = 'd1;                     // 2 beats
+mtestBurstLength = 'd1;                     // 2 beats read
 master_agent.AXI4_READ_BURST(
 mtestID,
 mtestADDR,
@@ -242,6 +270,25 @@ mtestRresp,
 mtestRUSER
 );
 $display("3rd 64bit read stream reader/writer: data = 0x%x", mtestRDataBlock[63:0]);    
+
+mtestBurstLength = 'd1;                     // 2 beats read
+master_agent.AXI4_READ_BURST(
+mtestID,
+mtestADDR,
+mtestBurstLength,
+mtestDataSize,
+mtestBurstType,
+mtestLOCK,
+mtestCacheType,
+mtestProtectionType,
+mtestRegion,
+mtestQOS,
+mtestARUSER,
+mtestRDataBlock,
+mtestRresp,
+mtestRUSER
+);
+$display("4th 64 bit read stream reader/writer: data = 0x%x", mtestRDataBlock[63:0]);    
 
 #200ns
 $display("after read: Read_Count = 0x%x", rd_count);    
@@ -252,7 +299,8 @@ $display("after read: Write_Count = 0x%x", wr_count);
 //
 // now do it all again
 //
-#200ns
+#100us
+
 mtestID = 0;
 mtestADDR = 32'h44A0_0000;
 mtestBurstLength = 'd2;                     // 3 beats
@@ -298,7 +346,29 @@ master_agent.AXI4_WRITE_BURST(
         mtestBresp
       );  
 
-#200ns
+mtestBurstLength = 'd1;                     // 2 beats each 32 bits
+mtestWDataBlock[31:0] = 32'habc00004;
+mtestWDataBlock[63:32] = 32'hdef00005;
+
+$display("3rd write (2 beats) to stream reader/writer: data = 0x%x", mtestWData);    
+master_agent.AXI4_WRITE_BURST(
+        mtestID,
+        mtestADDR,
+        mtestBurstLength,
+        mtestDataSize,
+        mtestBurstType,
+        mtestLOCK,
+        mtestCacheType,
+        mtestProtectionType,
+        mtestRegion,
+        mtestQOS,
+        mtestAWUSER,
+        mtestWDataBlock,
+        mtestWUSER,
+        mtestBresp
+      );  
+
+#10us
 $display("after write: Read_Count = 0x%x", rd_count);    
 $display("after write: Write_Count = 0x%x", wr_count);    
 
@@ -360,6 +430,25 @@ mtestRresp,
 mtestRUSER
 );
 $display("3rd 64bit read stream reader/writer: data = 0x%x", mtestRDataBlock[63:0]);    
+
+mtestBurstLength = 'd1;                     // 2 beats read
+master_agent.AXI4_READ_BURST(
+mtestID,
+mtestADDR,
+mtestBurstLength,
+mtestDataSize,
+mtestBurstType,
+mtestLOCK,
+mtestCacheType,
+mtestProtectionType,
+mtestRegion,
+mtestQOS,
+mtestARUSER,
+mtestRDataBlock,
+mtestRresp,
+mtestRUSER
+);
+$display("4th 64 bit read stream reader/writer: data = 0x%x", mtestRDataBlock[63:0]);    
 
 
 $display("after read: Read_Count = 0x%x", rd_count);    

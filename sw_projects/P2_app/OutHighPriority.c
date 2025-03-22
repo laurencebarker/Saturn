@@ -24,7 +24,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
+#include <pthread.h>
+#include <syscall.h>
 #include "../common/saturnregisters.h"
+#include "../common/saturndrivers.h"
 #include "LDGATU.h"
 
 
@@ -53,17 +56,18 @@ void *OutgoingHighPriority(void *arg)
   int Error;
   uint8_t Byte;                                   // data being encoded
   uint16_t Word;                                  // data being encoded
+  unsigned int FIFOCount;
   bool ATUTuneRequest = false;
   bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;      // FIFO flags
-  uint32_t Depth = 0;                                       // FIFO locations available
   uint8_t FIFOOverflows;
+  uint8_t ADCOverflows = 0;                       // set non zero if ADC overflows detected
 
 //
 // initialise. Create memory buffers and open DMA file devices
 //
   ThreadData = (struct ThreadSocketData *)arg;
   ThreadData->Active = true;
-  printf("spinning up outgoing high priority with port %d\n", ThreadData->Portid);
+  printf("spinning up outgoing high priority with port %d, pid=%ld\n", ThreadData->Portid, syscall(SYS_gettid));
 
 //
 // OK, now the main work
@@ -117,8 +121,9 @@ void *OutgoingHighPriority(void *arg)
       ReadStatusRegister();
       PTTBits = (uint8_t)GetP2PTTKeyInputs();
       *(uint8_t *)(UDPBuffer+4) = PTTBits;
-      Byte = (uint8_t)GetADCOverflow();
-      *(uint8_t *)(UDPBuffer+5) = Byte;
+      ADCOverflows |= (uint8_t)GetADCOverflow();                // add in any new overflows
+      *(uint8_t *)(UDPBuffer+5) = ADCOverflows;
+      ADCOverflows = 0;                                         // and clear ready for next test
       Word = (uint16_t)GetAnalogueIn(4);
       *(uint16_t *)(UDPBuffer+6) = htons(Word);                // exciter power
       Word = (uint16_t)GetAnalogueIn(0);
@@ -142,26 +147,26 @@ void *OutgoingHighPriority(void *arg)
 // and they are cleared by the data transfer reads of the monitor channel
 //
       FIFOOverflows = 0;
-      Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);				// read the DDC FIFO Depth register
-      *(uint16_t *)(UDPBuffer+31) = htons(Word);                // DDC ssmples
+      ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &FIFOCount);				// read the DDC FIFO Depth register
+      *(uint16_t *)(UDPBuffer+31) = htons(FIFOCount);                // DDC ssmples
       if(FIFOOverThreshold)
         FIFOOverflows |= 0b00000001;
 
-      Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);				// read the mic FIFO Depth register
+      ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &FIFOCount);				// read the mic FIFO Depth register
       Word = Word*4;                                            // 4 samples per FIFO location
-      *(uint16_t *)(UDPBuffer+33) = htons(Word);                // mic samples
+      *(uint16_t *)(UDPBuffer+33) = htons(FIFOCount);                // mic samples
       if(FIFOOverThreshold)
         FIFOOverflows |= 0b00000010;
 
-      Depth = ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);				// read the DUC FIFO Depth register
+      ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &FIFOCount);				// read the DUC FIFO Depth register
       Word = (Word*4)/3;                                        // 4/3 samples per FIFO location
-      *(uint16_t *)(UDPBuffer+35) = htons(Word);                // DUC samples
+      *(uint16_t *)(UDPBuffer+35) = htons(FIFOCount);                // DUC samples
       if(FIFOUnderflow)
         FIFOOverflows |= 0b00000100;
 
-      Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Word);				// read the speaker FIFO Depth register
+      ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &FIFOCount);				// read the speaker FIFO Depth register
       Word = Word*2;                                            // 2 samples per FIFO location
-      *(uint16_t *)(UDPBuffer+37) = htons(Word);                // speaker samples
+      *(uint16_t *)(UDPBuffer+37) = htons(FIFOCount);                // speaker samples
       if(FIFOUnderflow)
         FIFOOverflows |= 0b00001000;
 
@@ -187,7 +192,7 @@ void *OutgoingHighPriority(void *arg)
       }
       //
       // now we need to sleep for 1ms (in TX) or 200ms (not in TX)
-      // BUT if any of the PTT or key inputs change, send a message immediately
+      // BUT if any of the PTT or key inputs change, or ADC overflow detected, send a message immediately
       // so break up the 200ms period with smaller sleeps
       // thank you to Rick N1GP for recommending this approach
       //
@@ -196,6 +201,9 @@ void *OutgoingHighPriority(void *arg)
       {
         ReadStatusRegister();
         if ((uint8_t)GetP2PTTKeyInputs() != PTTBits)
+          break;
+        ADCOverflows |= (uint8_t)GetADCOverflow();
+        if(ADCOverflows != 0)
           break;
         usleep(500);
       }

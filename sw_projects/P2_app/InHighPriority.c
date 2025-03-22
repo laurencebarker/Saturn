@@ -27,6 +27,12 @@
 #include "../common/hwaccess.h"                   // low level access
 #include "../common/version.h"
 #include "cathandler.h"
+#include "AriesATU.h"
+#include <pthread.h>
+#include <syscall.h>
+
+
+extern bool AriesATUActive;                             // true if Aries is operating
 
 
 
@@ -42,19 +48,17 @@ void *IncomingHighPriority(void *arg)                   // listener thread
   struct msghdr datagram;                               // multiple incoming message header
   int size;                                             // UDP datagram length
   bool RunBit;                                          // true if "run" bit set
-  uint32_t DDCPhaseIncrement;                           // delta phase for a DDC
   uint8_t Byte, Byte2;                                  // received dat being decoded
   uint32_t LongWord;
   uint16_t Word;
   int i;                                                // counter
   ESoftwareID FPGASWID;                                 // preprod/release etc
   unsigned int FPGAVersion;                             // firmware version
-  bool PAEnable;
 
 
   ThreadData = (struct ThreadSocketData *)arg;
   ThreadData->Active = true;
-  printf("spinning up high priority incoming thread with port %d\n", ThreadData->Portid);
+  printf("spinning up high priority incoming thread with port %d, pid=%ld\n", ThreadData->Portid, syscall(SYS_gettid));
   FPGAVersion = GetFirmwareVersion(&FPGASWID);          // get version of FPGA code
 
   //
@@ -75,7 +79,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
     {
       perror("recvfrom, high priority");
       printf("error number = %d\n", errno);
-      return EXIT_FAILURE;
+      EXIT_FAILURE;
     }
 
     //
@@ -101,6 +105,8 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       {
         SDRActive = false;                                       // set state of whole app
         SetTXEnable(false);
+        IsTXMode = false;
+        SetMOX(false);
         EnableCW(false, false);
         printf("set to inactive by client app\n");
         StartBitReceived = false;
@@ -124,22 +130,27 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       //
       LongWord = ntohl(*(uint32_t *)(UDPInBuffer+329));
       SetDUCFrequency(LongWord, true);
+      SetAriesTXFrequency(LongWord);
       Byte = (uint8_t)(UDPInBuffer[345]);
       SetTXDriveLevel(Byte);
       //
-      // CAT port (if set)
+      // create CAT port (if set)
+      // shut down CAT port if not set and the CAT thread is active
       //
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1398));
       if(Word != 0)
         SetupCATPort(Word);
+      else if (Word == 0 && CATPortAssigned)
+        ShutdownCATHandler();
       //
       // transverter, speaker mute, open collector, user outputs
+      // open collector data is in bits 7:1; move to 6:0
       //
       Byte = (uint8_t)(UDPInBuffer[1400]);
       SetXvtrEnable((bool)(Byte&1));
       SetSpkrMute((bool)((Byte>>1)&1));
       Byte = (uint8_t)(UDPInBuffer[1401]);
-      SetOpenCollectorOutputs(Byte);
+      SetOpenCollectorOutputs(Byte >> 1);
       Byte = (uint8_t)(UDPInBuffer[1402]);
       SetUserOutputBits(Byte);
       //
@@ -149,6 +160,8 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       // if we don't have a new TX ant bit set, just write "old" word data (byte 1432) to both registers
       // this is to allow safe operation with legacy client apps
       // 1st read bytes and see if a TX ant bit is set
+      // Aries will only work with newer FPGA and client app support
+      //
       Word = ntohs(*(uint16_t *)(UDPInBuffer+1428));
       //printf("Alex 1 TX word = 0x%x\n", Word);
       Word = (Word >> 8) & 0x0007;                          // new data TX ant bits. if not set, must be legacy client app
@@ -157,9 +170,15 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       {
         //printf("new FPGA code, new client data\n");
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1428));      // copy word with TX ant settings to filt/TXant register
+        SetAriesAlexTXWord(Word);
+        if(AriesATUActive)                                  // if Aries active, set TX antenna to 1
+          Word = (Word & 0xF8FF) | 0x0100;
         AlexManualTXFilters(Word, true);
         Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with RX ant settings to filt/RXant register
         //printf("Alex 0 TX word = 0x%x\n", Word);
+        SetAriesAlexRXWord(Word);
+        if(AriesATUActive)                                  // if Aries active, set RX antenna to 1
+          Word = (Word & 0xF8FF) | 0x0100;
         AlexManualTXFilters(Word, false);
       }
       else if(FPGAVersion >= 12)                            // new hardware but no client app support
