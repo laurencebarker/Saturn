@@ -13,7 +13,7 @@ module AXI_GPIO_Sim_wrapper
    (SPICk,
     SPIData,
     SPILoad_0,
-    SPILoad_1,
+    SPIMISO,
     aclk,
     aresetn,
     config_reg0,
@@ -29,7 +29,7 @@ module AXI_GPIO_Sim_wrapper
   output SPICk;
   output SPIData;
   output SPILoad_0;
-  output SPILoad_1;
+  input SPIMISO;
   input aclk;
   input aresetn;
   output [31:0]config_reg0;
@@ -46,7 +46,7 @@ module AXI_GPIO_Sim_wrapper
   wire SPICk;
   wire SPIData;
   wire SPILoad_0;
-  wire SPILoad_1;
+  wire SPIMISO;
   wire aclk;
   wire aresetn;
   wire [31:0]config_reg0;
@@ -64,7 +64,7 @@ module AXI_GPIO_Sim_wrapper
        (.SPICk(SPICk),
         .SPIData(SPIData),
         .SPILoad_0(SPILoad_0),
-        .SPILoad_1(SPILoad_1),
+        .SPIMISO(SPIMISO),
         .aclk(aclk),
         .aresetn(aresetn),
         .config_reg0(config_reg0),
