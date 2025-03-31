@@ -104,8 +104,8 @@ AXI_GPIO_Sim_wrapper UUT
     .SPIMISO                (SPIMISO)
 );
 
-// Generate the clock : 50 MHz    
-always #10ns aclk = ~aclk;
+// Generate the clock : 125 MHz    
+always #4ns aclk = ~aclk;
 
 //////////////////////////////////////////////////////////////////////////////////
 // Main Process
@@ -352,7 +352,8 @@ master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read axi-lite config256 reg 7 after write: data = 0x%x", data);
 
 
-/////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 //
 // now test the AXILite shift register
@@ -362,7 +363,7 @@ $display("2 SPI WRITE operations. 2nd will stall on AXI bus until 1st complete")
 $display("expecting stall on 2nd write until 1st shift completes");
 #100ns
 addr = 32'h00003000;
-data = 32'h00000c00;
+data = 32'h00000c01;
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
 $display("axi-lite SPI write: data = 0x%x", data);
 #100ns
@@ -375,7 +376,7 @@ addr = 32'h00003008;
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read axi-lite SPI writer status while busy: data = 0x%x", data);
 
-#100ns
+#10us                               // wait for write to complete
 addr = 32'h00003004;
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read axi-lite SPI read data after 2nd write:: data = 0x%x", data);
