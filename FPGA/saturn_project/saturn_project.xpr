@@ -297,76 +297,6 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/reg_to_axis.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/regmux_4_1.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/regmux_8_1.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/axis_mux_2.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/byteswap_48bit.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/lfsr.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/axi_stream_deinterleaver.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/axis_mux_4.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/cw_key_ramp.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/cvt_offsetbinary.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
       <File Path="$PPRDIR/../sources/verilogmodules/axis_adder.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -409,23 +339,93 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/cvt_offsetbinary.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/lfsr.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/axi_stream_deinterleaver.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/axis_mux_4.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/byteswap_48bit.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/cw_key_ramp.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/reg_to_axis.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/axis_mux_2.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/regmux_4_1.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/regmux_8_1.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PSRCDIR/sources_1/bd/saturn_top/saturn_top.bd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXI_Stream_Reader_Wr_1_0/saturn_top_AXI_Stream_Reader_Wr_1_0.xci">
-          <Proxy FileSetName="saturn_top_AXI_Stream_Reader_Wr_1_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXI_Stream_Reader_Wr_codec_0/saturn_top_AXI_Stream_Reader_Wr_codec_0.xci">
-          <Proxy FileSetName="saturn_top_AXI_Stream_Reader_Wr_codec_0"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXI_Stream_Reader_Wr_0_0/saturn_top_AXI_Stream_Reader_Wr_0_0.xci">
           <Proxy FileSetName="saturn_top_AXI_Stream_Reader_Wr_0_0"/>
         </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXI_Stream_Reader_Wr_1_0/saturn_top_AXI_Stream_Reader_Wr_1_0.xci">
+          <Proxy FileSetName="saturn_top_AXI_Stream_Reader_Wr_1_0"/>
+        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_Watchdog_0_0/saturn_top_Watchdog_0_0.xci">
           <Proxy FileSetName="saturn_top_Watchdog_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXI_Stream_Reader_Wr_codec_0/saturn_top_AXI_Stream_Reader_Wr_codec_0.xci">
+          <Proxy FileSetName="saturn_top_AXI_Stream_Reader_Wr_codec_0"/>
         </CompFileExtendedInfo>
       </File>
       <File Path="$PGENDIR/sources_1/bd/saturn_top/hdl/saturn_top_wrapper.v">
@@ -469,14 +469,14 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_mux_2_0_0/DDC_Block_axis_mux_2_0_0.xci">
-          <Proxy FileSetName="DDC_Block_axis_mux_2_0_0"/>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_variable_0_0/DDC_Block_axis_variable_0_0.xci">
+          <Proxy FileSetName="DDC_Block_axis_variable_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_Double_D_register_0_0/DDC_Block_Double_D_register_0_0.xci">
           <Proxy FileSetName="DDC_Block_Double_D_register_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_variable_0_0/DDC_Block_axis_variable_0_0.xci">
-          <Proxy FileSetName="DDC_Block_axis_variable_0_0"/>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_mux_2_0_0/DDC_Block_axis_mux_2_0_0.xci">
+          <Proxy FileSetName="DDC_Block_axis_mux_2_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_variable_1_0/DDC_Block_axis_variable_1_0.xci">
           <Proxy FileSetName="DDC_Block_axis_variable_1_0"/>
@@ -867,10 +867,10 @@
         <Step Id="synth_design">
           <Option Id="ResourceSharing">2</Option>
           <Option Id="NoCombineLuts">1</Option>
-          <Option Id="Directive">7</Option>
           <Option Id="FsmExtraction">1</Option>
-          <Option Id="KeepEquivalentRegisters">1</Option>
           <Option Id="ShregMinSize">5</Option>
+          <Option Id="Directive">7</Option>
+          <Option Id="KeepEquivalentRegisters">1</Option>
         </Step>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -938,38 +938,42 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="saturn_top_AXI_Stream_Reader_Wr_1_0_synth_1" Type="Ft3:Synth" SrcSet="saturn_top_AXI_Stream_Reader_Wr_1_0" Part="xc7a200tfbg676-2" ConstrsSet="saturn_top_AXI_Stream_Reader_Wr_1_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/saturn_top_AXI_Stream_Reader_Wr_1_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/saturn_top_AXI_Stream_Reader_Wr_1_0_synth_1">
+    <Run Id="saturn_top_AXI_Stream_Reader_Wr_1_0_synth_1" Type="Ft3:Synth" SrcSet="saturn_top_AXI_Stream_Reader_Wr_1_0" Part="xc7a200tfbg676-2" ConstrsSet="saturn_top_AXI_Stream_Reader_Wr_1_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/saturn_top_AXI_Stream_Reader_Wr_1_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/saturn_top_AXI_Stream_Reader_Wr_1_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/saturn_top_AXI_Stream_Reader_Wr_1_0_synth_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023"/>
         <Step Id="synth_design"/>
       </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
       <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2023"/>
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="saturn_top_AXI_Stream_Reader_Wr_codec_0_synth_1" Type="Ft3:Synth" SrcSet="saturn_top_AXI_Stream_Reader_Wr_codec_0" Part="xc7a200tfbg676-2" ConstrsSet="saturn_top_AXI_Stream_Reader_Wr_codec_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/saturn_top_AXI_Stream_Reader_Wr_codec_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/saturn_top_AXI_Stream_Reader_Wr_codec_0_synth_1">
+    <Run Id="saturn_top_AXI_Stream_Reader_Wr_codec_0_synth_1" Type="Ft3:Synth" SrcSet="saturn_top_AXI_Stream_Reader_Wr_codec_0" Part="xc7a200tfbg676-2" ConstrsSet="saturn_top_AXI_Stream_Reader_Wr_codec_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/saturn_top_AXI_Stream_Reader_Wr_codec_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/saturn_top_AXI_Stream_Reader_Wr_codec_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/saturn_top_AXI_Stream_Reader_Wr_codec_0_synth_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023"/>
         <Step Id="synth_design"/>
       </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
       <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2023"/>
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="saturn_top_AXI_Stream_Reader_Wr_0_0_synth_1" Type="Ft3:Synth" SrcSet="saturn_top_AXI_Stream_Reader_Wr_0_0" Part="xc7a200tfbg676-2" ConstrsSet="saturn_top_AXI_Stream_Reader_Wr_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/saturn_top_AXI_Stream_Reader_Wr_0_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/saturn_top_AXI_Stream_Reader_Wr_0_0_synth_1">
+    <Run Id="saturn_top_AXI_Stream_Reader_Wr_0_0_synth_1" Type="Ft3:Synth" SrcSet="saturn_top_AXI_Stream_Reader_Wr_0_0" Part="xc7a200tfbg676-2" ConstrsSet="saturn_top_AXI_Stream_Reader_Wr_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/saturn_top_AXI_Stream_Reader_Wr_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/saturn_top_AXI_Stream_Reader_Wr_0_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/saturn_top_AXI_Stream_Reader_Wr_0_0_synth_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023"/>
         <Step Id="synth_design"/>
       </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
       <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2023"/>
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="saturn_top_Watchdog_0_0_synth_1" Type="Ft3:Synth" SrcSet="saturn_top_Watchdog_0_0" Part="xc7a200tfbg676-2" ConstrsSet="saturn_top_Watchdog_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/saturn_top_Watchdog_0_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/saturn_top_Watchdog_0_0_synth_1">
+    <Run Id="saturn_top_Watchdog_0_0_synth_1" Type="Ft3:Synth" SrcSet="saturn_top_Watchdog_0_0" Part="xc7a200tfbg676-2" ConstrsSet="saturn_top_Watchdog_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/saturn_top_Watchdog_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/saturn_top_Watchdog_0_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/saturn_top_Watchdog_0_0_synth_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023"/>
         <Step Id="synth_design"/>
       </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
       <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2023"/>
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
