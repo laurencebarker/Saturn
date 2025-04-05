@@ -11,16 +11,14 @@
         "AXI_DATA_WIDTH": [ { "value": "32", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "AXI_ADDR_WIDTH": [ { "value": "16", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "INITIAL_VALUE_word_0": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "all" } ],
-        "INITIAL_VALUE_word_1": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "all" } ],
-        "SPI_CLOCK_DIVIDE": [ { "value": "6", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "SPI_CLOCK_DIVIDE": [ { "value": "3", "value_src": "user", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "Component_Name": [ { "value": "saturn_top_AXIL_SPIWriter_0_0", "resolve_type": "user", "usage": "all" } ]
       },
       "model_parameters": {
         "AXI_DATA_WIDTH": [ { "value": "32", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "AXI_ADDR_WIDTH": [ { "value": "16", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "INITIAL_VALUE_word_0": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
-        "INITIAL_VALUE_word_1": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
-        "SPI_CLOCK_DIVIDE": [ { "value": "6", "resolve_type": "generated", "format": "long", "usage": "all" } ]
+        "SPI_CLOCK_DIVIDE": [ { "value": "3", "resolve_type": "generated", "format": "long", "usage": "all" } ]
       },
       "project_parameters": {
         "ARCHITECTURE": [ { "value": "artix7" } ],
@@ -70,8 +68,8 @@
         "s_axi_rready": [ { "direction": "in", "driver_value": "0" } ],
         "SPICk": [ { "direction": "out" } ],
         "SPIData": [ { "direction": "out" } ],
-        "SPILoad_0": [ { "direction": "out" } ],
-        "SPILoad_1": [ { "direction": "out" } ]
+        "SPILoad": [ { "direction": "out" } ],
+        "SPIMISO": [ { "direction": "in" } ]
       },
       "interfaces": {
         "s_axi": {

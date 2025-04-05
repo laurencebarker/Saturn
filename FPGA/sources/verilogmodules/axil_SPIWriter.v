@@ -12,12 +12,15 @@
 
 // Registers:
 // note this is true even if the axi-lite bus is wider!
-//  addr 0         SPI 0 data [31:0]        R/W
-//  addr 4         SPI 1 data [63:32]       R/W
-//  addr 8         bit 0: 1 if busy         (read only)
+//  addr 0         SPI write data [31:0]        R/W
+//  addr 4         SPI read data [63:32]        read only
+//  addr 8         bit 0: 1 if busy             read only
+//
+// write transfers will stall if a shift is in progress, so consecutive writes are OK
+// read transfers are not stalled. Before reaging SPI read data (0x04)
+// make sure the previous write has completed (0x08 bit0=0)
 //
 // SPI 0 is a 16 bit SPI register and bits 15:0 are shifted. Valid_0 is asserted after shift.
-// SPI 1 is a 32 bit SPI register and bits 31:0 are shifted. Valid_1 is asserted after shift.
 //
 // the design is in two parts: the AXI4 lite bus interface, and the SPI shifter.
 //
@@ -26,6 +29,7 @@
 // 
 // Revision:
 // Revision 0.01 - File Created
+// Revision 1.1 - modified to add SPI read, and be 16 bit only
 // Additional Comments: 
 // 
 //////////////////////////////////////////////////////////////////////////////////
@@ -38,8 +42,7 @@ module AXIL_SPIWriter #
   parameter integer AXI_DATA_WIDTH = 32,
   parameter integer AXI_ADDR_WIDTH = 16,
   parameter integer INITIAL_VALUE_word_0 = 0,
-  parameter integer INITIAL_VALUE_word_1 = 0,
-  parameter integer SPI_CLOCK_DIVIDE = 6
+  parameter integer SPI_CLOCK_DIVIDE = 3
 )
 (
   // System signals
@@ -68,8 +71,8 @@ module AXIL_SPIWriter #
   //
   output reg SPICk,                         // divided SPI clock
   output wire SPIData,                      // shifter data bit
-  output reg SPILoad_0,                     // load strobe for register 0
-  output reg SPILoad_1                      // load strobe for register 1
+  output reg SPILoad,                       // load strobe for SPI (chip select)
+  input wire SPIMISO                        // serial input
 );
 
 localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clock divide count
@@ -88,21 +91,24 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
   //
   // config register bits
   //
-  reg [AXI_DATA_WIDTH-1:0] config_reg0;     // stored data for 16 bit shift
-  reg [AXI_DATA_WIDTH-1:0] config_reg1;     // stored data for 32 bit shift
+  reg [AXI_DATA_WIDTH-1:0] config_reg0;     // stored data for 16 bit shift out
   reg SPIValid_0;                           // true if value written to register 0 
-  reg SPIValid_1;                           // true if value written to register 1
    
 //
 // SPI writer registers
 //
   reg [CKDIVWIDTH-1:0] clockdivide;
-  reg [AXI_DATA_WIDTH-1:0] shiftreg;        // SPI Shift register
+  reg [15:0] shiftreg;                      // SPI Shift register
+  reg [15:0] shiftinreg;                    // SPI Input Shift register
+  reg [15:0] SPIInWord;                     // complete SPI shifted word
   reg [2:0] SPIState;                       // state register
   reg SPIBusy;                              // busy bit
   reg ClearValid;                           // true when valid input should be cleared
   reg [15:0] SPICount;                      // counter
-  reg SPI32Bit;                             // true if 32 bit shift
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// this design is in two halves: Axilite register interface, and SPI shifter.
 //
 // AXILITE interface
 // read transaction strategy:
@@ -143,7 +149,6 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
     begin
 // reset to start states
       config_reg0 <= INITIAL_VALUE_word_0;
-      config_reg1 <= INITIAL_VALUE_word_1;
       rdatareg <= {(AXI_DATA_WIDTH){1'b0}};
       arreadyreg <= 1'b1;                           // ready for address transfer
       rvalidreg <= 1'b0;                            // not ready to transfer read data
@@ -151,7 +156,6 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
       wreadyreg  <= 1'b1;               // initialise to write data ready
       bvalidreg <= 1'b0;                // initialise to "not ready to complete"
       SPIValid_0 <= 0;                  // no data in register 0
-      SPIValid_1 <= 0;                  // no data in register 1
       wcompleted <= 1'b0;               // no write complete yet
     end
     else
@@ -163,7 +167,6 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
     if((ClearValid == 1) && (ClearValidReg == 0))
     begin
       SPIValid_0 <= 0;                  // no data in register 0
-      SPIValid_1 <= 0;                  // no data in register 1
       wreadyreg <= 1'b1;                // reassert ready for new write
     end
 //
@@ -182,7 +185,7 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
         if(raddrreg[3:2]==2'b00)                            // read back reg 0
           rdatareg <= config_reg0;
         else if(raddrreg[3:2]==2'b01)                       // read back reg 1
-          rdatareg <= config_reg1;
+          rdatareg <= {16'b0, SPIInWord};
         else
           rdatareg <= {{(AXI_DATA_WIDTH-1){1'b0}}, SPIBusy};
       end
@@ -227,12 +230,7 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
         awreadyreg <= 1'b1;                                 // and reassert the readys
 //        wreadyreg <= 1'b1;                                // NOT reasserting this yet
         wcompleted <= 1'b0;                                 // ready for next cycle
-        if(waddrreg[2]==1)
-        begin
-          config_reg1 <= wdatareg;
-          SPIValid_1 <= 1;
-        end
-        else
+        if(waddrreg[2]==0)
         begin
           config_reg0 <= wdatareg;
           SPIValid_0 <= 1;
@@ -264,28 +262,29 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
         end  
     end
 
-
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 //
 // SPI Shifter
 //
-// SPI target device loads data on rising edge of SPILoad. It gets approx 100ns setup time since last shift.
-// SPIDout is a wire from the shift register
-// on entry to state 1: load counter; load shift register; assert SPIBusy; Deassert SPILoad
-// on entry to state 2: shift the register left one place, decrement counter
+// SPI target device is a Codec: it can be:
+// TLV320AIC23B (shifts in data in rsing edge of SCLK), or
+// TLV320AIC3204 (shifts data in on falling edge of SCLK and shifts data out on rising edge)
+// there is a timing diagram in the documentation folder
 //
-    assign SPIData = shiftreg[AXI_DATA_WIDTH-1];        // o/p from top bit
+    assign SPIData = shiftreg[15];        // o/p from top bit
     always @(posedge aclk)
     begin
         if(!aresetn)                // reset condition
         begin
-            SPILoad_0 <= 1;
-            SPILoad_1 <= 1;
+            SPILoad <= 1;
             shiftreg <= 0;
+            shiftinreg <= 0;
+            SPIInWord <= 0;
             SPIState <= 0;                              // idle state
             SPIBusy <= 0;                               // not busy
             ClearValid <= 0;                            // don't clear
             SPICount <= 0;                              // count value register
-            SPI32Bit <= 0;
         end
         else if (clockdivide == 0)  // normal processing
         begin
@@ -295,74 +294,73 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
                     if(SPIValid_0 == 1)
                     begin
                         SPICount <= 15;                 // 16 bit shift
-                        shiftreg[31:16] <= config_reg0[15:0];
+                        shiftreg[15:0] <= config_reg0[15:0];        // data out is assigned from top bit
                         SPIBusy <= 1;                   // shifter is now working
                         SPIState <= 1;                  // next state
-                        SPILoad_0 <= 0;                 // deassert load
-                        SPI32Bit <= 0;                  // 16 bit shift
-                    end
-                    else if(SPIValid_1 == 1)
-                    begin
-                        SPICount <= 31;                 // 32 bit shift
-                        shiftreg[31:0] <= config_reg1[31:0];
-                        SPIBusy <= 1;                   // shifter is now working
-                        SPIState <= 1;                  // next state
-                        SPILoad_1 <= 0;                 // deassert load
-                        SPI32Bit <= 1;                  // 32 bit shift
+                        SPILoad <= 0;                   // deassert load
                     end
                     SPICk <= 0;
                 end
 
-            1:  begin                           // start state
+            // states 1-4 are the progression through one clock cycle
+            1:  begin                                   // start of clock cycle state
                     SPICk <= 1;
-                    SPIState <= 3;                  // next state
+                    SPIState <= 2;                      // next state
                 end
                 
-            // on entry to state 3: assert clock. if counter == 0, assert ClearValid
-            2:  begin                           // clock low state
-                    if(SPICount == 0)
-                        ClearValid <= 1;
-                    SPIState <= 3;                  // next state always state 3
+            // state 2: clock remains high
+            2:  begin                                   // clock low state
+                    SPIState <= 3;                      // next state always state 3
                     SPICk <= 1;
                 end
 
-            // on entry to state 2: deassert clock. shift the register left one place, decrement counter
-            // on entry to state 4: assert ClearValid
-            3:  begin                           // clock high state
-                    if(SPICount == 0)           // go to an end state
+            // state 3: drive clock low at the end, and sample data in
+            3:  begin                                   // clock low state
+                    SPIState <= 4;                      // next state always state 4
+                    SPICk <= 0;
+                    shiftinreg[0] <= SPIMISO;           // add in new data bit
+                end
+
+            // End of clock cycle. if counter == 0, assert ClearValid & move on else next lap
+            4:  begin                                   // clock low state
+                    if(SPICount == 0)                   // go to an end state
                     begin
-                        SPIState <= 4;                  // goto 1st end type
-                        ClearValid <= 0;
+                        SPIState <= 5;                  // goto 1st end type
+                        ClearValid <= 1;
                     end
-                    else                        // else loop round
+                    else                                // else loop round
                     begin
-                        SPIState <= 2;                  // next state is state 2
+                        SPIState <= 1;                  // next state is state 1
                         SPICount <= SPICount - 1;
                         shiftreg <= (shiftreg << 1);    // left shift for next bit
+                        shiftinreg <= (shiftinreg << 1);   // left shift for next bit
                     end
                     SPICk <= 0;
                 end
 
-            // on entry to state 5: assert SPILoad; deassert busy
-            4:  begin                               // end state 1
-                    SPIState <= 5;                  // next state is last end state
+            // end state. Deassert chip select out
+            5:  begin                               // clock low state
+                    ClearValid <= 0;
+                    SPIInWord <= shiftinreg;        // save shifted data  
+                    SPIState <= 6;                  // next state always state 3
+                    SPICk <= 0;
                     SPIBusy <= 0;
-                    if(SPI32Bit == 1)               // load data - shift size dependent
-                        SPILoad_1 <= 1;
-                    else 
-                        SPILoad_0 <= 1;
+                    SPILoad <= 1;                   // deassert load
+
                 end
 
-            5:  begin                               // end state 2
-                    SPIState <= 0;                  // next state is idle state
+            // near end state
+            6:  begin                           // clock low state
+                    SPIState <= 7;                  // next state always state 3
+                    SPICk <= 0;
                 end
 
-            6:  begin
-                    SPIState <= 0;                  // and other state - go back to start
+            // final state: go back to the start
+            7:  begin                           // clock low state
+                    SPIState <= 0;                  // next state always state 0
                 end
-            7:  begin
-                    SPIState <= 0;                  // and other state - go back to start
-                end
+
+
             endcase
         end
     end

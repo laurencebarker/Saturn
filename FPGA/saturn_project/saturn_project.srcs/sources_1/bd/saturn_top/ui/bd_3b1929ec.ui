@@ -1,7 +1,7 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"0.824692",
-   "Default View_TopLeft":"-85,92",
+   "Default View_TopLeft":"432,92",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
@@ -9,13 +9,13 @@ preplace port M_AXIS_TX -pg 1 -lvl 6 -x 1580 -y 890 -defaultsOSRD
 preplace port M_AXIS_codec -pg 1 -lvl 6 -x 1580 -y 1310 -defaultsOSRD
 preplace port S00_AXI_0 -pg 1 -lvl 0 -x -190 -y 950 -defaultsOSRD
 preplace port S_AXIS_RX -pg 1 -lvl 0 -x -190 -y 540 -defaultsOSRD
-preplace port S_AXIS_codec -pg 1 -lvl 0 -x -190 -y 1220 -defaultsOSRD
+preplace port S_AXIS_codec -pg 1 -lvl 0 -x -190 -y 1240 -defaultsOSRD
 preplace port s_axi_lite_0 -pg 1 -lvl 0 -x -190 -y 440 -defaultsOSRD
 preplace port S_AXIS00_WB -pg 1 -lvl 0 -x -190 -y 1580 -defaultsOSRD
 preplace port port-id_CLK12 -pg 1 -lvl 0 -x -190 -y 1280 -defaultsOSRD
 preplace port port-id_CLK122 -pg 1 -lvl 0 -x -190 -y 2100 -defaultsOSRD
 preplace port port-id_CLK125 -pg 1 -lvl 0 -x -190 -y 600 -defaultsOSRD
-preplace port port-id_aresetn_12 -pg 1 -lvl 0 -x -190 -y 1250 -defaultsOSRD
+preplace port port-id_aresetn_12 -pg 1 -lvl 0 -x -190 -y 1260 -defaultsOSRD
 preplace port port-id_aresetn_125 -pg 1 -lvl 0 -x -190 -y 800 -defaultsOSRD
 preplace port port-id_TX_FIFO_aresetn -pg 1 -lvl 0 -x -190 -y 250 -defaultsOSRD
 preplace port port-id_RX_FIFO_aresetn -pg 1 -lvl 0 -x -190 -y 110 -defaultsOSRD
@@ -38,41 +38,41 @@ preplace inst AXI_Stream_Reader_Wr_0 -pg 1 -lvl 3 -x 700 -y 870 -defaultsOSRD
 preplace inst AXI_Stream_Reader_Wr_1 -pg 1 -lvl 4 -x 1100 -y 1100 -defaultsOSRD
 preplace inst AXI_Stream_Reader_Wr_codec -pg 1 -lvl 3 -x 700 -y 1290 -defaultsOSRD
 preplace inst Watchdog_0 -pg 1 -lvl 4 -x 1100 -y 680 -defaultsOSRD
-preplace netloc ACLK_1 1 0 4 N 600 160 660 550 380 870
-preplace netloc AXI_Stream_Reader_Wr_0_Activity 1 3 1 890 710n
-preplace netloc AXI_Stream_Reader_Wr_codec_Activity 1 3 1 880 690n
-preplace netloc CLK12_1 1 0 5 -110 1280 150 1380 NJ 1380 950J 1410 1280
-preplace netloc CodecMicResetn_1 1 0 2 -140 1270 110
-preplace netloc CodecSpkResetn_1 1 0 4 NJ 1400 N 1400 NJ 1400 920
-preplace netloc M10_ARESETN_1 1 0 4 N 800 170 800 540 370 930
-preplace netloc Net1 1 0 5 -150 790 140 790 570J 770 920 990 1290
-preplace netloc Net2 1 0 2 N 110 120
-preplace netloc TX_FIFO_aresetn_1 1 0 4 NJ 250 N 250 NJ 250 950
+preplace netloc ACLK_1 1 0 4 N 600 150 660 550 380 860
+preplace netloc AXI_Stream_Reader_Wr_0_Activity 1 3 1 880 710n
+preplace netloc AXI_Stream_Reader_Wr_codec_Activity 1 3 1 870 690n
+preplace netloc CLK12_1 1 0 5 -120 1280 140 1380 NJ 1380 940J 1410 1290
+preplace netloc CodecMicResetn_1 1 0 2 -140 1270 120
+preplace netloc CodecSpkResetn_1 1 0 4 NJ 1400 N 1400 NJ 1400 910
+preplace netloc M10_ARESETN_1 1 0 4 N 800 160 800 540 370 920
+preplace netloc Net1 1 0 5 -150 790 130 790 570J 770 910 990 1300
+preplace netloc Net2 1 0 2 N 110 130
+preplace netloc TX_FIFO_aresetn_1 1 0 4 NJ 250 N 250 NJ 250 940
 preplace netloc Watchdog_0_TXEnable 1 4 2 NJ 680 N
-preplace netloc aresetn_122_1 1 0 5 NJ 320 NJ 320 NJ 320 NJ 320 1300
-preplace netloc aresetn_12_1 1 0 5 -100J 1260 100 1420 NJ 1420 NJ 1420 1300
-preplace netloc axis_data_fifo_DDC0_axis_rd_data_count 1 2 1 470 500n
-preplace netloc axis_data_fifo_DUC_axis_wr_data_count 1 2 3 560 350 NJ 350 1250
-preplace netloc axis_data_fifo_codecmic_axis_rd_data_count 1 2 1 490 580n
-preplace netloc axis_data_fifo_codecspk_axis_wr_data_count 1 2 3 570 360 NJ 360 1260
-preplace netloc txmux_reset_1 1 0 5 NJ 870 NJ 870 560J 760 940J 770 1280
+preplace netloc aresetn_122_1 1 0 5 NJ 320 NJ 320 NJ 320 NJ 320 1310
+preplace netloc aresetn_12_1 1 0 5 -110J 1260 110 1420 NJ 1420 NJ 1420 1310
+preplace netloc axis_data_fifo_DDC0_axis_rd_data_count 1 2 1 480 500n
+preplace netloc axis_data_fifo_DUC_axis_wr_data_count 1 2 3 560 350 NJ 350 1260
+preplace netloc axis_data_fifo_codecmic_axis_rd_data_count 1 2 1 500 580n
+preplace netloc axis_data_fifo_codecspk_axis_wr_data_count 1 2 3 570 360 NJ 360 1270
+preplace netloc txmux_reset_1 1 0 5 NJ 870 NJ 870 560J 760 930J 770 1290
 preplace netloc xlconstant_val0_dout 1 2 1 530 520n
-preplace netloc AXIS00_WB_1 1 0 4 -170J 780 NJ 780 NJ 780 900
+preplace netloc AXIS00_WB_1 1 0 4 -170J 780 NJ 780 NJ 780 890
 preplace netloc AXIS_Sizer_64to48_0_m_axis 1 5 1 1560 890n
-preplace netloc AXI_Stream_Reader_Wr_0_m_axis 1 3 1 910 860n
+preplace netloc AXI_Stream_Reader_Wr_0_m_axis 1 3 1 900 860n
 preplace netloc AXI_Stream_Reader_Wr_10_m_axis 1 3 1 830 1280n
 preplace netloc Conn1 1 0 2 NJ 540 N
-preplace netloc Conn14 1 0 2 NJ 950 100
+preplace netloc Conn14 1 0 2 NJ 950 110
 preplace netloc Conn15 1 0 3 NJ 440 N 440 NJ
 preplace netloc S_AXIS_codec_1 1 0 1 -160 1140n
 preplace netloc axi_interconnect_0_M00_AXI 1 2 1 570 860n
-preplace netloc axi_interconnect_0_M01_AXI 1 2 1 500 1040n
+preplace netloc axi_interconnect_0_M01_AXI 1 2 1 510 1040n
 preplace netloc axi_interconnect_0_M02_AXI 1 2 2 NJ 1060 830
-preplace netloc axis_data_fifo_DDC0_M_AXIS 1 2 1 480 560n
-preplace netloc axis_data_fifo_DUC_M_AXIS 1 4 1 1270 880n
+preplace netloc axis_data_fifo_DDC0_M_AXIS 1 2 1 490 560n
+preplace netloc axis_data_fifo_DUC_M_AXIS 1 4 1 1280 880n
 preplace netloc axis_data_fifo_codecmic_M_AXIS 1 2 1 N 1260
 preplace netloc axis_data_fifo_codecspk_M_AXIS 1 4 1 N 1310
-preplace netloc axis_dwidth_converter_1_M_AXIS 1 1 1 100 1160n
+preplace netloc axis_dwidth_converter_1_M_AXIS 1 1 1 110 1160n
 preplace netloc axis_dwidth_converter_64to32bit_M_AXIS 1 5 1 1560 1310n
 levelinfo -pg 1 -190 0 320 700 1100 1440 1580
 pagesize -pg 1 -db -bbox -sgen -360 -130 1760 3140

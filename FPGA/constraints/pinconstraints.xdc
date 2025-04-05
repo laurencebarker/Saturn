@@ -2,16 +2,16 @@
 # user access register
 # used for "version number" settig - currently a date code
 #
-set_property BITSTREAM.CONFIG.USR_ACCESS 0x17022025 [current_design]
+set_property BITSTREAM.CONFIG.USR_ACCESS 0x31032025 [current_design]
 
 #SPI_BUSWIDTH sets the read commands into bit file.
-#CONFIG_MODE SPIx4 is for Vivado tool to check DRC. 
+#CONFIG_MODE SPIx4 is for Vivado tool to check DRC.
 #The advice is to match both setting to the mode you are using.
 set_property CONFIG_VOLTAGE 3.3 [current_design]
 set_property CFGBVS VCCO [current_design]
 
 
-## bitstream constraints for NORMAL FPGA BIT file 
+## bitstream constraints for NORMAL FPGA BIT file
 #full size, uncompressed image
 set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR YES [current_design]
 set_property BITSTREAM.CONFIG.EXTMASTERCCLK_EN Div-2 [current_design]
@@ -465,7 +465,7 @@ set_property PACKAGE_PIN V19 [get_ports {GPIO_OUT[3]}]
 set_property PACKAGE_PIN W25 [get_ports {GPIO_OUT[5]}]
 set_property PACKAGE_PIN V17 [get_ports {GPIO_OUT[4]}]
 set_property PACKAGE_PIN Y20 [get_ports {GPIO_OUT[6]}]
-set_property PACKAGE_PIN U20 [get_ports {CODEC_CS}]
+set_property PACKAGE_PIN U20 [get_ports CODEC_CS]
 set_property PACKAGE_PIN W20 [get_ports {GPIO_OUT[7]}]
 set_property PACKAGE_PIN H2 [get_ports {LEDOutputs[15]}]
 set_property PACKAGE_PIN H1 [get_ports {LEDOutputs[14]}]
@@ -585,6 +585,7 @@ set_property PULLUP true [get_ports {pcb_version_id[1]}]
 set_property PULLUP true [get_ports {pcb_version_id[2]}]
 set_property PULLUP true [get_ports {pcb_version_id[3]}]
 
+
 set_property OFFCHIP_TERM NONE [get_ports ADC1_ATTEN_CLK]
 set_property OFFCHIP_TERM NONE [get_ports ADC1_ATTEN_DAT]
 set_property OFFCHIP_TERM NONE [get_ports ADC1_ATTEN_LE]
@@ -592,6 +593,9 @@ set_property OFFCHIP_TERM NONE [get_ports ADC2_ATTEN_CLK]
 set_property OFFCHIP_TERM NONE [get_ports ADC2_ATTEN_DAT]
 set_property OFFCHIP_TERM NONE [get_ports ADC2_ATTEN_LE]
 set_property OFFCHIP_TERM NONE [get_ports BCLK]
+set_property OFFCHIP_TERM NONE [get_ports CODEC_CS]
+set_property OFFCHIP_TERM NONE [get_ports CODEC_SPI_CLK]
+set_property OFFCHIP_TERM NONE [get_ports CODEC_SPI_DATA]
 set_property OFFCHIP_TERM NONE [get_ports CTRL_TRSW]
 set_property OFFCHIP_TERM NONE [get_ports DRIVER_PA_EN]
 set_property OFFCHIP_TERM NONE [get_ports LRCLK]
@@ -607,15 +611,13 @@ set_property OFFCHIP_TERM NONE [get_ports RF_SPI_RX_LOAD]
 set_property OFFCHIP_TERM NONE [get_ports RF_SPI_TX_LOAD]
 set_property OFFCHIP_TERM NONE [get_ports TX_DAC_PWM]
 set_property OFFCHIP_TERM NONE [get_ports i2stxd]
-set_property OFFCHIP_TERM NONE [get_ports CODEC_SPI_CLK]
-set_property OFFCHIP_TERM NONE [get_ports CODEC_SPI_DATA]
-set_property OFFCHIP_TERM NONE [get_ports CODEC_CS]
 set_property OFFCHIP_TERM NONE [get_ports pll_cr]
 set_property OFFCHIP_TERM NONE [get_ports ADC_CLK[0]]
 set_property OFFCHIP_TERM NONE [get_ports ADC_MOSI[0]]
 set_property OFFCHIP_TERM NONE [get_ports ATU_TUNE[0]]
 set_property OFFCHIP_TERM NONE [get_ports BLINK_LED[0]]
 set_property OFFCHIP_TERM NONE [get_ports BUF_Out_FPGA[0]]
+set_property OFFCHIP_TERM NONE [get_ports CODEC_RESETN[0]]
 set_property OFFCHIP_TERM NONE [get_ports DAC_Out_P[15]]
 set_property OFFCHIP_TERM NONE [get_ports DAC_Out_P[14]]
 set_property OFFCHIP_TERM NONE [get_ports DAC_Out_P[13]]
@@ -688,3 +690,8 @@ set_property OFFCHIP_TERM NONE [get_ports PCI_LINK_LED[0]]
 set_property OFFCHIP_TERM NONE [get_ports PROM_SPI_ss_io[0]]
 set_property OFFCHIP_TERM NONE [get_ports TXRX_RELAY[0]]
 set_property OFFCHIP_TERM NONE [get_ports nADC_CS[0]]
+set_property PACKAGE_PIN W23 [get_ports CODEC_MISO]
+set_property IOSTANDARD LVCMOS33 [get_ports CODEC_MISO]
+set_property PULLUP true [get_ports CODEC_MISO]
+set_property PACKAGE_PIN Y22 [get_ports {CODEC_RESETN[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {CODEC_RESETN[0]}]
