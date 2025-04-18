@@ -97,23 +97,26 @@ initial begin
 // Assert the reset
 //
     resetn1 = 0;
-//    S_AXIS_tdata = 47'h0000007FFFFF;                // 1, 0
-    S_AXIS_tdata = 47'h000000733332;                // 0.9, 0
+    S_AXIS_tdata = 47'h0000007FFFFF;                // 1, 0
+//  S_AXIS_tdata = 47'h000000733332;                // 0.9, 0
     S_AXIS_tvalid = 1;
 //    TXConfig = 32'h80033008;                        // nearly full scale amplitude - after adding cordic
-    TXConfig = 32'h80028008;                        // full scale amplitude, 23 bit DDS, complex mult
+//    TXConfig = 32'h80028008;                        // full scale amplitude, 23 bit DDS, complex mult
+//    TXConfig = 32'h80020008;                        // full scale amplitude, 23 bit DDS, complex mult
+    TXConfig = 32'h80029008;                        // over full scale full scale amplitude, 23 bit DDS, complex mult
     cic_rate = 16'd80;
     sel = 1;                                        // select data out
 //
 // select DDS frequency
 //
-    TXLOTune = 32'h03F55555;                        // 1.9MHz
+//    TXLOTune = 32'h03F55555;                        // 1.9MHz
 //    TXLOTune = 32'h07EAAAAA;                        // 3.8MHz
 //    TXLOTune = 32'h0ECAAAAA;                        // 7.1MHz
 //    TXLOTune = 32'h1D600000;                        // 14.1MHz
 //    TXLOTune = 32'h2BF55555;                        // 21.1MHz
 //    TXLOTune = 32'h3A8AAAAA;                        // 28.1MHz
 //    TXLOTune = 32'h68600000;                        // 50.1MHz
+    TXLOTune = 32'h6B4AAAAA;                        // 51.5MHz
     #1000
     // Release the reset
     resetn1 = 1;
