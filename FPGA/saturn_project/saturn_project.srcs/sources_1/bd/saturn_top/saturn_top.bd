@@ -10017,7 +10017,7 @@
             "inst_hier_path": "PCIe/xlconstant_swversion",
             "parameters": {
               "CONST_VAL": {
-                "value": "21"
+                "value": "22"
               },
               "CONST_WIDTH": {
                 "value": "16"
@@ -25485,7 +25485,7 @@
             "variant_info": {
               "TX_DUC.bd": {
                 "scoped_diagram": "TX_DUC_inst_0.bd",
-                "design_checksum": "0xA6B8F039",
+                "design_checksum": "0x81B6F7AC",
                 "ref_name": "TX_DUC",
                 "ref_subinst_path": "saturn_top_TX_DUC_0",
                 "ref_type": "Block Design",

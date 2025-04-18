@@ -835,7 +835,7 @@
             "value": "Not_Required"
           },
           "Noise_Shaping": {
-            "value": "Auto"
+            "value": "Taylor_Series_Corrected"
           },
           "Output_Frequency1": {
             "value": "0"
@@ -930,7 +930,7 @@
             "value": "2"
           },
           "Output_Rounding_Mode": {
-            "value": "Non_Symmetric_Rounding_Down"
+            "value": "Truncate_LSBs"
           },
           "Output_Width": {
             "value": "27"

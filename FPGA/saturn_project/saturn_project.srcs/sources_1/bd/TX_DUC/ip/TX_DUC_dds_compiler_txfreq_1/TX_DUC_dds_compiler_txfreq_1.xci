@@ -17,7 +17,7 @@
         "Parameter_Entry": [ { "value": "System_Parameters", "resolve_type": "user", "usage": "all" } ],
         "Spurious_Free_Dynamic_Range": [ { "value": "130", "value_src": "user", "resolve_type": "user", "format": "float", "usage": "all" } ],
         "Frequency_Resolution": [ { "value": "0.05", "value_src": "user", "resolve_type": "user", "format": "float", "usage": "all" } ],
-        "Noise_Shaping": [ { "value": "Auto", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
+        "Noise_Shaping": [ { "value": "Taylor_Series_Corrected", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
         "Phase_Width": [ { "value": "32", "value_src": "user", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "Output_Width": [ { "value": "23", "value_src": "user", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "Phase_Increment": [ { "value": "Streaming", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
