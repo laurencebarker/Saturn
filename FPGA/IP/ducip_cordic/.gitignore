@@ -1,0 +1,9 @@
+# GIT should ignore:
+ducip_cordic.cache
+ducip_cordic.gen
+ducip_cordic.hw
+ducip_cordic.ip_user_files
+ducip_cordic.runs
+ducip_cordic.sim
+.Xil
+vivado.*

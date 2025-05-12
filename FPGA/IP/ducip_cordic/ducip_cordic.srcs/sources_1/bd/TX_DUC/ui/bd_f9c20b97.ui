@@ -1,0 +1,73 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"1.0",
+   "Default View_TopLeft":"141,-165",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
+#  -string -flagsOSRD
+preplace port S_AXIS -pg 1 -lvl 0 -x -240 -y 310 -defaultsOSRD
+preplace port port-id_clk122 -pg 1 -lvl 0 -x -240 -y 330 -defaultsOSRD
+preplace port port-id_resetn1 -pg 1 -lvl 0 -x -240 -y 350 -defaultsOSRD
+preplace port port-id_sel -pg 1 -lvl 0 -x -240 -y 830 -defaultsOSRD
+preplace portBus TXConfig -pg 1 -lvl 0 -x -240 -y 760 -defaultsOSRD
+preplace portBus TXDACData -pg 1 -lvl 10 -x 3450 -y 840 -defaultsOSRD
+preplace portBus TXLOTune -pg 1 -lvl 0 -x -240 -y 690 -defaultsOSRD
+preplace portBus TXSamplesToRX -pg 1 -lvl 10 -x 3450 -y 730 -defaultsOSRD
+preplace portBus cic_rate -pg 1 -lvl 0 -x -240 -y 100 -defaultsOSRD
+preplace portBus testdata -pg 1 -lvl 10 -x 3450 -y 20 -defaultsOSRD
+preplace inst xlconstant_16x0 -pg 1 -lvl 6 -x 2320 -y 930 -defaultsOSRD
+preplace inst xlslice_2 -pg 1 -lvl 6 -x 2320 -y 590 -defaultsOSRD
+preplace inst xlslice_3 -pg 1 -lvl 6 -x 2320 -y 830 -defaultsOSRD
+preplace inst axis_variable_1 -pg 1 -lvl 6 -x 2320 -y 220 -defaultsOSRD
+preplace inst axis_broadcaster_cic_path_split -pg 1 -lvl 6 -x 2320 -y 390 -defaultsOSRD
+preplace inst axis_combiner_0 -pg 1 -lvl 8 -x 3010 -y 440 -defaultsOSRD
+preplace inst axis_dwidth_converter_0 -pg 1 -lvl 1 -x -70 -y 330 -defaultsOSRD
+preplace inst axis_dwidth_converter_fir_to_IQ -pg 1 -lvl 4 -x 1380 -y 370 -defaultsOSRD
+preplace inst cic_compiler_0 -pg 1 -lvl 7 -x 2670 -y 270 -defaultsOSRD
+preplace inst cic_compiler_1 -pg 1 -lvl 7 -x 2670 -y 430 -defaultsOSRD
+preplace inst cmpy_0 -pg 1 -lvl 5 -x 1920 -y 790 -defaultsOSRD
+preplace inst fir_compiler_0 -pg 1 -lvl 2 -x 340 -y 370 -defaultsOSRD
+preplace inst mult_gen_0 -pg 1 -lvl 7 -x 2670 -y 660 -defaultsOSRD
+preplace inst dds_compiler_0 -pg 1 -lvl 3 -x 750 -y 680 -defaultsOSRD
+preplace inst D_register_2 -pg 1 -lvl 9 -x 3310 -y 680 -defaultsOSRD
+preplace inst axis_constant_0 -pg 1 -lvl 2 -x 340 -y 650 -defaultsOSRD
+preplace inst axis_variable_0 -pg 1 -lvl 6 -x 2320 -y 80 -defaultsOSRD
+preplace inst cvt_offset_binary_0 -pg 1 -lvl 9 -x 3310 -y 840 -defaultsOSRD
+preplace inst regmux_2_1_0 -pg 1 -lvl 8 -x 3010 -y 790 -defaultsOSRD
+preplace inst axis_cordic_0 -pg 1 -lvl 3 -x 750 -y 980 -defaultsOSRD
+preplace inst xlconstant_1 -pg 1 -lvl 2 -x 340 -y 850 -defaultsOSRD
+preplace inst xlconstant_0 -pg 1 -lvl 7 -x 2670 -y -150 -defaultsOSRD
+preplace netloc D_register_2_dout 1 9 1 3430 680n
+preplace netloc IQ_Modulation_Select_TX_OPENABLE 1 0 8 -210J 780 NJ 780 NJ 780 910 710 NJ 710 2080 750 NJ 750 N
+preplace netloc Net5 1 0 9 -180 410 180 460 590 460 1260 460 1750 390 2160 300 2500 540 2840 660 3190
+preplace netloc TXConfig_1 1 0 6 -220J 790 NJ 790 NJ 790 900 870 NJ 870 2100
+preplace netloc TXLOTune_1 1 0 3 NJ 690 190 580 500
+preplace netloc cmpy_0_m_axis_dout_tdata 1 5 1 2100 590n
+preplace netloc cvt_offset_binary_0_dout 1 9 1 N 840
+preplace netloc mult_gen_0_P 1 7 2 2830 890 3180
+preplace netloc regmux_2_1_0_dout 1 8 1 3170 790n
+preplace netloc regmux_2_1_1_dout1 1 0 6 NJ 100 NJ 100 NJ 100 N 100 N 100 2170
+preplace netloc resetn_2 1 0 9 -190 420 170 450 600 450 1270 450 N 450 2150 310 2510 520 2850 680 NJ
+preplace netloc xlconstant_16x0_dout 1 6 2 N 930 2850
+preplace netloc xlconstant_1_dout 1 2 1 490 850n
+preplace netloc xlslice_2_Dout 1 6 1 2470 590n
+preplace netloc xlslice_3_Dout 1 6 1 2500 680n
+preplace netloc xlconstant_0_dout 1 7 3 NJ -150 NJ -150 3430
+preplace netloc S_AXIS_1 1 0 1 N 310
+preplace netloc axis_broadcaster_0_M00_AXIS 1 6 1 2470 240n
+preplace netloc axis_broadcaster_0_M01_AXIS 1 6 1 N 400
+preplace netloc axis_combiner_0_M_AXIS 1 4 5 1760 530 N 530 N 530 N 530 3170
+preplace netloc axis_constant_0_m_axis 1 2 1 510 650n
+preplace netloc axis_dwidth_converter_0_M_AXIS 1 1 1 40 330n
+preplace netloc axis_dwidth_converter_fir_to_IQ_M_AXIS 1 4 2 N 370 N
+preplace netloc axis_variable_0_m_axis 1 6 1 2500 80n
+preplace netloc axis_variable_1_m_axis 1 6 1 2480 220n
+preplace netloc cic_compiler_0_M_AXIS_DATA 1 7 1 2850 270n
+preplace netloc cic_compiler_1_M_AXIS_DATA 1 7 1 N 430
+preplace netloc fir_compiler_0_M_AXIS_DATA 1 2 2 530 350 N
+preplace netloc axis_cordic_0_m_axis 1 3 2 910 790 NJ
+levelinfo -pg 1 -240 -70 340 750 1380 1920 2320 2670 3010 3310 3450
+pagesize -pg 1 -db -bbox -sgen -400 -420 3650 1070
+"
+}
+0

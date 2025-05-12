@@ -4,10 +4,10 @@
 <!-- Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.                   -->
 <!-- Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.   -->
 
-<Project Product="Vivado" Version="7" Minor="63" Path="C:/xilinxdesigns/Saturn/FPGA/IP/DUCIP/DUCIP.xpr">
+<Project Product="Vivado" Version="7" Minor="63" Path="C:/xilinxdesigns/Saturn/FPGA/IP/ducip_cordic/ducip_cordic.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
-    <Option Name="Id" Val="69fcfc1806234ff8b91b79ace4f6bf13"/>
+    <Option Name="Id" Val="00dcc152b8f241359c03c8bcc41921a9"/>
     <Option Name="Part" Val="xc7a200tfbg676-2"/>
     <Option Name="CompiledLibDir" Val="$PCACHEDIR/compile_simlib"/>
     <Option Name="CompiledLibDirXSim" Val=""/>
@@ -58,20 +58,20 @@
     <Option Name="IPUserFilesDir" Val="$PIPUSERFILESDIR"/>
     <Option Name="IPStaticSourceDir" Val="$PIPUSERFILESDIR/ipstatic"/>
     <Option Name="EnableBDX" Val="FALSE"/>
-    <Option Name="WTXSimLaunchSim" Val="74"/>
+    <Option Name="WTXSimLaunchSim" Val="84"/>
     <Option Name="WTModelSimLaunchSim" Val="0"/>
     <Option Name="WTQuestaLaunchSim" Val="0"/>
     <Option Name="WTIesLaunchSim" Val="0"/>
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="42"/>
-    <Option Name="WTModelSimExportSim" Val="42"/>
-    <Option Name="WTQuestaExportSim" Val="42"/>
+    <Option Name="WTXSimExportSim" Val="49"/>
+    <Option Name="WTModelSimExportSim" Val="49"/>
+    <Option Name="WTQuestaExportSim" Val="49"/>
     <Option Name="WTIesExportSim" Val="0"/>
-    <Option Name="WTVcsExportSim" Val="42"/>
-    <Option Name="WTRivieraExportSim" Val="42"/>
-    <Option Name="WTActivehdlExportSim" Val="42"/>
+    <Option Name="WTVcsExportSim" Val="49"/>
+    <Option Name="WTRivieraExportSim" Val="49"/>
+    <Option Name="WTActivehdlExportSim" Val="49"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>
@@ -89,50 +89,16 @@
   <FileSets Version="1" Minor="31">
     <FileSet Name="sources_1" Type="DesignSrcs" RelSrcDir="$PSRCDIR/sources_1" RelGenDir="$PGENDIR/sources_1">
       <Filter Type="Srcs"/>
-      <File Path="$PSRCDIR/sources_1/imports/verilogmodules/register.v">
+      <File Path="$PPRDIR/../../sources/verilogmodules/register.v">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../sources/verilogmodules/register.v"/>
-          <Attr Name="ImportTime" Val="1638816048"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PSRCDIR/sources_1/imports/verilogmodules/axis_constant.v">
+      <File Path="$PPRDIR/../../sources/verilogmodules/lfsr.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../sources/verilogmodules/axis_constant.v"/>
-          <Attr Name="ImportTime" Val="1638816048"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PSRCDIR/sources_1/imports/verilogmodules/axis_variable.v">
-        <FileInfo>
-          <Attr Name="AutoDisabled" Val="1"/>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../sources/verilogmodules/axis_variable.v"/>
-          <Attr Name="ImportTime" Val="1638816048"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PSRCDIR/sources_1/imports/verilogmodules/cvt_offsetbinary.v">
-        <FileInfo>
-          <Attr Name="AutoDisabled" Val="1"/>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../sources/verilogmodules/cvt_offsetbinary.v"/>
-          <Attr Name="ImportTime" Val="1638816048"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PSRCDIR/sources_1/imports/verilogmodules/regmux_2_1.v">
-        <FileInfo>
-          <Attr Name="AutoDisabled" Val="1"/>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../sources/verilogmodules/regmux_2_1.v"/>
-          <Attr Name="ImportTime" Val="1638816048"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -148,13 +114,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../sources/coefficientfiles/tx1024cfirImpulse.coe">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../sources/verilogmodules/lfsr.v">
+      <File Path="$PPRDIR/cordic.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -162,7 +122,37 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/cordic.v">
+      <File Path="$PPRDIR/../../sources/coefficientfiles/tx1024cfirImpulse.coe">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../sources/verilogmodules/axis_constant.v">
+        <FileInfo>
+          <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../sources/verilogmodules/axis_variable.v">
+        <FileInfo>
+          <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../sources/verilogmodules/cvt_offsetbinary.v">
+        <FileInfo>
+          <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../sources/verilogmodules/regmux_2_1.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -185,17 +175,15 @@
     </FileSet>
     <FileSet Name="sim_1" Type="SimulationSrcs" RelSrcDir="$PSRCDIR/sim_1" RelGenDir="$PGENDIR/sim_1">
       <Filter Type="Srcs"/>
-      <File Path="$PPRDIR/TX_DUC_tb.v">
+      <File Path="$PPRDIR/TX_DUC_cordic_tb.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PSRCDIR/sim_1/imports/testbenches/tx_duc_tb_behav.wcfg">
+      <File Path="$PPRDIR/tx_duc_tb_behav.wcfg">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../sources/testbenches/tx_duc_tb_behav.wcfg"/>
-          <Attr Name="ImportTime" Val="1672573687"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
