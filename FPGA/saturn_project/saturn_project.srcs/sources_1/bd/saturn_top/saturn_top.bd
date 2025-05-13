@@ -209,7 +209,9 @@
         "xlconstant_drive0": "",
         "xlconstant_drive1": "",
         "AXILite_Alex_SPI_0": "",
-        "Double_D_register_0": ""
+        "Double_D_register_0": "",
+        "OR_wdog_override": "",
+        "xlconcat_0": ""
       },
       "Receiver": {
         "dualDDC10": {
@@ -350,7 +352,8 @@
         "xlslice_reset": "",
         "xlconstant_proto1": "",
         "xlconstant_proto2": "",
-        "regmux_2_1_1": ""
+        "regmux_2_1_1": "",
+        "xlslice_wdogoverride": ""
       },
       "audio_codec_0": "",
       "clock_generator": {
@@ -10017,7 +10020,7 @@
             "inst_hier_path": "PCIe/xlconstant_swversion",
             "parameters": {
               "CONST_VAL": {
-                "value": "22"
+                "value": "23"
               },
               "CONST_WIDTH": {
                 "value": "16"
@@ -11261,6 +11264,9 @@
             "direction": "O",
             "left": "0",
             "right": "0"
+          },
+          "Watchdog_override": {
+            "direction": "I"
           }
         },
         "components": {
@@ -13987,6 +13993,26 @@
                 "right": "0"
               }
             }
+          },
+          "OR_wdog_override": {
+            "vlnv": "xilinx.com:ip:util_reduced_logic:2.0",
+            "xci_name": "saturn_top_util_reduced_logic_0_8",
+            "xci_path": "ip\\saturn_top_util_reduced_logic_0_8\\saturn_top_util_reduced_logic_0_8.xci",
+            "inst_hier_path": "RF_interfaces/OR_wdog_override",
+            "parameters": {
+              "C_OPERATION": {
+                "value": "or"
+              },
+              "C_SIZE": {
+                "value": "2"
+              }
+            }
+          },
+          "xlconcat_0": {
+            "vlnv": "xilinx.com:ip:xlconcat:2.1",
+            "xci_name": "saturn_top_xlconcat_0_4",
+            "xci_path": "ip\\saturn_top_xlconcat_0_4\\saturn_top_xlconcat_0_4.xci",
+            "inst_hier_path": "RF_interfaces/xlconcat_0"
           }
         },
         "interface_nets": {
@@ -14025,8 +14051,7 @@
           "Double_D_register_0_dout": {
             "ports": [
               "Double_D_register_0/dout",
-              "Strobes/TXWatchdogEnable",
-              "Watchdog_TXEN"
+              "xlconcat_0/In0"
             ]
           },
           "Net": {
@@ -14108,6 +14133,12 @@
               "Double_D_register_0/din"
             ]
           },
+          "Watchdog_override_1": {
+            "ports": [
+              "Watchdog_override",
+              "xlconcat_0/In1"
+            ]
+          },
           "aclk_1": {
             "ports": [
               "aclk",
@@ -14181,6 +14212,13 @@
               "debounce/status_in"
             ]
           },
+          "util_reduced_logic_0_Res": {
+            "ports": [
+              "OR_wdog_override/Res",
+              "Strobes/TXWatchdogEnable",
+              "Watchdog_TXEN"
+            ]
+          },
           "util_reduced_logic_1_Res": {
             "ports": [
               "Strobes/MOX_strobe",
@@ -14204,6 +14242,12 @@
             "ports": [
               "util_vector_logic_0/Res",
               "TXRX_RELAY"
+            ]
+          },
+          "xlconcat_0_dout": {
+            "ports": [
+              "xlconcat_0/dout",
+              "OR_wdog_override/Op1"
             ]
           },
           "xlconstant_0_dout": {
@@ -24540,6 +24584,11 @@
             "direction": "O",
             "left": "0",
             "right": "0"
+          },
+          "Watchdog_Override": {
+            "direction": "O",
+            "left": "0",
+            "right": "0"
           }
         },
         "components": {
@@ -25285,7 +25334,7 @@
             "variant_info": {
               "IQ_Modulation_Select.bd": {
                 "scoped_diagram": "IQ_Modulation_Select_inst_0.bd",
-                "design_checksum": "0x48031BED",
+                "design_checksum": "0x5618E2CB",
                 "ref_name": "IQ_Modulation_Select",
                 "ref_subinst_path": "saturn_top_IQ_Modulation_Select_0",
                 "ref_type": "Block Design",
@@ -26449,6 +26498,20 @@
                 "right": "0"
               }
             }
+          },
+          "xlslice_wdogoverride": {
+            "vlnv": "xilinx.com:ip:xlslice:1.0",
+            "xci_name": "saturn_top_xlslice_1_15",
+            "xci_path": "ip\\saturn_top_xlslice_1_15\\saturn_top_xlslice_1_15.xci",
+            "inst_hier_path": "Transmitter/xlslice_wdogoverride",
+            "parameters": {
+              "DIN_FROM": {
+                "value": "28"
+              },
+              "DIN_TO": {
+                "value": "28"
+              }
+            }
           }
         },
         "interface_nets": {
@@ -26519,7 +26582,8 @@
               "xlslice_deinterleave/Din",
               "xlslice_enable/Din",
               "xlslice_rate/Din",
-              "xlslice_reset/Din"
+              "xlslice_reset/Din",
+              "xlslice_wdogoverride/Din"
             ]
           },
           "TXStrobe_1": {
@@ -26624,6 +26688,12 @@
             "ports": [
               "xlslice_0/Dout",
               "IQ_Modulation_Select/Modulation_Setup"
+            ]
+          },
+          "xlslice_1_Dout": {
+            "ports": [
+              "xlslice_wdogoverride/Dout",
+              "Watchdog_Override"
             ]
           },
           "xlslice_deinterleave_Dout": {
@@ -29444,6 +29514,12 @@
         "ports": [
           "RF_interfaces/Watchdog_TXEN",
           "PCIe/Watchdog_TXEN"
+        ]
+      },
+      "Watchdog_override_1": {
+        "ports": [
+          "Transmitter/Watchdog_Override",
+          "RF_interfaces/Watchdog_override"
         ]
       },
       "aclk_1": {

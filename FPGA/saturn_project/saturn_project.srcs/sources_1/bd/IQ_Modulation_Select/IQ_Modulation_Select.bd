@@ -2114,7 +2114,7 @@
         "inst_hier_path": "xlconst_amplQ",
         "parameters": {
           "CONST_VAL": {
-            "value": "0x00007FFFFF"
+            "value": "0x000000733332"
           },
           "CONST_WIDTH": {
             "value": "48"
