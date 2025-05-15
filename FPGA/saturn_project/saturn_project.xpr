@@ -70,13 +70,13 @@
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="25"/>
-    <Option Name="WTModelSimExportSim" Val="25"/>
-    <Option Name="WTQuestaExportSim" Val="25"/>
+    <Option Name="WTXSimExportSim" Val="26"/>
+    <Option Name="WTModelSimExportSim" Val="26"/>
+    <Option Name="WTQuestaExportSim" Val="26"/>
     <Option Name="WTIesExportSim" Val="3"/>
-    <Option Name="WTVcsExportSim" Val="25"/>
-    <Option Name="WTRivieraExportSim" Val="25"/>
-    <Option Name="WTActivehdlExportSim" Val="25"/>
+    <Option Name="WTVcsExportSim" Val="26"/>
+    <Option Name="WTRivieraExportSim" Val="26"/>
+    <Option Name="WTActivehdlExportSim" Val="26"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>
@@ -381,13 +381,6 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../sources/verilogmodules/cvt_offsetbinary.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
       <File Path="$PPRDIR/../sources/verilogmodules/axi_stream_deinterleaver.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -409,14 +402,21 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../sources/verilogmodules/cvt_offsetbinary.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PSRCDIR/sources_1/bd/saturn_top/saturn_top.bd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIL_SPIWriter_0_0/saturn_top_AXIL_SPIWriter_0_0.xci">
-          <Proxy FileSetName="saturn_top_AXIL_SPIWriter_0_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXI_Stream_Reader_Wr_1_0/saturn_top_AXI_Stream_Reader_Wr_1_0.xci">
+          <Proxy FileSetName="saturn_top_AXI_Stream_Reader_Wr_1_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_Watchdog_0_0/saturn_top_Watchdog_0_0.xci">
           <Proxy FileSetName="saturn_top_Watchdog_0_0"/>
@@ -427,8 +427,8 @@
         <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXI_Stream_Reader_Wr_codec_0/saturn_top_AXI_Stream_Reader_Wr_codec_0.xci">
           <Proxy FileSetName="saturn_top_AXI_Stream_Reader_Wr_codec_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXI_Stream_Reader_Wr_1_0/saturn_top_AXI_Stream_Reader_Wr_1_0.xci">
-          <Proxy FileSetName="saturn_top_AXI_Stream_Reader_Wr_1_0"/>
+        <CompFileExtendedInfo CompFileName="saturn_top.bd" FileRelPathName="ip/saturn_top_AXIL_SPIWriter_0_0/saturn_top_AXIL_SPIWriter_0_0.xci">
+          <Proxy FileSetName="saturn_top_AXIL_SPIWriter_0_0"/>
         </CompFileExtendedInfo>
       </File>
       <File Path="$PGENDIR/sources_1/bd/saturn_top/hdl/saturn_top_wrapper.v">
@@ -475,14 +475,14 @@
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_Double_D_register_0_0/DDC_Block_Double_D_register_0_0.xci">
           <Proxy FileSetName="DDC_Block_Double_D_register_0_0"/>
         </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_variable_1_0/DDC_Block_axis_variable_1_0.xci">
+          <Proxy FileSetName="DDC_Block_axis_variable_1_0"/>
+        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_variable_0_0/DDC_Block_axis_variable_0_0.xci">
           <Proxy FileSetName="DDC_Block_axis_variable_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_mux_2_0_0/DDC_Block_axis_mux_2_0_0.xci">
           <Proxy FileSetName="DDC_Block_axis_mux_2_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_axis_variable_1_0/DDC_Block_axis_variable_1_0.xci">
-          <Proxy FileSetName="DDC_Block_axis_variable_1_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="DDC_Block.bd" FileRelPathName="ip/DDC_Block_byteswap_48_0_0/DDC_Block_byteswap_48_0_0.xci">
           <Proxy FileSetName="DDC_Block_byteswap_48_0_0"/>
@@ -765,12 +765,6 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="TX_DUC_inst_0.bd" FileRelPathName="ip/TX_DUC_inst_0_fir_compiler_0_0/TX_DUC_inst_0_fir_compiler_0_0.xci">
-          <Proxy FileSetName="TX_DUC_inst_0_fir_compiler_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="TX_DUC_inst_0.bd" FileRelPathName="ip/TX_DUC_inst_0_dds_compiler_txfreq_0/TX_DUC_inst_0_dds_compiler_txfreq_0.xci">
-          <Proxy FileSetName="TX_DUC_inst_0_dds_compiler_txfreq_0"/>
-        </CompFileExtendedInfo>
       </File>
       <Config>
         <Option Name="TopModule" Val="TX_DUC_inst_0"/>
@@ -856,18 +850,6 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="TX_DUC_inst_0_dds_compiler_txfreq_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/TX_DUC_inst_0_dds_compiler_txfreq_0" RelGenDir="$PGENDIR/TX_DUC_inst_0_dds_compiler_txfreq_0">
-      <Config>
-        <Option Name="TopModule" Val="TX_DUC_inst_0_dds_compiler_txfreq_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
-    <FileSet Name="TX_DUC_inst_0_fir_compiler_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/TX_DUC_inst_0_fir_compiler_0_0" RelGenDir="$PGENDIR/TX_DUC_inst_0_fir_compiler_0_0">
-      <Config>
-        <Option Name="TopModule" Val="TX_DUC_inst_0_fir_compiler_0_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
   </FileSets>
   <Simulators>
     <Simulator Name="XSim">
@@ -894,10 +876,10 @@
         <Step Id="synth_design">
           <Option Id="ResourceSharing">2</Option>
           <Option Id="NoCombineLuts">1</Option>
-          <Option Id="ShregMinSize">5</Option>
-          <Option Id="FsmExtraction">1</Option>
           <Option Id="Directive">7</Option>
           <Option Id="KeepEquivalentRegisters">1</Option>
+          <Option Id="ShregMinSize">5</Option>
+          <Option Id="FsmExtraction">1</Option>
         </Step>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -1006,26 +988,6 @@
       <RQSFiles/>
     </Run>
     <Run Id="saturn_top_AXIL_SPIWriter_0_0_synth_1" Type="Ft3:Synth" SrcSet="saturn_top_AXIL_SPIWriter_0_0" Part="xc7a200tfbg676-2" ConstrsSet="saturn_top_AXIL_SPIWriter_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/saturn_top_AXIL_SPIWriter_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/saturn_top_AXIL_SPIWriter_0_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/saturn_top_AXIL_SPIWriter_0_0_synth_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023"/>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2023"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="TX_DUC_inst_0_dds_compiler_txfreq_0_synth_1" Type="Ft3:Synth" SrcSet="TX_DUC_inst_0_dds_compiler_txfreq_0" Part="xc7a200tfbg676-2" ConstrsSet="TX_DUC_inst_0_dds_compiler_txfreq_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/TX_DUC_inst_0_dds_compiler_txfreq_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/TX_DUC_inst_0_dds_compiler_txfreq_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/TX_DUC_inst_0_dds_compiler_txfreq_0_synth_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023"/>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2023"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="TX_DUC_inst_0_fir_compiler_0_0_synth_1" Type="Ft3:Synth" SrcSet="TX_DUC_inst_0_fir_compiler_0_0" Part="xc7a200tfbg676-2" ConstrsSet="TX_DUC_inst_0_fir_compiler_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/TX_DUC_inst_0_fir_compiler_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/TX_DUC_inst_0_fir_compiler_0_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/TX_DUC_inst_0_fir_compiler_0_0_synth_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023"/>
         <Step Id="synth_design"/>
@@ -1235,40 +1197,6 @@
       <RQSFiles/>
     </Run>
     <Run Id="saturn_top_AXIL_SPIWriter_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="saturn_top_AXIL_SPIWriter_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="saturn_top_AXIL_SPIWriter_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/saturn_top_AXIL_SPIWriter_0_0_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/saturn_top_AXIL_SPIWriter_0_0_impl_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023"/>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2023"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="TX_DUC_inst_0_dds_compiler_txfreq_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="TX_DUC_inst_0_dds_compiler_txfreq_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="TX_DUC_inst_0_dds_compiler_txfreq_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/TX_DUC_inst_0_dds_compiler_txfreq_0_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/TX_DUC_inst_0_dds_compiler_txfreq_0_impl_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023"/>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2023"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="TX_DUC_inst_0_fir_compiler_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="TX_DUC_inst_0_fir_compiler_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="TX_DUC_inst_0_fir_compiler_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/TX_DUC_inst_0_fir_compiler_0_0_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/TX_DUC_inst_0_fir_compiler_0_0_impl_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023"/>
         <Step Id="init_design"/>

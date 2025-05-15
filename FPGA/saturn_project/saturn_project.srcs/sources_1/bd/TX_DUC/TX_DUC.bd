@@ -28,7 +28,6 @@
       "dds_compiler_txfreq": "",
       "fir_compiler_0": "",
       "mult_gen_0": "",
-      "LFSR_Random_Number_G_0": "",
       "D_register_2": "",
       "regmux_2_1_0": ""
     },
@@ -790,8 +789,14 @@
           "FlowControl": {
             "value": "NonBlocking"
           },
+          "HasATLAST": {
+            "value": "false"
+          },
           "MinimumLatency": {
             "value": "9"
+          },
+          "OutTLASTBehv": {
+            "value": "Null"
           },
           "OutputWidth": {
             "value": "24"
@@ -835,7 +840,7 @@
             "value": "Not_Required"
           },
           "Noise_Shaping": {
-            "value": "Taylor_Series_Corrected"
+            "value": "Auto"
           },
           "Output_Frequency1": {
             "value": "0"
@@ -987,112 +992,6 @@
           },
           "Use_Custom_Output_Width": {
             "value": "true"
-          }
-        }
-      },
-      "LFSR_Random_Number_G_0": {
-        "vlnv": "xilinx.com:module_ref:LFSR_Random_Number_Generator:1.0",
-        "xci_name": "TX_DUC_LFSR_Random_Number_G_0_0",
-        "xci_path": "ip\\TX_DUC_LFSR_Random_Number_G_0_0\\TX_DUC_LFSR_Random_Number_G_0_0.xci",
-        "inst_hier_path": "LFSR_Random_Number_G_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "LFSR_Random_Number_Generator",
-          "boundary_crc": "0x0"
-        },
-        "interface_ports": {
-          "m_axis": {
-            "mode": "Master",
-            "vlnv_bus_definition": "xilinx.com:interface:axis:1.0",
-            "vlnv": "xilinx.com:interface:axis_rtl:1.0",
-            "parameters": {
-              "TDATA_NUM_BYTES": {
-                "value": "1",
-                "value_src": "constant"
-              },
-              "TDEST_WIDTH": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "TID_WIDTH": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "TUSER_WIDTH": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "HAS_TREADY": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "HAS_TSTRB": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "HAS_TKEEP": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "HAS_TLAST": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "FREQ_HZ": {
-                "value": "122880000",
-                "value_src": "user_prop"
-              },
-              "CLK_DOMAIN": {
-                "value": "TX_DUC_clk122",
-                "value_src": "default_prop"
-              }
-            },
-            "port_maps": {
-              "TDATA": {
-                "physical_name": "m_axis_tdata",
-                "direction": "O",
-                "left": "7",
-                "right": "0"
-              },
-              "TVALID": {
-                "physical_name": "m_axis_tvalid",
-                "direction": "O"
-              }
-            }
-          }
-        },
-        "ports": {
-          "aclk": {
-            "type": "clk",
-            "direction": "I",
-            "parameters": {
-              "ASSOCIATED_BUSIF": {
-                "value": "m_axis",
-                "value_src": "constant"
-              },
-              "ASSOCIATED_RESET": {
-                "value": "aresetn",
-                "value_src": "constant"
-              },
-              "FREQ_HZ": {
-                "value": "122880000",
-                "value_src": "user_prop"
-              },
-              "CLK_DOMAIN": {
-                "value": "TX_DUC_clk122",
-                "value_src": "default_prop"
-              }
-            }
-          },
-          "aresetn": {
-            "type": "rst",
-            "direction": "I",
-            "parameters": {
-              "POLARITY": {
-                "value": "ACTIVE_LOW",
-                "value_src": "constant"
-              }
-            }
           }
         }
       },
@@ -1351,7 +1250,6 @@
           "dds_compiler_txfreq/aclk",
           "fir_compiler_0/aclk",
           "mult_gen_0/CLK",
-          "LFSR_Random_Number_G_0/aclk",
           "D_register_2/aclk",
           "regmux_2_1_0/aclk"
         ]
@@ -1413,7 +1311,6 @@
           "cic_compiler_1/aresetn",
           "dds_compiler_txfreq/aresetn",
           "fir_compiler_0/aresetn",
-          "LFSR_Random_Number_G_0/aresetn",
           "D_register_2/resetn",
           "regmux_2_1_0/resetn"
         ]

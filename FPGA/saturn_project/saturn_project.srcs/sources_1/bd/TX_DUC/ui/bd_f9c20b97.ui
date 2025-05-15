@@ -1,7 +1,7 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"0.657143",
-   "Default View_TopLeft":"-927,-417",
+   "Default View_TopLeft":"-320,-417",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
@@ -31,36 +31,35 @@ preplace inst cmpy_0 -pg 1 -lvl 6 -x 1100 -y 290 -defaultsOSRD
 preplace inst dds_compiler_txfreq -pg 1 -lvl 5 -x 680 -y 280 -defaultsOSRD
 preplace inst fir_compiler_0 -pg 1 -lvl 2 -x -320 -y 90 -defaultsOSRD
 preplace inst mult_gen_0 -pg 1 -lvl 8 -x 1660 -y 280 -defaultsOSRD
-preplace inst LFSR_Random_Number_G_0 -pg 1 -lvl 5 -x 680 -y -350 -defaultsOSRD
 preplace inst D_register_2 -pg 1 -lvl 10 -x 2180 -y 130 -defaultsOSRD
 preplace inst regmux_2_1_0 -pg 1 -lvl 9 -x 1920 -y 280 -defaultsOSRD
 preplace netloc D_register_2_dout 1 10 1 N 130
-preplace netloc IQ_Modulation_Select_TX_OPENABLE 1 0 9 NJ 210 N 210 N 210 N 210 540 200 N 200 N 200 N 200 1750
-preplace netloc Net5 1 0 10 -700 170 -460 180 -150 180 120 -260 520 0 930 190 N 190 1570 360 1780 380 2060
+preplace netloc IQ_Modulation_Select_TX_OPENABLE 1 0 9 NJ 210 N 210 N 210 N 210 520 200 N 200 N 200 N 200 1750
+preplace netloc Net5 1 0 10 -710 170 -480 180 -160 180 120 -260 500 0 930 190 N 190 1570 360 1790 380 2060
 preplace netloc TXConfig_1 1 0 7 N -270 N -270 N -270 N -270 N -270 N -270 1270
 preplace netloc TX_LO_Tune_1 1 0 4 N 290 N 290 N 290 N
 preplace netloc cmpy_0_m_axis_dout_tdata 1 6 1 1280J 260n
 preplace netloc cvt_offset_binary_0_dout 1 10 1 N 280
-preplace netloc mult_gen_0_P 1 8 2 1760 150 N
-preplace netloc regmux_2_1_0_dout 1 9 1 2050 280n
+preplace netloc mult_gen_0_P 1 8 2 1770 150 N
+preplace netloc regmux_2_1_0_dout 1 9 1 2040 280n
 preplace netloc regmux_2_1_1_dout1 1 0 4 N -50 N -50 N -50 140
-preplace netloc resetn_2 1 0 10 -690 160 -450 170 -140 170 130 40 530 10 940 30 N 30 N 30 1770 130 N
-preplace netloc xlconstant_16x0_dout 1 8 1 1790 300n
-preplace netloc xlslice_2_Dout 1 7 1 1560 260n
-preplace netloc xlslice_3_Dout 1 7 1 1560 300n
+preplace netloc resetn_2 1 0 10 -700 160 -470 170 -150 170 130 40 510 10 940 30 N 30 N 30 1780 130 N
+preplace netloc xlconstant_16x0_dout 1 8 1 1800 300n
+preplace netloc xlslice_2_Dout 1 7 1 1550 260n
+preplace netloc xlslice_3_Dout 1 7 1 1550 300n
 preplace netloc S_AXIS_1 1 0 1 N 60
 preplace netloc axis_broadcaster_0_M00_AXIS 1 4 1 440J -140n
 preplace netloc axis_broadcaster_0_M01_AXIS 1 4 1 460 70n
 preplace netloc axis_combiner_0_M_AXIS 1 5 2 940 40 1260
 preplace netloc axis_constant_0_m_axis 1 4 1 440 260n
-preplace netloc axis_dwidth_converter_0_M_AXIS 1 1 1 -480 70n
-preplace netloc axis_dwidth_converter_fir_to_IQ_M_AXIS 1 3 1 60 90n
-preplace netloc axis_variable_0_m_axis 1 4 1 540 -180n
+preplace netloc axis_dwidth_converter_0_M_AXIS 1 1 1 -470 70n
+preplace netloc axis_dwidth_converter_fir_to_IQ_M_AXIS 1 3 1 70 90n
+preplace netloc axis_variable_0_m_axis 1 4 1 510 -180n
 preplace netloc axis_variable_1_m_axis 1 4 1 450 -40n
-preplace netloc cic_compiler_0_M_AXIS_DATA 1 5 1 820 -110n
-preplace netloc cic_compiler_1_M_AXIS_DATA 1 5 1 820 -70n
-preplace netloc dds_compiler_txfreq_M_AXIS_DATA 1 5 1 820 280n
-preplace netloc fir_compiler_0_M_AXIS_DATA 1 2 1 -190 70n
+preplace netloc cic_compiler_0_M_AXIS_DATA 1 5 1 840 -110n
+preplace netloc cic_compiler_1_M_AXIS_DATA 1 5 1 840 -70n
+preplace netloc dds_compiler_txfreq_M_AXIS_DATA 1 5 1 840 280n
+preplace netloc fir_compiler_0_M_AXIS_DATA 1 2 1 -170 70n
 levelinfo -pg 1 -770 -590 -320 -40 290 680 1100 1450 1660 1920 2180 2320
 pagesize -pg 1 -db -bbox -sgen -930 -600 2520 750
 "
