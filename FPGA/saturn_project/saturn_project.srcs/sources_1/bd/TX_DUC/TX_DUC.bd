@@ -1209,8 +1209,8 @@
       },
       "dds_compiler_txfreq_M_AXIS_DATA": {
         "interface_ports": [
-          "cmpy_0/S_AXIS_B",
-          "dds_compiler_txfreq/M_AXIS_DATA"
+          "dds_compiler_txfreq/M_AXIS_DATA",
+          "cmpy_0/S_AXIS_B"
         ]
       },
       "fir_compiler_0_M_AXIS_DATA": {
