@@ -17,7 +17,6 @@
       "axis_constant_0": "",
       "axis_variable_0": "",
       "axis_variable_1": "",
-      "cvt_offset_binary_0": "",
       "axis_broadcaster_cic_path_split": "",
       "axis_combiner_0": "",
       "axis_dwidth_converter_0": "",
@@ -29,7 +28,8 @@
       "fir_compiler_0": "",
       "mult_gen_0": "",
       "D_register_2": "",
-      "regmux_2_1_0": ""
+      "regmux_2_1_0": "",
+      "cvt_offset_binary_0": ""
     },
     "interface_ports": {
       "S_AXIS": {
@@ -558,43 +558,6 @@
           },
           "cfg_data": {
             "direction": "I",
-            "left": "15",
-            "right": "0"
-          }
-        }
-      },
-      "cvt_offset_binary_0": {
-        "vlnv": "xilinx.com:module_ref:cvt_offset_binary:1.0",
-        "xci_name": "TX_DUC_cvt_offset_binary_0_1",
-        "xci_path": "ip\\TX_DUC_cvt_offset_binary_0_1\\TX_DUC_cvt_offset_binary_0_1.xci",
-        "inst_hier_path": "cvt_offset_binary_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "cvt_offset_binary",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "clk": {
-            "type": "clk",
-            "direction": "I",
-            "parameters": {
-              "FREQ_HZ": {
-                "value": "122880000",
-                "value_src": "user_prop"
-              },
-              "CLK_DOMAIN": {
-                "value": "TX_DUC_clk122",
-                "value_src": "default_prop"
-              }
-            }
-          },
-          "din": {
-            "direction": "I",
-            "left": "15",
-            "right": "0"
-          },
-          "dout": {
-            "direction": "O",
             "left": "15",
             "right": "0"
           }
@@ -1138,6 +1101,43 @@
             "right": "0"
           }
         }
+      },
+      "cvt_offset_binary_0": {
+        "vlnv": "xilinx.com:module_ref:cvt_offset_binary:1.0",
+        "xci_name": "TX_DUC_cvt_offset_binary_0_1",
+        "xci_path": "ip\\TX_DUC_cvt_offset_binary_0_1\\TX_DUC_cvt_offset_binary_0_1.xci",
+        "inst_hier_path": "cvt_offset_binary_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "cvt_offset_binary",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "clk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "user_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "TX_DUC_clk122",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "din": {
+            "direction": "I",
+            "left": "15",
+            "right": "0"
+          },
+          "dout": {
+            "direction": "O",
+            "left": "15",
+            "right": "0"
+          }
+        }
       }
     },
     "interface_nets": {
@@ -1239,7 +1239,6 @@
           "axis_constant_0/aclk",
           "axis_variable_0/aclk",
           "axis_variable_1/aclk",
-          "cvt_offset_binary_0/clk",
           "axis_broadcaster_cic_path_split/aclk",
           "axis_combiner_0/aclk",
           "axis_dwidth_converter_0/aclk",
@@ -1251,7 +1250,8 @@
           "fir_compiler_0/aclk",
           "mult_gen_0/CLK",
           "D_register_2/aclk",
-          "regmux_2_1_0/aclk"
+          "regmux_2_1_0/aclk",
+          "cvt_offset_binary_0/clk"
         ]
       },
       "TXConfig_1": {

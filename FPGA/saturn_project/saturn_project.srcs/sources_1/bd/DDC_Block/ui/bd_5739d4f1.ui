@@ -24,7 +24,6 @@ preplace inst xlconcat_2 -pg 1 -lvl 2 -x -210 -y 220 -defaultsOSRD
 preplace inst Double_D_register_0 -pg 1 -lvl 3 -x 120 -y 610 -defaultsOSRD
 preplace inst axis_variable_0 -pg 1 -lvl 5 -x 830 -y 770 -defaultsOSRD
 preplace inst axis_variable_1 -pg 1 -lvl 5 -x 830 -y 630 -defaultsOSRD
-preplace inst axis_mux_2_0 -pg 1 -lvl 3 -x 120 -y 100 -defaultsOSRD
 preplace inst byteswap_48_0 -pg 1 -lvl 10 -x 2610 -y 790 -defaultsOSRD
 preplace inst axis_broadcaster_0 -pg 1 -lvl 4 -x 480 -y 390 -defaultsOSRD
 preplace inst axis_broadcaster_1 -pg 1 -lvl 5 -x 830 -y 460 -defaultsOSRD
@@ -47,9 +46,10 @@ preplace inst xlconstant_320 -pg 1 -lvl 1 -x -510 -y 440 -defaultsOSRD
 preplace inst xlconstant_40 -pg 1 -lvl 1 -x -510 -y 740 -defaultsOSRD
 preplace inst xlconstant_7bits0 -pg 1 -lvl 3 -x 120 -y 720 -defaultsOSRD
 preplace inst xlconstant_80 -pg 1 -lvl 1 -x -510 -y 640 -defaultsOSRD
-preplace inst LFSR_Random_Number_G_0 -pg 1 -lvl 3 -x 120 -y 250 -defaultsOSRD
 preplace inst reg_to_axis_0 -pg 1 -lvl 2 -x -210 -y 360 -defaultsOSRD
 preplace inst reg_to_axis_1 -pg 1 -lvl 3 -x 120 -y -70 -defaultsOSRD
+preplace inst axis_mux_2_0 -pg 1 -lvl 3 -x 120 -y 100 -defaultsOSRD
+preplace inst LFSR_Random_Number_G_0 -pg 1 -lvl 3 -x 120 -y 250 -defaultsOSRD
 preplace inst regmux_4_1_0 -pg 1 -lvl 1 -x -510 -y 130 -defaultsOSRD
 preplace inst regmux_8_1_0 -pg 1 -lvl 2 -x -210 -y 590 -defaultsOSRD
 preplace netloc Byteswap_1 1 0 10 -640J 1000 NJ 1000 NJ 1000 NJ 1000 NJ 1000 NJ 1000 NJ 1000 NJ 1000 N 1000 2420

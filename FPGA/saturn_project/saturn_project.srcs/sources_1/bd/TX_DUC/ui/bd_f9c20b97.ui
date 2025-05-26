@@ -1,7 +1,7 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"1.0",
-   "Default View_TopLeft":"-252,93",
+   "Default View_TopLeft":"912,93",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
@@ -20,7 +20,6 @@ preplace inst xlslice_3 -pg 1 -lvl 7 -x 1450 -y 360 -defaultsOSRD
 preplace inst axis_constant_0 -pg 1 -lvl 4 -x 310 -y 280 -defaultsOSRD
 preplace inst axis_variable_0 -pg 1 -lvl 4 -x 310 -y -180 -defaultsOSRD
 preplace inst axis_variable_1 -pg 1 -lvl 4 -x 310 -y -40 -defaultsOSRD
-preplace inst cvt_offset_binary_0 -pg 1 -lvl 10 -x 2180 -y 280 -defaultsOSRD
 preplace inst axis_broadcaster_cic_path_split -pg 1 -lvl 4 -x 310 -y 120 -defaultsOSRD
 preplace inst axis_combiner_0 -pg 1 -lvl 6 -x 1100 -y -60 -defaultsOSRD
 preplace inst axis_dwidth_converter_0 -pg 1 -lvl 1 -x -590 -y 80 -defaultsOSRD
@@ -33,6 +32,7 @@ preplace inst fir_compiler_0 -pg 1 -lvl 2 -x -320 -y 90 -defaultsOSRD
 preplace inst mult_gen_0 -pg 1 -lvl 8 -x 1660 -y 280 -defaultsOSRD
 preplace inst D_register_2 -pg 1 -lvl 10 -x 2180 -y 130 -defaultsOSRD
 preplace inst regmux_2_1_0 -pg 1 -lvl 9 -x 1920 -y 280 -defaultsOSRD
+preplace inst cvt_offset_binary_0 -pg 1 -lvl 10 -x 2180 -y 280 -defaultsOSRD
 preplace netloc D_register_2_dout 1 10 1 N 130
 preplace netloc IQ_Modulation_Select_TX_OPENABLE 1 0 9 NJ 210 N 210 N 210 N 210 520 200 N 200 N 200 N 200 1750
 preplace netloc Net5 1 0 10 -710 170 -480 180 -130 180 140 -260 500 0 930 190 N 190 1570 360 1790 380 2060
@@ -58,8 +58,8 @@ preplace netloc axis_variable_0_m_axis 1 4 1 510 -180n
 preplace netloc axis_variable_1_m_axis 1 4 1 470 -40n
 preplace netloc cic_compiler_0_M_AXIS_DATA 1 5 1 840 -110n
 preplace netloc cic_compiler_1_M_AXIS_DATA 1 5 1 840 -70n
-preplace netloc fir_compiler_0_M_AXIS_DATA 1 2 1 -170 70n
 preplace netloc dds_compiler_txfreq_M_AXIS_DATA 1 5 1 840 280n
+preplace netloc fir_compiler_0_M_AXIS_DATA 1 2 1 -170 70n
 levelinfo -pg 1 -770 -590 -320 -10 310 680 1100 1450 1660 1920 2180 2320
 pagesize -pg 1 -db -bbox -sgen -930 -600 2520 750
 "
