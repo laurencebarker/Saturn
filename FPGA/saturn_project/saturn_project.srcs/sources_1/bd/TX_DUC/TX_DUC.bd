@@ -17,7 +17,6 @@
       "axis_constant_0": "",
       "axis_variable_0": "",
       "axis_variable_1": "",
-      "cvt_offset_binary_0": "",
       "axis_broadcaster_cic_path_split": "",
       "axis_combiner_0": "",
       "axis_dwidth_converter_0": "",
@@ -28,9 +27,9 @@
       "dds_compiler_txfreq": "",
       "fir_compiler_0": "",
       "mult_gen_0": "",
-      "LFSR_Random_Number_G_0": "",
       "D_register_2": "",
-      "regmux_2_1_0": ""
+      "regmux_2_1_0": "",
+      "cvt_offset_binary_0": ""
     },
     "interface_ports": {
       "S_AXIS": {
@@ -564,43 +563,6 @@
           }
         }
       },
-      "cvt_offset_binary_0": {
-        "vlnv": "xilinx.com:module_ref:cvt_offset_binary:1.0",
-        "xci_name": "TX_DUC_cvt_offset_binary_0_1",
-        "xci_path": "ip\\TX_DUC_cvt_offset_binary_0_1\\TX_DUC_cvt_offset_binary_0_1.xci",
-        "inst_hier_path": "cvt_offset_binary_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "cvt_offset_binary",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "clk": {
-            "type": "clk",
-            "direction": "I",
-            "parameters": {
-              "FREQ_HZ": {
-                "value": "122880000",
-                "value_src": "user_prop"
-              },
-              "CLK_DOMAIN": {
-                "value": "TX_DUC_clk122",
-                "value_src": "default_prop"
-              }
-            }
-          },
-          "din": {
-            "direction": "I",
-            "left": "15",
-            "right": "0"
-          },
-          "dout": {
-            "direction": "O",
-            "left": "15",
-            "right": "0"
-          }
-        }
-      },
       "axis_broadcaster_cic_path_split": {
         "vlnv": "xilinx.com:ip:axis_broadcaster:1.1",
         "xci_name": "TX_DUC_axis_broadcaster_cic_path_split_1",
@@ -790,8 +752,14 @@
           "FlowControl": {
             "value": "NonBlocking"
           },
+          "HasATLAST": {
+            "value": "false"
+          },
           "MinimumLatency": {
             "value": "9"
+          },
+          "OutTLASTBehv": {
+            "value": "Null"
           },
           "OutputWidth": {
             "value": "24"
@@ -930,7 +898,7 @@
             "value": "2"
           },
           "Output_Rounding_Mode": {
-            "value": "Non_Symmetric_Rounding_Down"
+            "value": "Truncate_LSBs"
           },
           "Output_Width": {
             "value": "27"
@@ -987,112 +955,6 @@
           },
           "Use_Custom_Output_Width": {
             "value": "true"
-          }
-        }
-      },
-      "LFSR_Random_Number_G_0": {
-        "vlnv": "xilinx.com:module_ref:LFSR_Random_Number_Generator:1.0",
-        "xci_name": "TX_DUC_LFSR_Random_Number_G_0_0",
-        "xci_path": "ip\\TX_DUC_LFSR_Random_Number_G_0_0\\TX_DUC_LFSR_Random_Number_G_0_0.xci",
-        "inst_hier_path": "LFSR_Random_Number_G_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "LFSR_Random_Number_Generator",
-          "boundary_crc": "0x0"
-        },
-        "interface_ports": {
-          "m_axis": {
-            "mode": "Master",
-            "vlnv_bus_definition": "xilinx.com:interface:axis:1.0",
-            "vlnv": "xilinx.com:interface:axis_rtl:1.0",
-            "parameters": {
-              "TDATA_NUM_BYTES": {
-                "value": "1",
-                "value_src": "constant"
-              },
-              "TDEST_WIDTH": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "TID_WIDTH": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "TUSER_WIDTH": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "HAS_TREADY": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "HAS_TSTRB": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "HAS_TKEEP": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "HAS_TLAST": {
-                "value": "0",
-                "value_src": "constant"
-              },
-              "FREQ_HZ": {
-                "value": "122880000",
-                "value_src": "user_prop"
-              },
-              "CLK_DOMAIN": {
-                "value": "TX_DUC_clk122",
-                "value_src": "default_prop"
-              }
-            },
-            "port_maps": {
-              "TDATA": {
-                "physical_name": "m_axis_tdata",
-                "direction": "O",
-                "left": "7",
-                "right": "0"
-              },
-              "TVALID": {
-                "physical_name": "m_axis_tvalid",
-                "direction": "O"
-              }
-            }
-          }
-        },
-        "ports": {
-          "aclk": {
-            "type": "clk",
-            "direction": "I",
-            "parameters": {
-              "ASSOCIATED_BUSIF": {
-                "value": "m_axis",
-                "value_src": "constant"
-              },
-              "ASSOCIATED_RESET": {
-                "value": "aresetn",
-                "value_src": "constant"
-              },
-              "FREQ_HZ": {
-                "value": "122880000",
-                "value_src": "user_prop"
-              },
-              "CLK_DOMAIN": {
-                "value": "TX_DUC_clk122",
-                "value_src": "default_prop"
-              }
-            }
-          },
-          "aresetn": {
-            "type": "rst",
-            "direction": "I",
-            "parameters": {
-              "POLARITY": {
-                "value": "ACTIVE_LOW",
-                "value_src": "constant"
-              }
-            }
           }
         }
       },
@@ -1239,6 +1101,43 @@
             "right": "0"
           }
         }
+      },
+      "cvt_offset_binary_0": {
+        "vlnv": "xilinx.com:module_ref:cvt_offset_binary:1.0",
+        "xci_name": "TX_DUC_cvt_offset_binary_0_1",
+        "xci_path": "ip\\TX_DUC_cvt_offset_binary_0_1\\TX_DUC_cvt_offset_binary_0_1.xci",
+        "inst_hier_path": "cvt_offset_binary_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "cvt_offset_binary",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "clk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "FREQ_HZ": {
+                "value": "122880000",
+                "value_src": "user_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "TX_DUC_clk122",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "din": {
+            "direction": "I",
+            "left": "15",
+            "right": "0"
+          },
+          "dout": {
+            "direction": "O",
+            "left": "15",
+            "right": "0"
+          }
+        }
       }
     },
     "interface_nets": {
@@ -1310,8 +1209,8 @@
       },
       "dds_compiler_txfreq_M_AXIS_DATA": {
         "interface_ports": [
-          "cmpy_0/S_AXIS_B",
-          "dds_compiler_txfreq/M_AXIS_DATA"
+          "dds_compiler_txfreq/M_AXIS_DATA",
+          "cmpy_0/S_AXIS_B"
         ]
       },
       "fir_compiler_0_M_AXIS_DATA": {
@@ -1340,7 +1239,6 @@
           "axis_constant_0/aclk",
           "axis_variable_0/aclk",
           "axis_variable_1/aclk",
-          "cvt_offset_binary_0/clk",
           "axis_broadcaster_cic_path_split/aclk",
           "axis_combiner_0/aclk",
           "axis_dwidth_converter_0/aclk",
@@ -1351,9 +1249,9 @@
           "dds_compiler_txfreq/aclk",
           "fir_compiler_0/aclk",
           "mult_gen_0/CLK",
-          "LFSR_Random_Number_G_0/aclk",
           "D_register_2/aclk",
-          "regmux_2_1_0/aclk"
+          "regmux_2_1_0/aclk",
+          "cvt_offset_binary_0/clk"
         ]
       },
       "TXConfig_1": {
@@ -1413,7 +1311,6 @@
           "cic_compiler_1/aresetn",
           "dds_compiler_txfreq/aresetn",
           "fir_compiler_0/aresetn",
-          "LFSR_Random_Number_G_0/aresetn",
           "D_register_2/resetn",
           "regmux_2_1_0/resetn"
         ]

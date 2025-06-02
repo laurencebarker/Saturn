@@ -47,7 +47,7 @@
 #define VMAXPRODUCTID 1							// product ID index limit
 #define VMAXSWID 4								// software ID index limit
 
-char* ProductIDStrings[] =
+const char* ProductIDStrings[] =
 {
 	"invalid product ID",
 	"Saturn"
@@ -56,7 +56,7 @@ char* ProductIDStrings[] =
 //
 // these are relevant to Saturn only!
 //
-char* SWIDStrings[] =
+const char* SWIDStrings[] =
 {
 	"invalid software ID",
 	"Saturn prototype, board test code",
@@ -65,7 +65,7 @@ char* SWIDStrings[] =
 	"Saturn, full function"
 };
 
-char* ClockStrings[] =
+const char* ClockStrings[] =
 {
 	"122.88MHz main clock",
 	"10MHz Reference clock",
@@ -130,8 +130,8 @@ void PrintVersionInfo(void)
 	uint32_t Cntr;
 	uint32_t MajorVersion;
 
-	char* ProdString;
-	char* SWString;
+	const char* ProdString;
+	const char* SWString;
 
 	//
 	// read the raw data from registers

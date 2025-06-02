@@ -1,5 +1,7 @@
 # change application name here (executable output name)
 TARGET=flashwriter
+VPATH=.:../../sw_projects/common
+
 
 # compiler
 CC=g++
@@ -20,7 +22,7 @@ GTKLIB=`pkg-config --cflags --libs gtk+-3.0`
 LD=g++
 LDFLAGS=$(PTHREAD) $(GTKLIB) -rdynamic
 
-OBJS=    $(TARGET).o spi-s25fl.o xil_assert.o xil_io.o xspi.o xspi_options.o xspi_stats.o
+OBJS=    $(TARGET).o spi-s25fl.o xil_assert.o xil_io.o xspi.o xspi_options.o xspi_stats.o hwaccess.o version.o
 
 all: $(OBJS)
 	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS)

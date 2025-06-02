@@ -450,7 +450,7 @@ int main(int argc, char *argv[])
 //
   printf("SATURN Protocol 2 App. press 'x <enter>' in console to close\n");
 
-  OpenXDMADriver();
+  OpenXDMADriver(false);
   PrintVersionInfo();
   printf("p2app client app software Version:%d Build Date:%s\n", P2APPVERSION, BuildDate);
   PrintAuxADCInfo();

@@ -16,15 +16,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="7,857.799 ns"></ZoomStartTime>
-      <ZoomEndTime time="15,092.800 ns"></ZoomEndTime>
-      <Cursor1Time time="9,610.000 ns"></Cursor1Time>
+      <ZoomStartTime time="5,200.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="7,076.001 ns"></ZoomEndTime>
+      <Cursor1Time time="1,000,000.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="156"></NameColumnWidth>
-      <ValueColumnWidth column_width="68"></ValueColumnWidth>
+      <NameColumnWidth column_width="270"></NameColumnWidth>
+      <ValueColumnWidth column_width="185"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="47" />
+   <WVObjectSize size="46" />
    <wave_markers>
       <marker time="15211621" label="" />
       <marker time="710512" label="" />
@@ -132,7 +132,6 @@
       <obj_property name="CustomSignalColor">turquoise</obj_property>
       <obj_property name="Render_Data">/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/axi_vip_0/M_AXI.readWriteSummary</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
-      <obj_property name="CellHeight">36</obj_property>
       <obj_property name="ElementShortName">M_AXI</obj_property>
       <obj_property name="ObjectShortName">M_AXI</obj_property>
       <obj_property name="isExpanded"></obj_property>
@@ -189,10 +188,6 @@
       <obj_property name="ElementShortName">SPILoad_0</obj_property>
       <obj_property name="ObjectShortName">SPILoad_0</obj_property>
    </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/SPILoad_1" type="logic">
-      <obj_property name="ElementShortName">SPILoad_1</obj_property>
-      <obj_property name="ObjectShortName">SPILoad_1</obj_property>
-   </wvobject>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXIL_SPIWriter_0/inst/config_reg0" type="array">
       <obj_property name="ElementShortName">config_reg0[31:0]</obj_property>
       <obj_property name="ObjectShortName">config_reg0[31:0]</obj_property>
@@ -201,17 +196,9 @@
       <obj_property name="ElementShortName">SPIValid_0</obj_property>
       <obj_property name="ObjectShortName">SPIValid_0</obj_property>
    </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXIL_SPIWriter_0/inst/config_reg1" type="array">
-      <obj_property name="ElementShortName">config_reg1[31:0]</obj_property>
-      <obj_property name="ObjectShortName">config_reg1[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXIL_SPIWriter_0/inst/SPIValid_1" type="logic">
-      <obj_property name="ElementShortName">SPIValid_1</obj_property>
-      <obj_property name="ObjectShortName">SPIValid_1</obj_property>
-   </wvobject>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXIL_SPIWriter_0/inst/clockdivide" type="array">
-      <obj_property name="ElementShortName">clockdivide[2:0]</obj_property>
-      <obj_property name="ObjectShortName">clockdivide[2:0]</obj_property>
+      <obj_property name="ElementShortName">clockdivide[1:0]</obj_property>
+      <obj_property name="ObjectShortName">clockdivide[1:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXIL_SPIWriter_0/inst/SPIBusy" type="logic">
       <obj_property name="ElementShortName">SPIBusy</obj_property>
@@ -226,7 +213,15 @@
       <obj_property name="ObjectShortName">SPIState[2:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXIL_SPIWriter_0/inst/shiftreg" type="array">
-      <obj_property name="ElementShortName">shiftreg[31:0]</obj_property>
-      <obj_property name="ObjectShortName">shiftreg[31:0]</obj_property>
+      <obj_property name="ElementShortName">shiftreg[15:0]</obj_property>
+      <obj_property name="ObjectShortName">shiftreg[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXIL_SPIWriter_0/inst/shiftinreg" type="array">
+      <obj_property name="ElementShortName">shiftinreg[15:0]</obj_property>
+      <obj_property name="ObjectShortName">shiftinreg[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/AXI_GPIO_tb/UUT/AXI_GPIO_Sim_i/AXIL_SPIWriter_0/inst/SPIMISO" type="logic">
+      <obj_property name="ElementShortName">SPIMISO</obj_property>
+      <obj_property name="ObjectShortName">SPIMISO</obj_property>
    </wvobject>
 </wave_config>

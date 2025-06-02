@@ -10,7 +10,7 @@
       "component_parameters": {
         "Component_Name": [ { "value": "TX_DUC_cmpy_0_1", "resolve_type": "user", "usage": "all" } ],
         "APortWidth": [ { "value": "32", "value_src": "user", "value_permission": "bd_and_user", "resolve_type": "user", "format": "long", "usage": "all" } ],
-        "HasATLAST": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
+        "HasATLAST": [ { "value": "false", "value_src": "user", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "HasATUSER": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "ATUSERWidth": [ { "value": "1", "value_permission": "bd_and_user", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "BPortWidth": [ { "value": "23", "value_src": "user", "value_permission": "bd_and_user", "resolve_type": "user", "format": "long", "usage": "all" } ],
@@ -25,7 +25,7 @@
         "HasCTRLTLAST": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "HasCTRLTUSER": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "CTRLTUSERWidth": [ { "value": "1", "value_permission": "bd_and_user", "resolve_type": "user", "format": "long", "usage": "all" } ],
-        "OutTLASTBehv": [ { "value": "Null", "resolve_type": "user", "usage": "all" } ],
+        "OutTLASTBehv": [ { "value": "Null", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
         "LatencyConfig": [ { "value": "Automatic", "resolve_type": "user", "usage": "all" } ],
         "MinimumLatency": [ { "value": "9", "value_src": "user", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "ACLKEN": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
@@ -168,7 +168,7 @@
           "abstraction_type": "xilinx.com:interface:axis_rtl:1.0",
           "mode": "slave",
           "parameters": {
-            "TDATA_NUM_BYTES": [ { "value": "8", "value_src": "auto", "value_permission": "bd", "resolve_type": "generated", "format": "long", "is_ips_inferred": true, "is_static_object": false } ],
+            "TDATA_NUM_BYTES": [ { "value": "8", "value_permission": "bd", "resolve_type": "generated", "format": "long", "is_ips_inferred": true, "is_static_object": false } ],
             "TDEST_WIDTH": [ { "value": "0", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "is_ips_inferred": true, "is_static_object": false } ],
             "TID_WIDTH": [ { "value": "0", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "is_ips_inferred": true, "is_static_object": false } ],
             "TUSER_WIDTH": [ { "value": "0", "value_permission": "bd", "resolve_type": "generated", "format": "long", "is_ips_inferred": true, "is_static_object": false } ],
@@ -192,7 +192,7 @@
           "abstraction_type": "xilinx.com:interface:axis_rtl:1.0",
           "mode": "slave",
           "parameters": {
-            "TDATA_NUM_BYTES": [ { "value": "6", "value_src": "auto", "value_permission": "bd", "resolve_type": "generated", "format": "long", "is_ips_inferred": true, "is_static_object": false } ],
+            "TDATA_NUM_BYTES": [ { "value": "6", "value_src": "auto_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "is_ips_inferred": true, "is_static_object": false } ],
             "TDEST_WIDTH": [ { "value": "0", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "is_ips_inferred": true, "is_static_object": false } ],
             "TID_WIDTH": [ { "value": "0", "value_src": "constant", "value_permission": "bd", "resolve_type": "generated", "format": "long", "is_ips_inferred": true, "is_static_object": false } ],
             "TUSER_WIDTH": [ { "value": "0", "value_src": "auto_prop", "value_permission": "bd", "resolve_type": "generated", "format": "long", "is_ips_inferred": true, "is_static_object": false } ],

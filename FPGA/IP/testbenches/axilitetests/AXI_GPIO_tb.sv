@@ -101,11 +101,11 @@ AXI_GPIO_Sim_wrapper UUT
     .SPICk                  (SPICk),
     .SPIData                (SPIData),
     .SPILoad_0              (SPILoad_0),
-    .SPILoad_1              (SPILoad_1)
+    .SPIMISO                (SPIMISO)
 );
 
-// Generate the clock : 50 MHz    
-always #10ns aclk = ~aclk;
+// Generate the clock : 125 MHz    
+always #4ns aclk = ~aclk;
 
 //////////////////////////////////////////////////////////////////////////////////
 // Main Process
@@ -118,6 +118,9 @@ initial begin
     // Release the reset
     aresetn = 1;
 end
+
+assign SPIMISO = SPIData;
+
 //
 //////////////////////////////////////////////////////////////////////////////////
 // The following part controls the AXI VIP. 
@@ -349,39 +352,52 @@ master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read axi-lite config256 reg 7 after write: data = 0x%x", data);
 
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 //
 // now test the AXILite shift register
 // 
 $display("testing AXILite SPI shift registers");
+$display("2 SPI WRITE operations. 2nd will stall on AXI bus until 1st complete");
 $display("expecting stall on 2nd write until 1st shift completes");
 #100ns
 addr = 32'h00003000;
-data = 32'h00000c00;
+data = 32'h00000c01;
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+$display("axi-lite SPI write: data = 0x%x", data);
 #100ns
-addr = 32'h00003004;
-data = 32'hdeadbeef;
+addr = 32'h00003000;
+data = 32'h0000beef;
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+$display("axi-lite SPI write: data = 0x%x", data);
 #100ns
 addr = 32'h00003008;
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
 $display("read axi-lite SPI writer status while busy: data = 0x%x", data);
 
+#10us                               // wait for write to complete
+addr = 32'h00003004;
+master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
+$display("read axi-lite SPI read data after 2nd write:: data = 0x%x", data);
 //
-// gap, then 3 shifts in quick succession
+// gap, then 3 SPI shifts in quick succession
 //
 #10us
 addr = 32'h00003000;
 data = 32'h00001112;
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+$display("axi-lite SPI write: data = 0x%x", data);
 #100ns
 addr = 32'h00003000;
 data = 32'h00002224;
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+$display("axi-lite SPI write: data = 0x%x", data);
 #100ns
 addr = 32'h00003000;
 data = 32'h00003336;
 master_agent.AXI4LITE_WRITE_BURST(base_addr + addr,0,data,resp);
+$display("axi-lite SPI write: data = 0x%x", data);
 #100ns
 addr = 32'h00003000;
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
@@ -389,7 +405,7 @@ $display("read axi-lite SPI writer reg 0 after write: data = 0x%x", data);
 #100ns
 addr = 32'h00003004;
 master_agent.AXI4LITE_READ_BURST(base_addr + addr,0,data,resp);
-$display("read axi-lite SPI writer reg 1 after write: data = 0x%x", data);
+$display("read axi-lite SPI read dats after 3rd write: data = 0x%x", data);
 
 #10us
 addr = 32'h00003008;

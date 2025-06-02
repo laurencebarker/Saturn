@@ -1,7 +1,7 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"0.631226",
-   "Default View_TopLeft":"-260,-467",
+   "Default View_TopLeft":"-258,-59",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
@@ -32,10 +32,7 @@ preplace inst xlslice_keyerdelay -pg 1 -lvl 2 -x 763 -y 130 -defaultsOSRD
 preplace inst xlslice_keyeren -pg 1 -lvl 2 -x 763 -y 430 -defaultsOSRD
 preplace inst xlslice_keyerhang -pg 1 -lvl 2 -x 763 -y 230 -defaultsOSRD
 preplace inst xlslice_opgate -pg 1 -lvl 2 -x 763 -y 1120 -defaultsOSRD
-preplace inst AXIS_Deinterleaver_0 -pg 1 -lvl 3 -x 1200 -y 640 -defaultsOSRD
 preplace inst axis_constant_1 -pg 1 -lvl 1 -x 423 -y 760 -defaultsOSRD
-preplace inst axis_mux_4_0 -pg 1 -lvl 6 -x 2117 -y 820 -defaultsOSRD
-preplace inst byteswap_48_0 -pg 1 -lvl 2 -x 763 -y 570 -defaultsOSRD
 preplace inst axi_bram_ctrl_0 -pg 1 -lvl 3 -x 1200 -y 100 -defaultsOSRD
 preplace inst axis_subset_converter_32to48bit -pg 1 -lvl 3 -x 1200 -y 820 -defaultsOSRD
 preplace inst blk_mem_gen_0 -pg 1 -lvl 6 -x 2117 -y 400 -defaultsOSRD
@@ -43,12 +40,15 @@ preplace inst dds_compiler_testsource -pg 1 -lvl 2 -x 763 -y 780 -defaultsOSRD
 preplace inst util_vector_OR_TXgate -pg 1 -lvl 3 -x 1200 -y 1190 -defaultsOSRD
 preplace inst util_vector_TXgate1 -pg 1 -lvl 6 -x 2117 -y 1230 -defaultsOSRD
 preplace inst xlconst_amplQ -pg 1 -lvl 2 -x 763 -y 940 -defaultsOSRD
-preplace inst cw_key_ramp_0 -pg 1 -lvl 3 -x 1200 -y 330 -defaultsOSRD
 preplace inst cw_key_ramp_1 -pg 1 -lvl 3 -x 1200 -y -170 -defaultsOSRD
 preplace inst ClockDivider_0 -pg 1 -lvl 2 -x 763 -y -400 -defaultsOSRD
 preplace inst blk_mem_gen_1 -pg 1 -lvl 5 -x 1767 -y -230 -defaultsOSRD
 preplace inst xlconstant_0 -pg 1 -lvl 2 -x 763 -y -140 -defaultsOSRD
 preplace inst xlconstant_1 -pg 1 -lvl 2 -x 763 -y -40 -defaultsOSRD
+preplace inst AXIS_Deinterleaver_0 -pg 1 -lvl 3 -x 1200 -y 640 -defaultsOSRD
+preplace inst axis_mux_4_0 -pg 1 -lvl 6 -x 2117 -y 820 -defaultsOSRD
+preplace inst byteswap_48_0 -pg 1 -lvl 2 -x 763 -y 570 -defaultsOSRD
+preplace inst cw_key_ramp_0 -pg 1 -lvl 3 -x 1200 -y 330 -defaultsOSRD
 preplace inst reg_to_axis_0 -pg 1 -lvl 3 -x 1200 -y 970 -defaultsOSRD
 preplace netloc Byteswap_1 1 0 2 -60J 650 560
 preplace netloc ClockDivider_0_TC 1 2 2 NJ -400 1370
