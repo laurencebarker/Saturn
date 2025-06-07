@@ -1,7 +1,7 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"0.824023",
-   "Default View_TopLeft":"-183,1076",
+   "Default View_TopLeft":"1864,1178",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
@@ -67,14 +67,8 @@ preplace inst xlconcat_2 -pg 1 -lvl 6 -x 1720 -y 1510 -defaultsOSRD
 preplace inst xlslice_15 -pg 1 -lvl 9 -x 3110 -y 40 -defaultsOSRD
 preplace inst xlconcat_1 -pg 1 -lvl 3 -x 760 -y 1780 -defaultsOSRD
 preplace inst xlconcat_3 -pg 1 -lvl 3 -x 760 -y 1920 -defaultsOSRD
-preplace inst AXIL_ReadReg_64_0 -pg 1 -lvl 10 -x 3570 -y 1290 -defaultsOSRD
-preplace inst Double_D_register_syncareset1 -pg 1 -lvl 10 -x 3570 -y 2370 -defaultsOSRD
 preplace inst Double_D_register_syncareset -pg 1 -lvl 2 -x 480 -y 1500 -defaultsOSRD
-preplace inst AXIL_ConfigReg_256_2 -pg 1 -lvl 10 -x 3570 -y 760 -defaultsOSRD
-preplace inst AXIL_ConfigReg_64_0 -pg 1 -lvl 8 -x 2730 -y 140 -defaultsOSRD
 preplace inst AXIL_ReadReg_64_ID -pg 1 -lvl 5 -x 1320 -y 1740 -defaultsOSRD
-preplace inst AXI_SPI_ADC_0 -pg 1 -lvl 10 -x 3570 -y 1120 -defaultsOSRD
-preplace inst AXI_FIFO_overflow_re_0 -pg 1 -lvl 10 -x 3570 -y 1610 -defaultsOSRD
 preplace inst xlslice_0 -pg 1 -lvl 10 -x 3570 -y 590 -defaultsOSRD
 preplace inst AXIL_ConfigReg_64_1 -pg 1 -lvl 9 -x 3110 -y 520 -defaultsOSRD
 preplace inst xlslice_1 -pg 1 -lvl 7 -x 2420 -y 2620 -defaultsOSRD
@@ -104,8 +98,14 @@ preplace inst util_vector_logic_6 -pg 1 -lvl 1 -x 170 -y 1690 -defaultsOSRD
 preplace inst c_addsub_0 -pg 1 -lvl 2 -x 480 -y 1720 -defaultsOSRD
 preplace inst xlconstant_majorversionid -pg 1 -lvl 2 -x 480 -y 2150 -defaultsOSRD
 preplace inst xlconstant_swversion -pg 1 -lvl 2 -x 480 -y 1930 -defaultsOSRD
-preplace inst D_register_0 -pg 1 -lvl 6 -x 1720 -y 1720 -defaultsOSRD
 preplace inst D_register_1 -pg 1 -lvl 3 -x 760 -y 1560 -defaultsOSRD
+preplace inst AXIL_ReadReg_64_0 -pg 1 -lvl 10 -x 3570 -y 1290 -defaultsOSRD
+preplace inst Double_D_register_syncareset1 -pg 1 -lvl 10 -x 3570 -y 2370 -defaultsOSRD
+preplace inst AXIL_ConfigReg_256_2 -pg 1 -lvl 10 -x 3570 -y 760 -defaultsOSRD
+preplace inst AXIL_ConfigReg_64_0 -pg 1 -lvl 8 -x 2730 -y 140 -defaultsOSRD
+preplace inst AXI_SPI_ADC_0 -pg 1 -lvl 10 -x 3570 -y 1120 -defaultsOSRD
+preplace inst AXI_FIFO_overflow_re_0 -pg 1 -lvl 10 -x 3570 -y 1610 -defaultsOSRD
+preplace inst D_register_0 -pg 1 -lvl 6 -x 1720 -y 1720 -defaultsOSRD
 preplace inst Usr_Reg_Access_0 -pg 1 -lvl 5 -x 1320 -y 1460 -defaultsOSRD
 preplace inst AXIL_SPIWriter_0 -pg 1 -lvl 10 -x 3570 -y 960 -defaultsOSRD
 preplace netloc ACLK_1 1 1 10 360 1300 N 1300 N 1300 1100 540 1520 190 N 190 2560 290 N 290 3410 300 3820

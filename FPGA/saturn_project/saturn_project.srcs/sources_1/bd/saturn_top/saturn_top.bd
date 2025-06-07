@@ -1,7 +1,7 @@
 {
   "design": {
     "design_info": {
-      "boundary_crc": "0x65E034DD104C6F45",
+      "boundary_crc": "0xCAD945C9BFF29D2E",
       "device": "xc7a200tfbg676-2",
       "gen_directory": "../../../../saturn_project.gen/sources_1/bd/saturn_top",
       "name": "saturn_top",
@@ -353,7 +353,9 @@
         "xlconstant_proto1": "",
         "xlconstant_proto2": "",
         "regmux_2_1_1": "",
-        "xlslice_wdogoverride": ""
+        "xlslice_wdogoverride": "",
+        "xlslice_HPFSelect": "",
+        "util_vector_logic_0": ""
       },
       "audio_codec_0": "",
       "clock_generator": {
@@ -1027,6 +1029,36 @@
           "PHASE": {
             "value": "0.0",
             "value_src": "default"
+          }
+        }
+      },
+      "HPF_SEL1": {
+        "direction": "O",
+        "left": "0",
+        "right": "0",
+        "parameters": {
+          "PortType": {
+            "value": "undef",
+            "value_src": "ip_prop"
+          },
+          "PortType.PROP_SRC": {
+            "value": "false",
+            "value_src": "ip_prop"
+          }
+        }
+      },
+      "HPF_SEL2": {
+        "direction": "O",
+        "left": "0",
+        "right": "0",
+        "parameters": {
+          "PortType": {
+            "value": "undef",
+            "value_src": "ip_prop"
+          },
+          "PortType.PROP_SRC": {
+            "value": "false",
+            "value_src": "ip_prop"
           }
         }
       }
@@ -8630,7 +8662,7 @@
             "inst_hier_path": "PCIe/xlconstant_swversion",
             "parameters": {
               "CONST_VAL": {
-                "value": "24"
+                "value": "25"
               },
               "CONST_WIDTH": {
                 "value": "16"
@@ -24589,6 +24621,16 @@
             "direction": "O",
             "left": "0",
             "right": "0"
+          },
+          "HPF_SEL1": {
+            "direction": "O",
+            "left": "0",
+            "right": "0"
+          },
+          "HPF_SEL2": {
+            "direction": "O",
+            "left": "0",
+            "right": "0"
           }
         },
         "components": {
@@ -26512,6 +26554,34 @@
                 "value": "28"
               }
             }
+          },
+          "xlslice_HPFSelect": {
+            "vlnv": "xilinx.com:ip:xlslice:1.0",
+            "xci_name": "saturn_top_xlslice_1_16",
+            "xci_path": "ip\\saturn_top_xlslice_1_16\\saturn_top_xlslice_1_16.xci",
+            "inst_hier_path": "Transmitter/xlslice_HPFSelect",
+            "parameters": {
+              "DIN_FROM": {
+                "value": "27"
+              },
+              "DIN_TO": {
+                "value": "27"
+              }
+            }
+          },
+          "util_vector_logic_0": {
+            "vlnv": "xilinx.com:ip:util_vector_logic:2.0",
+            "xci_name": "saturn_top_util_vector_logic_0_16",
+            "xci_path": "ip\\saturn_top_util_vector_logic_0_16\\saturn_top_util_vector_logic_0_16.xci",
+            "inst_hier_path": "Transmitter/util_vector_logic_0",
+            "parameters": {
+              "C_OPERATION": {
+                "value": "not"
+              },
+              "C_SIZE": {
+                "value": "1"
+              }
+            }
           }
         },
         "interface_nets": {
@@ -26583,7 +26653,8 @@
               "xlslice_enable/Din",
               "xlslice_rate/Din",
               "xlslice_reset/Din",
-              "xlslice_wdogoverride/Din"
+              "xlslice_wdogoverride/Din",
+              "xlslice_HPFSelect/Din"
             ]
           },
           "TXStrobe_1": {
@@ -26672,6 +26743,12 @@
               "CWSampleSelect"
             ]
           },
+          "util_vector_logic_0_Res": {
+            "ports": [
+              "util_vector_logic_0/Res",
+              "HPF_SEL2"
+            ]
+          },
           "xlconstant_proto1_dout": {
             "ports": [
               "xlconstant_proto1/dout",
@@ -26694,6 +26771,13 @@
             "ports": [
               "xlslice_wdogoverride/Dout",
               "Watchdog_Override"
+            ]
+          },
+          "xlslice_HPFSelect_Dout": {
+            "ports": [
+              "xlslice_HPFSelect/Dout",
+              "HPF_SEL1",
+              "util_vector_logic_0/Op1"
             ]
           },
           "xlslice_deinterleave_Dout": {
@@ -29495,6 +29579,18 @@
         "ports": [
           "PCIe/DUCFIFORstn",
           "FIFO_Interfaces/TX_FIFO_aresetn"
+        ]
+      },
+      "Transmitter_HPF_SEL1": {
+        "ports": [
+          "Transmitter/HPF_SEL1",
+          "HPF_SEL1"
+        ]
+      },
+      "Transmitter_HPF_SEL2": {
+        "ports": [
+          "Transmitter/HPF_SEL2",
+          "HPF_SEL2"
         ]
       },
       "Transmitter_cw_ptt1": {

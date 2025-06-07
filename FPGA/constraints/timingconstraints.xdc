@@ -225,6 +225,12 @@ set_false_path -from [get_ports {pcb_version_id[3]}]
 #
 set_false_path -to [get_pins {saturn_top_i/RF_interfaces/Double_D_register_0/inst/Intermediate_reg[0]/D}]
 
+#
+# TX HPF select
+#
+set_false_path -to [get_ports {HPF_SEL1[0]}]
+set_false_path -to [get_ports {HPF_SEL2[0]}]
+
 
 #
 # clock PLL
