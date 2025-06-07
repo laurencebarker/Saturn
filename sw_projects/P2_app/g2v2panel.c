@@ -41,7 +41,6 @@
 
 #include <linux/i2c-dev.h>
 #include "i2cdriver.h"
-#include "gpiod.h"
 #include "andromedacatmessages.h"
 #include "AriesATU.h"
 
