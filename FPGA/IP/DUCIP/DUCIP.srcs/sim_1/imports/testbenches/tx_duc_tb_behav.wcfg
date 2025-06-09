@@ -11,15 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="1,009,962.049 ns"></ZoomStartTime>
-      <ZoomEndTime time="1,011,279.050 ns"></ZoomEndTime>
-      <Cursor1Time time="1,010,086.049 ns"></Cursor1Time>
+      <ZoomStartTime time="1,217,891.341 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,218,278.342 ns"></ZoomEndTime>
+      <Cursor1Time time="1,218,051.081 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="290"></NameColumnWidth>
-      <ValueColumnWidth column_width="64"></ValueColumnWidth>
+      <NameColumnWidth column_width="323"></NameColumnWidth>
+      <ValueColumnWidth column_width="67"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="6" />
+   <WVObjectSize size="3" />
    <wave_markers>
       <marker time="1751991916" label="" />
       <marker time="1672793433" label="" />
@@ -39,24 +39,8 @@
       <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
       <obj_property name="CellHeight">100</obj_property>
    </wvobject>
-   <wvobject fp_name="/tx_duc_tb/UUT/xlslice_0/Dout" type="array">
-      <obj_property name="ElementShortName">Dout[22:0]</obj_property>
-      <obj_property name="ObjectShortName">Dout[22:0]</obj_property>
-      <obj_property name="WaveformStyle">STYLE_ANALOG</obj_property>
-      <obj_property name="CellHeight">100</obj_property>
-      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tx_duc_tb/UUT/fir_compiler_0/m_axis_data_tdata" type="array">
-      <obj_property name="ElementShortName">m_axis_data_tdata[31:0]</obj_property>
-      <obj_property name="ObjectShortName">m_axis_data_tdata[31:0]</obj_property>
-      <obj_property name="isExpanded"></obj_property>
-   </wvobject>
-   <wvobject fp_name="/tx_duc_tb/UUT/fir_compiler_0/m_axis_data_tvalid" type="logic">
-      <obj_property name="ElementShortName">m_axis_data_tvalid</obj_property>
-      <obj_property name="ObjectShortName">m_axis_data_tvalid</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tx_duc_tb/UUT/fir_compiler_0/m_axis_data_tready" type="logic">
-      <obj_property name="ElementShortName">m_axis_data_tready</obj_property>
-      <obj_property name="ObjectShortName">m_axis_data_tready</obj_property>
+   <wvobject fp_name="/tx_duc_tb/UUT/TXConfig_1" type="array">
+      <obj_property name="ElementShortName">TXConfig_1[31:0]</obj_property>
+      <obj_property name="ObjectShortName">TXConfig_1[31:0]</obj_property>
    </wvobject>
 </wave_config>

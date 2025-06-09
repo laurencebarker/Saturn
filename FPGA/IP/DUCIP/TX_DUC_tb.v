@@ -85,7 +85,7 @@ initial begin
     RequiredSampleCount = 262144;
     if(RecordDiskFile == 1)
     begin
-        fd_w = $fopen("./ducdata.txt", "w");
+        fd_w = $fopen("./ducoffbindata.txt", "w");
         if(fd_w) $display("file opened successfully");
         else $display("file open FAIL");
     end
@@ -97,13 +97,13 @@ initial begin
 // Assert the reset
 //
     resetn1 = 0;
-    S_AXIS_tdata = 47'h0000007FFFFF;                // 1, 0
-//  S_AXIS_tdata = 47'h000000733332;                // 0.9, 0
+//    S_AXIS_tdata = 47'h0000007FFFFF;                // 1, 0
+    S_AXIS_tdata = 47'h000000733332;                // 0.9, 0
     S_AXIS_tvalid = 1;
 //    TXConfig = 32'h80033008;                        // nearly full scale amplitude - after adding cordic
 //    TXConfig = 32'h80028008;                        // full scale amplitude, 23 bit DDS, complex mult
 //    TXConfig = 32'h80020008;                        // full scale amplitude, 23 bit DDS, complex mult
-    TXConfig = 32'h80029008;                        // over full scale full scale amplitude, 23 bit DDS, complex mult
+    TXConfig = 32'h8002A008;                          // near full scale full scale amplitude, 23 bit DDS, complex mult
     cic_rate = 16'd80;
     sel = 1;                                        // select data out
 //
@@ -111,12 +111,12 @@ initial begin
 //
 //    TXLOTune = 32'h03F55555;                        // 1.9MHz
 //    TXLOTune = 32'h07EAAAAA;                        // 3.8MHz
-//    TXLOTune = 32'h0ECAAAAA;                        // 7.1MHz
+    TXLOTune = 32'h0ECAAAAA;                        // 7.1MHz
 //    TXLOTune = 32'h1D600000;                        // 14.1MHz
 //    TXLOTune = 32'h2BF55555;                        // 21.1MHz
 //    TXLOTune = 32'h3A8AAAAA;                        // 28.1MHz
 //    TXLOTune = 32'h68600000;                        // 50.1MHz
-    TXLOTune = 32'h6B4AAAAA;                        // 51.5MHz
+//    TXLOTune = 32'h6B4AAAAA;                        // 51.5MHz
     #1000
     // Release the reset
     resetn1 = 1;
@@ -133,7 +133,8 @@ always @(posedge clk122)
         SampleCount = SampleCount + 1;
         if(SampleCount > DiscardSampleCount)
 //            $fwrite(fd_w, "%d\n", $signed(TXSamplesToRX));
-            $fwrite(fd_w, "%d\n", $signed(testdata));
+//            $fwrite(fd_w, "%d\n", $signed(testdata));
+        $fwrite(fd_w, "%d\n", $unsigned(TXDACData));        // offset binary DAC output
         $display("Sample number = %d\n",SampleCount);
         if(SampleCount == (RequiredSampleCount + DiscardSampleCount))
         begin
