@@ -1,7 +1,7 @@
 #!/bin/bash
 # update-G2.sh - Saturn Update Script
 # Original author: Laurence Barker G8NJJ
-# Rewritten by: Grok
+# Rewritten by: Jerry DeLong KD4YAL
 # Simplified update script for Saturn repository on Raspberry Pi
 # Version: 2.0 (Colorized)
 
