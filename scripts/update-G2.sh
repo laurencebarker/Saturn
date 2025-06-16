@@ -3,7 +3,7 @@
 # Original author: Laurence Barker G8NJJ
 # Rewritten by: Jerry DeLong KD4YAL
 # Simplified update script for Saturn repository on Raspberry Pi
-# Version: 2.0 (Colorized)
+# Version: 2.02 (Colorized)
 
 # ANSI color codes
 RED='\033[0;31m'
@@ -93,30 +93,52 @@ check_connectivity() {
 # Update Git repository
 update_git() {
     if [ "$SKIP_GIT" = "true" ]; then
-        echo -e "${YELLOW}⚠ INFO: Skipping repository update${NC}"
+        status_warning "Skipping repository update per configuration"
         return 0
     fi
-    echo -e "${YELLOW}🔄 Updating Git repository...${NC}"
+
+    status_start "Updating Git repository"
     cd "$SATURN_DIR" || {
-        echo -e "${RED}✗ ERROR: Cannot access Saturn directory $SATURN_DIR${NC}" >&2
-        exit 1
+        status_error "Cannot access Saturn directory: $SATURN_DIR"
     }
-    # Check if it's a valid Git repository
+
+    # Validate repository
     if ! git rev-parse --git-dir >/dev/null 2>&1; then
-        echo -e "${RED}✗ ERROR: $SATURN_DIR is not a Git repository${NC}" >&2
-        exit 1
+        status_error "Directory is not a valid Git repository: $SATURN_DIR"
     fi
-    # Stash any uncommitted changes
+
+    # Stash uncommitted changes
     if ! git diff-index --quiet HEAD --; then
-        echo -e "${YELLOW}⚠ INFO: Stashing uncommitted changes${NC}"
+        echo -e "${YELLOW}⚠  Preserving uncommitted changes with git stash${NC}"
         git stash push -m "Auto-stash before update $(date)" >/dev/null
     fi
-    # Pull latest changes
-    if git pull origin main; then
-        echo -e "${GREEN}✓ Repository updated${NC}"
+
+    # Get current status (compatible method)
+    local current_branch
+    # Try modern method first, fallback to compatible method
+    if current_branch=$(git branch --show-current 2>/dev/null); then
+        echo -e "${BLUE}ℹ  Current branch: $current_branch${NC}"
     else
-        echo -e "${RED}✗ ERROR: Failed to update repository${NC}" >&2
-        exit 1
+        # Compatible method for older Git versions
+        current_branch=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD)
+        echo -e "${BLUE}ℹ  Current reference: $current_branch${NC}"
+    fi
+
+    local current_commit=$(git rev-parse --short HEAD)
+    echo -e "${BLUE}ℹ  Current commit: $current_commit${NC}"
+
+    # Pull changes
+    if git pull origin main; then
+        local new_commit=$(git rev-parse --short HEAD)
+        if [ "$current_commit" != "$new_commit" ]; then
+            echo -e "${BLUE}ℹ  New commit: $new_commit${NC}"
+            echo -e "${BLUE}ℹ  Changes: $(git log --oneline "$current_commit..HEAD" 2>/dev/null | wc -l) commits applied${NC}"
+        else
+            echo -e "${BLUE}ℹ  Repository already at latest version${NC}"
+        fi
+        status_success "Repository updated successfully"
+    else
+        status_error "Failed to update repository - check network connection"
     fi
 }
 
@@ -182,14 +204,14 @@ install_udev_rules() {
     echo -e "${YELLOW}⚙️ Installing udev rules...${NC}"
     local rules_dir="$SATURN_DIR/rules"
     local install_script="$rules_dir/install-rules.sh"
-    
+
     if [ -f "$install_script" ]; then
         # Ensure the script is executable
         if [ ! -x "$install_script" ]; then
             echo -e "${YELLOW}⚠ Making script executable: $install_script${NC}"
             chmod +x "$install_script"
         fi
-        
+
         # Execute from the rules directory to ensure proper context
         if (cd "$rules_dir" && sudo ./install-rules.sh); then
             echo -e "${GREEN}✓ Udev rules installed${NC}"
@@ -238,12 +260,12 @@ main() {
     parse_args "$@"
     check_requirements
     check_connectivity
-    
+
     [ -d "$SATURN_DIR" ] || {
         echo -e "${RED}✗ ERROR: Saturn directory not found: $SATURN_DIR${NC}" >&2
         exit 1
     }
-    
+
     echo -e "${BLUE}📊 Current directory size: $(du -sh "$SATURN_DIR" | cut -f1)${NC}"
     echo -ne "${YELLOW}💾 Create backup before updating? (Y/n): ${NC}"
     read -n 1 -r
@@ -253,7 +275,7 @@ main() {
     else
         echo -e "${YELLOW}⚠ INFO: Skipping backup${NC}"
     fi
-    
+
     update_git
     install_libraries
     build_p2app
@@ -261,17 +283,17 @@ main() {
     install_udev_rules
     install_desktop_icons
     check_fpga_binary
-    
+
     echo -e "${GREEN}✓ Update completed successfully at $(date)${NC}"
     echo -e "${BLUE}📜 Log file: $LOG_FILE${NC}"
-    
+
     echo -e "\n${GREEN}🔧 FPGA Update Instructions:${NC}"
     echo -e "${GREEN}1. Launch flashwriter desktop app"
     echo -e "2. Navigate: Open file → Home → github → Saturn → FPGA"
     echo -e "3. Select the new .BIT file"
     echo -e "4. Ensure 'primary' is selected"
     echo -e "5. Click 'Program'${NC}"
-    
+
     echo -e "\n${YELLOW}⚠ Important Notes:${NC}"
     echo -e "${YELLOW}- FPGA programming takes ~3 minutes"
     echo -e "- Power cycle after programming"
