@@ -12,9 +12,13 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Text formatting
+BOLD='\033[1m'
+RESET='\033[0m'
+
 # Script metadata
-SCRIPT_NAME="Saturn Update Script"
-SCRIPT_VERSION="2.0"
+SCRIPT_NAME="Saturn Update Manager"
+SCRIPT_VERSION="2.1"
 SATURN_DIR="$HOME/github/Saturn"
 LOG_DIR="$HOME/saturn-logs"
 LOG_FILE="$LOG_DIR/saturn-update-$(date +%Y%m%d-%H%M%S).log"
@@ -22,6 +26,24 @@ BACKUP_DIR="$HOME/saturn-backup-$(date +%Y%m%d-%H%M%S)"
 
 # Flag for skipping Git update
 SKIP_GIT="false"
+
+# Professional status reporting
+status_start() {
+    echo -e "${BLUE}${BOLD}▶  $1...${NC}${RESET}"
+}
+
+status_success() {
+    echo -e "${GREEN}✓  SUCCESS: $1${NC}${RESET}"
+}
+
+status_warning() {
+    echo -e "${YELLOW}⚠  WARNING: $1${NC}${RESET}"
+}
+
+status_error() {
+    echo -e "${RED}✗  ERROR: $1${NC}${RESET}" >&2
+    exit 1
+}
 
 # Initialize logging
 init_logging() {
@@ -32,8 +54,15 @@ init_logging() {
     # Redirect stdout and stderr to log file and terminal
     exec > >(tee -a "$LOG_FILE")
     exec 2>&1
-    echo -e "${GREEN}📜 $SCRIPT_NAME v$SCRIPT_VERSION started at $(date)${NC}"
-    echo -e "${BLUE}📝 Detailed log: $LOG_FILE${NC}"
+    
+    # Professional header
+    echo -e "${BLUE}${BOLD}"
+    echo -e "===================================================================="
+    echo -e " Saturn Update Manager v$SCRIPT_VERSION"
+    echo -e " Started: $(date)"
+    echo -e " Log file: $LOG_FILE"
+    echo -e "===================================================================="
+    echo -e "${NC}${RESET}"
 }
 
 # Parse command-line arguments
@@ -42,13 +71,11 @@ parse_args() {
         case "$1" in
             --skip-git)
                 SKIP_GIT="true"
-                echo -e "${YELLOW}⚠ INFO: Skipping Git repository update${NC}"
+                status_warning "Skipping Git repository update per user request"
                 shift
                 ;;
             *)
-                echo -e "${RED}✗ ERROR: Unknown option: $1${NC}" >&2
-                echo -e "${YELLOW}Usage: $0 [--skip-git]${NC}" >&2
-                exit 1
+                status_error "Unknown option: $1\nUsage: $0 [--skip-git]"
                 ;;
         esac
     done
@@ -56,36 +83,45 @@ parse_args() {
 
 # Check system requirements
 check_requirements() {
-    echo -e "${YELLOW}🔍 Checking system requirements...${NC}"
+    status_start "Verifying system requirements"
+    
+    # Required commands
+    local missing=()
     for cmd in git make gcc sudo rsync; do
         if ! command -v "$cmd" >/dev/null; then
-            echo -e "${RED}✗ ERROR: Required command '$cmd' is missing${NC}" >&2
-            exit 1
+            missing+=("$cmd")
         fi
     done
-    # Check disk space (1GB minimum)
+    
+    if [ ${#missing[@]} -gt 0 ]; then
+        status_error "Missing required commands: ${missing[*]}"
+    fi
+    
+    # Disk space check
     local free_space
     free_space=$(df --output=avail "$HOME" | tail -1)
     if [ "$free_space" -lt 1048576 ]; then
-        echo -e "${YELLOW}⚠ WARNING: Low disk space: $((free_space / 1024))MB available${NC}"
+        status_warning "Low disk space: $((free_space / 1024))MB available (1GB recommended)"
     else
-        echo -e "${GREEN}✓ Sufficient disk space: $((free_space / 1024))MB available${NC}"
+        echo -e "${GREEN}✓  System has sufficient disk space: $((free_space / 1024))MB available${NC}"
     fi
-    echo -e "${GREEN}✓ System requirements met${NC}"
+    
+    status_success "System meets all requirements"
 }
 
 # Check connectivity
 check_connectivity() {
     if [ "$SKIP_GIT" = "true" ]; then
-        echo -e "${YELLOW}⚠ INFO: Skipping connectivity check due to --skip-git${NC}"
+        status_warning "Skipping connectivity check (Git update disabled)"
         return 0
     fi
-    echo -e "${YELLOW}🌐 Checking connectivity...${NC}"
+    
+    status_start "Checking network connectivity"
     if ping -c 1 -W 2 github.com >/dev/null 2>&1; then
-        echo -e "${GREEN}✓ Internet connectivity confirmed${NC}"
+        status_success "Network connection verified"
         return 0
     else
-        echo -e "${YELLOW}⚠ WARNING: Cannot reach GitHub${NC}"
+        status_warning "Cannot reach GitHub - network issues may affect update"
         return 1
     fi
 }
@@ -96,23 +132,23 @@ update_git() {
         status_warning "Skipping repository update per configuration"
         return 0
     fi
-
+    
     status_start "Updating Git repository"
     cd "$SATURN_DIR" || {
         status_error "Cannot access Saturn directory: $SATURN_DIR"
     }
-
+    
     # Validate repository
     if ! git rev-parse --git-dir >/dev/null 2>&1; then
         status_error "Directory is not a valid Git repository: $SATURN_DIR"
     fi
-
+    
     # Stash uncommitted changes
     if ! git diff-index --quiet HEAD --; then
         echo -e "${YELLOW}⚠  Preserving uncommitted changes with git stash${NC}"
         git stash push -m "Auto-stash before update $(date)" >/dev/null
     fi
-
+    
     # Get current status (compatible method)
     local current_branch
     # Try modern method first, fallback to compatible method
@@ -123,10 +159,10 @@ update_git() {
         current_branch=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD)
         echo -e "${BLUE}ℹ  Current reference: $current_branch${NC}"
     fi
-
+    
     local current_commit=$(git rev-parse --short HEAD)
     echo -e "${BLUE}ℹ  Current commit: $current_commit${NC}"
-
+    
     # Pull changes
     if git pull origin main; then
         local new_commit=$(git rev-parse --short HEAD)
@@ -144,138 +180,176 @@ update_git() {
 
 # Create backup
 create_backup() {
-    echo -e "${YELLOW}💾 Creating backup...${NC}"
-    echo -e "${BLUE}📦 Backup directory: $BACKUP_DIR${NC}"
+    status_start "Creating system backup"
+    echo -e "${BLUE}ℹ  Backup location: $BACKUP_DIR${NC}"
+    
+    # Create backup directory
+    if ! mkdir -p "$BACKUP_DIR"; then
+        status_error "Failed to create backup directory"
+    fi
+    
+    # Perform backup
     if rsync -a "$SATURN_DIR/" "$BACKUP_DIR/"; then
-        echo -e "${GREEN}✓ Backup created: $BACKUP_DIR ($(du -sh "$BACKUP_DIR" | cut -f1))${NC}"
+        local backup_size=$(du -sh "$BACKUP_DIR" | cut -f1)
+        echo -e "${BLUE}ℹ  Backup size: $backup_size${NC}"
+        status_success "Backup created successfully"
     else
-        echo -e "${RED}✗ ERROR: Failed to create backup${NC}" >&2
-        exit 1
+        status_error "Backup operation failed"
     fi
 }
 
 # Install libraries
 install_libraries() {
-    echo -e "${YELLOW}📚 Installing libraries...${NC}"
+    status_start "Installing required libraries"
     if [ -f "$SATURN_DIR/scripts/install-libraries.sh" ]; then
         if bash "$SATURN_DIR/scripts/install-libraries.sh"; then
-            echo -e "${GREEN}✓ Libraries installed${NC}"
+            status_success "Library installation completed"
         else
-            echo -e "${RED}✗ ERROR: Failed to install libraries${NC}" >&2
-            exit 1
+            status_error "Library installation failed"
         fi
     else
-        echo -e "${YELLOW}⚠ WARNING: install-libraries.sh not found, skipping${NC}"
+        status_warning "Installation script not found - skipping"
     fi
 }
 
 # Build p2app
 build_p2app() {
-    echo -e "${YELLOW}🛠️ Building p2app...${NC}"
+    status_start "Building p2app application"
     if [ -f "$SATURN_DIR/scripts/update-p2app.sh" ]; then
         if bash "$SATURN_DIR/scripts/update-p2app.sh"; then
-            echo -e "${GREEN}✓ p2app built${NC}"
+            status_success "p2app built successfully"
         else
-            echo -e "${RED}✗ ERROR: Failed to build p2app${NC}" >&2
-            exit 1
+            status_error "p2app build failed"
         fi
     else
-        echo -e "${YELLOW}⚠ WARNING: update-p2app.sh not found, skipping${NC}"
+        status_warning "Build script not found - skipping"
     fi
 }
 
 # Build desktop apps
 build_desktop_apps() {
-    echo -e "${YELLOW}💻 Building desktop apps...${NC}"
+    status_start "Building desktop applications"
     if [ -f "$SATURN_DIR/scripts/update-desktop-apps.sh" ]; then
         if bash "$SATURN_DIR/scripts/update-desktop-apps.sh"; then
-            echo -e "${GREEN}✓ Desktop apps built${NC}"
+            status_success "Desktop applications built successfully"
         else
-            echo -e "${RED}✗ ERROR: Failed to build desktop apps${NC}" >&2
-            exit 1
+            status_error "Desktop application build failed"
         fi
     else
-        echo -e "${YELLOW}⚠ WARNING: update-desktop-apps.sh not found, skipping${NC}"
+        status_warning "Build script not found - skipping"
     fi
 }
 
 # Install udev rules
 install_udev_rules() {
-    echo -e "${YELLOW}⚙️ Installing udev rules...${NC}"
+    status_start "Configuring system udev rules"
     local rules_dir="$SATURN_DIR/rules"
     local install_script="$rules_dir/install-rules.sh"
-
+    
     if [ -f "$install_script" ]; then
         # Ensure the script is executable
         if [ ! -x "$install_script" ]; then
-            echo -e "${YELLOW}⚠ Making script executable: $install_script${NC}"
+            echo -e "${YELLOW}⚠  Setting execute permission: $install_script${NC}"
             chmod +x "$install_script"
         fi
-
-        # Execute from the rules directory to ensure proper context
+        
+        # Execute from the rules directory
         if (cd "$rules_dir" && sudo ./install-rules.sh); then
-            echo -e "${GREEN}✓ Udev rules installed${NC}"
+            status_success "Udev rules installed successfully"
         else
-            echo -e "${RED}✗ ERROR: Failed to install udev rules${NC}" >&2
-            exit 1
+            status_error "Udev rules installation failed"
         fi
     else
-        echo -e "${YELLOW}⚠ WARNING: install-rules.sh not found, skipping${NC}"
+        status_warning "Installation script not found - skipping"
     fi
 }
 
 # Install desktop icons
 install_desktop_icons() {
-    echo -e "${YELLOW}🖥️ Installing desktop icons...${NC}"
+    status_start "Installing desktop shortcuts"
     if [ -d "$SATURN_DIR/desktop" ] && [ -d "$HOME/Desktop" ]; then
         if cp "$SATURN_DIR/desktop/"* "$HOME/Desktop/" && chmod +x "$HOME/Desktop/"*.desktop; then
-            echo -e "${GREEN}✓ Desktop icons installed${NC}"
+            status_success "Desktop shortcuts installed"
         else
-            echo -e "${RED}✗ ERROR: Failed to install desktop icons${NC}" >&2
-            exit 1
+            status_error "Failed to install desktop shortcuts"
         fi
     else
-        echo -e "${YELLOW}⚠ WARNING: Desktop directory not found, skipping${NC}"
+        status_warning "Desktop directory not found - skipping"
     fi
 }
 
 # Check FPGA binary
 check_fpga_binary() {
-    echo -e "${YELLOW}🔍 Checking FPGA binary...${NC}"
+    status_start "Verifying FPGA binary"
     if [ -f "$SATURN_DIR/scripts/find-bin.sh" ]; then
         if bash "$SATURN_DIR/scripts/find-bin.sh"; then
-            echo -e "${GREEN}✓ FPGA binary check completed${NC}"
+            status_success "FPGA binary validation complete"
         else
-            echo -e "${RED}✗ ERROR: Failed to check FPGA binary${NC}" >&2
-            exit 1
+            status_error "FPGA binary verification failed"
         fi
     else
-        echo -e "${YELLOW}⚠ WARNING: find-bin.sh not found, skipping${NC}"
+        status_warning "Verification script not found - skipping"
     fi
+}
+
+# Print summary report
+print_summary_report() {
+    local duration=$(( $(date +%s) - start_time ))
+    echo -e "\n${BLUE}${BOLD}=========================== UPDATE SUMMARY ===========================${NC}"
+    echo -e "${GREEN}✓  Update completed successfully at $(date)${NC}"
+    echo -e "${BLUE}ℹ  Total duration: $duration seconds${NC}"
+    echo -e "${BLUE}ℹ  Log file: $LOG_FILE${NC}"
+    
+    if [ "$BACKUP_CREATED" = true ]; then
+        echo -e "${GREEN}✓  Backup created: $BACKUP_DIR${NC}"
+    else
+        echo -e "${YELLOW}⚠  No backup created${NC}"
+    fi
+    
+    echo -e "${BLUE}${BOLD}====================================================================${NC}"
 }
 
 # Main execution
 main() {
+    local start_time=$(date +%s)
+    local BACKUP_CREATED=false
+    
     init_logging
     parse_args "$@"
+    
+    # System information header
+    echo -e "${BLUE}${BOLD}"
+    echo -e "System Information:"
+    echo -e "  Hostname: $(hostname)"
+    echo -e "  User: $USER"
+    echo -e "  System: $(uname -srm)"
+    [ -f /etc/os-release ] && echo -e "  OS: $(grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '\"')"
+    echo -e "${NC}${RESET}"
+    
     check_requirements
     check_connectivity
-
+    
     [ -d "$SATURN_DIR" ] || {
-        echo -e "${RED}✗ ERROR: Saturn directory not found: $SATURN_DIR${NC}" >&2
-        exit 1
+        status_error "Saturn directory not found: $SATURN_DIR"
     }
-
-    echo -e "${BLUE}📊 Current directory size: $(du -sh "$SATURN_DIR" | cut -f1)${NC}"
-    echo -ne "${YELLOW}💾 Create backup before updating? (Y/n): ${NC}"
+    
+    # Directory information
+    echo -e "${BLUE}ℹ  Saturn directory: $SATURN_DIR${NC}"
+    echo -e "${BLUE}ℹ  Directory size: $(du -sh "$SATURN_DIR" | cut -f1)${NC}"
+    echo -e "${BLUE}ℹ  Contents: $(find "$SATURN_DIR" -type f | wc -l) files, $(find "$SATURN_DIR" -type d | wc -l) directories${NC}"
+    
+    # Backup prompt
+    echo -ne "${YELLOW}?  Create backup before updating? [Y/n]: ${NC}"
     read -n 1 -r
     echo
     if [ "$REPLY" != "n" ] && [ "$REPLY" != "N" ]; then
         create_backup
+        BACKUP_CREATED=true
     else
-        echo -e "${YELLOW}⚠ INFO: Skipping backup${NC}"
+        status_warning "Backup skipped per user request"
     fi
-
+    
+    # Execute update steps
     update_git
     install_libraries
     build_p2app
@@ -283,21 +357,28 @@ main() {
     install_udev_rules
     install_desktop_icons
     check_fpga_binary
-
-    echo -e "${GREEN}✓ Update completed successfully at $(date)${NC}"
-    echo -e "${BLUE}📜 Log file: $LOG_FILE${NC}"
-
-    echo -e "\n${GREEN}🔧 FPGA Update Instructions:${NC}"
-    echo -e "${GREEN}1. Launch flashwriter desktop app"
-    echo -e "2. Navigate: Open file → Home → github → Saturn → FPGA"
-    echo -e "3. Select the new .BIT file"
-    echo -e "4. Ensure 'primary' is selected"
-    echo -e "5. Click 'Program'${NC}"
-
-    echo -e "\n${YELLOW}⚠ Important Notes:${NC}"
-    echo -e "${YELLOW}- FPGA programming takes ~3 minutes"
-    echo -e "- Power cycle after programming"
-    echo -e "- Keep terminal open for full log${NC}"
+    
+    # Print summary report
+    print_summary_report
+    
+    # FPGA programming instructions
+    echo -e "\n${GREEN}${BOLD}FPGA PROGRAMMING INSTRUCTIONS:${NC}${RESET}"
+    echo -e "${GREEN}1. Launch the 'flashwriter' application from your desktop"
+    echo -e "2. Navigate to: File → Open → Home → github → Saturn → FPGA"
+    echo -e "3. Select the appropriate .BIT file"
+    echo -e "4. Verify 'primary' is selected"
+    echo -e "5. Click 'Program' to initiate FPGA programming${NC}"
+    
+    # Important notes
+    echo -e "\n${YELLOW}${BOLD}IMPORTANT NOTES:${NC}${RESET}"
+    echo -e "${YELLOW}- FPGA programming takes approximately 3 minutes to complete"
+    echo -e "- A power cycle is REQUIRED after programming completes"
+    echo -e "- Keep this terminal open until programming is fully complete"
+    echo -e "- Consult log file for detailed operation records: $LOG_FILE${NC}"
+    
+    # Footer
+    echo -e "\n${BLUE}${BOLD}Saturn Update Manager v$SCRIPT_VERSION - Operation Complete${NC}"
+    echo -e "${BLUE}${BOLD}====================================================================${NC}"
 }
 
 # Run main
