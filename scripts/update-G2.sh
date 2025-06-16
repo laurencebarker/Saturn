@@ -180,8 +180,18 @@ build_desktop_apps() {
 # Install udev rules
 install_udev_rules() {
     echo -e "${YELLOW}⚙️ Installing udev rules...${NC}"
-    if [ -f "$SATURN_DIR/rules/install-rules.sh" ]; then
-        if sudo bash "$SATURN_DIR/rules/install-rules.sh"; then
+    local rules_dir="$SATURN_DIR/rules"
+    local install_script="$rules_dir/install-rules.sh"
+    
+    if [ -f "$install_script" ]; then
+        # Ensure the script is executable
+        if [ ! -x "$install_script" ]; then
+            echo -e "${YELLOW}⚠ Making script executable: $install_script${NC}"
+            chmod +x "$install_script"
+        fi
+        
+        # Execute from the rules directory to ensure proper context
+        if (cd "$rules_dir" && sudo ./install-rules.sh); then
             echo -e "${GREEN}✓ Udev rules installed${NC}"
         else
             echo -e "${RED}✗ ERROR: Failed to install udev rules${NC}" >&2
