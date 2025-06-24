@@ -705,7 +705,9 @@ int main(int argc, char *argv[])
     ioctl(SocketData[VPORTCOMMAND].Socketid, SIOCGIFHWADDR, &hwaddr);
     for(i = 0; i < 6; ++i) DiscoveryReply[i + 5] = hwaddr.ifr_addr.sa_data[i];         // copy MAC to reply message
 #endif
-
+  DiscoveryReply[13] = (uint8_t)Version;
+  DiscoveryReply[23] = (uint8_t)P2APPVERSION;
+  
 
 
   MakeSocket(SocketData+VPORTDDCSPECIFIC, 0);            // create and bind a socket
