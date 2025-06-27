@@ -1,0 +1,3 @@
+[Desktop Entry]
+Type=Application
+Exec=/home/pi/github/Saturn/scripts/shutdown-waiter.sh
