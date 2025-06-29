@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
 
 
 	printf("Initialising XDMA read\n");
-	DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDWR);
+	DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDONLY);
 
 	if(DMAReadfile_fd < 0)
 	{

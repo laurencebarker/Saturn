@@ -305,8 +305,9 @@ void *OutgoingDDCIQ(void *arg)
     InitError = CreateDynamicMemory();
     //
     // open DMA device driver
+    // opened readonly to accommodate potential use of a different XDMA device driver
     //
-    IQReadfile_fd = open(VDDCDMADEVICE, O_RDWR);
+    IQReadfile_fd = open(VDDCDMADEVICE, O_RDONLY);
     if (IQReadfile_fd < 0)
     {
         printf("XDMA read device open failed for DDC data\n");

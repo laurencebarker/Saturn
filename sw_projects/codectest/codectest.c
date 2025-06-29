@@ -329,14 +329,14 @@ int main(int argc, char *argv[])
 			goto out;
 		}
 
-		DMAWritefile_fd = open("/dev/xdma0_h2c_0", O_RDWR);
+		DMAWritefile_fd = open("/dev/xdma0_h2c_0", O_WRONLY);
 		if(DMAWritefile_fd < 0)
 		{
 			printf("XDMA write device open failed\n");
 			goto out;
 		}
 
-		DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDWR);
+		DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDONLY);
 		if(DMAReadfile_fd < 0)
 		{
 			printf("XDMA read device open failed\n");

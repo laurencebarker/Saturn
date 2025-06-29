@@ -290,10 +290,10 @@ int main(int argc, char *argv[])
 
 
 		printf("Initialising XDMA write\n");
-		DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDWR);
+		DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDONLY);
 
 		printf("Initialising XDMA read\n");
-		DMAWritefile_fd = open("/dev/xdma0_h2c_0", O_RDWR);
+		DMAWritefile_fd = open("/dev/xdma0_h2c_0", O_WRONLY);
 		if(DMAReadfile_fd < 0)
 		{
 			printf("XDMA read device open failed\n");

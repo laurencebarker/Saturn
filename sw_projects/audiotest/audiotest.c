@@ -442,11 +442,13 @@ void *MicTest(void *arg) {
  * SpeakerTest: Thread to handle speaker test with sinewave output.
  * @param arg: Array containing AppContext and AudioContext pointers.
  */
-void *SpeakerTest(void *arg) {
+void *SpeakerTest(void *arg) 
+{
     AppContext *app = ((void **)arg)[0];
     AudioContext *audio = ((void **)arg)[1];
 
-    while (keep_running) {
+    while (keep_running) 
+    {
         bool initiated, is_left;
         get_speaker_test_initiated(audio, &initiated, &is_left);
         if (initiated) {
@@ -474,11 +476,13 @@ void *CheckForPttPressed(void *arg) {
     AppContext *app = (AppContext *)arg;
     bool PTTPressed = false;
 
-    while (keep_running) {
+    while (keep_running) 
+    {
         usleep(50000); // 50ms polling interval
         ReadStatusRegister();
         bool Pressed = GetPTTInput();
-        if (Pressed != PTTPressed) {
+        if (Pressed != PTTPressed) 
+        {
             PTTPressed = Pressed;
             gtk_label_set_text(app->ptt_label, Pressed ? "PTT Pressed" : "PTT Released");
         }
@@ -492,7 +496,8 @@ void *CheckForPttPressed(void *arg) {
  * @param argv: Array of command-line arguments.
  * @return: 0 on success, non-zero on failure.
  */
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) 
+{
     AppContext app = {0};
     AudioContext audio = {0};
     audio.buffer_size = MEM_BUFFER_SIZE;
@@ -504,7 +509,8 @@ int main(int argc, char *argv[]) {
 
     // Load GUI from UI file
     GtkBuilder *builder = gtk_builder_new_from_file("audiotest.ui");
-    if (!builder) {
+    if (!builder) 
+    {
         fprintf(stderr, "Failed to load audiotest.ui\n");
         return EXIT_FAILURE;
     }
@@ -554,23 +560,27 @@ int main(int argc, char *argv[]) {
     SetSpkrMute(false);
 
     // Allocate aligned DMA buffers
-    if (posix_memalign((void **)&audio.write_buffer, ALIGNMENT, audio.buffer_size) != 0) {
+    if (posix_memalign((void **)&audio.write_buffer, ALIGNMENT, audio.buffer_size) != 0) 
+    {
         fprintf(stderr, "Write buffer allocation failed\n");
         cleanup(&app, &audio);
         return EXIT_FAILURE;
     }
-    if ((uintptr_t)audio.write_buffer % ALIGNMENT != 0) {
+    if ((uintptr_t)audio.write_buffer % ALIGNMENT != 0) 
+    {
         fprintf(stderr, "Write buffer not aligned\n");
         cleanup(&app, &audio);
         return EXIT_FAILURE;
     }
 
-    if (posix_memalign((void **)&audio.read_buffer, ALIGNMENT, audio.buffer_size) != 0) {
+    if (posix_memalign((void **)&audio.read_buffer, ALIGNMENT, audio.buffer_size) != 0) 
+    {
         fprintf(stderr, "Read buffer allocation failed\n");
         cleanup(&app, &audio);
         return EXIT_FAILURE;
     }
-    if ((uintptr_t)audio.read_buffer % ALIGNMENT != 0) {
+    if ((uintptr_t)audio.read_buffer % ALIGNMENT != 0) 
+    {
         fprintf(stderr, "Read buffer not aligned\n");
         cleanup(&app, &audio);
         return EXIT_FAILURE;
@@ -578,25 +588,29 @@ int main(int argc, char *argv[]) {
 
     // Open DMA device files with security checks
     struct stat st;
-    if (stat("/dev/xdma0_h2c_0", &st) == 0 && !S_ISCHR(st.st_mode)) {
+    if (stat("/dev/xdma0_h2c_0", &st) == 0 && !S_ISCHR(st.st_mode)) 
+    {
         fprintf(stderr, "Invalid DMA write device\n");
         cleanup(&app, &audio);
         return EXIT_FAILURE;
     }
-    audio.dma_write_fd = open("/dev/xdma0_h2c_0", O_RDWR | O_CLOEXEC);
-    if (audio.dma_write_fd < 0) {
+    audio.dma_write_fd = open("/dev/xdma0_h2c_0", O_WRONLY | O_CLOEXEC);
+    if (audio.dma_write_fd < 0) 
+    {
         fprintf(stderr, "Failed to open DMA write device: %s\n", strerror(errno));
         cleanup(&app, &audio);
         return EXIT_FAILURE;
     }
 
-    if (stat("/dev/xdma0_c2h_0", &st) == 0 && !S_ISCHR(st.st_mode)) {
+    if (stat("/dev/xdma0_c2h_0", &st) == 0 && !S_ISCHR(st.st_mode)) 
+    {
         fprintf(stderr, "Invalid DMA read device\n");
         cleanup(&app, &audio);
         return EXIT_FAILURE;
     }
-    audio.dma_read_fd = open("/dev/xdma0_c2h_0", O_RDWR | O_CLOEXEC);
-    if (audio.dma_read_fd < 0) {
+    audio.dma_read_fd = open("/dev/xdma0_c2h_0", O_RDONLY | O_CLOEXEC);
+    if (audio.dma_read_fd < 0) 
+    {
         fprintf(stderr, "Failed to open DMA read device: %s\n", strerror(errno));
         cleanup(&app, &audio);
         return EXIT_FAILURE;
@@ -607,18 +621,21 @@ int main(int argc, char *argv[]) {
     gtk_progress_bar_set_fraction(app.mic_level_bar, 0.0);
 
     // Start threads
-    if (pthread_create(&ptt_thread, NULL, CheckForPttPressed, &app) < 0) {
+    if (pthread_create(&ptt_thread, NULL, CheckForPttPressed, &app) < 0) 
+    {
         fprintf(stderr, "Failed to create PTT thread: %s\n", strerror(errno));
         cleanup(&app, &audio);
         return EXIT_FAILURE;
     }
-    if (pthread_create(&mic_test_thread, NULL, MicTest, thread_args) < 0) {
+    if (pthread_create(&mic_test_thread, NULL, MicTest, thread_args) < 0) 
+    {
         fprintf(stderr, "Failed to create mic test thread: %s\n", strerror(errno));
         cleanup(&app, &audio);
         pthread_cancel(ptt_thread);
         return EXIT_FAILURE;
     }
-    if (pthread_create(&speaker_test_thread, NULL, SpeakerTest, thread_args) < 0) {
+    if (pthread_create(&speaker_test_thread, NULL, SpeakerTest, thread_args) < 0) 
+    {
         fprintf(stderr, "Failed to create speaker test thread: %s\n", strerror(errno));
         cleanup(&app, &audio);
         pthread_cancel(ptt_thread);

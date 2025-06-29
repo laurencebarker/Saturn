@@ -86,8 +86,9 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
 
     //
     // open DMA device driver
+    // opened write only to accommodate potential use of a different XDMA device driver
     //
-    DMAWritefile_fd = open(VSPKDMADEVICE, O_RDWR);
+    DMAWritefile_fd = open(VSPKDMADEVICE, O_WRONLY);
     if (DMAWritefile_fd < 0)
         printf("XDMA write device open failed for spk data\n");
     ResetDMAStreamFIFO(eSpkCodecDMA);

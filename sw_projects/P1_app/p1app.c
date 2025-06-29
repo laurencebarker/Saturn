@@ -584,7 +584,7 @@ void *SendOutgoingPacketData(void *arg)
 //
 // open DMA device driver
 //
-	DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDWR);
+	DMAReadfile_fd = open("/dev/xdma0_c2h_0", O_RDONLY);
 	if(DMAReadfile_fd < 0)
 	{
 		printf("XDMA read device open failed\n");
