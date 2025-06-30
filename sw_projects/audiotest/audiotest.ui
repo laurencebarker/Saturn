@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.38.2 
+<!-- Generated with glade 3.38.2
 
 Copyright (C) Laurence Barker 2023
 
@@ -9,7 +9,6 @@ notice and this notice are preserved.  This file is offered as-is,
 without any warranty.
 
 Author: Laurence Barker
-
 -->
 <interface>
   <requires lib="gtk+" version="3.6"/>
@@ -47,7 +46,7 @@ Author: Laurence Barker
     <property name="icon-name">applications-utilities</property>
     <signal name="destroy" handler="on_window_main_destroy" swapped="no"/>
     <child>
-      <!-- n-columns=1 n-rows=3 -->
+      <!-- n-columns=1 n-rows=7 -->
       <object class="GtkGrid">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
@@ -465,6 +464,38 @@ Author: Laurence Barker
             <property name="left-attach">0</property>
             <property name="top-attach">1</property>
             <property name="height">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="overload_label">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Overload: Idle</property>
+            <property name="halign">start</property>
+            <style>
+              <class name="overload-off"/>
+            </style>
+          </object>
+          <packing>
+            <property name="left-attach">0</property>
+            <property name="top-attach">5</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="near_peak_label">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Near Peak: Idle</property>
+            <property name="halign">start</property>
+            <style>
+              <class name="near-peak-off"/>
+            </style>
+          </object>
+          <packing>
+            <property name="left-attach">0</property>
+            <property name="top-attach">6</property>
           </packing>
         </child>
       </object>
