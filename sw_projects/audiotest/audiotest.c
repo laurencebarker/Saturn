@@ -12,6 +12,12 @@
  * - Comprehensive error handling and resource cleanup.
  * - Optimized audio data processing and DMA operations.
  *
+ * NOTE
+ * audiotest will not run correctly if there is an instance of p2app
+ * running in the background. p2app sets byte swapping to "networ byte order"
+ * which is NOT what this app uses. 
+ * kill any instance of p2app first!
+ * 
  * Dependencies:
  * - GTK3 for GUI.
  * - POSIX threads and semaphores for concurrency.
@@ -19,7 +25,8 @@
  * - Device files (/dev/xdma0_user, /dev/xdma0_h2c_0, /dev/xdma0_c2h_0).
  *
  * Compilation:
- *   gcc -o audiotest audiotest.c `pkg-config --cflags --libs gtk+-3.0` -lpthread -lm
+ *   make clean
+ *   make
  */
 
 #include <gtk/gtk.h>
@@ -63,7 +70,8 @@
 #define MIC_STATUS_PLAYING "Playing"      // Status label for playback
 
 // Application context for GUI elements
-typedef struct {
+typedef struct 
+{
     GtkWidget *window;               // Main application window
     GtkStatusbar *status_bar;        // Status bar for general messages
     GtkTextBuffer *text_buffer;      // Text buffer for log messages
@@ -84,7 +92,8 @@ typedef struct {
 } AppContext;
 
 // Audio context for hardware and buffer management
-typedef struct {
+typedef struct 
+{
     char *write_buffer;              // Buffer for DMA writes to codec
     char *read_buffer;               // Buffer for DMA reads from codec
     int dma_write_fd;                // File descriptor for DMA write device
@@ -95,13 +104,14 @@ typedef struct {
     bool speaker_test_is_left_channel; // True for left channel speaker test
     pthread_mutex_t mic_test_mutex;  // Mutex for mic_test_initiated
     pthread_mutex_t speaker_test_mutex; // Mutex for speaker_test_initiated
+    AppContext* AppPtr;                 // s it is available to event handlers
 } AudioContext;
 
 // Global synchronization primitives
-sem_t DDCInSelMutex;                 // Protects DDC input select register
-sem_t DDCResetFIFOMutex;             // Protects FIFO reset register
-sem_t RFGPIOMutex;                   // Protects RF GPIO register
-sem_t CodecRegMutex;                 // Protects codec register writes
+extern sem_t DDCInSelMutex;                 // Protects DDC input select register
+extern sem_t DDCResetFIFOMutex;             // Protects FIFO reset register
+extern sem_t RFGPIOMutex;                   // Protects RF GPIO register
+extern sem_t CodecRegMutex;                 // Protects codec register writes
 volatile bool keep_running = true;    // Flag to control thread termination
 
 /*
@@ -109,7 +119,8 @@ volatile bool keep_running = true;    // Flag to control thread termination
  * @param Unused: Boolean parameter (not used in this implementation).
  * Note: This function is required by saturndrivers.c but not used in audiotest.
  */
-void HandlerSetEERMode(bool Unused) {
+void HandlerSetEERMode(bool Unused) 
+{
     // Stub implementation to satisfy linker dependency
 }
 
@@ -118,7 +129,8 @@ void HandlerSetEERMode(bool Unused) {
  * @param app: Pointer to application context.
  * @param audio: Pointer to audio context.
  */
-void cleanup(AppContext *app, AudioContext *audio) {
+void cleanup(AppContext *app, AudioContext *audio) 
+{
     keep_running = false; // Signal threads to terminate
     if (audio->write_buffer) free(audio->write_buffer);
     if (audio->read_buffer) free(audio->read_buffer);
@@ -137,7 +149,8 @@ void cleanup(AppContext *app, AudioContext *audio) {
  * @param audio: Pointer to audio context.
  * @param value: New value for mic_test_initiated.
  */
-void set_mic_test_initiated(AudioContext *audio, bool value) {
+void set_mic_test_initiated(AudioContext *audio, bool value) 
+{
     pthread_mutex_lock(&audio->mic_test_mutex);
     audio->mic_test_initiated = value;
     pthread_mutex_unlock(&audio->mic_test_mutex);
@@ -148,7 +161,8 @@ void set_mic_test_initiated(AudioContext *audio, bool value) {
  * @param audio: Pointer to audio context.
  * @return: Current value of mic_test_initiated.
  */
-bool get_mic_test_initiated(AudioContext *audio) {
+bool get_mic_test_initiated(AudioContext *audio) 
+{
     bool value;
     pthread_mutex_lock(&audio->mic_test_mutex);
     value = audio->mic_test_initiated;
@@ -162,7 +176,8 @@ bool get_mic_test_initiated(AudioContext *audio) {
  * @param value: New value for speaker_test_initiated.
  * @param is_left: True for left channel, false for right.
  */
-void set_speaker_test_initiated(AudioContext *audio, bool value, bool is_left) {
+void set_speaker_test_initiated(AudioContext *audio, bool value, bool is_left) 
+{
     pthread_mutex_lock(&audio->speaker_test_mutex);
     audio->speaker_test_initiated = value;
     audio->speaker_test_is_left_channel = is_left;
@@ -175,7 +190,8 @@ void set_speaker_test_initiated(AudioContext *audio, bool value, bool is_left) {
  * @param value: Pointer to store speaker_test_initiated.
  * @param is_left: Pointer to store speaker_test_is_left_channel.
  */
-void get_speaker_test_initiated(AudioContext *audio, bool *value, bool *is_left) {
+void get_speaker_test_initiated(AudioContext *audio, bool *value, bool *is_left) 
+{
     pthread_mutex_lock(&audio->speaker_test_mutex);
     *value = audio->speaker_test_initiated;
     *is_left = audio->speaker_test_is_left_channel;
@@ -187,12 +203,14 @@ void get_speaker_test_initiated(AudioContext *audio, bool *value, bool *is_left)
  * @param user_data: Pointer to ProgressUpdateData.
  * @return: G_SOURCE_REMOVE to remove the idle callback.
  */
-typedef struct {
+typedef struct 
+{
     GtkProgressBar *progress_bar; // Target progress bar
     float fraction;               // Fraction to set (0.0 to 1.0)
 } ProgressUpdateData;
 
-static gboolean update_progress_bar(gpointer user_data) {
+static gboolean update_progress_bar(gpointer user_data) 
+{
     ProgressUpdateData *data = (ProgressUpdateData *)user_data;
     gtk_progress_bar_set_fraction(data->progress_bar, data->fraction);
     g_free(data);
@@ -205,7 +223,8 @@ static gboolean update_progress_bar(gpointer user_data) {
  * @param ProgressPercent: Percentage of test completion (0 to 100).
  * @param LevelPercent: Microphone signal level percentage (0 to 100).
  */
-static void MyStatusCallback(AppContext *app, float ProgressPercent, float LevelPercent) {
+static void MyStatusCallback(AppContext *app, float ProgressPercent, float LevelPercent) 
+{
     // Update progress bar
     ProgressUpdateData *data = g_new(ProgressUpdateData, 1);
     data->progress_bar = app->mic_progress_bar;
@@ -228,48 +247,56 @@ static void MyStatusCallback(AppContext *app, float ProgressPercent, float Level
  * @param Samples: Number of samples to generate.
  * @param StartFreq: Starting frequency in Hz.
  * @param FreqRamp: Frequency ramp over duration.
- * @param Amplitude: Amplitude (0 to 1).
+ * @param Amplitude: Amplitude (0 to 1.0).
  * @param IsL: True for left channel, false for right.
  */
-void CreateSpkTestData(char *MemPtr, uint32_t Samples, float StartFreq, float FreqRamp, float Amplitude, bool IsL) {
+void CreateSpkTestData(char *MemPtr, uint32_t Samples, float StartFreq, float FreqRamp, float Amplitude, bool IsL) 
+{
     uint32_t *Data = (uint32_t *)MemPtr;
-    double Ampl = 32767.0 * Amplitude; // Scale to 16-bit range
+    double Ampl = 32767.0 * Amplitude;
+    printf("max scaling value = %f\n", (float)Ampl);
     double Phase = 0.0; // Current phase in radians
     double PhaseIncrement;
     float Freq = StartFreq;
     uint16_t ZeroWord = 0; // Zero for unused channel
 
-    printf("Scaled amplitude = %5.1f\n", Ampl);
-    for (uint32_t Cntr = 0; Cntr < Samples; Cntr++) {
+    for (uint32_t Cntr = 0; Cntr < Samples; Cntr++) 
+    {
         // Calculate phase increment for current frequency
         Freq = StartFreq + FreqRamp * (float)Cntr / Samples;
         PhaseIncrement = 2.0 * M_PI * Freq / SAMPLE_RATE;
         Phase += PhaseIncrement;
         int16_t Word = (int16_t)(Ampl * sin(Phase));
         // Pack left or right channel sample
-        uint32_t TwoWords = IsL ? (ZeroWord << 16) | (uint16_t)Word : ((uint16_t)Word << 16) | ZeroWord;
+        uint32_t TwoWords = IsL ? ((ZeroWord << 16) | (uint32_t)Word) : (((uint32_t)Word << 16) | ZeroWord);
         *Data++ = TwoWords;
     }
 }
+
+
 
 /*
  * DMAWriteToCodec: Writes data to codec via DMA.
  * @param audio: Pointer to audio context.
  * @param MemPtr: Buffer containing data to write.
- * @param Length: Number of bytes to transfer.
+ * @param Length: Number of bytes to transfer. 
  */
-void DMAWriteToCodec(AudioContext *audio, char *MemPtr, uint32_t Length) {
+void DMAWriteToCodec(AudioContext *audio, char *MemPtr, uint32_t Length) 
+{
     uint32_t Depth = 0, Spare;
     bool FIFOOverflow, OverThreshold, Underflow;
     uint32_t DMACount, TotalDMACount = Length / DMA_TRANSFER_SIZE;
     struct pollfd pfd = { .fd = audio->dma_write_fd, .events = POLLOUT };
 
     printf("Starting Write DMAs; total = %d\n", TotalDMACount);
-    for (DMACount = 0; DMACount < TotalDMACount; DMACount++) {
+    for (DMACount = 0; DMACount < TotalDMACount; DMACount++) 
+    {
         // Wait for FIFO to have enough space
         Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &OverThreshold, &Underflow, &Spare);
-        while (Depth < DMA_WORDS_PER_DMA) {
-            if (poll(&pfd, 1, 1000) < 0) {
+        while (Depth < DMA_WORDS_PER_DMA) 
+        {
+            if (poll(&pfd, 1, 1000) < 0) 
+            {
                 fprintf(stderr, "Poll error on DMA write: %s\n", strerror(errno));
                 break;
             }
@@ -282,17 +309,22 @@ void DMAWriteToCodec(AudioContext *audio, char *MemPtr, uint32_t Length) {
     usleep(10000); // Brief wait to ensure completion
 }
 
+
+
+
 /*
  * CopyMicToSpeaker: Copies microphone data to speaker buffer (dual mono).
  * @param Read: Input buffer with 16-bit mic samples.
  * @param Write: Output buffer for 32-bit stereo samples.
  * @param Length: Number of bytes in input buffer.
  */
-void CopyMicToSpeaker(char *Read, char *Write, uint32_t Length) {
+void CopyMicToSpeaker(char *Read, char *Write, uint32_t Length) 
+{
     uint32_t *WritePtr = (uint32_t *)Write;
     uint16_t *ReadPtr = (uint16_t *)Read;
 
-    for (uint32_t Cntr = 0; Cntr < Length / 2; Cntr++) {
+    for (uint32_t Cntr = 0; Cntr < Length / 2; Cntr++) 
+    {
         uint16_t Sample = *ReadPtr++;
         uint32_t TwoSamples = (uint32_t)Sample;
         TwoSamples = (TwoSamples << 16) | TwoSamples; // Duplicate to both channels
@@ -307,7 +339,8 @@ void CopyMicToSpeaker(char *Read, char *Write, uint32_t Length) {
  * @param MemPtr: Buffer to store read data.
  * @param Length: Number of bytes to read.
  */
-void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32_t Length) {
+void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32_t Length) 
+{
     uint32_t Depth = 0, Spare;
     bool FIFOOverflow, OverThreshold, Underflow;
     uint32_t DMACount, TotalDMACount = Length / DMA_TRANSFER_SIZE;
@@ -316,11 +349,14 @@ void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32
     struct pollfd pfd = { .fd = audio->dma_read_fd, .events = POLLIN };
 
     printf("Starting Read DMAs; total = %d\n", TotalDMACount);
-    for (DMACount = 0; DMACount < TotalDMACount; DMACount++) {
+    for (DMACount = 0; DMACount < TotalDMACount; DMACount++) 
+    {
         // Wait for sufficient data in FIFO
         Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &OverThreshold, &Underflow, &Spare);
-        while (Depth < DMA_WORDS_PER_DMA) {
-            if (poll(&pfd, 1, 1000) < 0) {
+        while (Depth < DMA_WORDS_PER_DMA) 
+        {
+            if (poll(&pfd, 1, 1000) < 0) 
+            {
                 fprintf(stderr, "Poll error on DMA read: %s\n", strerror(errno));
                 break;
             }
@@ -328,14 +364,16 @@ void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32
         }
         // Read DMA data and find peak amplitude
         DMAReadFromFPGA(audio->dma_read_fd, MemPtr, DMA_TRANSFER_SIZE, AXI_BASE_ADDRESS);
-        for (uint32_t SampleCntr = 0; SampleCntr < DMA_TRANSFER_SIZE / 2; SampleCntr++) {
+        for (uint32_t SampleCntr = 0; SampleCntr < DMA_TRANSFER_SIZE / 2; SampleCntr++) 
+        {
             int MicSample = *MicReadPtr++;
             MicSample = abs(MicSample);
             if (MicSample > MaxMicLevel) MaxMicLevel = MicSample;
         }
         MemPtr += DMA_TRANSFER_SIZE;
         // Update UI periodically
-        if ((DMACount % DMA_DISP_UPDATE) == 0) {
+        if ((DMACount % DMA_DISP_UPDATE) == 0) 
+        {
             float ProgressFraction = 100.0 * (float)DMACount / TotalDMACount;
             float AmplPercent = 100.0 * (float)MaxMicLevel / 32767.0;
             MyStatusCallback(app, ProgressFraction, AmplPercent);
@@ -349,7 +387,8 @@ void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32
  * @param button: The clicked button.
  * @param audio: Pointer to audio context.
  */
-void on_testL_button_clicked(GtkButton *button, AudioContext *audio) {
+void on_testL_button_clicked(GtkButton *button, AudioContext *audio) 
+{
     set_speaker_test_initiated(audio, true, true);
 }
 
@@ -358,16 +397,22 @@ void on_testL_button_clicked(GtkButton *button, AudioContext *audio) {
  * @param button: The clicked button.
  * @param audio: Pointer to audio context.
  */
-void on_testR_button_clicked(GtkButton *button, AudioContext *audio) {
+void on_testR_button_clicked(GtkButton *button, AudioContext *audio) 
+{
     set_speaker_test_initiated(audio, true, false);
 }
 
 /*
  * on_MicSettings_Changed: Updates microphone settings based on GUI toggles.
  * @param button: The toggled button.
- * @param app: Pointer to application context.
+ * @param audio: Pointer to audio context. 
+   (Ptr to app can be taken from that.)
  */
-void on_MicSettings_Changed(GtkToggleButton *button, AppContext *app) {
+void on_MicSettings_Changed(GtkToggleButton *button, AudioContext *audio) 
+{
+    AppContext *app;
+
+    app = audio -> AppPtr;
     gboolean XLR = gtk_toggle_button_get_active(app->mic_xlr_check);
     gboolean MicBoost = gtk_toggle_button_get_active(app->mic_boost_check);
     gboolean MicTip = gtk_toggle_button_get_active(app->mic_tip_check);
@@ -386,7 +431,8 @@ void on_MicSettings_Changed(GtkToggleButton *button, AppContext *app) {
  * @param button: The clicked button.
  * @param audio: Pointer to audio context.
  */
-void on_MicTestButton_clicked(GtkButton *button, AudioContext *audio) {
+void on_MicTestButton_clicked(GtkButton *button, AudioContext *audio) 
+{
     set_mic_test_initiated(audio, true);
 }
 
@@ -395,7 +441,8 @@ void on_MicTestButton_clicked(GtkButton *button, AudioContext *audio) {
  * @param widget: The window widget.
  * @param app: Pointer to application context.
  */
-void on_window_main_destroy(GtkWidget *widget, AppContext *app) {
+void on_window_main_destroy(GtkWidget *widget, AppContext *app) 
+{
     gtk_main_quit();
 }
 
@@ -403,13 +450,16 @@ void on_window_main_destroy(GtkWidget *widget, AppContext *app) {
  * MicTest: Thread to handle microphone record and playback.
  * @param arg: Array containing AppContext and AudioContext pointers.
  */
-void *MicTest(void *arg) {
+void *MicTest(void *arg) 
+{
     AppContext *app = ((void **)arg)[0];
     AudioContext *audio = ((void **)arg)[1];
 
-    while (keep_running) {
+    while (keep_running) 
+    {
         usleep(50000); // 50ms polling interval
-        if (get_mic_test_initiated(audio)) {
+        if (get_mic_test_initiated(audio)) 
+        {
             // Configure gain
             double Gain = gtk_spin_button_get_value(app->gain_spin);
             uint32_t IntGain = (uint32_t)((Gain + 34.5) / 1.5);
@@ -451,9 +501,11 @@ void *SpeakerTest(void *arg)
     {
         bool initiated, is_left;
         get_speaker_test_initiated(audio, &initiated, &is_left);
-        if (initiated) {
+        if (initiated) 
+        {
             // Configure test parameters
             double Ampl = gtk_range_get_value(app->volume_scale) / 100.0;
+            printf("audio ampl = %f\n", (float)Ampl);
             float Freq = is_left ? 400.0 : 1000.0; // Different frequencies for L/R
             float FreqRamp = 0.0;
             ResetDMAStreamFIFO(eSpkCodecDMA);
@@ -472,7 +524,8 @@ void *SpeakerTest(void *arg)
  * CheckForPttPressed: Thread to monitor PTT input status.
  * @param arg: Pointer to AppContext.
  */
-void *CheckForPttPressed(void *arg) {
+void *CheckForPttPressed(void *arg) 
+{
     AppContext *app = (AppContext *)arg;
     bool PTTPressed = false;
 
@@ -514,6 +567,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Failed to load audiotest.ui\n");
         return EXIT_FAILURE;
     }
+    audio.AppPtr = &app;
 
     // Initialize GUI elements
     app.window = GTK_WIDGET(gtk_builder_get_object(builder, "window_main"));
@@ -617,7 +671,7 @@ int main(int argc, char *argv[])
     }
 
     // Apply initial microphone settings
-    on_MicSettings_Changed(NULL, &app);
+    on_MicSettings_Changed(NULL, &audio);
     gtk_progress_bar_set_fraction(app.mic_level_bar, 0.0);
 
     // Start threads
