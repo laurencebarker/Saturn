@@ -12,17 +12,18 @@
  * - Comprehensive error handling and resource cleanup.
  * - Optimized audio data processing and DMA operations.
  * - Overload indicator (latches for 0.5s with dBFS value) and near-peak indicator (6dB/10dB from peak with dBFS value).
- * - Mic gain control via spin button.
+ * - Mic gain control via spin button with persistent settings saved to ~/.audiotestrc.
  *
  * NOTE
  * audiotest will not run correctly if there is an instance of p2app or piHPSDR
  * running in the background. p2app/piHPSDR set byte swapping to "network byte order"
  * which is NOT what this app uses. A warning dialog will appear if these are detected.
  * Kill any instance of p2app or piHPSDR first!
- * 
+ *
  * Dependencies:
  * - GTK3 for GUI.
  * - POSIX threads and semaphores for concurrency.
+ * - GLib for configuration file handling.
  * - Custom hardware libraries (saturntypes.h, hwaccess.h, etc.).
  * - Device files (/dev/xdma0_user, /dev/xdma0_h2c_0, /dev/xdma0_c2h_0).
  *
@@ -32,6 +33,7 @@
  */
 
 #include <gtk/gtk.h>
+#include <glib.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdio.h>
@@ -75,7 +77,7 @@
 #define OVERLOAD_LATCH_NS 500000000       // 0.5s latch for overload indicator (in ns)
 
 // Application context for GUI elements
-typedef struct 
+typedef struct
 {
     GtkWidget *window;               // Main application window
     GtkStatusbar *status_bar;        // Status bar for general messages
@@ -86,7 +88,7 @@ typedef struct
     GtkProgressBar *mic_level_bar;    // Progress bar for mic signal level
     GtkRange *volume_scale;          // Slider for speaker test volume
     GtkSpinButton *mic_duration_spin; // Spin button for mic test duration
-    GtkSpinButton *gain_spin;        // Spin button for mic input gain
+    GtkSpinButton *gain_spin;        // Spin button for input gain (line/mic)
     GtkAdjustment *vol_adjustment;   // Adjustment for volume scale
     GtkAdjustment *gain_adjustment;  // Adjustment for gain spin button
     GtkToggleButton *mic_boost_check; // Checkbox for mic boost
@@ -99,7 +101,7 @@ typedef struct
 } AppContext;
 
 // Audio context for hardware and buffer management
-typedef struct 
+typedef struct
 {
     char *write_buffer;              // Buffer for DMA writes to codec
     char *read_buffer;               // Buffer for DMA reads from codec
@@ -111,7 +113,7 @@ typedef struct
     bool speaker_test_is_left_channel; // True for left channel speaker test
     pthread_mutex_t mic_test_mutex;  // Mutex for mic_test_initiated
     pthread_mutex_t speaker_test_mutex; // Mutex for speaker_test_mutex
-    AppContext* AppPtr;              // Pointer to app context for event handlers
+    AppContext *AppPtr;              // Pointer to app context for event handlers
 } AudioContext;
 
 // Global synchronization primitives
@@ -119,14 +121,81 @@ extern sem_t DDCInSelMutex;                 // Protects DDC input select registe
 extern sem_t DDCResetFIFOMutex;             // Protects FIFO reset register
 extern sem_t RFGPIOMutex;                   // Protects RF GPIO register
 extern sem_t CodecRegMutex;                 // Protects codec register writes
-volatile bool keep_running = true;    // Flag to control thread termination
+volatile bool keep_running = true;           // Flag to control thread termination
+static bool hardware_available = true;       // Flag to indicate hardware availability
+
+// Function prototypes
+void on_MicSettings_Changed(GtkToggleButton *button, AudioContext *audio);
+void on_close_button_clicked(GtkButton *button, AppContext *app);
+
+// Function to load the input gain from the configuration file
+static void load_gain(AppContext *app)
+{
+    GKeyFile *keyfile = g_key_file_new();
+    gchar *filename = g_build_filename(g_get_home_dir(), ".audiotestrc", NULL);
+    if (g_key_file_load_from_file(keyfile, filename, G_KEY_FILE_NONE, NULL))
+    {
+        if (g_key_file_has_key(keyfile, "audiotest", "mic_gain", NULL))
+        {
+            gdouble gain = g_key_file_get_double(keyfile, "audiotest", "mic_gain", NULL);
+            gtk_spin_button_set_value(app->gain_spin, gain);
+            printf("Loaded input gain: %.1f dB\n", gain);
+        }
+        else
+        {
+            gtk_spin_button_set_value(app->gain_spin, 0.0); // Default gain
+            printf("No saved input gain, using default: 0.0 dB\n");
+        }
+    }
+    else
+    {
+        gtk_spin_button_set_value(app->gain_spin, 0.0); // Default gain
+        printf("No config file found, using default input gain: 0.0 dB\n");
+    }
+    g_free(filename);
+    g_key_file_free(keyfile);
+}
+
+// Function to save the input gain to the configuration file
+static void save_gain(AppContext *app)
+{
+    GKeyFile *keyfile = g_key_file_new();
+    gdouble gain = gtk_spin_button_get_value(app->gain_spin);
+    g_key_file_set_double(keyfile, "audiotest", "mic_gain", gain);
+    gchar *filename = g_build_filename(g_get_home_dir(), ".audiotestrc", NULL);
+    if (!g_key_file_save_to_file(keyfile, filename, NULL))
+    {
+        fprintf(stderr, "Failed to save config file\n");
+    }
+    else
+    {
+        printf("Saved input gain: %.1f dB\n", gain);
+    }
+    g_free(filename);
+    g_key_file_free(keyfile);
+}
+
+// Callback for when the gain spin button value changes
+static void on_gain_changed(GtkSpinButton *spin_button, AudioContext *audio)
+{
+    AppContext *app = audio->AppPtr;
+    save_gain(app);
+    on_MicSettings_Changed(NULL, audio);
+}
+
+// Callback for the Close button
+void on_close_button_clicked(GtkButton *button, AppContext *app)
+{
+    save_gain(app);
+    gtk_main_quit();
+}
 
 /*
  * check_background_apps: Checks for running instances of p2app or piHPSDR and warns user.
  * @param parent: Parent window for the dialog (can be NULL).
  * @return: true if conflicting apps are running, false otherwise.
  */
-static bool check_background_apps(GtkWidget *parent) 
+static bool check_background_apps(GtkWidget *parent)
 {
     FILE *fp;
     char buffer[128];
@@ -161,7 +230,6 @@ static bool check_background_apps(GtkWidget *parent)
         }
         pclose(fp);
     }
-
     return conflict_found;
 }
 
@@ -169,7 +237,7 @@ static bool check_background_apps(GtkWidget *parent)
  * HandlerSetEERMode: Placeholder callback for EER mode setting.
  * @param Unused: Boolean parameter (not used in this implementation).
  */
-void HandlerSetEERMode(bool Unused) 
+void HandlerSetEERMode(bool Unused)
 {
     // Stub implementation to satisfy linker dependency
 }
@@ -179,7 +247,7 @@ void HandlerSetEERMode(bool Unused)
  * @param app: Pointer to application context.
  * @param audio: Pointer to audio context.
  */
-void cleanup(AppContext *app, AudioContext *audio) 
+void cleanup(AppContext *app, AudioContext *audio)
 {
     keep_running = false;
     if (audio->write_buffer) free(audio->write_buffer);
@@ -199,7 +267,7 @@ void cleanup(AppContext *app, AudioContext *audio)
  * @param audio: Pointer to audio context.
  * @param value: New value for mic_test_initiated.
  */
-void set_mic_test_initiated(AudioContext *audio, bool value) 
+void set_mic_test_initiated(AudioContext *audio, bool value)
 {
     pthread_mutex_lock(&audio->mic_test_mutex);
     audio->mic_test_initiated = value;
@@ -211,7 +279,7 @@ void set_mic_test_initiated(AudioContext *audio, bool value)
  * @param audio: Pointer to audio context.
  * @return: Current value of mic_test_initiated.
  */
-bool get_mic_test_initiated(AudioContext *audio) 
+bool get_mic_test_initiated(AudioContext *audio)
 {
     bool value;
     pthread_mutex_lock(&audio->mic_test_mutex);
@@ -226,7 +294,7 @@ bool get_mic_test_initiated(AudioContext *audio)
  * @param value: New value for speaker_test_initiated.
  * @param is_left: True for left channel, false for right.
  */
-void set_speaker_test_initiated(AudioContext *audio, bool value, bool is_left) 
+void set_speaker_test_initiated(AudioContext *audio, bool value, bool is_left)
 {
     pthread_mutex_lock(&audio->speaker_test_mutex);
     audio->speaker_test_initiated = value;
@@ -240,7 +308,7 @@ void set_speaker_test_initiated(AudioContext *audio, bool value, bool is_left)
  * @param value: Pointer to store speaker_test_initiated.
  * @param is_left: Pointer to store speaker_test_is_left_channel.
  */
-void get_speaker_test_initiated(AudioContext *audio, bool *value, bool *is_left) 
+void get_speaker_test_initiated(AudioContext *audio, bool *value, bool *is_left)
 {
     pthread_mutex_lock(&audio->speaker_test_mutex);
     *value = audio->speaker_test_initiated;
@@ -253,7 +321,7 @@ void get_speaker_test_initiated(AudioContext *audio, bool *value, bool *is_left)
  * @param user_data: Pointer to ProgressUpdateData.
  * @return: G_SOURCE_REMOVE to remove the idle callback.
  */
-typedef struct 
+typedef struct
 {
     GtkProgressBar *progress_bar; // Target progress bar
     GtkProgressBar *level_bar;    // Target level bar
@@ -265,12 +333,12 @@ typedef struct
     float near_peak_dbfs;        // dBFS value for near-peak (or 0 if inactive)
 } ProgressUpdateData;
 
-static gboolean update_progress_bars(gpointer user_data) 
+static gboolean update_progress_bars(gpointer user_data)
 {
     ProgressUpdateData *data = (ProgressUpdateData *)user_data;
     gtk_progress_bar_set_fraction(data->progress_bar, data->progress_fraction);
     gtk_progress_bar_set_fraction(data->level_bar, data->level_fraction);
-    
+
     // Update overload indicator
     if (data->overload_dbfs > -0.01) { // Near or above 0 dBFS
         char label_text[32];
@@ -302,7 +370,7 @@ static gboolean update_progress_bars(gpointer user_data)
  * @param user_data: Pointer to AppContext.
  * @return: G_SOURCE_REMOVE to remove the timeout callback.
  */
-static gboolean reset_overload_latch(gpointer user_data) 
+static gboolean reset_overload_latch(gpointer user_data)
 {
     AppContext *app = (AppContext *)user_data;
     ProgressUpdateData *data = g_new(ProgressUpdateData, 1);
@@ -319,16 +387,17 @@ static gboolean reset_overload_latch(gpointer user_data)
 }
 
 /*
- * MyStatusCallback: Updates progress bars and indicators for test progress and mic level.
+ * MyStatusCallback: Updates progress bars and indicators for test progress and input level.
  * @param app: Pointer to application context.
  * @param ProgressPercent: Percentage of test completion (0 to 100).
- * @param LevelPercent: Microphone signal level percentage (0 to 100).
+ * @param LevelPercent: Input signal level percentage (0 to 100).
  * @param dBFS: Peak signal level in dBFS.
  * @param Overload: True if signal exceeds 0 dBFS.
  * @param NearPeak: True if signal is within -6 dB or -10 dB of peak.
  */
-static void MyStatusCallback(AppContext *app, float ProgressPercent, float LevelPercent, float dBFS, bool Overload, bool NearPeak) 
+static void MyStatusCallback(AppContext *app, float ProgressPercent, float LevelPercent, float dBFS, bool Overload, bool NearPeak)
 {
+    if (!hardware_available) return; // Skip if hardware is unavailable
     ProgressUpdateData *data = g_new(ProgressUpdateData, 1);
     data->progress_bar = app->mic_progress_bar;
     data->level_bar = app->mic_level_bar;
@@ -343,9 +412,6 @@ static void MyStatusCallback(AppContext *app, float ProgressPercent, float Level
     data->overload_dbfs = Overload ? dBFS : 0.0;
     data->near_peak_dbfs = NearPeak ? dBFS : 0.0;
 
-    printf("Mic level: %f%% (%f dBFS, fraction=%f, overload=%d, near_peak=%d)\n", 
-           LevelPercent, dBFS, data->level_fraction, Overload, NearPeak);
-
     g_idle_add(update_progress_bars, data);
 
     // Set 0.5s latch for overload
@@ -357,17 +423,17 @@ static void MyStatusCallback(AppContext *app, float ProgressPercent, float Level
 /*
  * CreateSpkTestData: Generates sinewave test data for speaker output.
  */
-void CreateSpkTestData(char *MemPtr, uint32_t Samples, float StartFreq, float FreqRamp, float Amplitude, bool IsL) 
+void CreateSpkTestData(char *MemPtr, uint32_t Samples, float StartFreq, float FreqRamp, float Amplitude, bool IsL)
 {
+    if (!hardware_available) return; // Skip if hardware is unavailable
     uint32_t *Data = (uint32_t *)MemPtr;
     double Ampl = 32767.0 * Amplitude;
-    printf("max scaling value = %f\n", (float)Ampl);
     double Phase = 0.0;
     double PhaseIncrement;
     float Freq = StartFreq;
     uint16_t ZeroWord = 0;
 
-    for (uint32_t Cntr = 0; Cntr < Samples; Cntr++) 
+    for (uint32_t Cntr = 0; Cntr < Samples; Cntr++)
     {
         Freq = StartFreq + FreqRamp * (float)Cntr / Samples;
         PhaseIncrement = 2.0 * M_PI * Freq / SAMPLE_RATE;
@@ -381,20 +447,20 @@ void CreateSpkTestData(char *MemPtr, uint32_t Samples, float StartFreq, float Fr
 /*
  * DMAWriteToCodec: Writes data to codec via DMA.
  */
-void DMAWriteToCodec(AudioContext *audio, char *MemPtr, uint32_t Length) 
+void DMAWriteToCodec(AudioContext *audio, char *MemPtr, uint32_t Length)
 {
+    if (!hardware_available) return; // Skip if hardware is unavailable
     uint32_t Depth = 0, Spare;
     bool FIFOOverflow, OverThreshold, Underflow;
     uint32_t DMACount, TotalDMACount = Length / DMA_TRANSFER_SIZE;
     struct pollfd pfd = { .fd = audio->dma_write_fd, .events = POLLOUT };
 
-    printf("Starting Write DMAs; total = %d\n", TotalDMACount);
-    for (DMACount = 0; DMACount < TotalDMACount; DMACount++) 
+    for (DMACount = 0; DMACount < TotalDMACount; DMACount++)
     {
         Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &OverThreshold, &Underflow, &Spare);
-        while (Depth < DMA_WORDS_PER_DMA) 
+        while (Depth < DMA_WORDS_PER_DMA)
         {
-            if (poll(&pfd, 1, 1000) < 0) 
+            if (poll(&pfd, 1, 1000) < 0)
             {
                 fprintf(stderr, "Poll error on DMA write: %s\n", strerror(errno));
                 break;
@@ -410,12 +476,13 @@ void DMAWriteToCodec(AudioContext *audio, char *MemPtr, uint32_t Length)
 /*
  * CopyMicToSpeaker: Copies microphone data to speaker buffer (dual mono).
  */
-void CopyMicToSpeaker(char *Read, char *Write, uint32_t Length) 
+void CopyMicToSpeaker(char *Read, char *Write, uint32_t Length)
 {
+    if (!hardware_available) return; // Skip if hardware is unavailable
     uint32_t *WritePtr = (uint32_t *)Write;
     uint16_t *ReadPtr = (uint16_t *)Read;
 
-    for (uint32_t Cntr = 0; Cntr < Length / 2; Cntr++) 
+    for (uint32_t Cntr = 0; Cntr < Length / 2; Cntr++)
     {
         uint16_t Sample = *ReadPtr++;
         uint32_t TwoSamples = (uint32_t)Sample;
@@ -427,8 +494,9 @@ void CopyMicToSpeaker(char *Read, char *Write, uint32_t Length)
 /*
  * DMAReadFromCodec: Reads data from codec via DMA and updates UI.
  */
-void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32_t Length) 
+void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32_t Length)
 {
+    if (!hardware_available) return; // Skip if hardware is unavailable
     uint32_t Depth = 0, Spare;
     bool FIFOOverflow, OverThreshold, Underflow;
     uint32_t DMACount, TotalDMACount = Length / DMA_TRANSFER_SIZE;
@@ -443,13 +511,12 @@ void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32
     struct pollfd pfd = { .fd = audio->dma_read_fd, .events = POLLIN };
     struct timespec last_update = {0, 0};
 
-    printf("Starting Read DMAs; total = %d\n", TotalDMACount);
-    for (DMACount = 0; DMACount < TotalDMACount; DMACount++) 
+    for (DMACount = 0; DMACount < TotalDMACount; DMACount++)
     {
         Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &OverThreshold, &Underflow, &Spare);
-        while (Depth < DMA_WORDS_PER_DMA) 
+        while (Depth < DMA_WORDS_PER_DMA)
         {
-            if (poll(&pfd, 1, 1000) < 0) 
+            if (poll(&pfd, 1, 1000) < 0)
             {
                 fprintf(stderr, "Poll error on DMA read: %s\n", strerror(errno));
                 break;
@@ -457,7 +524,7 @@ void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32
             Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &OverThreshold, &Underflow, &Spare);
         }
         DMAReadFromFPGA(audio->dma_read_fd, MemPtr, DMA_TRANSFER_SIZE, AXI_BASE_ADDRESS);
-        for (uint32_t SampleCntr = 0; SampleCntr < DMA_TRANSFER_SIZE / 2; SampleCntr++) 
+        for (uint32_t SampleCntr = 0; SampleCntr < DMA_TRANSFER_SIZE / 2; SampleCntr++)
         {
             int MicSample = *MicReadPtr++;
             float SampleLevel = (float)abs(MicSample) / 32767.0 * 100.0;
@@ -470,12 +537,12 @@ void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32
         }
         MemPtr += DMA_TRANSFER_SIZE;
 
-        if (DMACount % DMA_DISP_UPDATE == 0) 
+        if (DMACount % DMA_DISP_UPDATE == 0)
         {
             struct timespec now;
             clock_gettime(CLOCK_MONOTONIC, &now);
             long long elapsed_ns = (now.tv_sec - last_update.tv_sec) * 1000000000LL + (now.tv_nsec - last_update.tv_nsec);
-            if (elapsed_ns >= MIN_UPDATE_INTERVAL || DMACount == TotalDMACount - 1) 
+            if (elapsed_ns >= MIN_UPDATE_INTERVAL || DMACount == TotalDMACount - 1)
             {
                 float ProgressFraction = 100.0 * (float)DMACount / TotalDMACount;
                 MyStatusCallback(app, ProgressFraction, PeakLevel, PeakdBFS, Overload, NearPeak);
@@ -493,24 +560,36 @@ void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32
 /*
  * on_testL_button_clicked: Handler for left speaker test button.
  */
-void on_testL_button_clicked(GtkButton *button, AudioContext *audio) 
+void on_testL_button_clicked(GtkButton *button, AudioContext *audio)
 {
+    if (!hardware_available) {
+        g_print("Speaker test disabled: hardware unavailable\n");
+        return;
+    }
     set_speaker_test_initiated(audio, true, true);
 }
 
 /*
  * on_testR_button_clicked: Handler for right speaker test button.
  */
-void on_testR_button_clicked(GtkButton *button, AudioContext *audio) 
+void on_testR_button_clicked(GtkButton *button, AudioContext *audio)
 {
+    if (!hardware_available) {
+        g_print("Speaker test disabled: hardware unavailable\n");
+        return;
+    }
     set_speaker_test_initiated(audio, true, false);
 }
 
 /*
- * on_MicSettings_Changed: Updates microphone settings based on GUI toggles and gain.
+ * on_MicSettings_Changed: Updates input settings based on GUI toggles and gain.
  */
-void on_MicSettings_Changed(GtkToggleButton *button, AudioContext *audio) 
+void on_MicSettings_Changed(GtkToggleButton *button, AudioContext *audio)
 {
+    if (!hardware_available) {
+        g_print("Input settings update disabled: hardware unavailable\n");
+        return;
+    }
     AppContext *app = audio->AppPtr;
     gboolean XLR = gtk_toggle_button_get_active(app->mic_xlr_check);
     gboolean MicBoost = gtk_toggle_button_get_active(app->mic_boost_check);
@@ -525,38 +604,48 @@ void on_MicSettings_Changed(GtkToggleButton *button, AudioContext *audio)
     SetBalancedMicInput(XLR);
     SetMicLineInput(LineInput);
     SetCodecLineInGain(IntGain);
-    printf("Mic settings updated: gain = %7.1f dB, intGain = %d\n", Gain, IntGain);
 }
 
 /*
  * on_MicTestButton_clicked: Initiates microphone test.
  */
-void on_MicTestButton_clicked(GtkButton *button, AudioContext *audio) 
+void on_MicTestButton_clicked(GtkButton *button, AudioContext *audio)
 {
+    if (!hardware_available) {
+        g_print("Mic test disabled: hardware unavailable\n");
+        return;
+    }
     set_mic_test_initiated(audio, true);
 }
 
 /*
  * on_window_main_destroy: Cleans up and exits on window close.
  */
-void on_window_main_destroy(GtkWidget *widget, AppContext *app) 
+void on_window_main_destroy(GtkWidget *widget, AppContext *app)
 {
+    save_gain(app);
     gtk_main_quit();
 }
 
 /*
  * MicTest: Thread to handle microphone record and playback.
  */
-void *MicTest(void *arg) 
+void *MicTest(void *arg)
 {
     AppContext *app = ((void **)arg)[0];
     AudioContext *audio = ((void **)arg)[1];
 
-    while (keep_running) 
+    while (keep_running)
     {
         usleep(50000);
-        if (get_mic_test_initiated(audio)) 
+        if (get_mic_test_initiated(audio))
         {
+            if (!hardware_available) {
+                g_print("Mic test skipped: hardware unavailable\n");
+                gtk_label_set_text(app->mic_activity_label, MIC_STATUS_IDLE);
+                set_mic_test_initiated(audio, false);
+                continue;
+            }
             ProgressUpdateData *data = g_new(ProgressUpdateData, 1);
             data->progress_bar = app->mic_progress_bar;
             data->level_bar = app->mic_level_bar;
@@ -567,12 +656,10 @@ void *MicTest(void *arg)
             data->overload_dbfs = 0.0;
             data->near_peak_dbfs = 0.0;
             g_idle_add(update_progress_bars, data);
-            printf("Reset mic level bar and indicators to Idle\n");
 
             double Gain = gtk_spin_button_get_value(app->gain_spin);
             uint32_t IntGain = (uint32_t)((Gain + 34.5) / 1.5);
             SetCodecLineInGain(IntGain);
-            printf("Line selected; gain = %7.1f dB, intGain = %d\n", Gain, IntGain);
 
             gtk_label_set_text(app->mic_activity_label, MIC_STATUS_RECORDING);
             gint Duration = gtk_spin_button_get_value_as_int(app->mic_duration_spin);
@@ -596,19 +683,24 @@ void *MicTest(void *arg)
 /*
  * SpeakerTest: Thread to handle speaker test with sinewave output.
  */
-void *SpeakerTest(void *arg) 
+void *SpeakerTest(void *arg)
 {
     AppContext *app = ((void **)arg)[0];
     AudioContext *audio = ((void **)arg)[1];
 
-    while (keep_running) 
+    while (keep_running)
     {
         bool initiated, is_left;
         get_speaker_test_initiated(audio, &initiated, &is_left);
-        if (initiated) 
+        if (initiated)
         {
+            if (!hardware_available) {
+                g_print("Speaker test skipped: hardware unavailable\n");
+                gtk_text_buffer_insert_at_cursor(app->text_buffer, "Speaker test skipped: hardware unavailable\n", -1);
+                set_speaker_test_initiated(audio, false, is_left);
+                continue;
+            }
             double Ampl = gtk_range_get_value(app->volume_scale) / 100.0;
-            printf("audio ampl = %f\n", (float)Ampl);
             float Freq = is_left ? 400.0 : 1000.0;
             float FreqRamp = 0.0;
             ResetDMAStreamFIFO(eSpkCodecDMA);
@@ -626,17 +718,21 @@ void *SpeakerTest(void *arg)
 /*
  * CheckForPttPressed: Thread to monitor PTT input status.
  */
-void *CheckForPttPressed(void *arg) 
+void *CheckForPttPressed(void *arg)
 {
     AppContext *app = (AppContext *)arg;
     bool PTTPressed = false;
 
-    while (keep_running) 
+    while (keep_running)
     {
         usleep(50000);
+        if (!hardware_available) {
+            gtk_label_set_text(app->ptt_label, "PTT: Hardware unavailable");
+            continue;
+        }
         ReadStatusRegister();
         bool Pressed = GetPTTInput();
-        if (Pressed != PTTPressed) 
+        if (Pressed != PTTPressed)
         {
             PTTPressed = Pressed;
             gtk_label_set_text(app->ptt_label, Pressed ? "PTT Pressed" : "PTT Released");
@@ -648,7 +744,7 @@ void *CheckForPttPressed(void *arg)
 /*
  * main: Initializes the application and runs the GTK main loop.
  */
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
     AppContext app = {0};
     AudioContext audio = {0};
@@ -658,13 +754,15 @@ int main(int argc, char *argv[])
 
     gtk_init(&argc, &argv);
 
-    // Load CSS for indicators
+    // Load CSS for indicators and controls
     GtkCssProvider *css_provider = gtk_css_provider_new();
-    const gchar *css_data = 
+    const gchar *css_data =
         ".overload-on { background-color: red; color: white; font-weight: bold; }\n"
         ".overload-off { background-color: transparent; color: black; }\n"
         ".near-peak-on { background-color: yellow; color: black; font-weight: bold; }\n"
-        ".near-peak-off { background-color: transparent; color: black; }";
+        ".near-peak-off { background-color: transparent; color: black; }\n"
+        ".debug-spin { background-color: blue; }\n"
+        ".volume-slider { background-color: green; }";
     GError *error = NULL;
     if (!gtk_css_provider_load_from_data(css_provider, css_data, -1, &error)) {
         fprintf(stderr, "Failed to load CSS: %s\n", error->message);
@@ -680,11 +778,11 @@ int main(int argc, char *argv[])
     g_object_unref(css_provider);
 
     if (check_background_apps(NULL)) {
-        fprintf(stderr, "Warning: Conflicting applications detected. User notified.\n");
+        fprintf(stderr, "Warning: Conflicting applications detected\n");
     }
 
     GtkBuilder *builder = gtk_builder_new_from_file("audiotest.ui");
-    if (!builder) 
+    if (!builder)
     {
         fprintf(stderr, "Failed to load audiotest.ui\n");
         return EXIT_FAILURE;
@@ -711,108 +809,115 @@ int main(int argc, char *argv[])
     app.overload_label = GTK_LABEL(gtk_builder_get_object(builder, "overload_label"));
     app.near_peak_label = GTK_LABEL(gtk_builder_get_object(builder, "near_peak_label"));
 
+    // Check for unexpected GainScale widget
+    if (gtk_builder_get_object(builder, "GainScale")) {
+        fprintf(stderr, "Warning: Unexpected GainScale widget found in UI file\n");
+    }
+
+    // Ensure GainSpin is visible
+    if (!app.gain_spin) {
+        fprintf(stderr, "Failed to load GainSpin widget\n");
+    } else {
+        gtk_widget_show(GTK_WIDGET(app.gain_spin));
+    }
+    if (!app.window) {
+        fprintf(stderr, "Failed to load window_main widget\n");
+    } else {
+        gtk_widget_show_all(app.window);
+    }
+
     gtk_builder_add_callback_symbol(builder, "on_testL_button_clicked", G_CALLBACK(on_testL_button_clicked));
     gtk_builder_add_callback_symbol(builder, "on_testR_button_clicked", G_CALLBACK(on_testR_button_clicked));
     gtk_builder_add_callback_symbol(builder, "on_MicTestButton_clicked", G_CALLBACK(on_MicTestButton_clicked));
     gtk_builder_add_callback_symbol(builder, "on_window_main_destroy", G_CALLBACK(on_window_main_destroy));
     gtk_builder_add_callback_symbol(builder, "on_MicSettings_toggled", G_CALLBACK(on_MicSettings_Changed));
+    gtk_builder_add_callback_symbol(builder, "on_close_button_clicked", G_CALLBACK(on_close_button_clicked));
     gtk_builder_connect_signals(builder, &audio);
+
+    // Connect the gain spin button's value-changed signal
+    g_signal_connect(app.gain_spin, "value-changed", G_CALLBACK(on_gain_changed), &audio);
+
     gtk_label_set_text(app.mic_activity_label, MIC_STATUS_IDLE);
     g_object_unref(builder);
 
-    sem_init(&DDCInSelMutex, 0, 1);
-    sem_init(&DDCResetFIFOMutex, 0, 1);
-    sem_init(&RFGPIOMutex, 0, 1);
-    sem_init(&CodecRegMutex, 0, 1);
-    pthread_mutex_init(&audio.mic_test_mutex, NULL);
-    pthread_mutex_init(&audio.speaker_test_mutex, NULL);
+    // Load the saved gain setting
+    load_gain(&app);
 
-    OpenXDMADriver(true);
-    PrintVersionInfo();
-    CodecInitialise();
-    SetByteSwapping(false);
-    SetSpkrMute(false);
+    // Update text buffer with initial status
+    gtk_text_buffer_insert_at_cursor(app.text_buffer,
+        hardware_available ? "Application started. Use Input Gain spin button for line/mic gain.\n"
+                          : "Application started in UI-only mode (hardware unavailable).\n",
+        -1);
 
-    if (posix_memalign((void **)&audio.write_buffer, ALIGNMENT, audio.buffer_size) != 0) 
-    {
-        fprintf(stderr, "Write buffer allocation failed\n");
-        cleanup(&app, &audio);
-        return EXIT_FAILURE;
-    }
-    if ((uintptr_t)audio.write_buffer % ALIGNMENT != 0) 
-    {
-        fprintf(stderr, "Write buffer not aligned\n");
+    if (sem_init(&DDCInSelMutex, 0, 1) != 0 || sem_init(&DDCResetFIFOMutex, 0, 1) != 0 ||
+        sem_init(&RFGPIOMutex, 0, 1) != 0 || sem_init(&CodecRegMutex, 0, 1) != 0 ||
+        pthread_mutex_init(&audio.mic_test_mutex, NULL) != 0 ||
+        pthread_mutex_init(&audio.speaker_test_mutex, NULL) != 0) {
+        fprintf(stderr, "Failed to initialize synchronization primitives\n");
+        gtk_text_buffer_insert_at_cursor(app.text_buffer, "Failed to initialize synchronization\n", -1);
         cleanup(&app, &audio);
         return EXIT_FAILURE;
     }
 
-    if (posix_memalign((void **)&audio.read_buffer, ALIGNMENT, audio.buffer_size) != 0) 
-    {
-        fprintf(stderr, "Read buffer allocation failed\n");
-        cleanup(&app, &audio);
-        return EXIT_FAILURE;
-    }
-    if ((uintptr_t)audio.read_buffer % ALIGNMENT != 0) 
-    {
-        fprintf(stderr, "Read buffer not aligned\n");
-        cleanup(&app, &audio);
-        return EXIT_FAILURE;
+    if (!OpenXDMADriver(true)) {
+        fprintf(stderr, "Failed to open XDMA driver, proceeding without hardware\n");
+        hardware_available = false;
+        gtk_text_buffer_insert_at_cursor(app.text_buffer, "Hardware unavailable: running in UI-only mode\n", -1);
+    } else {
+        PrintVersionInfo();
+        CodecInitialise();
+        SetByteSwapping(false);
+        SetSpkrMute(false);
     }
 
-    struct stat st;
-    if (stat("/dev/xdma0_h2c_0", &st) == 0 && !S_ISCHR(st.st_mode)) 
-    {
-        fprintf(stderr, "Invalid DMA write device\n");
-        cleanup(&app, &audio);
-        return EXIT_FAILURE;
-    }
-    audio.dma_write_fd = open("/dev/xdma0_h2c_0", O_WRONLY | O_CLOEXEC);
-    if (audio.dma_write_fd < 0) 
-    {
-        fprintf(stderr, "Failed to open DMA write device: %s\n", strerror(errno));
-        cleanup(&app, &audio);
-        return EXIT_FAILURE;
+    if (hardware_available) {
+        if (posix_memalign((void **)&audio.write_buffer, ALIGNMENT, audio.buffer_size) != 0 ||
+            (uintptr_t)audio.write_buffer % ALIGNMENT != 0 ||
+            posix_memalign((void **)&audio.read_buffer, ALIGNMENT, audio.buffer_size) != 0 ||
+            (uintptr_t)audio.read_buffer % ALIGNMENT != 0) {
+            fprintf(stderr, "DMA buffer allocation failed\n");
+            if (audio.write_buffer) free(audio.write_buffer);
+            if (audio.read_buffer) free(audio.read_buffer);
+            audio.write_buffer = NULL;
+            audio.read_buffer = NULL;
+            hardware_available = false;
+            gtk_text_buffer_insert_at_cursor(app.text_buffer, "DMA buffer allocation failed\n", -1);
+        } else {
+            struct stat st;
+            audio.dma_write_fd = open("/dev/xdma0_h2c_0", O_WRONLY | O_CLOEXEC);
+            if (audio.dma_write_fd < 0 || (stat("/dev/xdma0_h2c_0", &st) == 0 && !S_ISCHR(st.st_mode))) {
+                fprintf(stderr, "Failed to open DMA write device\n");
+                hardware_available = false;
+                gtk_text_buffer_insert_at_cursor(app.text_buffer, "Failed to open DMA write device\n", -1);
+            }
+            audio.dma_read_fd = open("/dev/xdma0_c2h_0", O_RDONLY | O_CLOEXEC);
+            if (audio.dma_read_fd < 0 || (stat("/dev/xdma0_c2h_0", &st) == 0 && !S_ISCHR(st.st_mode))) {
+                fprintf(stderr, "Failed to open DMA read device\n");
+                hardware_available = false;
+                gtk_text_buffer_insert_at_cursor(app.text_buffer, "Failed to open DMA read device\n", -1);
+            }
+        }
     }
 
-    if (stat("/dev/xdma0_c2h_0", &st) == 0 && !S_ISCHR(st.st_mode)) 
-    {
-        fprintf(stderr, "Invalid DMA read device\n");
-        cleanup(&app, &audio);
-        return EXIT_FAILURE;
-    }
-    audio.dma_read_fd = open("/dev/xdma0_c2h_0", O_RDONLY | O_CLOEXEC);
-    if (audio.dma_read_fd < 0) 
-    {
-        fprintf(stderr, "Failed to open DMA read device: %s\n", strerror(errno));
-        cleanup(&app, &audio);
-        return EXIT_FAILURE;
+    if (!hardware_available) {
+        gtk_label_set_text(app.mic_activity_label, "Hardware unavailable");
+        gtk_label_set_text(app.ptt_label, "PTT: Hardware unavailable");
     }
 
-    on_MicSettings_Changed(NULL, &audio);
+    if (hardware_available) {
+        on_MicSettings_Changed(NULL, &audio);
+    }
     gtk_progress_bar_set_fraction(app.mic_progress_bar, 0.0);
     gtk_progress_bar_set_fraction(app.mic_level_bar, 0.0);
     gtk_label_set_text(app.overload_label, "Overload: Idle");
     gtk_label_set_text(app.near_peak_label, "Near Peak: Idle");
 
-    if (pthread_create(&ptt_thread, NULL, CheckForPttPressed, &app) < 0) 
-    {
-        fprintf(stderr, "Failed to create PTT thread: %s\n", strerror(errno));
+    if (pthread_create(&ptt_thread, NULL, CheckForPttPressed, &app) < 0 ||
+        pthread_create(&mic_test_thread, NULL, MicTest, thread_args) < 0 ||
+        pthread_create(&speaker_test_thread, NULL, SpeakerTest, thread_args) < 0) {
+        fprintf(stderr, "Failed to create threads\n");
+        gtk_text_buffer_insert_at_cursor(app.text_buffer, "Failed to create threads\n", -1);
         cleanup(&app, &audio);
-        return EXIT_FAILURE;
-    }
-    if (pthread_create(&mic_test_thread, NULL, MicTest, thread_args) < 0) 
-    {
-        fprintf(stderr, "Failed to create mic test thread: %s\n", strerror(errno));
-        cleanup(&app, &audio);
-        pthread_cancel(ptt_thread);
-        return EXIT_FAILURE;
-    }
-    if (pthread_create(&speaker_test_thread, NULL, SpeakerTest, thread_args) < 0) 
-    {
-        fprintf(stderr, "Failed to create speaker test thread: %s\n", strerror(errno));
-        cleanup(&app, &audio);
-        pthread_cancel(ptt_thread);
-        pthread_cancel(mic_test_thread);
         return EXIT_FAILURE;
     }
 
