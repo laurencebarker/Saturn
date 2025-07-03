@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.38.2
+<!-- Generated with glade 3.22.1
 
 Copyright (C) Laurence Barker 2023
 
@@ -20,482 +20,520 @@ Author: Laurence Barker
   <object class="GtkAdjustment" id="id_gainadjustment">
     <property name="lower">-34.5</property>
     <property name="upper">12</property>
-    <property name="step-increment">1.5</property>
-    <property name="page-increment">10</property>
+    <property name="step_increment">1.5</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="id_micgainadjustment">
+    <property name="lower">-34.5</property>
+    <property name="upper">12</property>
+    <property name="step_increment">1.5</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="id_voladjustment">
     <property name="upper">100</property>
     <property name="value">10</property>
-    <property name="step-increment">1</property>
-    <property name="page-increment">10</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="micdurationadjustment">
     <property name="lower">2</property>
     <property name="upper">20</property>
     <property name="value">5</property>
-    <property name="step-increment">1</property>
-    <property name="page-increment">10</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkTextBuffer" id="textbuffer_main"/>
   <object class="GtkWindow" id="window_main">
     <property name="visible">True</property>
-    <property name="can-focus">False</property>
-    <property name="border-width">4</property>
+    <property name="can_focus">False</property>
+    <property name="border_width">10</property>
     <property name="title">Audio Level Test</property>
     <property name="resizable">False</property>
-    <property name="icon-name">applications-utilities</property>
+    <property name="default_width">800</property>
+    <property name="default_height">600</property>
+    <property name="icon_name">applications-utilities</property>
     <signal name="destroy" handler="on_window_main_destroy" swapped="no"/>
     <child>
-      <!-- n-columns=1 n-rows=7 -->
       <object class="GtkGrid">
         <property name="visible">True</property>
-        <property name="can-focus">False</property>
+        <property name="can_focus">False</property>
+        <property name="row_spacing">10</property>
+        <property name="column_spacing">10</property>
         <child>
-          <object class="GtkFixed">
+          <object class="GtkButton" id="TestToneLButton">
+            <property name="label" translatable="yes">Test Tone L</property>
+            <property name="width_request">100</property>
+            <property name="height_request">40</property>
             <property name="visible">True</property>
-            <property name="can-focus">False</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="tooltip_text" translatable="yes">Plays tone to left speaker</property>
+            <signal name="clicked" handler="on_testL_button_clicked" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="MicTestButton">
+            <property name="label" translatable="yes">Mic Test</property>
+            <property name="width_request">100</property>
+            <property name="height_request">40</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="tooltip_text" translatable="yes">Selects mic record, then replay, for a duration</property>
+            <signal name="clicked" handler="on_MicTestButton_clicked" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="TestToneRButton">
+            <property name="label" translatable="yes">Test Tone R</property>
+            <property name="width_request">100</property>
+            <property name="height_request">40</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="tooltip_text" translatable="yes">Plays tone to right speaker</property>
+            <signal name="clicked" handler="on_testR_button_clicked" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">4</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Speaker Volume</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkScale" id="VolumeScale">
+            <property name="width_request">250</property>
+            <property name="height_request">40</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="tooltip_text" translatable="yes">Volume for speaker test tones</property>
+            <property name="adjustment">id_voladjustment</property>
+            <property name="restrict_to_fill_level">False</property>
+            <property name="fill_level">100</property>
+            <property name="round_digits">0</property>
+            <style>
+              <class name="volume-slider"/>
+            </style>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">1</property>
+            <property name="width">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="LineCheck">
+            <property name="label" translatable="yes">Line In</property>
+            <property name="width_request">100</property>
+            <property name="height_request">40</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="draw_indicator">True</property>
+            <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Line Gain:</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">dB</property>
+          </object>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="GainSpin">
+            <property name="width_request">100</property>
+            <property name="height_request">40</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="tooltip_text" translatable="yes">Gain for line input</property>
+            <property name="adjustment">id_gainadjustment</property>
+            <property name="digits">1</property>
+            <style>
+              <class name="line-gain-spin"/>
+            </style>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="MicXLRCheck">
+            <property name="label" translatable="yes">XLR Input</property>
+            <property name="width_request">100</property>
+            <property name="height_request">40</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="draw_indicator">True</property>
+            <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Mic Gain:</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">dB</property>
+          </object>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="top_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkScale" id="MicGainScale">
+            <property name="width_request">200</property>
+            <property name="height_request">40</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="tooltip_text" translatable="yes">Gain for microphone input</property>
+            <property name="adjustment">id_micgainadjustment</property>
+            <property name="round_digits">1</property>
+            <property name="value_pos">right</property>
+            <style>
+              <class name="mic-gain-slider"/>
+            </style>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">3</property>
+            <property name="width">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="MicBiasCheck">
+            <property name="label" translatable="yes">Mic Bias</property>
+            <property name="width_request">100</property>
+            <property name="height_request">40</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="draw_indicator">True</property>
+            <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Duration:</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">s</property>
+          </object>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="top_attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="MicDurationSpin">
+            <property name="width_request">100</property>
+            <property name="height_request">40</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="tooltip_text" translatable="yes">Duration of microphone record test</property>
+            <property name="adjustment">micdurationadjustment</property>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="MicBoostCheck">
+            <property name="label" translatable="yes">Mic Boost</property>
+            <property name="width_request">100</property>
+            <property name="height_request">40</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="tooltip_text" translatable="yes">20dB mic level boost</property>
+            <property name="draw_indicator">True</property>
+            <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">5</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="MicActivityLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Idle</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">5</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkProgressBar" id="id_progress">
+            <property name="width_request">350</property>
+            <property name="height_request">30</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="pulse_step">0.050000000000000003</property>
+            <property name="show_text">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">5</property>
+            <property name="width">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="MicTipCheck">
+            <property name="label" translatable="yes">Mic on Jack Tip</property>
+            <property name="width_request">100</property>
+            <property name="height_request">40</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="tooltip_text" translatable="yes">Selects Mic input on 3.5mm jack TIP</property>
+            <property name="draw_indicator">True</property>
+            <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">6</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkProgressBar" id="MicLevelBar">
+            <property name="width_request">400</property>
+            <property name="height_request">50</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="show_text">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">6</property>
+            <property name="width">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">-60dB</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">7</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">-40dB</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">7</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">-20dB</property>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">7</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">0dB</property>
+          </object>
+          <packing>
+            <property name="left_attach">4</property>
+            <property name="top_attach">7</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="width_request">760</property>
+            <property name="height_request">80</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="shadow_type">in</property>
             <child>
-              <object class="GtkScrolledWindow">
-                <property name="width-request">573</property>
-                <property name="height-request">200</property>
+              <object class="GtkTextView" id="txt_status">
                 <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="shadow-type">in</property>
-                <child>
-                  <object class="GtkTextView" id="txt_status">
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="hscroll-policy">natural</property>
-                    <property name="vscroll-policy">natural</property>
-                    <property name="editable">False</property>
-                    <property name="buffer">textbuffer_main</property>
-                  </object>
-                </child>
+                <property name="can_focus">True</property>
+                <property name="hscroll_policy">natural</property>
+                <property name="vscroll_policy">natural</property>
+                <property name="editable">False</property>
+                <property name="buffer">textbuffer_main</property>
               </object>
-              <packing>
-                <property name="x">10</property>
-                <property name="y">300</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="TestToneRButton">
-                <property name="label" translatable="yes">Test Tone R</property>
-                <property name="width-request">100</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">True</property>
-                <property name="tooltip-text" translatable="yes">Plays tone to right speaker</property>
-                <signal name="clicked" handler="on_testR_button_clicked" swapped="no"/>
-              </object>
-              <packing>
-                <property name="x">460</property>
-                <property name="y">10</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="TestToneLButton">
-                <property name="label" translatable="yes">Test Tone L</property>
-                <property name="width-request">100</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">True</property>
-                <property name="tooltip-text" translatable="yes">Plays tone to left speaker</property>
-                <signal name="clicked" handler="on_testL_button_clicked" swapped="no"/>
-              </object>
-              <packing>
-                <property name="x">10</property>
-                <property name="y">10</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="CloseButton">
-                <property name="label">gtk-close</property>
-                <property name="width-request">100</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">True</property>
-                <property name="use-stock">True</property>
-                <signal name="clicked" handler="on_close_button_clicked" swapped="no"/>
-              </object>
-              <packing>
-                <property name="x">470</property>
-                <property name="y">253</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkProgressBar" id="id_progress">
-                <property name="width-request">350</property>
-                <property name="height-request">30</property>
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="pulse-step">0.05</property>
-                <property name="show-text">True</property>
-              </object>
-              <packing>
-                <property name="x">220</property>
-                <property name="y">175</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="width-request">100</property>
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes">Duration:</property>
-              </object>
-              <packing>
-                <property name="x">140</property>
-                <property name="y">70</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes">s</property>
-              </object>
-              <packing>
-                <property name="x">350</property>
-                <property name="y">70</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="MicTestButton">
-                <property name="label" translatable="yes">Mic Test</property>
-                <property name="width-request">100</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">True</property>
-                <property name="tooltip-text" translatable="yes">Selects mic record, then replay, for a duration</property>
-                <signal name="clicked" handler="on_MicTestButton_clicked" swapped="no"/>
-              </object>
-              <packing>
-                <property name="x">10</property>
-                <property name="y">60</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes">Volume</property>
-              </object>
-              <packing>
-                <property name="x">140</property>
-                <property name="y">24</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkScale" id="VolumeScale">
-                <property name="width-request">250</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="tooltip-text" translatable="yes">Volume for speaker test tones</property>
-                <property name="adjustment">id_voladjustment</property>
-                <property name="restrict-to-fill-level">False</property>
-                <property name="fill-level">100</property>
-                <property name="round-digits">0</property>
-              </object>
-              <packing>
-                <property name="x">198</property>
-                <property name="y">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="MicActivityLabel">
-                <property name="width-request">110</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes">nothing</property>
-              </object>
-              <packing>
-                <property name="x">110</property>
-                <property name="y">177</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkCheckButton" id="MicBoostCheck">
-                <property name="label" translatable="yes">Mic Boost</property>
-                <property name="width-request">100</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">False</property>
-                <property name="tooltip-text" translatable="yes">20dB mic level boost</property>
-                <property name="draw-indicator">True</property>
-                <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
-              </object>
-              <packing>
-                <property name="x">10</property>
-                <property name="y">230</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes">mic level</property>
-              </object>
-              <packing>
-                <property name="x">150</property>
-                <property name="y">243</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinButton" id="MicDurationSpin">
-                <property name="width-request">100</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="tooltip-text" translatable="yes">Duration of microphone record test</property>
-                <property name="adjustment">micdurationadjustment</property>
-              </object>
-              <packing>
-                <property name="x">227</property>
-                <property name="y">60</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkCheckButton" id="MicXLRCheck">
-                <property name="label" translatable="yes">XLR Input</property>
-                <property name="width-request">100</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">False</property>
-                <property name="tooltip-text" translatable="yes">Selects XLR input</property>
-                <property name="draw-indicator">True</property>
-                <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
-              </object>
-              <packing>
-                <property name="x">10</property>
-                <property name="y">170</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkCheckButton" id="MicTipCheck">
-                <property name="label" translatable="yes">Mic on Jack Tip</property>
-                <property name="width-request">100</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">False</property>
-                <property name="tooltip-text" translatable="yes">Selects Mic input on 3.5mm jack TIP</property>
-                <property name="draw-indicator">True</property>
-                <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
-              </object>
-              <packing>
-                <property name="x">10</property>
-                <property name="y">260</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkCheckButton" id="MicBiasCheck">
-                <property name="label" translatable="yes">Mic Bias</property>
-                <property name="width-request">100</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">False</property>
-                <property name="tooltip-text" translatable="yes">Selects bias for electret microphones</property>
-                <property name="draw-indicator">True</property>
-                <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
-              </object>
-              <packing>
-                <property name="x">10</property>
-                <property name="y">200</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="PTTLabel">
-                <property name="width-request">100</property>
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes">No PTT</property>
-              </object>
-              <packing>
-                <property name="x">270</property>
-                <property name="y">275</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkProgressBar" id="MicLevelBar">
-                <property name="width-request">190</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="show-text">True</property>
-              </object>
-              <packing>
-                <property name="x">240</property>
-                <property name="y">220</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes">0dB</property>
-              </object>
-              <packing>
-                <property name="x">420</property>
-                <property name="y">228</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes">-60dB</property>
-              </object>
-              <packing>
-                <property name="x">217</property>
-                <property name="y">228</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes">-40dB</property>
-              </object>
-              <packing>
-                <property name="x">279</property>
-                <property name="y">228</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes">-20dB</property>
-              </object>
-              <packing>
-                <property name="x">343</property>
-                <property name="y">228</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkCheckButton" id="LineCheck">
-                <property name="label" translatable="yes">Line In</property>
-                <property name="width-request">100</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">False</property>
-                <property name="draw-indicator">True</property>
-                <signal name="toggled" handler="on_MicSettings_toggled" swapped="no"/>
-              </object>
-              <packing>
-                <property name="x">10</property>
-                <property name="y">117</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes">Line Gain:</property>
-              </object>
-              <packing>
-                <property name="x">150</property>
-                <property name="y">130</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes">dB</property>
-              </object>
-              <packing>
-                <property name="x">360</property>
-                <property name="y">130</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinButton" id="GainSpin">
-                <property name="width-request">100</property>
-                <property name="height-request">40</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="adjustment">id_gainadjustment</property>
-                <property name="digits">1</property>
-              </object>
-              <packing>
-                <property name="x">227</property>
-                <property name="y">120</property>
-              </packing>
             </child>
           </object>
           <packing>
-            <property name="left-attach">0</property>
-            <property name="top-attach">0</property>
+            <property name="left_attach">0</property>
+            <property name="top_attach">8</property>
+            <property name="width">5</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="PTTLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">No PTT</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">8</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="CloseButton">
+            <property name="label">gtk-close</property>
+            <property name="width_request">100</property>
+            <property name="height_request">40</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="use_stock">True</property>
+            <signal name="clicked" handler="on_close_button_clicked" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">9</property>
           </packing>
         </child>
         <child>
           <object class="GtkStatusbar" id="statusbar_main">
             <property name="visible">True</property>
-            <property name="can-focus">False</property>
-            <property name="margin-left">10</property>
-            <property name="margin-right">10</property>
-            <property name="margin-top">6</property>
-            <property name="margin-bottom">6</property>
+            <property name="can_focus">False</property>
+            <property name="margin_left">10</property>
+            <property name="margin_right">10</property>
+            <property name="margin_top">6</property>
+            <property name="margin_bottom">6</property>
             <property name="orientation">vertical</property>
             <property name="spacing">2</property>
           </object>
           <packing>
-            <property name="left-attach">0</property>
-            <property name="top-attach">2</property>
+            <property name="left_attach">0</property>
+            <property name="top_attach">10</property>
+            <property name="width">5</property>
           </packing>
         </child>
         <child>
           <object class="GtkSeparator">
             <property name="visible">True</property>
-            <property name="can-focus">False</property>
+            <property name="can_focus">False</property>
           </object>
           <packing>
-            <property name="left-attach">0</property>
-            <property name="top-attach">1</property>
-            <property name="height">2</property>
+            <property name="left_attach">0</property>
+            <property name="top_attach">11</property>
+            <property name="width">5</property>
           </packing>
         </child>
         <child>
           <object class="GtkLabel" id="overload_label">
-            <property name="width-request">200</property>
+            <property name="width_request">200</property>
             <property name="visible">True</property>
-            <property name="can-focus">False</property>
-            <property name="label" translatable="yes">Overload: Idle</property>
+            <property name="can_focus">False</property>
             <property name="halign">start</property>
+            <property name="label" translatable="yes">Overload: Idle</property>
             <style>
               <class name="overload-off"/>
             </style>
           </object>
           <packing>
-            <property name="left-attach">0</property>
-            <property name="top-attach">5</property>
+            <property name="left_attach">0</property>
+            <property name="top_attach">12</property>
+            <property name="width">5</property>
           </packing>
         </child>
         <child>
           <object class="GtkLabel" id="near_peak_label">
-            <property name="width-request">200</property>
+            <property name="width_request">200</property>
             <property name="visible">True</property>
-            <property name="can-focus">False</property>
-            <property name="label" translatable="yes">Near Peak: Idle</property>
+            <property name="can_focus">False</property>
             <property name="halign">start</property>
+            <property name="label" translatable="yes">Near Peak: Idle</property>
             <style>
               <class name="near-peak-off"/>
             </style>
           </object>
           <packing>
-            <property name="left-attach">0</property>
-            <property name="top-attach">6</property>
+            <property name="left_attach">0</property>
+            <property name="top_attach">13</property>
+            <property name="width">5</property>
           </packing>
         </child>
       </object>
