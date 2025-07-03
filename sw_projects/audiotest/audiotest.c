@@ -12,7 +12,8 @@
  * - Comprehensive error handling and resource cleanup.
  * - Optimized audio data processing and DMA operations.
  * - Overload indicator (latches for 0.5s with dBFS value) and near-peak indicator (6dB/10dB from peak with dBFS value).
- * - Mic gain control via spin button with persistent settings saved to ~/.audiotestrc.
+ * - Separate line and mic gain controls with persistent settings saved to ~/.audiotestrc.
+ * - Dynamic mic level bar using a circular buffer for peak detection over 250ms.
  *
  * NOTE
  * audiotest will not run correctly if there is an instance of p2app or piHPSDR
@@ -39,13 +40,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <unistd.h> // For usleep and waitpid
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/poll.h>
-#include <math.h>
+#include <math.h>   // For M_PI
 #include <time.h>
+
+// Fallback declaration for waitpid if unistd.h fails
+pid_t waitpid(pid_t pid, int *status, int options);
 
 #include "../common/saturntypes.h"
 #include "../common/hwaccess.h"
@@ -75,6 +79,15 @@
 #define MIC_STATUS_PLAYING "Playing"      // Status label for playback
 #define MIN_UPDATE_INTERVAL 100000000     // Minimum 100ms between UI updates (in ns)
 #define OVERLOAD_LATCH_NS 500000000       // 0.5s latch for overload indicator (in ns)
+#define CIRCULAR_BUFFER_SIZE 24           // Buffer for 250ms of DMA peak levels (~10.67ms per DMA)
+
+// Circular buffer for peak levels
+static float peak_buffer[CIRCULAR_BUFFER_SIZE];
+static int peak_buffer_index = 0;
+
+// Global volume variable to store the slider value
+static volatile double global_volume = 0.1;
+static pthread_mutex_t volume_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // Application context for GUI elements
 typedef struct
@@ -85,12 +98,14 @@ typedef struct
     GtkLabel *mic_activity_label;    // Label for microphone status
     GtkLabel *ptt_label;             // Label for PTT status
     GtkProgressBar *mic_progress_bar; // Progress bar for test progress
-    GtkProgressBar *mic_level_bar;    // Progress bar for mic signal level
+    GtkProgressBar *mic_level_bar;   // Progress bar for mic signal level
     GtkRange *volume_scale;          // Slider for speaker test volume
     GtkSpinButton *mic_duration_spin; // Spin button for mic test duration
-    GtkSpinButton *gain_spin;        // Spin button for input gain (line/mic)
+    GtkSpinButton *gain_spin;        // Spin button for line gain
+    GtkScale *mic_gain_scale;        // Slider for mic gain
     GtkAdjustment *vol_adjustment;   // Adjustment for volume scale
-    GtkAdjustment *gain_adjustment;  // Adjustment for gain spin button
+    GtkAdjustment *gain_adjustment;  // Adjustment for line gain spin button
+    GtkAdjustment *mic_gain_adjustment; // Adjustment for mic gain slider
     GtkToggleButton *mic_boost_check; // Checkbox for mic boost
     GtkToggleButton *mic_xlr_check;  // Checkbox for XLR input
     GtkToggleButton *mic_tip_check;  // Checkbox for mic tip/ring
@@ -125,43 +140,72 @@ volatile bool keep_running = true;           // Flag to control thread terminati
 static bool hardware_available = true;       // Flag to indicate hardware availability
 
 // Function prototypes
-void on_MicSettings_Changed(GtkToggleButton *button, AudioContext *audio);
+static void on_MicSettings_Changed(GtkToggleButton *button, AudioContext *audio);
 void on_close_button_clicked(GtkButton *button, AppContext *app);
+static void on_volume_changed(GtkRange *range, gpointer user_data);
+static void load_gains(AppContext *app);
+static void save_gains(AppContext *app);
 
-// Function to load the input gain from the configuration file
-static void load_gain(AppContext *app)
+// Function to load the input gains from the configuration file
+static void load_gains(AppContext *app)
 {
     GKeyFile *keyfile = g_key_file_new();
     gchar *filename = g_build_filename(g_get_home_dir(), ".audiotestrc", NULL);
     if (g_key_file_load_from_file(keyfile, filename, G_KEY_FILE_NONE, NULL))
     {
-        if (g_key_file_has_key(keyfile, "audiotest", "mic_gain", NULL))
+        if (g_key_file_has_key(keyfile, "audiotest", "line_gain", NULL))
         {
-            gdouble gain = g_key_file_get_double(keyfile, "audiotest", "mic_gain", NULL);
-            gtk_spin_button_set_value(app->gain_spin, gain);
-            printf("Loaded input gain: %.1f dB\n", gain);
+            gdouble gain = g_key_file_get_double(keyfile, "audiotest", "line_gain", NULL);
+            if (app->gain_spin) {
+                gtk_spin_button_set_value(app->gain_spin, gain);
+                printf("Loaded line gain: %.1f dB\n", gain);
+            }
         }
         else
         {
-            gtk_spin_button_set_value(app->gain_spin, 0.0); // Default gain
-            printf("No saved input gain, using default: 0.0 dB\n");
+            if (app->gain_spin) {
+                gtk_spin_button_set_value(app->gain_spin, 0.0); // Default line gain
+                printf("No saved line gain, using default: 0.0 dB\n");
+            }
+        }
+        if (g_key_file_has_key(keyfile, "audiotest", "mic_gain", NULL))
+        {
+            gdouble gain = g_key_file_get_double(keyfile, "audiotest", "mic_gain", NULL);
+            if (app->mic_gain_scale) {
+                gtk_range_set_value((GtkRange *)app->mic_gain_scale, gain);
+                printf("Loaded mic gain: %.1f dB\n", gain);
+            }
+        }
+        else
+        {
+            if (app->mic_gain_scale) {
+                gtk_range_set_value((GtkRange *)app->mic_gain_scale, 0.0); // Default mic gain
+                printf("No saved mic gain, using default: 0.0 dB\n");
+            }
         }
     }
     else
     {
-        gtk_spin_button_set_value(app->gain_spin, 0.0); // Default gain
-        printf("No config file found, using default input gain: 0.0 dB\n");
+        if (app->gain_spin) {
+            gtk_spin_button_set_value(app->gain_spin, 0.0); // Default line gain
+        }
+        if (app->mic_gain_scale) {
+            gtk_range_set_value((GtkRange *)app->mic_gain_scale, 0.0); // Default mic gain
+        }
+        printf("No config file found, using default gains: 0.0 dB\n");
     }
     g_free(filename);
     g_key_file_free(keyfile);
 }
 
-// Function to save the input gain to the configuration file
-static void save_gain(AppContext *app)
+// Function to save the input gains to the configuration file
+static void save_gains(AppContext *app)
 {
     GKeyFile *keyfile = g_key_file_new();
-    gdouble gain = gtk_spin_button_get_value(app->gain_spin);
-    g_key_file_set_double(keyfile, "audiotest", "mic_gain", gain);
+    gdouble line_gain = app->gain_spin ? gtk_spin_button_get_value(app->gain_spin) : 0.0;
+    gdouble mic_gain = app->mic_gain_scale ? gtk_range_get_value((GtkRange *)app->mic_gain_scale) : 0.0;
+    g_key_file_set_double(keyfile, "audiotest", "line_gain", line_gain);
+    g_key_file_set_double(keyfile, "audiotest", "mic_gain", mic_gain);
     gchar *filename = g_build_filename(g_get_home_dir(), ".audiotestrc", NULL);
     if (!g_key_file_save_to_file(keyfile, filename, NULL))
     {
@@ -169,24 +213,44 @@ static void save_gain(AppContext *app)
     }
     else
     {
-        printf("Saved input gain: %.1f dB\n", gain);
+        printf("Saved line gain: %.1f dB, mic gain: %.1f dB\n", line_gain, mic_gain);
     }
     g_free(filename);
     g_key_file_free(keyfile);
 }
 
-// Callback for when the gain spin button value changes
-static void on_gain_changed(GtkSpinButton *spin_button, AudioContext *audio)
+// Callback for when the line gain spin button value changes
+static void on_line_gain_changed(GtkSpinButton *spin_button, AudioContext *audio)
 {
     AppContext *app = audio->AppPtr;
-    save_gain(app);
+    save_gains(app);
     on_MicSettings_Changed(NULL, audio);
+}
+
+// Callback for when the mic gain slider value changes
+static void on_mic_gain_changed(GtkRange *range, AudioContext *audio)
+{
+    AppContext *app = audio->AppPtr;
+    double new_gain = gtk_range_get_value(range);
+    save_gains(app);
+    printf("Mic gain changed to: %.1f dB\n", new_gain); // Debug mic gain
+    on_MicSettings_Changed(NULL, audio);
+}
+
+// Callback for when the volume slider value changes
+static void on_volume_changed(GtkRange *range, gpointer user_data)
+{
+    double new_volume = gtk_range_get_value(range) / 100.0; // Normalize to 0.0-1.0, scaled to 0.0-2.0 for testing
+    pthread_mutex_lock(&volume_mutex);
+    global_volume = new_volume * 2.0; // Increase range to test hardware response
+    pthread_mutex_unlock(&volume_mutex);
+    printf("Volume set to: %.2f (scaled to %.2f)\n", new_volume, global_volume);
 }
 
 // Callback for the Close button
 void on_close_button_clicked(GtkButton *button, AppContext *app)
 {
-    save_gain(app);
+    save_gains(app);
     gtk_main_quit();
 }
 
@@ -214,19 +278,23 @@ static bool check_background_apps(GtkWidget *parent)
 
         if (fgets(buffer, sizeof(buffer), fp) != NULL) {
             conflict_found = true;
-            GtkWidget *dialog = gtk_message_dialog_new(
-                GTK_WINDOW(parent),
-                GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-                GTK_MESSAGE_WARNING,
-                GTK_BUTTONS_OK,
-                "Warning: %s is running in the background!\n"
-                "This will cause audio issues due to byte swapping. "
-                "Please terminate %s before continuing.",
-                apps[i], apps[i]
-            );
-            gtk_window_set_title(GTK_WINDOW(dialog), "Background Application Conflict");
-            gtk_dialog_run(GTK_DIALOG(dialog));
-            gtk_widget_destroy(dialog);
+            if (parent) {
+                GtkWidget *dialog = gtk_message_dialog_new(
+                    GTK_WINDOW(parent),
+                    GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+                    GTK_MESSAGE_WARNING,
+                    GTK_BUTTONS_OK,
+                    "Warning: %s is running in the background!\n"
+                    "This will cause audio issues due to byte swapping. "
+                    "Please terminate %s before continuing.",
+                    apps[i], apps[i]
+                );
+                gtk_window_set_title(GTK_WINDOW(dialog), "Background Application Conflict");
+                gtk_dialog_run(GTK_DIALOG(dialog));
+                gtk_widget_destroy(dialog);
+            } else {
+                fprintf(stderr, "Warning: %s is running in the background!\n", apps[i]);
+            }
         }
         pclose(fp);
     }
@@ -260,6 +328,7 @@ void cleanup(AppContext *app, AudioContext *audio)
     sem_destroy(&CodecRegMutex);
     pthread_mutex_destroy(&audio->mic_test_mutex);
     pthread_mutex_destroy(&audio->speaker_test_mutex);
+    pthread_mutex_destroy(&volume_mutex);
 }
 
 /*
@@ -336,29 +405,37 @@ typedef struct
 static gboolean update_progress_bars(gpointer user_data)
 {
     ProgressUpdateData *data = (ProgressUpdateData *)user_data;
-    gtk_progress_bar_set_fraction(data->progress_bar, data->progress_fraction);
-    gtk_progress_bar_set_fraction(data->level_bar, data->level_fraction);
+    if (data->progress_bar) {
+        gtk_progress_bar_set_fraction(data->progress_bar, data->progress_fraction);
+    }
+    if (data->level_bar) {
+        gtk_progress_bar_set_fraction(data->level_bar, data->level_fraction);
+    }
 
     // Update overload indicator
-    if (data->overload_dbfs > -0.01) { // Near or above 0 dBFS
-        char label_text[32];
-        snprintf(label_text, sizeof(label_text), "Overload: %.1f dBFS", data->overload_dbfs);
-        gtk_label_set_text(data->overload_label, label_text);
-        gtk_widget_set_name((GtkWidget *)data->overload_label, "overload-on");
-    } else {
-        gtk_label_set_text(data->overload_label, "Overload: Idle");
-        gtk_widget_set_name((GtkWidget *)data->overload_label, "overload-off");
+    if (data->overload_label) {
+        if (data->overload_dbfs > -0.01) { // Near or above 0 dBFS
+            char label_text[32];
+            snprintf(label_text, sizeof(label_text), "Overload: %.1f dBFS", data->overload_dbfs);
+            gtk_label_set_text(data->overload_label, label_text);
+            gtk_widget_set_name((GtkWidget *)data->overload_label, "overload-on");
+        } else {
+            gtk_label_set_text(data->overload_label, "Overload: Idle");
+            gtk_widget_set_name((GtkWidget *)data->overload_label, "overload-off");
+        }
     }
 
     // Update near-peak indicator
-    if (data->near_peak_dbfs > -10.0 && data->near_peak_dbfs < -0.01) {
-        char label_text[32];
-        snprintf(label_text, sizeof(label_text), "Near Peak: %.1f dBFS", data->near_peak_dbfs);
-        gtk_label_set_text(data->near_peak_label, label_text);
-        gtk_widget_set_name((GtkWidget *)data->near_peak_label, "near-peak-on");
-    } else {
-        gtk_label_set_text(data->near_peak_label, "Near Peak: Idle");
-        gtk_widget_set_name((GtkWidget *)data->near_peak_label, "near-peak-off");
+    if (data->near_peak_label) {
+        if (data->near_peak_dbfs > -10.0 && data->near_peak_dbfs < -0.01) {
+            char label_text[32];
+            snprintf(label_text, sizeof(label_text), "Near Peak: %.1f dBFS", data->near_peak_dbfs);
+            gtk_label_set_text(data->near_peak_label, label_text);
+            gtk_widget_set_name((GtkWidget *)data->near_peak_label, "near-peak-on");
+        } else {
+            gtk_label_set_text(data->near_peak_label, "Near Peak: Idle");
+            gtk_widget_set_name((GtkWidget *)data->near_peak_label, "near-peak-off");
+        }
     }
 
     g_free(data);
@@ -378,10 +455,10 @@ static gboolean reset_overload_latch(gpointer user_data)
     data->level_bar = app->mic_level_bar;
     data->overload_label = app->overload_label;
     data->near_peak_label = app->near_peak_label;
-    data->progress_fraction = gtk_progress_bar_get_fraction(app->mic_progress_bar);
-    data->level_fraction = gtk_progress_bar_get_fraction(app->mic_level_bar);
+    data->progress_fraction = app->mic_progress_bar ? gtk_progress_bar_get_fraction(app->mic_progress_bar) : 0.0;
+    data->level_fraction = app->mic_level_bar ? gtk_progress_bar_get_fraction(app->mic_level_bar) : 0.0;
     data->overload_dbfs = 0.0; // Reset to inactive
-    data->near_peak_dbfs = gtk_label_get_text(app->near_peak_label)[11] == ':' ? 0.0 : atof(gtk_label_get_text(app->near_peak_label) + 12); // Preserve near-peak if active
+    data->near_peak_dbfs = app->near_peak_label && gtk_label_get_text(app->near_peak_label)[11] == ':' ? 0.0 : atof(gtk_label_get_text(app->near_peak_label) + 12); // Preserve near-peak if active
     g_idle_add(update_progress_bars, data);
     return G_SOURCE_REMOVE;
 }
@@ -428,6 +505,7 @@ void CreateSpkTestData(char *MemPtr, uint32_t Samples, float StartFreq, float Fr
     if (!hardware_available) return; // Skip if hardware is unavailable
     uint32_t *Data = (uint32_t *)MemPtr;
     double Ampl = 32767.0 * Amplitude;
+    printf("CreateSpkTestData using Amplitude: %.2f (scaled to %.2f)\n", Amplitude, Ampl); // Debug amplitude
     double Phase = 0.0;
     double PhaseIncrement;
     float Freq = StartFreq;
@@ -455,6 +533,7 @@ void DMAWriteToCodec(AudioContext *audio, char *MemPtr, uint32_t Length)
     uint32_t DMACount, TotalDMACount = Length / DMA_TRANSFER_SIZE;
     struct pollfd pfd = { .fd = audio->dma_write_fd, .events = POLLOUT };
 
+    printf("DMAWriteToCodec: Starting %u transfers\n", TotalDMACount);
     for (DMACount = 0; DMACount < TotalDMACount; DMACount++)
     {
         Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &OverThreshold, &Underflow, &Spare);
@@ -467,9 +546,13 @@ void DMAWriteToCodec(AudioContext *audio, char *MemPtr, uint32_t Length)
             }
             Depth = ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &OverThreshold, &Underflow, &Spare);
         }
-        DMAWriteToFPGA(audio->dma_write_fd, MemPtr, DMA_TRANSFER_SIZE, AXI_BASE_ADDRESS);
+        if (DMAWriteToFPGA(audio->dma_write_fd, (unsigned char *)MemPtr, DMA_TRANSFER_SIZE, AXI_BASE_ADDRESS) < 0)
+            fprintf(stderr, "DMAWriteToFPGA failed at transfer %u\n", DMACount);
+        else
+            printf("DMAWriteToCodec: Completed transfer %u\n", DMACount);
         MemPtr += DMA_TRANSFER_SIZE;
     }
+    printf("DMAWriteToCodec: Finished %u transfers\n", TotalDMACount);
     usleep(10000);
 }
 
@@ -505,12 +588,11 @@ void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32
     float PeakdBFS = -60.0;
     bool Overload = false;
     bool NearPeak = false;
-    const float DECAY_FACTOR = 0.9;
-    const float NEAR_PEAK_6DB = 100.0 * pow(10.0, -6.0 / 20.0); // ~50.12%
     const float NEAR_PEAK_10DB = 100.0 * pow(10.0, -10.0 / 20.0); // ~31.62%
     struct pollfd pfd = { .fd = audio->dma_read_fd, .events = POLLIN };
     struct timespec last_update = {0, 0};
 
+    printf("DMAReadFromCodec: Starting %u transfers\n", TotalDMACount);
     for (DMACount = 0; DMACount < TotalDMACount; DMACount++)
     {
         Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &OverThreshold, &Underflow, &Spare);
@@ -523,18 +605,26 @@ void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32
             }
             Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &OverThreshold, &Underflow, &Spare);
         }
-        DMAReadFromFPGA(audio->dma_read_fd, MemPtr, DMA_TRANSFER_SIZE, AXI_BASE_ADDRESS);
+        if (DMAReadFromFPGA(audio->dma_read_fd, (unsigned char *)MemPtr, DMA_TRANSFER_SIZE, AXI_BASE_ADDRESS) < 0)
+            fprintf(stderr, "DMAReadFromFPGA failed at transfer %u\n", DMACount);
+        else
+            printf("DMAReadFromCodec: Completed transfer %u\n", DMACount);
+        PeakLevel = 0.0;
         for (uint32_t SampleCntr = 0; SampleCntr < DMA_TRANSFER_SIZE / 2; SampleCntr++)
         {
             int MicSample = *MicReadPtr++;
             float SampleLevel = (float)abs(MicSample) / 32767.0 * 100.0;
             if (SampleLevel > PeakLevel) {
                 PeakLevel = SampleLevel;
-                PeakdBFS = 20.0 * log10(SampleLevel / 100.0 + 1e-6);
             }
-            if (SampleLevel >= 100.0) Overload = true;
-            if (SampleLevel >= NEAR_PEAK_10DB && SampleLevel < 100.0) NearPeak = true;
+            if (SampleLevel > 99.5) {
+                Overload = true;
+                printf("Overload detected: SampleLevel=%.2f%%\n", SampleLevel);
+            }
+            if (SampleLevel >= NEAR_PEAK_10DB && SampleLevel < 99.5) NearPeak = true;
         }
+        peak_buffer[peak_buffer_index] = PeakLevel;
+        peak_buffer_index = (peak_buffer_index + 1) % CIRCULAR_BUFFER_SIZE;
         MemPtr += DMA_TRANSFER_SIZE;
 
         if (DMACount % DMA_DISP_UPDATE == 0)
@@ -544,16 +634,23 @@ void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32
             long long elapsed_ns = (now.tv_sec - last_update.tv_sec) * 1000000000LL + (now.tv_nsec - last_update.tv_nsec);
             if (elapsed_ns >= MIN_UPDATE_INTERVAL || DMACount == TotalDMACount - 1)
             {
+                // Find max peak level in circular buffer
+                float MaxPeakLevel = 0.0;
+                for (int i = 0; i < CIRCULAR_BUFFER_SIZE; i++) {
+                    if (peak_buffer[i] > MaxPeakLevel) {
+                        MaxPeakLevel = peak_buffer[i];
+                    }
+                }
+                PeakdBFS = 20.0 * log10(MaxPeakLevel / 100.0 + 1e-6);
                 float ProgressFraction = 100.0 * (float)DMACount / TotalDMACount;
-                MyStatusCallback(app, ProgressFraction, PeakLevel, PeakdBFS, Overload, NearPeak);
+                MyStatusCallback(app, ProgressFraction, MaxPeakLevel, PeakdBFS, Overload, NearPeak);
                 last_update = now;
-                PeakLevel *= DECAY_FACTOR;
-                PeakdBFS = 20.0 * log10(PeakLevel / 100.0 + 1e-6);
                 Overload = false; // Reset after update (latch handled by timer)
-                NearPeak = PeakLevel >= NEAR_PEAK_10DB; // Persist near-peak based on decayed peak
+                NearPeak = MaxPeakLevel >= NEAR_PEAK_10DB; // Persist near-peak based on max peak
             }
         }
     }
+    printf("DMAReadFromCodec: Finished %u transfers\n", TotalDMACount);
     MyStatusCallback(app, 100.0, 0.0, -60.0, false, false);
 }
 
@@ -582,28 +679,57 @@ void on_testR_button_clicked(GtkButton *button, AudioContext *audio)
 }
 
 /*
- * on_MicSettings_Changed: Updates input settings based on GUI toggles and gain.
+ * on_MicSettings_Changed: Updates input settings based on GUI toggles and gains.
  */
-void on_MicSettings_Changed(GtkToggleButton *button, AudioContext *audio)
+static void on_MicSettings_Changed(GtkToggleButton *button, AudioContext *audio)
 {
+    printf("Entering on_MicSettings_Changed, hardware_available = %d\n", hardware_available);
     if (!hardware_available) {
         g_print("Input settings update disabled: hardware unavailable\n");
         return;
     }
     AppContext *app = audio->AppPtr;
-    gboolean XLR = gtk_toggle_button_get_active(app->mic_xlr_check);
-    gboolean MicBoost = gtk_toggle_button_get_active(app->mic_boost_check);
-    gboolean MicTip = gtk_toggle_button_get_active(app->mic_tip_check);
-    gboolean MicBias = gtk_toggle_button_get_active(app->mic_bias_check);
-    gboolean LineInput = gtk_toggle_button_get_active(app->line_check);
-    double Gain = gtk_spin_button_get_value(app->gain_spin);
+    gboolean XLR = app->mic_xlr_check ? gtk_toggle_button_get_active(app->mic_xlr_check) : false;
+    gboolean MicBoost = app->mic_boost_check ? gtk_toggle_button_get_active(app->mic_boost_check) : false;
+    gboolean MicTip = app->mic_tip_check ? gtk_toggle_button_get_active(app->mic_tip_check) : false;
+    gboolean MicBias = app->mic_bias_check ? gtk_toggle_button_get_active(app->mic_bias_check) : false;
+    gboolean LineInput = app->line_check ? gtk_toggle_button_get_active(app->line_check) : false;
+    double Gain = LineInput ? (app->gain_spin ? gtk_spin_button_get_value(app->gain_spin) : 0.0) : 
+                            (app->mic_gain_scale ? gtk_range_get_value((GtkRange *)app->mic_gain_scale) : 0.0);
     uint32_t IntGain = (uint32_t)((Gain + 34.5) / 1.5);
+    printf("Before SetCodecLineInGain: Setting mic/line gain to: %.1f dB (IntGain: %u)\n", Gain, IntGain); // Debug
 
-    SetOrionMicOptions(!MicTip, MicBias, true);
-    SetMicBoost(MicBoost);
-    SetBalancedMicInput(XLR);
-    SetMicLineInput(LineInput);
-    SetCodecLineInGain(IntGain);
+    pid_t pid = fork();
+    if (pid == 0) { // Child process
+        SetOrionMicOptions(!MicTip, MicBias, true);
+        SetMicBoost(MicBoost);
+        SetBalancedMicInput(XLR);
+        SetMicLineInput(LineInput);
+        for (int attempt = 0; attempt < 5; attempt++) {
+            SetCodecLineInGain(IntGain);
+            usleep(100000); // 100ms delay
+            uint32_t regValue = RegisterRead(VADDRCODECSPIREG);
+            printf("Child process: Attempt %d, Read codec register value: 0x%08x (IntGain expected: %u)\n", attempt + 1, regValue, IntGain);
+            if ((regValue & 0x01FF) == IntGain) break; // Check lower 9 bits
+        }
+        exit(0); // Exit child after setting gain
+    } else if (pid > 0) { // Parent process
+        int status;
+        alarm(1); // Set a 1-second alarm to kill the child if it hangs
+        waitpid(pid, &status, 0); // Wait for child to finish
+        alarm(0); // Cancel alarm
+        if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+            printf("SetCodecLineInGain succeeded via child process\n");
+        } else {
+            fprintf(stderr, "SetCodecLineInGain failed in child process\n");
+            hardware_available = false; // Disable hardware on failure
+        }
+    } else {
+        fprintf(stderr, "Fork failed: %s\n", strerror(errno));
+        hardware_available = false; // Disable hardware on fork failure
+    }
+
+    printf("After SetCodecLineInGain\n"); // Debug
 }
 
 /*
@@ -615,6 +741,7 @@ void on_MicTestButton_clicked(GtkButton *button, AudioContext *audio)
         g_print("Mic test disabled: hardware unavailable\n");
         return;
     }
+    printf("MicTestButton clicked, setting mic_test_initiated to true\n");
     set_mic_test_initiated(audio, true);
 }
 
@@ -623,7 +750,7 @@ void on_MicTestButton_clicked(GtkButton *button, AudioContext *audio)
  */
 void on_window_main_destroy(GtkWidget *widget, AppContext *app)
 {
-    save_gain(app);
+    save_gains(app);
     gtk_main_quit();
 }
 
@@ -640,12 +767,21 @@ void *MicTest(void *arg)
         usleep(50000);
         if (get_mic_test_initiated(audio))
         {
+            printf("MicTest: Starting microphone test\n");
             if (!hardware_available) {
                 g_print("Mic test skipped: hardware unavailable\n");
-                gtk_label_set_text(app->mic_activity_label, MIC_STATUS_IDLE);
+                if (app->mic_activity_label) {
+                    gtk_label_set_text(app->mic_activity_label, MIC_STATUS_IDLE);
+                }
                 set_mic_test_initiated(audio, false);
                 continue;
             }
+            // Reset circular buffer
+            for (int i = 0; i < CIRCULAR_BUFFER_SIZE; i++) {
+                peak_buffer[i] = 0.0;
+            }
+            peak_buffer_index = 0;
+
             ProgressUpdateData *data = g_new(ProgressUpdateData, 1);
             data->progress_bar = app->mic_progress_bar;
             data->level_bar = app->mic_level_bar;
@@ -657,24 +793,33 @@ void *MicTest(void *arg)
             data->near_peak_dbfs = 0.0;
             g_idle_add(update_progress_bars, data);
 
-            double Gain = gtk_spin_button_get_value(app->gain_spin);
+            double Gain = app->line_check ? 
+                          (app->gain_spin ? gtk_spin_button_get_value(app->gain_spin) : 0.0) : 
+                          (app->mic_gain_scale ? gtk_range_get_value((GtkRange *)app->mic_gain_scale) : 0.0);
             uint32_t IntGain = (uint32_t)((Gain + 34.5) / 1.5);
             SetCodecLineInGain(IntGain);
 
-            gtk_label_set_text(app->mic_activity_label, MIC_STATUS_RECORDING);
-            gint Duration = gtk_spin_button_get_value_as_int(app->mic_duration_spin);
+            if (app->mic_activity_label) {
+                gtk_label_set_text(app->mic_activity_label, MIC_STATUS_RECORDING);
+            }
+            gint Duration = app->mic_duration_spin ? gtk_spin_button_get_value_as_int(app->mic_duration_spin) : 5;
             uint32_t Samples = SAMPLE_RATE * Duration;
             uint32_t Length = Samples * 2;
             ResetDMAStreamFIFO(eMicCodecDMA);
             DMAReadFromCodec(app, audio, audio->read_buffer, Length);
             CopyMicToSpeaker(audio->read_buffer, audio->write_buffer, Length);
 
-            gtk_label_set_text(app->mic_activity_label, MIC_STATUS_PLAYING);
+            if (app->mic_activity_label) {
+                gtk_label_set_text(app->mic_activity_label, MIC_STATUS_PLAYING);
+            }
             Length = Samples * 4;
             usleep(1000);
             DMAWriteToCodec(audio, audio->write_buffer, Length);
-            gtk_label_set_text(app->mic_activity_label, MIC_STATUS_IDLE);
+            if (app->mic_activity_label) {
+                gtk_label_set_text(app->mic_activity_label, MIC_STATUS_IDLE);
+            }
             set_mic_test_initiated(audio, false);
+            printf("MicTest: Completed microphone test\n");
         }
     }
     return NULL;
@@ -696,17 +841,28 @@ void *SpeakerTest(void *arg)
         {
             if (!hardware_available) {
                 g_print("Speaker test skipped: hardware unavailable\n");
-                gtk_text_buffer_insert_at_cursor(app->text_buffer, "Speaker test skipped: hardware unavailable\n", -1);
+                if (app->text_buffer) {
+                    gtk_text_buffer_insert_at_cursor(app->text_buffer, "Speaker test skipped: hardware unavailable\n", -1);
+                }
                 set_speaker_test_initiated(audio, false, is_left);
                 continue;
             }
-            double Ampl = gtk_range_get_value(app->volume_scale) / 100.0;
+            double Ampl;
+            pthread_mutex_lock(&volume_mutex);
+            Ampl = global_volume; // Read current volume
+            pthread_mutex_unlock(&volume_mutex);
+            printf("SpeakerTest using volume: %.2f\n", Ampl); // Debug output
             float Freq = is_left ? 400.0 : 1000.0;
             float FreqRamp = 0.0;
-            ResetDMAStreamFIFO(eSpkCodecDMA);
+            ResetDMAStreamFIFO(eSpkCodecDMA); // Ensure FIFO is reset for new volume
             CreateSpkTestData(audio->write_buffer, SPK_SAMPLES, Freq, FreqRamp, Ampl, is_left);
             uint32_t Length = SPK_SAMPLES * 4;
-            gtk_text_buffer_insert_at_cursor(app->text_buffer, "Playing sinewave tone via DMA\n", -1);
+            if (app->text_buffer) {
+                gtk_text_buffer_insert_at_cursor(app->text_buffer, "Playing sinewave tone via DMA\n", -1);
+                printf("SpeakerTest: Text buffer updated with playback message\n");
+            }
+            uint32_t regMute = RegisterRead(VADDRCODECSPIREG); // Temporary substitute for VADDRSPKRMUTE
+            printf("Speaker mute register value: 0x%08x (0 = unmuted, check codec control bits)\n", regMute);
             DMAWriteToCodec(audio, audio->write_buffer, Length);
             set_speaker_test_initiated(audio, false, is_left);
             usleep(50000);
@@ -727,7 +883,9 @@ void *CheckForPttPressed(void *arg)
     {
         usleep(50000);
         if (!hardware_available) {
-            gtk_label_set_text(app->ptt_label, "PTT: Hardware unavailable");
+            if (app->ptt_label) {
+                gtk_label_set_text(app->ptt_label, "PTT: Hardware unavailable");
+            }
             continue;
         }
         ReadStatusRegister();
@@ -735,7 +893,9 @@ void *CheckForPttPressed(void *arg)
         if (Pressed != PTTPressed)
         {
             PTTPressed = Pressed;
-            gtk_label_set_text(app->ptt_label, Pressed ? "PTT Pressed" : "PTT Released");
+            if (app->ptt_label) {
+                gtk_label_set_text(app->ptt_label, Pressed ? "PTT Pressed" : "PTT Released");
+            }
         }
     }
     return NULL;
@@ -752,6 +912,11 @@ int main(int argc, char *argv[])
     pthread_t ptt_thread, mic_test_thread, speaker_test_thread;
     void *thread_args[2] = {&app, &audio};
 
+    // Initialize circular buffer
+    for (int i = 0; i < CIRCULAR_BUFFER_SIZE; i++) {
+        peak_buffer[i] = 0.0;
+    }
+
     gtk_init(&argc, &argv);
 
     // Load CSS for indicators and controls
@@ -761,7 +926,8 @@ int main(int argc, char *argv[])
         ".overload-off { background-color: transparent; color: black; }\n"
         ".near-peak-on { background-color: yellow; color: black; font-weight: bold; }\n"
         ".near-peak-off { background-color: transparent; color: black; }\n"
-        ".debug-spin { background-color: blue; }\n"
+        ".line-gain-spin { background-color: blue; }\n"
+        ".mic-gain-slider { background-color: cyan; }\n"
         ".volume-slider { background-color: green; }";
     GError *error = NULL;
     if (!gtk_css_provider_load_from_data(css_provider, css_data, -1, &error)) {
@@ -781,48 +947,91 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Warning: Conflicting applications detected\n");
     }
 
-    GtkBuilder *builder = gtk_builder_new_from_file("audiotest.ui");
-    if (!builder)
-    {
-        fprintf(stderr, "Failed to load audiotest.ui\n");
+    GError *ui_error = NULL;
+    GtkBuilder *builder = gtk_builder_new();
+    if (!gtk_builder_add_from_file(builder, "audiotest.ui", &ui_error)) {
+        fprintf(stderr, "Failed to load audiotest.ui: %s\n", ui_error->message);
+        g_error_free(ui_error);
+        g_object_unref(builder);
         return EXIT_FAILURE;
     }
     audio.AppPtr = &app;
 
     app.window = GTK_WIDGET(gtk_builder_get_object(builder, "window_main"));
+    if (!app.window) fprintf(stderr, "Failed to load window_main widget\n");
     app.status_bar = GTK_STATUSBAR(gtk_builder_get_object(builder, "statusbar_main"));
+    if (!app.status_bar) fprintf(stderr, "Failed to load statusbar_main widget\n");
     app.text_buffer = GTK_TEXT_BUFFER(gtk_builder_get_object(builder, "textbuffer_main"));
+    if (!app.text_buffer) fprintf(stderr, "Failed to load textbuffer_main widget\n");
     app.mic_activity_label = GTK_LABEL(gtk_builder_get_object(builder, "MicActivityLabel"));
+    if (!app.mic_activity_label) fprintf(stderr, "Failed to load MicActivityLabel widget\n");
     app.ptt_label = GTK_LABEL(gtk_builder_get_object(builder, "PTTLabel"));
+    if (!app.ptt_label) fprintf(stderr, "Failed to load PTTLabel widget\n");
     app.mic_progress_bar = GTK_PROGRESS_BAR(gtk_builder_get_object(builder, "id_progress"));
+    if (!app.mic_progress_bar) fprintf(stderr, "Failed to load id_progress widget\n");
     app.mic_level_bar = GTK_PROGRESS_BAR(gtk_builder_get_object(builder, "MicLevelBar"));
+    if (!app.mic_level_bar) fprintf(stderr, "Failed to load MicLevelBar widget\n");
     app.volume_scale = GTK_RANGE(gtk_builder_get_object(builder, "VolumeScale"));
+    if (!app.volume_scale) {
+        fprintf(stderr, "Failed to load VolumeScale widget, volume control disabled\n");
+    } else {
+        printf("VolumeScale loaded successfully\n");
+    }
     app.mic_duration_spin = GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "MicDurationSpin"));
+    if (!app.mic_duration_spin) fprintf(stderr, "Failed to load MicDurationSpin widget\n");
     app.gain_spin = GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "GainSpin"));
+    if (!app.gain_spin) fprintf(stderr, "Failed to load GainSpin widget\n");
+    app.mic_gain_scale = GTK_SCALE(gtk_builder_get_object(builder, "MicGainScale"));
+    if (!app.mic_gain_scale) fprintf(stderr, "Failed to load MicGainScale widget\n");
     app.vol_adjustment = GTK_ADJUSTMENT(gtk_builder_get_object(builder, "id_voladjustment"));
+    if (!app.vol_adjustment) fprintf(stderr, "Failed to load id_voladjustment widget\n");
     app.gain_adjustment = GTK_ADJUSTMENT(gtk_builder_get_object(builder, "id_gainadjustment"));
+    if (!app.gain_adjustment) fprintf(stderr, "Failed to load id_gainadjustment widget\n");
+    app.mic_gain_adjustment = GTK_ADJUSTMENT(gtk_builder_get_object(builder, "id_micgainadjustment"));
+    if (!app.mic_gain_adjustment) fprintf(stderr, "Failed to load id_micgainadjustment widget\n");
     app.mic_boost_check = GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "MicBoostCheck"));
+    if (!app.mic_boost_check) fprintf(stderr, "Failed to load MicBoostCheck widget\n");
     app.mic_xlr_check = GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "MicXLRCheck"));
+    if (!app.mic_xlr_check) fprintf(stderr, "Failed to load MicXLRCheck widget\n");
     app.mic_tip_check = GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "MicTipCheck"));
+    if (!app.mic_tip_check) fprintf(stderr, "Failed to load MicTipCheck widget\n");
     app.mic_bias_check = GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "MicBiasCheck"));
+    if (!app.mic_bias_check) fprintf(stderr, "Failed to load MicBiasCheck widget\n");
     app.line_check = GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "LineCheck"));
+    if (!app.line_check) fprintf(stderr, "Failed to load LineCheck widget\n");
     app.overload_label = GTK_LABEL(gtk_builder_get_object(builder, "overload_label"));
+    if (!app.overload_label) fprintf(stderr, "Failed to load overload_label widget\n");
     app.near_peak_label = GTK_LABEL(gtk_builder_get_object(builder, "near_peak_label"));
+    if (!app.near_peak_label) fprintf(stderr, "Failed to load near_peak_label widget\n");
 
     // Check for unexpected GainScale widget
     if (gtk_builder_get_object(builder, "GainScale")) {
         fprintf(stderr, "Warning: Unexpected GainScale widget found in UI file\n");
     }
 
-    // Ensure GainSpin is visible
-    if (!app.gain_spin) {
-        fprintf(stderr, "Failed to load GainSpin widget\n");
-    } else {
-        gtk_widget_show(GTK_WIDGET(app.gain_spin));
+    // Ensure critical widgets are loaded before proceeding
+    if (!app.window || !app.text_buffer) {
+        fprintf(stderr, "Critical widgets missing, exiting\n");
+        g_object_unref(builder);
+        return EXIT_FAILURE;
     }
-    if (!app.window) {
-        fprintf(stderr, "Failed to load window_main widget\n");
-    } else {
+
+    // Connect signals only if widgets are valid
+    if (app.volume_scale) {
+        g_signal_connect(app.volume_scale, "value-changed", G_CALLBACK(on_volume_changed), NULL);
+        printf("VolumeScale signal connected\n");
+    }
+    g_signal_connect(app.gain_spin, "value-changed", G_CALLBACK(on_line_gain_changed), &audio);
+    g_signal_connect(app.mic_gain_scale, "value-changed", G_CALLBACK(on_mic_gain_changed), &audio);
+
+    // Ensure GainSpin and MicGainScale are visible
+    if (app.gain_spin) {
+        gtk_widget_show((GtkWidget *)app.gain_spin);
+    }
+    if (app.mic_gain_scale) {
+        gtk_widget_show((GtkWidget *)app.mic_gain_scale);
+    }
+    if (app.window) {
         gtk_widget_show_all(app.window);
     }
 
@@ -834,40 +1043,91 @@ int main(int argc, char *argv[])
     gtk_builder_add_callback_symbol(builder, "on_close_button_clicked", G_CALLBACK(on_close_button_clicked));
     gtk_builder_connect_signals(builder, &audio);
 
-    // Connect the gain spin button's value-changed signal
-    g_signal_connect(app.gain_spin, "value-changed", G_CALLBACK(on_gain_changed), &audio);
-
-    gtk_label_set_text(app.mic_activity_label, MIC_STATUS_IDLE);
-    g_object_unref(builder);
-
-    // Load the saved gain setting
-    load_gain(&app);
+    // Load the saved gain settings
+    load_gains(&app);
 
     // Update text buffer with initial status
-    gtk_text_buffer_insert_at_cursor(app.text_buffer,
-        hardware_available ? "Application started. Use Input Gain spin button for line/mic gain.\n"
-                          : "Application started in UI-only mode (hardware unavailable).\n",
-        -1);
-
-    if (sem_init(&DDCInSelMutex, 0, 1) != 0 || sem_init(&DDCResetFIFOMutex, 0, 1) != 0 ||
-        sem_init(&RFGPIOMutex, 0, 1) != 0 || sem_init(&CodecRegMutex, 0, 1) != 0 ||
-        pthread_mutex_init(&audio.mic_test_mutex, NULL) != 0 ||
-        pthread_mutex_init(&audio.speaker_test_mutex, NULL) != 0) {
-        fprintf(stderr, "Failed to initialize synchronization primitives\n");
-        gtk_text_buffer_insert_at_cursor(app.text_buffer, "Failed to initialize synchronization\n", -1);
-        cleanup(&app, &audio);
-        return EXIT_FAILURE;
+    if (app.text_buffer) {
+        gtk_text_buffer_insert_at_cursor(app.text_buffer,
+            hardware_available ? "Application started. Use Line Gain spin button or Mic Gain slider.\n"
+                              : "Application started in UI-only mode (hardware unavailable).\n",
+            -1);
     }
 
+    if (app.mic_activity_label) {
+        gtk_label_set_text(app.mic_activity_label, MIC_STATUS_IDLE);
+    }
+    if (app.ptt_label) {
+        gtk_label_set_text(app.ptt_label, "No PTT");
+    }
+
+    // Initialize CodecRegMutex since CodecWriteInit is not available
+    if (sem_init(&CodecRegMutex, 0, 1) != 0) {
+        fprintf(stderr, "Failed to init CodecRegMutex: %s\n", strerror(errno));
+        hardware_available = false;
+        cleanup(&app, &audio);
+        return EXIT_FAILURE;
+    } else {
+        printf("CodecRegMutex initialized\n");
+    }
+
+    printf("Initializing synchronization primitives...\n");
+    if (sem_init(&DDCInSelMutex, 0, 1) != 0) {
+        fprintf(stderr, "Failed to init DDCInSelMutex: %s\n", strerror(errno));
+        hardware_available = false;
+        cleanup(&app, &audio);
+        return EXIT_FAILURE;
+    } else {
+        printf("DDCInSelMutex initialized\n");
+    }
+    if (sem_init(&DDCResetFIFOMutex, 0, 1) != 0) {
+        fprintf(stderr, "Failed to init DDCResetFIFOMutex: %s\n", strerror(errno));
+        hardware_available = false;
+        cleanup(&app, &audio);
+        return EXIT_FAILURE;
+    } else {
+        printf("DDCResetFIFOMutex initialized\n");
+    }
+    if (sem_init(&RFGPIOMutex, 0, 1) != 0) {
+        fprintf(stderr, "Failed to init RFGPIOMutex: %s\n", strerror(errno));
+        hardware_available = false;
+        cleanup(&app, &audio);
+        return EXIT_FAILURE;
+    } else {
+        printf("RFGPIOMutex initialized\n");
+    }
+    if (pthread_mutex_init(&audio.mic_test_mutex, NULL) != 0) {
+        fprintf(stderr, "Failed to init mic_test_mutex: %s\n", strerror(errno));
+        hardware_available = false;
+        cleanup(&app, &audio);
+        return EXIT_FAILURE;
+    } else {
+        printf("mic_test_mutex initialized\n");
+    }
+    if (pthread_mutex_init(&audio.speaker_test_mutex, NULL) != 0) {
+        fprintf(stderr, "Failed to init speaker_test_mutex: %s\n", strerror(errno));
+        hardware_available = false;
+        cleanup(&app, &audio);
+        return EXIT_FAILURE;
+    } else {
+        printf("speaker_test_mutex initialized\n");
+    }
+
+    printf("Checking hardware availability...\n");
     if (!OpenXDMADriver(true)) {
         fprintf(stderr, "Failed to open XDMA driver, proceeding without hardware\n");
         hardware_available = false;
-        gtk_text_buffer_insert_at_cursor(app.text_buffer, "Hardware unavailable: running in UI-only mode\n", -1);
+        if (app.text_buffer) {
+            gtk_text_buffer_insert_at_cursor(app.text_buffer, "Hardware unavailable: running in UI-only mode\n", -1);
+        }
     } else {
+        printf("XDMA driver opened successfully\n");
         PrintVersionInfo();
-        CodecInitialise();
+        CodecInitialise(); // Treat as void, no return value check
         SetByteSwapping(false);
         SetSpkrMute(false);
+        uint32_t codecReg = RegisterRead(VADDRCODECSPIREG);
+        printf("Initial codec register value: 0x%08x\n", codecReg);
     }
 
     if (hardware_available) {
@@ -881,46 +1141,85 @@ int main(int argc, char *argv[])
             audio.write_buffer = NULL;
             audio.read_buffer = NULL;
             hardware_available = false;
-            gtk_text_buffer_insert_at_cursor(app.text_buffer, "DMA buffer allocation failed\n", -1);
+            if (app.text_buffer) {
+                gtk_text_buffer_insert_at_cursor(app.text_buffer, "DMA buffer allocation failed\n", -1);
+            }
         } else {
+            printf("DMA buffers allocated successfully\n");
             struct stat st;
             audio.dma_write_fd = open("/dev/xdma0_h2c_0", O_WRONLY | O_CLOEXEC);
             if (audio.dma_write_fd < 0 || (stat("/dev/xdma0_h2c_0", &st) == 0 && !S_ISCHR(st.st_mode))) {
                 fprintf(stderr, "Failed to open DMA write device\n");
                 hardware_available = false;
-                gtk_text_buffer_insert_at_cursor(app.text_buffer, "Failed to open DMA write device\n", -1);
+                if (app.text_buffer) {
+                    gtk_text_buffer_insert_at_cursor(app.text_buffer, "Failed to open DMA write device\n", -1);
+                }
+            } else {
+                printf("DMA write device opened\n");
             }
             audio.dma_read_fd = open("/dev/xdma0_c2h_0", O_RDONLY | O_CLOEXEC);
             if (audio.dma_read_fd < 0 || (stat("/dev/xdma0_c2h_0", &st) == 0 && !S_ISCHR(st.st_mode))) {
                 fprintf(stderr, "Failed to open DMA read device\n");
                 hardware_available = false;
-                gtk_text_buffer_insert_at_cursor(app.text_buffer, "Failed to open DMA read device\n", -1);
+                if (app.text_buffer) {
+                    gtk_text_buffer_insert_at_cursor(app.text_buffer, "Failed to open DMA read device\n", -1);
+                }
+            } else {
+                printf("DMA read device opened\n");
             }
         }
     }
 
     if (!hardware_available) {
-        gtk_label_set_text(app.mic_activity_label, "Hardware unavailable");
-        gtk_label_set_text(app.ptt_label, "PTT: Hardware unavailable");
+        if (app.mic_activity_label) {
+            gtk_label_set_text(app.mic_activity_label, "Hardware unavailable");
+        }
+        if (app.ptt_label) {
+            gtk_label_set_text(app.ptt_label, "PTT: Hardware unavailable");
+        }
     }
 
+    printf("Applying initial settings, hardware_available = %d...\n", hardware_available);
     if (hardware_available) {
         on_MicSettings_Changed(NULL, &audio);
     }
-    gtk_progress_bar_set_fraction(app.mic_progress_bar, 0.0);
-    gtk_progress_bar_set_fraction(app.mic_level_bar, 0.0);
-    gtk_label_set_text(app.overload_label, "Overload: Idle");
-    gtk_label_set_text(app.near_peak_label, "Near Peak: Idle");
-
-    if (pthread_create(&ptt_thread, NULL, CheckForPttPressed, &app) < 0 ||
-        pthread_create(&mic_test_thread, NULL, MicTest, thread_args) < 0 ||
-        pthread_create(&speaker_test_thread, NULL, SpeakerTest, thread_args) < 0) {
-        fprintf(stderr, "Failed to create threads\n");
-        gtk_text_buffer_insert_at_cursor(app.text_buffer, "Failed to create threads\n", -1);
-        cleanup(&app, &audio);
-        return EXIT_FAILURE;
+    if (app.mic_progress_bar) {
+        gtk_progress_bar_set_fraction(app.mic_progress_bar, 0.0);
+    }
+    if (app.mic_level_bar) {
+        gtk_progress_bar_set_fraction(app.mic_level_bar, 0.0);
+    }
+    if (app.overload_label) {
+        gtk_label_set_text(app.overload_label, "Overload: Idle");
+    }
+    if (app.near_peak_label) {
+        gtk_label_set_text(app.near_peak_label, "Near Peak: Idle");
     }
 
+    printf("Starting threads...\n");
+    if (pthread_create(&ptt_thread, NULL, CheckForPttPressed, &app) < 0) {
+        fprintf(stderr, "Failed to create ptt_thread: %s\n", strerror(errno));
+        cleanup(&app, &audio);
+        return EXIT_FAILURE;
+    } else {
+        printf("PTT thread created\n");
+    }
+    if (pthread_create(&mic_test_thread, NULL, MicTest, thread_args) < 0) {
+        fprintf(stderr, "Failed to create mic_test_thread: %s\n", strerror(errno));
+        cleanup(&app, &audio);
+        return EXIT_FAILURE;
+    } else {
+        printf("Mic test thread created\n");
+    }
+    if (pthread_create(&speaker_test_thread, NULL, SpeakerTest, thread_args) < 0) {
+        fprintf(stderr, "Failed to create speaker_test_thread: %s\n", strerror(errno));
+        cleanup(&app, &audio);
+        return EXIT_FAILURE;
+    } else {
+        printf("Speaker test thread created\n");
+    }
+
+    printf("Entering gtk_main()...\n");
     gtk_main();
 
     keep_running = false;
