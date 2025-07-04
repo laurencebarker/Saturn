@@ -397,42 +397,49 @@ typedef struct
     GtkLabel *overload_label;     // Overload indicator label
     GtkLabel *near_peak_label;    // Near-peak indicator label
     float progress_fraction;      // Fraction for progress bar (0.0 to 1.0)
-    float level_fraction;        // Fraction for level bar (0.0 to 1.0)
-    float overload_dbfs;         // dBFS value for overload (or 0 if inactive)
-    float near_peak_dbfs;        // dBFS value for near-peak (or 0 if inactive)
+    float level_fraction;         // Fraction for level bar (0.0 to 1.0)
+    float overload_dbfs;          // dBFS value for overload (or 0 if inactive)
+    bool overload;                // true if there is an overload
+    float near_peak_dbfs;         // dBFS value for near-peak (or 0 if inactive)
 } ProgressUpdateData;
 
 static gboolean update_progress_bars(gpointer user_data)
 {
     ProgressUpdateData *data = (ProgressUpdateData *)user_data;
-    if (data->progress_bar) {
+    if (data->progress_bar) 
         gtk_progress_bar_set_fraction(data->progress_bar, data->progress_fraction);
-    }
-    if (data->level_bar) {
+    if (data->level_bar)
         gtk_progress_bar_set_fraction(data->level_bar, data->level_fraction);
-    }
 
     // Update overload indicator
-    if (data->overload_label) {
-        if (data->overload_dbfs > -0.01) { // Near or above 0 dBFS
+    if (data->overload_label) 
+    {
+        if (data->overload)
+        { // Near or above 0 dBFS
             char label_text[32];
-            snprintf(label_text, sizeof(label_text), "Overload: %.1f dBFS", data->overload_dbfs);
-            gtk_label_set_text(data->overload_label, label_text);
+//            snprintf(label_text, sizeof(label_text), "Overload: %.1f dBFS", data->overload_dbfs);
+            gtk_label_set_text(data->overload_label, "!! Overload !!");
             gtk_widget_set_name((GtkWidget *)data->overload_label, "overload-on");
-        } else {
-            gtk_label_set_text(data->overload_label, "Overload: Idle");
+        }
+        else
+        {
+            gtk_label_set_text(data->overload_label, "(no overload)");
             gtk_widget_set_name((GtkWidget *)data->overload_label, "overload-off");
         }
     }
 
     // Update near-peak indicator
-    if (data->near_peak_label) {
-        if (data->near_peak_dbfs > -10.0 && data->near_peak_dbfs < -0.01) {
+    if (data->near_peak_label) 
+    {
+        if (data->near_peak_dbfs > -10.0 && data->near_peak_dbfs < -0.01) 
+        {
             char label_text[32];
             snprintf(label_text, sizeof(label_text), "Near Peak: %.1f dBFS", data->near_peak_dbfs);
             gtk_label_set_text(data->near_peak_label, label_text);
             gtk_widget_set_name((GtkWidget *)data->near_peak_label, "near-peak-on");
-        } else {
+        }
+        else
+        {
             gtk_label_set_text(data->near_peak_label, "Near Peak: Idle");
             gtk_widget_set_name((GtkWidget *)data->near_peak_label, "near-peak-off");
         }
@@ -485,7 +492,8 @@ static void MyStatusCallback(AppContext *app, float ProgressPercent, float Level
     // Convert LevelPercent to dBFS and scale to 0-1 for level bar
     LevelPercent = (LevelPercent < 0.0) ? 0.0 : (LevelPercent > 100.0) ? 100.0 : LevelPercent;
     dBFS = (dBFS > 0.0) ? 0.0 : (dBFS < -60.0) ? -60.0 : dBFS;
-    data->level_fraction = (0.0 - dBFS) / 60.0; // Normalize to 0-1
+    data->level_fraction = 1.0 + (dBFS / 60.0); // Normalize to 0-1
+    data->overload = Overload;
     data->overload_dbfs = Overload ? dBFS : 0.0;
     data->near_peak_dbfs = NearPeak ? dBFS : 0.0;
 
@@ -548,8 +556,8 @@ void DMAWriteToCodec(AudioContext *audio, char *MemPtr, uint32_t Length)
         }
         if (DMAWriteToFPGA(audio->dma_write_fd, (unsigned char *)MemPtr, DMA_TRANSFER_SIZE, AXI_BASE_ADDRESS) < 0)
             fprintf(stderr, "DMAWriteToFPGA failed at transfer %u\n", DMACount);
-        else
-            printf("DMAWriteToCodec: Completed transfer %u\n", DMACount);
+//        else
+//            printf("DMAWriteToCodec: Completed transfer %u\n", DMACount);
         MemPtr += DMA_TRANSFER_SIZE;
     }
     printf("DMAWriteToCodec: Finished %u transfers\n", TotalDMACount);
@@ -607,17 +615,22 @@ void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32
         }
         if (DMAReadFromFPGA(audio->dma_read_fd, (unsigned char *)MemPtr, DMA_TRANSFER_SIZE, AXI_BASE_ADDRESS) < 0)
             fprintf(stderr, "DMAReadFromFPGA failed at transfer %u\n", DMACount);
-        else
-            printf("DMAReadFromCodec: Completed transfer %u\n", DMACount);
+//        else
+//            printf("DMAReadFromCodec: Completed transfer %u\n", DMACount);
+
+        // find max sample level in the recent DMA transfer
         PeakLevel = 0.0;
         for (uint32_t SampleCntr = 0; SampleCntr < DMA_TRANSFER_SIZE / 2; SampleCntr++)
         {
             int MicSample = *MicReadPtr++;
-            float SampleLevel = (float)abs(MicSample) / 32767.0 * 100.0;
-            if (SampleLevel > PeakLevel) {
+//            float SampleLevel = (float)abs(MicSample) / 32767.0 * 100.0;
+            float SampleLevel = fabs((float)MicSample) / 32768.0 * 100.0;   // 0 to 100. (mic sample can be -32768 to +32767)
+            if (SampleLevel > PeakLevel) 
+            {
                 PeakLevel = SampleLevel;
             }
-            if (SampleLevel > 99.5) {
+            if (SampleLevel > 99.5) 
+            {
                 Overload = true;
                 printf("Overload detected: SampleLevel=%.2f%%\n", SampleLevel);
             }
@@ -636,12 +649,12 @@ void DMAReadFromCodec(AppContext *app, AudioContext *audio, char *MemPtr, uint32
             {
                 // Find max peak level in circular buffer
                 float MaxPeakLevel = 0.0;
-                for (int i = 0; i < CIRCULAR_BUFFER_SIZE; i++) {
-                    if (peak_buffer[i] > MaxPeakLevel) {
+                for (int i = 0; i < CIRCULAR_BUFFER_SIZE; i++) 
+                {
+                    if (peak_buffer[i] > MaxPeakLevel) 
                         MaxPeakLevel = peak_buffer[i];
-                    }
                 }
-                PeakdBFS = 20.0 * log10(MaxPeakLevel / 100.0 + 1e-6);
+                PeakdBFS = 20.0 * log10(MaxPeakLevel / 100.0 + 1e-6);   // min = -60dBFS
                 float ProgressFraction = 100.0 * (float)DMACount / TotalDMACount;
                 MyStatusCallback(app, ProgressFraction, MaxPeakLevel, PeakdBFS, Overload, NearPeak);
                 last_update = now;
@@ -700,12 +713,14 @@ static void on_MicSettings_Changed(GtkToggleButton *button, AudioContext *audio)
     printf("Before SetCodecLineInGain: Setting mic/line gain to: %.1f dB (IntGain: %u)\n", Gain, IntGain); // Debug
 
     pid_t pid = fork();
-    if (pid == 0) { // Child process
+    if (pid == 0) 
+    { // Child process
         SetOrionMicOptions(!MicTip, MicBias, true);
         SetMicBoost(MicBoost);
         SetBalancedMicInput(XLR);
         SetMicLineInput(LineInput);
-        for (int attempt = 0; attempt < 5; attempt++) {
+        for (int attempt = 0; attempt < 5; attempt++) 
+        {
             SetCodecLineInGain(IntGain);
             usleep(100000); // 100ms delay
             uint32_t regValue = RegisterRead(VADDRCODECSPIREG);
@@ -713,18 +728,25 @@ static void on_MicSettings_Changed(GtkToggleButton *button, AudioContext *audio)
             if ((regValue & 0x01FF) == IntGain) break; // Check lower 9 bits
         }
         exit(0); // Exit child after setting gain
-    } else if (pid > 0) { // Parent process
+    } 
+    else if (pid > 0) 
+    { // Parent process
         int status;
         alarm(1); // Set a 1-second alarm to kill the child if it hangs
         waitpid(pid, &status, 0); // Wait for child to finish
         alarm(0); // Cancel alarm
-        if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+        if (WIFEXITED(status) && WEXITSTATUS(status) == 0) 
+        {
             printf("SetCodecLineInGain succeeded via child process\n");
-        } else {
+        }
+        else
+        {
             fprintf(stderr, "SetCodecLineInGain failed in child process\n");
             hardware_available = false; // Disable hardware on failure
         }
-    } else {
+    }
+    else
+    {
         fprintf(stderr, "Fork failed: %s\n", strerror(errno));
         hardware_available = false; // Disable hardware on fork failure
     }
@@ -737,7 +759,8 @@ static void on_MicSettings_Changed(GtkToggleButton *button, AudioContext *audio)
  */
 void on_MicTestButton_clicked(GtkButton *button, AudioContext *audio)
 {
-    if (!hardware_available) {
+    if (!hardware_available) 
+    {
         g_print("Mic test disabled: hardware unavailable\n");
         return;
     }
@@ -770,14 +793,16 @@ void *MicTest(void *arg)
             printf("MicTest: Starting microphone test\n");
             if (!hardware_available) {
                 g_print("Mic test skipped: hardware unavailable\n");
-                if (app->mic_activity_label) {
+                if (app->mic_activity_label) 
+                {
                     gtk_label_set_text(app->mic_activity_label, MIC_STATUS_IDLE);
                 }
                 set_mic_test_initiated(audio, false);
                 continue;
             }
             // Reset circular buffer
-            for (int i = 0; i < CIRCULAR_BUFFER_SIZE; i++) {
+            for (int i = 0; i < CIRCULAR_BUFFER_SIZE; i++) 
+            {
                 peak_buffer[i] = 0.0;
             }
             peak_buffer_index = 0;
@@ -799,7 +824,8 @@ void *MicTest(void *arg)
             uint32_t IntGain = (uint32_t)((Gain + 34.5) / 1.5);
             SetCodecLineInGain(IntGain);
 
-            if (app->mic_activity_label) {
+            if (app->mic_activity_label) 
+            {
                 gtk_label_set_text(app->mic_activity_label, MIC_STATUS_RECORDING);
             }
             gint Duration = app->mic_duration_spin ? gtk_spin_button_get_value_as_int(app->mic_duration_spin) : 5;
@@ -809,13 +835,15 @@ void *MicTest(void *arg)
             DMAReadFromCodec(app, audio, audio->read_buffer, Length);
             CopyMicToSpeaker(audio->read_buffer, audio->write_buffer, Length);
 
-            if (app->mic_activity_label) {
+            if (app->mic_activity_label) 
+            {
                 gtk_label_set_text(app->mic_activity_label, MIC_STATUS_PLAYING);
             }
             Length = Samples * 4;
             usleep(1000);
             DMAWriteToCodec(audio, audio->write_buffer, Length);
-            if (app->mic_activity_label) {
+            if (app->mic_activity_label) 
+            {
                 gtk_label_set_text(app->mic_activity_label, MIC_STATUS_IDLE);
             }
             set_mic_test_initiated(audio, false);
@@ -839,9 +867,11 @@ void *SpeakerTest(void *arg)
         get_speaker_test_initiated(audio, &initiated, &is_left);
         if (initiated)
         {
-            if (!hardware_available) {
+            if (!hardware_available) 
+            {
                 g_print("Speaker test skipped: hardware unavailable\n");
-                if (app->text_buffer) {
+                if (app->text_buffer) 
+                {
                     gtk_text_buffer_insert_at_cursor(app->text_buffer, "Speaker test skipped: hardware unavailable\n", -1);
                 }
                 set_speaker_test_initiated(audio, false, is_left);
@@ -857,7 +887,8 @@ void *SpeakerTest(void *arg)
             ResetDMAStreamFIFO(eSpkCodecDMA); // Ensure FIFO is reset for new volume
             CreateSpkTestData(audio->write_buffer, SPK_SAMPLES, Freq, FreqRamp, Ampl, is_left);
             uint32_t Length = SPK_SAMPLES * 4;
-            if (app->text_buffer) {
+            if (app->text_buffer) 
+            {
                 gtk_text_buffer_insert_at_cursor(app->text_buffer, "Playing sinewave tone via DMA\n", -1);
                 printf("SpeakerTest: Text buffer updated with playback message\n");
             }
@@ -882,8 +913,10 @@ void *CheckForPttPressed(void *arg)
     while (keep_running)
     {
         usleep(50000);
-        if (!hardware_available) {
-            if (app->ptt_label) {
+        if (!hardware_available) 
+        {
+            if (app->ptt_label) 
+            {
                 gtk_label_set_text(app->ptt_label, "PTT: Hardware unavailable");
             }
             continue;
@@ -893,7 +926,8 @@ void *CheckForPttPressed(void *arg)
         if (Pressed != PTTPressed)
         {
             PTTPressed = Pressed;
-            if (app->ptt_label) {
+            if (app->ptt_label) 
+            {
                 gtk_label_set_text(app->ptt_label, Pressed ? "PTT Pressed" : "PTT Released");
             }
         }
@@ -913,7 +947,8 @@ int main(int argc, char *argv[])
     void *thread_args[2] = {&app, &audio};
 
     // Initialize circular buffer
-    for (int i = 0; i < CIRCULAR_BUFFER_SIZE; i++) {
+    for (int i = 0; i < CIRCULAR_BUFFER_SIZE; i++) 
+    {
         peak_buffer[i] = 0.0;
     }
 
@@ -930,7 +965,8 @@ int main(int argc, char *argv[])
         ".mic-gain-slider { background-color: cyan; }\n"
         ".volume-slider { background-color: green; }";
     GError *error = NULL;
-    if (!gtk_css_provider_load_from_data(css_provider, css_data, -1, &error)) {
+    if (!gtk_css_provider_load_from_data(css_provider, css_data, -1, &error)) 
+    {
         fprintf(stderr, "Failed to load CSS: %s\n", error->message);
         g_error_free(error);
         g_object_unref(css_provider);
@@ -943,13 +979,15 @@ int main(int argc, char *argv[])
     );
     g_object_unref(css_provider);
 
-    if (check_background_apps(NULL)) {
+    if (check_background_apps(NULL)) 
+    {
         fprintf(stderr, "Warning: Conflicting applications detected\n");
     }
 
     GError *ui_error = NULL;
     GtkBuilder *builder = gtk_builder_new();
-    if (!gtk_builder_add_from_file(builder, "audiotest.ui", &ui_error)) {
+    if (!gtk_builder_add_from_file(builder, "audiotest.ui", &ui_error)) 
+    {
         fprintf(stderr, "Failed to load audiotest.ui: %s\n", ui_error->message);
         g_error_free(ui_error);
         g_object_unref(builder);
@@ -972,9 +1010,12 @@ int main(int argc, char *argv[])
     app.mic_level_bar = GTK_PROGRESS_BAR(gtk_builder_get_object(builder, "MicLevelBar"));
     if (!app.mic_level_bar) fprintf(stderr, "Failed to load MicLevelBar widget\n");
     app.volume_scale = GTK_RANGE(gtk_builder_get_object(builder, "VolumeScale"));
-    if (!app.volume_scale) {
+    if (!app.volume_scale) 
+    {
         fprintf(stderr, "Failed to load VolumeScale widget, volume control disabled\n");
-    } else {
+    }
+    else 
+    {
         printf("VolumeScale loaded successfully\n");
     }
     app.mic_duration_spin = GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "MicDurationSpin"));
@@ -1005,19 +1046,22 @@ int main(int argc, char *argv[])
     if (!app.near_peak_label) fprintf(stderr, "Failed to load near_peak_label widget\n");
 
     // Check for unexpected GainScale widget
-    if (gtk_builder_get_object(builder, "GainScale")) {
+    if (gtk_builder_get_object(builder, "GainScale")) 
+    {
         fprintf(stderr, "Warning: Unexpected GainScale widget found in UI file\n");
     }
 
     // Ensure critical widgets are loaded before proceeding
-    if (!app.window || !app.text_buffer) {
+    if (!app.window || !app.text_buffer) 
+    {
         fprintf(stderr, "Critical widgets missing, exiting\n");
         g_object_unref(builder);
         return EXIT_FAILURE;
     }
 
     // Connect signals only if widgets are valid
-    if (app.volume_scale) {
+    if (app.volume_scale) 
+    {
         g_signal_connect(app.volume_scale, "value-changed", G_CALLBACK(on_volume_changed), NULL);
         printf("VolumeScale signal connected\n");
     }
@@ -1025,13 +1069,16 @@ int main(int argc, char *argv[])
     g_signal_connect(app.mic_gain_scale, "value-changed", G_CALLBACK(on_mic_gain_changed), &audio);
 
     // Ensure GainSpin and MicGainScale are visible
-    if (app.gain_spin) {
+    if (app.gain_spin) 
+    {
         gtk_widget_show((GtkWidget *)app.gain_spin);
     }
-    if (app.mic_gain_scale) {
+    if (app.mic_gain_scale) 
+    {
         gtk_widget_show((GtkWidget *)app.mic_gain_scale);
     }
-    if (app.window) {
+    if (app.window) 
+    {
         gtk_widget_show_all(app.window);
     }
 
@@ -1047,80 +1094,104 @@ int main(int argc, char *argv[])
     load_gains(&app);
 
     // Update text buffer with initial status
-    if (app.text_buffer) {
+    if (app.text_buffer) 
+    {
         gtk_text_buffer_insert_at_cursor(app.text_buffer,
             hardware_available ? "Application started. Use Line Gain spin button or Mic Gain slider.\n"
                               : "Application started in UI-only mode (hardware unavailable).\n",
             -1);
     }
 
-    if (app.mic_activity_label) {
+    if (app.mic_activity_label) 
+    {
         gtk_label_set_text(app.mic_activity_label, MIC_STATUS_IDLE);
     }
-    if (app.ptt_label) {
+    if (app.ptt_label) 
+    {
         gtk_label_set_text(app.ptt_label, "No PTT");
     }
 
     // Initialize CodecRegMutex since CodecWriteInit is not available
-    if (sem_init(&CodecRegMutex, 0, 1) != 0) {
+    if (sem_init(&CodecRegMutex, 0, 1) != 0) 
+    {
         fprintf(stderr, "Failed to init CodecRegMutex: %s\n", strerror(errno));
         hardware_available = false;
         cleanup(&app, &audio);
         return EXIT_FAILURE;
-    } else {
+    }
+    else
+    {
         printf("CodecRegMutex initialized\n");
     }
 
     printf("Initializing synchronization primitives...\n");
-    if (sem_init(&DDCInSelMutex, 0, 1) != 0) {
+    if (sem_init(&DDCInSelMutex, 0, 1) != 0) 
+    {
         fprintf(stderr, "Failed to init DDCInSelMutex: %s\n", strerror(errno));
         hardware_available = false;
         cleanup(&app, &audio);
         return EXIT_FAILURE;
-    } else {
+    }
+    else
+    {
         printf("DDCInSelMutex initialized\n");
     }
-    if (sem_init(&DDCResetFIFOMutex, 0, 1) != 0) {
+    if (sem_init(&DDCResetFIFOMutex, 0, 1) != 0) 
+    {
         fprintf(stderr, "Failed to init DDCResetFIFOMutex: %s\n", strerror(errno));
         hardware_available = false;
         cleanup(&app, &audio);
         return EXIT_FAILURE;
-    } else {
+    }
+    else
+    {
         printf("DDCResetFIFOMutex initialized\n");
     }
-    if (sem_init(&RFGPIOMutex, 0, 1) != 0) {
+    if (sem_init(&RFGPIOMutex, 0, 1) != 0) 
+    {
         fprintf(stderr, "Failed to init RFGPIOMutex: %s\n", strerror(errno));
         hardware_available = false;
         cleanup(&app, &audio);
         return EXIT_FAILURE;
-    } else {
+    }else
+    {
         printf("RFGPIOMutex initialized\n");
     }
-    if (pthread_mutex_init(&audio.mic_test_mutex, NULL) != 0) {
+    if (pthread_mutex_init(&audio.mic_test_mutex, NULL) != 0)
+    {
         fprintf(stderr, "Failed to init mic_test_mutex: %s\n", strerror(errno));
         hardware_available = false;
         cleanup(&app, &audio);
         return EXIT_FAILURE;
-    } else {
+    }
+    else
+    {
         printf("mic_test_mutex initialized\n");
     }
-    if (pthread_mutex_init(&audio.speaker_test_mutex, NULL) != 0) {
+    if (pthread_mutex_init(&audio.speaker_test_mutex, NULL) != 0)
+    {
         fprintf(stderr, "Failed to init speaker_test_mutex: %s\n", strerror(errno));
         hardware_available = false;
         cleanup(&app, &audio);
         return EXIT_FAILURE;
-    } else {
+    }
+    else
+    {
         printf("speaker_test_mutex initialized\n");
     }
 
     printf("Checking hardware availability...\n");
-    if (!OpenXDMADriver(true)) {
+    if (!OpenXDMADriver(true)) 
+    {
         fprintf(stderr, "Failed to open XDMA driver, proceeding without hardware\n");
         hardware_available = false;
-        if (app.text_buffer) {
+        if (app.text_buffer) 
+        {
             gtk_text_buffer_insert_at_cursor(app.text_buffer, "Hardware unavailable: running in UI-only mode\n", -1);
         }
-    } else {
+    }
+    else
+    {
         printf("XDMA driver opened successfully\n");
         PrintVersionInfo();
         CodecInitialise(); // Treat as void, no return value check
@@ -1130,92 +1201,122 @@ int main(int argc, char *argv[])
         printf("Initial codec register value: 0x%08x\n", codecReg);
     }
 
-    if (hardware_available) {
+    if (hardware_available)
+    {
         if (posix_memalign((void **)&audio.write_buffer, ALIGNMENT, audio.buffer_size) != 0 ||
             (uintptr_t)audio.write_buffer % ALIGNMENT != 0 ||
             posix_memalign((void **)&audio.read_buffer, ALIGNMENT, audio.buffer_size) != 0 ||
-            (uintptr_t)audio.read_buffer % ALIGNMENT != 0) {
+            (uintptr_t)audio.read_buffer % ALIGNMENT != 0)
+        {
             fprintf(stderr, "DMA buffer allocation failed\n");
             if (audio.write_buffer) free(audio.write_buffer);
             if (audio.read_buffer) free(audio.read_buffer);
             audio.write_buffer = NULL;
             audio.read_buffer = NULL;
             hardware_available = false;
-            if (app.text_buffer) {
+            if (app.text_buffer)
+            {
                 gtk_text_buffer_insert_at_cursor(app.text_buffer, "DMA buffer allocation failed\n", -1);
             }
-        } else {
+        }
+        else
+        {
             printf("DMA buffers allocated successfully\n");
             struct stat st;
             audio.dma_write_fd = open("/dev/xdma0_h2c_0", O_WRONLY | O_CLOEXEC);
-            if (audio.dma_write_fd < 0 || (stat("/dev/xdma0_h2c_0", &st) == 0 && !S_ISCHR(st.st_mode))) {
+            if (audio.dma_write_fd < 0 || (stat("/dev/xdma0_h2c_0", &st) == 0 && !S_ISCHR(st.st_mode))) 
+            {
                 fprintf(stderr, "Failed to open DMA write device\n");
                 hardware_available = false;
-                if (app.text_buffer) {
+                if (app.text_buffer)
+                {
                     gtk_text_buffer_insert_at_cursor(app.text_buffer, "Failed to open DMA write device\n", -1);
                 }
-            } else {
+            }
+            else
+            {
                 printf("DMA write device opened\n");
             }
             audio.dma_read_fd = open("/dev/xdma0_c2h_0", O_RDONLY | O_CLOEXEC);
-            if (audio.dma_read_fd < 0 || (stat("/dev/xdma0_c2h_0", &st) == 0 && !S_ISCHR(st.st_mode))) {
+            if (audio.dma_read_fd < 0 || (stat("/dev/xdma0_c2h_0", &st) == 0 && !S_ISCHR(st.st_mode)))
+            {
                 fprintf(stderr, "Failed to open DMA read device\n");
                 hardware_available = false;
-                if (app.text_buffer) {
+                if (app.text_buffer)
+                {
                     gtk_text_buffer_insert_at_cursor(app.text_buffer, "Failed to open DMA read device\n", -1);
                 }
-            } else {
+            }
+            else
+            {
                 printf("DMA read device opened\n");
             }
         }
     }
 
-    if (!hardware_available) {
-        if (app.mic_activity_label) {
+    if (!hardware_available)
+    {
+        if (app.mic_activity_label)
+        {
             gtk_label_set_text(app.mic_activity_label, "Hardware unavailable");
         }
-        if (app.ptt_label) {
+        if (app.ptt_label)
+        {
             gtk_label_set_text(app.ptt_label, "PTT: Hardware unavailable");
         }
     }
 
     printf("Applying initial settings, hardware_available = %d...\n", hardware_available);
-    if (hardware_available) {
+    if (hardware_available)
+    {
         on_MicSettings_Changed(NULL, &audio);
     }
-    if (app.mic_progress_bar) {
+    if (app.mic_progress_bar)
+    {
         gtk_progress_bar_set_fraction(app.mic_progress_bar, 0.0);
     }
-    if (app.mic_level_bar) {
+    if (app.mic_level_bar)
+    {
         gtk_progress_bar_set_fraction(app.mic_level_bar, 0.0);
     }
-    if (app.overload_label) {
+    if (app.overload_label)
+    {
         gtk_label_set_text(app.overload_label, "Overload: Idle");
     }
-    if (app.near_peak_label) {
+    if (app.near_peak_label)
+    {
         gtk_label_set_text(app.near_peak_label, "Near Peak: Idle");
     }
 
     printf("Starting threads...\n");
-    if (pthread_create(&ptt_thread, NULL, CheckForPttPressed, &app) < 0) {
+    if (pthread_create(&ptt_thread, NULL, CheckForPttPressed, &app) < 0)
+    {
         fprintf(stderr, "Failed to create ptt_thread: %s\n", strerror(errno));
         cleanup(&app, &audio);
         return EXIT_FAILURE;
-    } else {
+    }
+    else
+    {
         printf("PTT thread created\n");
     }
-    if (pthread_create(&mic_test_thread, NULL, MicTest, thread_args) < 0) {
+    if (pthread_create(&mic_test_thread, NULL, MicTest, thread_args) < 0) 
+    {
         fprintf(stderr, "Failed to create mic_test_thread: %s\n", strerror(errno));
         cleanup(&app, &audio);
         return EXIT_FAILURE;
-    } else {
+    }
+    else
+    {
         printf("Mic test thread created\n");
     }
-    if (pthread_create(&speaker_test_thread, NULL, SpeakerTest, thread_args) < 0) {
+    if (pthread_create(&speaker_test_thread, NULL, SpeakerTest, thread_args) < 0)
+    {
         fprintf(stderr, "Failed to create speaker_test_thread: %s\n", strerror(errno));
         cleanup(&app, &audio);
         return EXIT_FAILURE;
-    } else {
+    }
+    else
+    {
         printf("Speaker test thread created\n");
     }
 
