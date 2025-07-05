@@ -129,9 +129,7 @@ Author: Laurence Barker
             <property name="restrict_to_fill_level">False</property>
             <property name="fill_level">100</property>
             <property name="round_digits">0</property>
-            <style>
-              <class name="volume-slider"/>
-            </style>
+            <!-- Removed the volume-slider class to eliminate green background -->
           </object>
           <packing>
             <property name="left_attach">2</property>
@@ -186,9 +184,7 @@ Author: Laurence Barker
             <property name="tooltip_text" translatable="yes">Gain for line input</property>
             <property name="adjustment">id_gainadjustment</property>
             <property name="digits">1</property>
-            <style>
-              <class name="line-gain-spin"/>
-            </style>
+            <!-- Removed the line-gain-spin class (already done previously) -->
           </object>
           <packing>
             <property name="left_attach">2</property>
@@ -223,17 +219,6 @@ Author: Laurence Barker
           </packing>
         </child>
         <child>
-          <object class="GtkLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">dB</property>
-          </object>
-          <packing>
-            <property name="left_attach">3</property>
-            <property name="top_attach">3</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkScale" id="MicGainScale">
             <property name="width_request">200</property>
             <property name="height_request">40</property>
@@ -242,15 +227,23 @@ Author: Laurence Barker
             <property name="tooltip_text" translatable="yes">Gain for microphone input</property>
             <property name="adjustment">id_micgainadjustment</property>
             <property name="round_digits">1</property>
-            <property name="value_pos">right</property>
-            <style>
-              <class name="mic-gain-slider"/>
-            </style>
+            <!-- Removed the mic-gain-slider class to eliminate cyan background -->
           </object>
           <packing>
             <property name="left_attach">2</property>
             <property name="top_attach">3</property>
-            <property name="width">2</property>
+            <property name="width">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">dB</property>
+          </object>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="top_attach">3</property>
           </packing>
         </child>
         <child>
