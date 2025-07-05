@@ -10,6 +10,7 @@
 # sudo systemctl start p2app.service
 # sudo systemctl stop p2app.service
 # sudo systemctl status p2app.service
+# sudo systemctl enable p2app.service
 
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
