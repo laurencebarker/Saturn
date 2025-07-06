@@ -7,6 +7,9 @@
 # source ~/venv/bin/activate
 # python3 ~/github/Saturn/scripts/update-pihpsdr.py -y
 # deactivate
+
+
+#!/usr/bin/env python3
 import argparse
 import logging
 import os
@@ -17,6 +20,7 @@ from datetime import datetime
 from pathlib import Path
 import shutil
 import psutil
+import glob
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
@@ -43,7 +47,7 @@ BACKUP_DIR = Path.home() / f"pihpsdr-backup-{datetime.now().strftime('%Y%m%d-%H%
 REPO_URL = "https://github.com/dl1ycf/pihpsdr"
 DEFAULT_BRANCH = "master"
 
-# Setup logging
+# Setup logging to file and console
 def setup_logging():
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     log_file = LOG_DIR / f"pihpsdr-update-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
@@ -57,7 +61,25 @@ def setup_logging():
     )
     return log_file
 
-# Terminal size detection
+# Initialize logging and console with color check
+def init_logging():
+    log_file = setup_logging()
+    console.clear()
+    # Check terminal color support for proper rendering
+    try:
+        colors = int(subprocess.check_output(["tput", "colors"]).decode().strip())
+        if colors < 8 or "256color" not in os.environ.get("TERM", ""):
+            console.print(f"[warning]⚠ Terminal lacks 256-color support (TERM={os.environ.get('TERM', 'unknown')}, colors={colors}). Some styles may not render.")
+    except subprocess.CalledProcessError:
+        console.print(f"[warning]⚠ Unable to check terminal color support. Some styles may not render.")
+    render_top_section(f"{SCRIPT_NAME} v{SCRIPT_VERSION}")
+    cols, _ = get_term_size()
+    console.print(f"[info]ℹ {truncate_text(f'Started: {datetime.now()}', cols-3)}")
+    console.print(f"[info]ℹ {truncate_text(f'Log: {log_file}', cols-3)}")
+    draw_transition()
+    return log_file
+
+# Terminal size detection with fallbacks
 def get_term_size():
     try:
         cols = os.get_terminal_size().columns
@@ -68,38 +90,39 @@ def get_term_size():
     lines = max(8, lines)
     return cols, lines
 
+# Check if terminal is in minimal mode (small size)
 def is_minimal_mode():
     cols, lines = get_term_size()
     return cols < 40 or lines < 15
 
-# Detect terminal resizing
+# Detect terminal resizing to switch to status mode
 def is_terminal_resizing():
     initial_size = get_term_size()
     time.sleep(0.1)
     current_size = get_term_size()
     return initial_size != current_size
 
-# Truncate text for terminal width
+# Truncate text to fit terminal width
 def truncate_text(text, max_len):
     if len(text) > max_len:
         return text[:max_len-2] + ".."
     return text
 
-# Draw a section panel with smaller width
+# Render a section panel with dynamic width
 def render_section(title):
     cols, _ = get_term_size()
     panel_width = min(60, int(cols * 0.75))  # 75% of terminal width, max 60
     title = truncate_text(title, panel_width - 4)
     console.print(Panel(title, style="header", border_style="cyan", width=panel_width))
 
-# Draw a top/bottom section panel with smaller width
+# Render top/bottom section panel
 def render_top_section(title):
     cols, _ = get_term_size()
     panel_width = min(60, int(cols * 0.75))  # 75% of terminal width, max 60
     title = truncate_text(title, panel_width - 4)
     console.print(Panel(title, style="header", border_style="cyan", width=panel_width))
 
-# Transition animation
+# Display transition animation
 def draw_transition():
     if is_minimal_mode():
         return
@@ -115,7 +138,7 @@ def draw_transition():
             progress.update(task, description="")
             time.sleep(0.1)
 
-# Progress bar for subprocesses with timeout and resizing handling
+# Run a command with progress bar or status
 def run_with_progress(command, description, total_steps=10, timeout=300):
     process = subprocess.Popen(
         command,
@@ -156,7 +179,7 @@ def run_with_progress(command, description, total_steps=10, timeout=300):
     output_lines.append(output)
     return process.returncode, "\n".join(output_lines)
 
-# Status reporting
+# Status reporting functions
 def status_start(msg):
     cols, _ = get_term_size()
     msg = truncate_text(msg, cols - 7)
@@ -179,24 +202,6 @@ def status_error(msg):
     logging.error(msg)
     sys.exit(1)
 
-# Initialize logging and console
-def init_logging():
-    log_file = setup_logging()
-    console.clear()
-    # Check terminal color support
-    try:
-        colors = int(subprocess.check_output(["tput", "colors"]).decode().strip())
-        if colors < 8 or "256color" not in os.environ.get("TERM", ""):
-            console.print(f"[warning]⚠ Terminal lacks 256-color support (TERM={os.environ.get('TERM', 'unknown')}, colors={colors}). Some styles may not render.")
-    except subprocess.CalledProcessError:
-        console.print(f"[warning]⚠ Unable to check terminal color support. Some styles may not render.")
-    render_top_section(f"{SCRIPT_NAME} v{SCRIPT_VERSION}")
-    cols, _ = get_term_size()
-    console.print(f"[info]ℹ {truncate_text(f'Started: {datetime.now()}', cols-3)}")
-    console.print(f"[info]ℹ {truncate_text(f'Log: {log_file}', cols-3)}")
-    draw_transition()
-    return log_file
-
 # Parse command-line arguments
 def parse_args():
     parser = argparse.ArgumentParser(description="piHPSDR Update Script")
@@ -211,12 +216,21 @@ def parse_args():
         status_error("Cannot use -y and -n together")
     return args
 
-# Create backup
+# Create backup and keep only three total backups
 def create_backup(args):
+    """Create a backup of the piHPSDR directory and ensure only three backups exist.
+
+    Args:
+        args: Parsed command-line arguments with flags for backup control.
+
+    Returns:
+        bool: True if backup was created, False if skipped.
+    """
     render_section("Backup")
     cols, _ = get_term_size()
     do_backup = False
 
+    # Determine if backup should be performed
     if args.y:
         do_backup = True
         console.print(f"[success]✔ Backup enabled via -y flag")
@@ -232,6 +246,30 @@ def create_backup(args):
             return False
 
     if do_backup:
+        # Clean up old backups before creating a new one
+        backup_pattern = str(Path.home() / "pihpsdr-backup-*")
+        backup_dirs = sorted(glob.glob(backup_pattern), key=lambda x: os.path.getmtime(x), reverse=True)
+        console.print(f"[info]ℹ {truncate_text(f'Found {len(backup_dirs)} existing backups', cols-3)}")
+        if not args.dry_run:
+            # Delete all but the two most recent backups to leave room for the new one
+            if len(backup_dirs) > 2:
+                old_backups = backup_dirs[2:]  # Keep two, as new backup will make three
+                for old_backup in old_backups:
+                    try:
+                        shutil.rmtree(old_backup)
+                        console.print(f"[info]ℹ {truncate_text(f'Deleted old backup: {old_backup}', cols-3)}")
+                        logging.info(f"Deleted old backup: {old_backup}")
+                    except Exception as e:
+                        logging.warning(f"Failed to delete old backup {old_backup}: {str(e)}")
+                        console.print(f"[warning]⚠ {truncate_text(f'Failed to delete old backup {old_backup}: {str(e)}', cols-3)}")
+        else:
+            # Simulate cleanup in dry-run mode
+            if len(backup_dirs) > 2:
+                old_backups = backup_dirs[2:]
+                for old_backup in old_backups:
+                    console.print(f"[info]ℹ Dry run: Would delete old backup {old_backup}")
+
+        # Create the new backup
         status_start("Creating backup")
         console.print(f"[info]ℹ {truncate_text(f'Location: {BACKUP_DIR}', cols-3)}")
         if not args.dry_run:
@@ -247,7 +285,7 @@ def create_backup(args):
                 logging.info(output)
                 if args.verbose:
                     console.print(f"[info]ℹ Backup output: {truncate_text(output, cols-3)}")
-                # Calculate backup size outside f-string
+                # Calculate backup size
                 backup_size = sum(f.stat().st_size for f in BACKUP_DIR.rglob('*') if f.is_file()) / 1024**2
                 size_text = f"Size: {backup_size:.1f}MB"
                 console.print(f"[info]ℹ {truncate_text(size_text, cols-3)}")
@@ -276,7 +314,7 @@ def check_requirements(args):
         console.print(f"[success]✔ {truncate_text(f'Disk: {free_space:.0f}MB free', cols-3)}")
     status_success("Requirements met")
 
-# Clone or update repository
+# Clone or update the piHPSDR repository
 def update_git(args):
     render_section("Git Update")
     status_start("Checking repository")
@@ -351,7 +389,7 @@ def update_git(args):
             console.print(f"[info]ℹ Dry run: Would clone to {PIHPSDR_DIR}")
     status_success("Repository updated")
 
-# Build pihpsdr
+# Build piHPSDR
 def build_pihpsdr(args):
     render_section("piHPSDR Build")
     status_start("Cleaning build")
@@ -363,6 +401,7 @@ def build_pihpsdr(args):
                 status_error(f"make clean failed: {output}")
             logging.info(output)
             if args.verbose:
+                cols, _ = get_term_size()  # Define cols locally for verbose output
                 console.print(f"[info]ℹ Clean output: {truncate_text(output, cols-3)}")
         else:
             console.print(f"[info]ℹ Dry run: Would run make clean in {PIHPSDR_DIR}")
@@ -382,6 +421,7 @@ def build_pihpsdr(args):
                     status_error(f"Dependency installation failed: {output}")
                 logging.info(output)
                 if args.verbose:
+                    cols, _ = get_term_size()  # Define cols locally for verbose output
                     console.print(f"[info]ℹ Dependency output: {truncate_text(output, cols-3)}")
             else:
                 console.print(f"[info]ℹ Dry run: Would run {libinstall_script}")
@@ -409,6 +449,7 @@ def build_pihpsdr(args):
                     status_error(f"piHPSDR build failed: {output}")
                 logging.info(output)
                 if args.verbose:
+                    cols, _ = get_term_size()  # Define cols locally for verbose output
                     console.print(f"[info]ℹ Build output: {truncate_text(output, cols-3)}")
             else:
                 console.print(f"[info]ℹ Dry run: Would build with GPIO disabled")
@@ -424,6 +465,7 @@ def build_pihpsdr(args):
                     status_error(f"piHPSDR build failed: {output}")
                 logging.info(output)
                 if args.verbose:
+                    cols, _ = get_term_size()  # Define cols locally for verbose output
                     console.print(f"[info]ℹ Build output: {truncate_text(output, cols-3)}")
             else:
                 console.print(f"[info]ℹ Dry run: Would build piHPSDR")
@@ -431,7 +473,7 @@ def build_pihpsdr(args):
     except Exception as e:
         status_error(f"Build failed: {str(e)}")
 
-# System stats
+# Display system resource usage
 def get_system_stats():
     if is_minimal_mode():
         return
@@ -443,7 +485,7 @@ def get_system_stats():
     stats = f"CPU: {cpu:.0f}% | Mem: {mem.used / 1024**2:.0f}/{mem.total / 1024**2:.0f}MB | Disk: {disk.used / 1024**3:.1f}/{disk.total / 1024**3:.1f}G"
     console.print(f"[info]ℹ {truncate_text(stats, cols-3)}")
 
-# Summary report
+# Print summary of script execution
 def print_summary_report(backup_created, start_time):
     render_section("Summary")
     cols, _ = get_term_size()
