@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Update piHPSDR
+Comment=Run the piHPSDR update and build script
+Exec=lxterminal -e "bash -c 'source /home/pi/venv/bin/activate; python3 /home/pi/github/Saturn/scripts/update-pihpsdr.py --verbose'"
+Icon=/home/pi/github/pihpsdr/release/pihpsdr/pihpsdr.png
+Terminal=true
+StartupNotify=true
+Categories=Development;
