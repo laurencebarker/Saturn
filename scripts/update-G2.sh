@@ -210,7 +210,7 @@ init_logging() {
         echo -e "${BLUE}> $(truncate_text "Started: $(date)" $((cols-2)))${NC}"
         echo -e "${BLUE}> $(truncate_text "Log: $LOG_FILE" $((cols-2)))${NC}"
     else
-        echo -e "${BLUE}ℹ $(truncate_text "Started: Sat Jul 05 15:30:00 EDT 2025" $((cols-3)))${NC}"
+        echo -e "${BLUE}ℹ $(truncate_text "Started: $(date)" $((cols-3)))${NC}"
         echo -e "${BLUE}ℹ $(truncate_text "Log: $LOG_FILE" $((cols-3)))${NC}"
     fi
 }
@@ -277,6 +277,75 @@ check_connectivity() {
         return 0
     else
         status_warning "Cannot reach GitHub"
+        return 1
+    fi
+}
+
+# Create backup
+create_backup() {
+    render_section "Backup"
+    local cols=$(get_term_size | cut -d' ' -f1)
+    if is_minimal_mode; then
+        echo -ne "${YELLOW}> Backup? [${BOLD}Y${RESET}/n]: ${NC}"
+    else
+        echo -ne "${YELLOW}⚠ Backup? [${BOLD}Y${RESET}/n]: ${NC}"
+    fi
+    read -r -n 1 -p "" REPLY
+    echo
+    if [ "$REPLY" != "n" ] && [ "$REPLY" != "N" ]; then
+        status_start "Creating backup"
+        # Clean up old backups to keep only the 4 most recent (before adding new one)
+        local backup_pattern="$HOME/saturn-backup-*"
+        local backup_dirs
+        backup_dirs=($(ls -dt $backup_pattern 2>/dev/null))
+        if is_minimal_mode; then
+            echo -e "${BLUE}> $(truncate_text "Found ${#backup_dirs[@]} existing backups" $((cols-2)))${NC}"
+        else
+            echo -e "${BLUE}ℹ $(truncate_text "Found ${#backup_dirs[@]} existing backups" $((cols-3)))${NC}"
+        fi
+        if [ ${#backup_dirs[@]} -gt 4 ]; then
+            for old_backup in "${backup_dirs[@]:4}"; do
+                rm -rf "$old_backup"
+                if is_minimal_mode; then
+                    echo -e "${BLUE}> $(truncate_text "Deleted old backup: $old_backup" $((cols-2)))${NC}"
+                else
+                    echo -e "${BLUE}ℹ $(truncate_text "Deleted old backup: $old_backup" $((cols-3)))${NC}"
+                fi
+            done
+        fi
+
+        if is_minimal_mode; then
+            echo -e "${BLUE}> $(truncate_text "Location: $BACKUP_DIR" $((cols-2)))${NC}"
+        else
+            echo -e "${BLUE}ℹ $(truncate_text "Location: $BACKUP_DIR" $((cols-3)))${NC}"
+        fi
+
+        if ! mkdir -p "$BACKUP_DIR"; then
+            status_error "Cannot create backup dir"
+        fi
+
+        {
+            rsync -a "$SATURN_DIR/" "$BACKUP_DIR/" > /tmp/rsync_output 2>&1 &
+            local rsync_pid=$!
+            progress_bar "$rsync_pid" "Copying files" 10
+            local rsync_status=$?
+            cat /tmp/rsync_output
+            sleep 0.1 # Ensure output is fully cleared
+            return $rsync_status
+        } || {
+            status_error "Backup failed"
+        }
+
+        local backup_size=$(du -sh "$BACKUP_DIR" | cut -f1)
+        if is_minimal_mode; then
+            echo -e "${BLUE}> $(truncate_text "Size: $backup_size" $((cols-2)))${NC}"
+        else
+            echo -e "${BLUE}ℹ $(truncate_text "Size: $backup_size" $((cols-3)))${NC}"
+        fi
+        status_success "Backup created"
+        return 0
+    else
+        status_warning "Backup skipped"
         return 1
     fi
 }
@@ -354,55 +423,6 @@ update_git() {
         fi
     fi
     status_success "Repository updated"
-}
-
-# Create backup
-create_backup() {
-    render_section "Backup"
-    local cols=$(get_term_size | cut -d' ' -f1)
-    if is_minimal_mode; then
-        echo -ne "${YELLOW}> Backup? [${BOLD}Y${RESET}/n]: ${NC}"
-    else
-        echo -ne "${YELLOW}⚠ Backup? [${BOLD}Y${RESET}/n]: ${NC}"
-    fi
-    read -r -n 1 -p "" REPLY
-    echo
-    if [ "$REPLY" != "n" ] && [ "$REPLY" != "N" ]; then
-        status_start "Creating backup"
-        if is_minimal_mode; then
-            echo -e "${BLUE}> $(truncate_text "Location: $BACKUP_DIR" $((cols-2)))${NC}"
-        else
-            echo -e "${BLUE}ℹ $(truncate_text "Location: $BACKUP_DIR" $((cols-3)))${NC}"
-        fi
-
-        if ! mkdir -p "$BACKUP_DIR"; then
-            status_error "Cannot create backup dir"
-        fi
-
-        {
-            rsync -a "$SATURN_DIR/" "$BACKUP_DIR/" > /tmp/rsync_output 2>&1 &
-            local rsync_pid=$!
-            progress_bar "$rsync_pid" "Copying files" 10
-            local rsync_status=$?
-            cat /tmp/rsync_output
-            sleep 0.1 # Ensure output is fully cleared
-            return $rsync_status
-        } || {
-            status_error "Backup failed"
-        }
-
-        local backup_size=$(du -sh "$BACKUP_DIR" | cut -f1)
-        if is_minimal_mode; then
-            echo -e "${BLUE}> $(truncate_text "Size: $backup_size" $((cols-2)))${NC}"
-        else
-            echo -e "${BLUE}ℹ $(truncate_text "Size: $backup_size" $((cols-3)))${NC}"
-        fi
-        status_success "Backup created"
-        return 0
-    else
-        status_warning "Backup skipped"
-        return 1
-    fi
 }
 
 # Install libraries
