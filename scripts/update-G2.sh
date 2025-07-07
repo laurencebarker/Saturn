@@ -3,21 +3,22 @@
 # Original author: Laurence Barker G8NJJ
 # Rewritten by: Jerry DeLong KD4YAL
 # Simplified update script for Saturn repository on Raspberry Pi
-# Version: 2.02 (Colorized)
+# Version: 2.1 (Scalable CLI with Enhanced Visuals)
 
 # ANSI color codes
-RED='\033[0;31m'
-GREEN='\033[0;32m'
+RED='\033[1;31m'
+GREEN='\033[1;32m'
 YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Text formatting
+BLUE='\033[1;34m'
+CYAN='\033[1;36m'
+PURPLE='\033[1;35m'
+DIM_CYAN='\033[48;5;24m' # Background cyan for headers
+NC='\033[0m'
 BOLD='\033[1m'
 RESET='\033[0m'
 
 # Script metadata
-SCRIPT_NAME="Saturn Update Manager"
+SCRIPT_NAME="Saturn Update"
 SCRIPT_VERSION="2.1"
 SATURN_DIR="$HOME/github/Saturn"
 LOG_DIR="$HOME/saturn-logs"
@@ -27,42 +28,191 @@ BACKUP_DIR="$HOME/saturn-backup-$(date +%Y%m%d-%H%M%S)"
 # Flag for skipping Git update
 SKIP_GIT="false"
 
-# Professional status reporting
+# Terminal utilities
+get_term_size() {
+    local cols=$(tput cols 2>/dev/null || echo 80)
+    local lines=$(tput lines 2>/dev/null || echo 24)
+    [ "$cols" -lt 20 ] && cols=20
+    [ "$cols" -gt 80 ] && cols=80
+    [ "$lines" -lt 8 ] && lines=8
+    echo "$cols $lines"
+}
+
+is_minimal_mode() {
+    local cols=$(get_term_size | cut -d' ' -f1)
+    local lines=$(get_term_size | cut -d' ' -f2)
+    [ "$cols" -lt 40 ] || [ "$lines" -lt 15 ]
+}
+
+truncate_text() {
+    local text="$1" max_len=$2
+    local clean_text=$(echo "$text" | sed 's/\x1B\[[0-9;]*[a-zA-Z]//g')
+    if [ ${#clean_text} -gt "$max_len" ]; then
+        echo "${text:0:$((max_len-2))}.."
+    else
+        echo "$text"
+    fi
+}
+
+draw_line() {
+    local cols=$(get_term_size | cut -d' ' -f1)
+    printf "+%${cols}s+\n" | sed 's/ /-/g;s/+/-/;s/+$/-/'
+}
+
+draw_double_line() {
+    local cols=$(get_term_size | cut -d' ' -f1)
+    if is_minimal_mode; then
+        printf "+%${cols}s+\n" | sed 's/ /-/g;s/+/-/;s/+$/-/'
+    else
+        printf "╔%${cols}s╗\n" | sed 's/ /═/g;s/╔/═/;s/╗/═/'
+    fi
+}
+
+draw_transition() {
+    if is_minimal_mode; then
+        return
+    fi
+    local cols=$(get_term_size | cut -d' ' -f1)
+    for i in 1 2 3; do
+        printf "\r${CYAN}%*s${NC}" "$cols" "..."
+        sleep 0.1
+        printf "\r%*s" "$cols" ""
+        sleep 0.1
+    done
+    echo
+}
+
+progress_bar() {
+    local pid=$1 msg=$2 total_steps=$3
+    local cols=$(get_term_size | cut -d' ' -f1)
+    local max_width=$(( cols - 20 ))
+    msg=$(truncate_text "$msg" "$max_width")
+    local bar_width=$(( cols - 20 ))
+    local step=0
+    tput civis
+    while kill -0 "$pid" 2>/dev/null; do
+        step=$(( step + 1 ))
+        local percent=$(( (step * 100) / total_steps ))
+        [ "$percent" -gt 100 ] && percent=100
+        local filled=$(( (bar_width * percent) / 100 ))
+        local empty=$(( bar_width - filled ))
+        local bar=$(printf "%${filled}s" | sed 's/ /█/g')$(printf "%${empty}s" | sed 's/ / /g')
+        printf "\r${BLUE}[%s] %2d%% %s${NC}" "$bar" "$percent" "$msg"
+        sleep 0.5
+    done
+    printf "\r%*s\r" "$cols" ""
+    sleep 0.1 # Ensure output is fully cleared
+    tput cnorm
+    wait "$pid"
+    return $?
+}
+
+render_section() {
+    local title="$1" cols=$(get_term_size | cut -d' ' -f1)
+    title=$(truncate_text "$title" "$((cols-4))")
+    echo -e "${CYAN}${BOLD}${DIM_CYAN}"
+    draw_line
+    printf "|%*s|\n" $(( (cols + ${#title} - 2) / 2 )) "$title"
+    draw_line
+    echo -e "${NC}${RESET}"
+    draw_transition
+}
+
+render_top_section() {
+    local title="$1" cols=$(get_term_size | cut -d' ' -f1)
+    title=$(truncate_text "$title" "$((cols-4))")
+    echo -e "${CYAN}${BOLD}${DIM_CYAN}"
+    if is_minimal_mode; then
+        echo "$title"
+    else
+        draw_double_line
+        printf "║%*s║\n" $(( (cols + ${#title} - 2) / 2 )) "$title"
+        draw_double_line
+    fi
+    echo -e "${NC}${RESET}"
+    draw_transition
+}
+
+completion_animation() {
+    if is_minimal_mode; then
+        return
+    fi
+    local cols=$(get_term_size | cut -d' ' -f1)
+    for i in 1 2 3; do
+        printf "\r${GREEN}%*s${NC}" "$cols" "✔"
+        sleep 0.1
+        printf "\r%*s" "$cols" ""
+        sleep 0.1
+    done
+    echo -e "${GREEN}✔ Complete!${NC}"
+}
+
+# Status reporting
 status_start() {
-    echo -e "${BLUE}${BOLD}▶  $1...${NC}${RESET}"
+    local msg="$1" cols=$(get_term_size | cut -d' ' -f1)
+    msg=$(truncate_text "$msg" "$((cols-7))")
+    if is_minimal_mode; then
+        echo -e "${PURPLE}> $msg${NC}"
+    else
+        echo -e "${PURPLE}${BOLD}⏳ $msg${NC}${RESET}"
+    fi
 }
 
 status_success() {
-    echo -e "${GREEN}✓  SUCCESS: $1${NC}${RESET}"
+    local msg="$1" cols=$(get_term_size | cut -d' ' -f1)
+    msg=$(truncate_text "$msg" "$((cols-7))")
+    if is_minimal_mode; then
+        echo -e "${GREEN}+ $msg${NC}"
+    else
+        echo -e "${GREEN}✔ $msg${NC}"
+    fi
 }
 
 status_warning() {
-    echo -e "${YELLOW}⚠  WARNING: $1${NC}${RESET}"
+    local msg="$1" cols=$(get_term_size | cut -d' ' -f1)
+    msg=$(truncate_text "$msg" "$((cols-7))")
+    if is_minimal_mode; then
+        echo -e "${YELLOW}! $msg${NC}"
+    else
+        echo -e "${YELLOW}⚠ $msg${NC}"
+    fi
 }
 
 status_error() {
-    echo -e "${RED}✗  ERROR: $1${NC}${RESET}" >&2
+    local msg="$1" cols=$(get_term_size | cut -d' ' -f1)
+    msg=$(truncate_text "$msg" "$((cols-7))")
+    if is_minimal_mode; then
+        echo -e "${RED}x $msg${NC}" >&2
+    else
+        echo -e "${RED}✗ $msg${NC}" >&2
+        draw_line
+    fi
     exit 1
 }
 
 # Initialize logging
 init_logging() {
     mkdir -p "$LOG_DIR" || {
-        echo -e "${RED}✗ ERROR: Failed to create log directory $LOG_DIR${NC}" >&2
+        if is_minimal_mode; then
+            echo -e "${RED}x Failed to create log dir${NC}" >&2
+        else
+            echo -e "${RED}✗ Failed to create log dir${NC}" >&2
+        fi
         exit 1
     }
-    # Redirect stdout and stderr to log file and terminal
     exec > >(tee -a "$LOG_FILE")
     exec 2>&1
-    
-    # Professional header
-    echo -e "${BLUE}${BOLD}"
-    echo -e "===================================================================="
-    echo -e " Saturn Update Manager v$SCRIPT_VERSION"
-    echo -e " Started: $(date)"
-    echo -e " Log file: $LOG_FILE"
-    echo -e "===================================================================="
-    echo -e "${NC}${RESET}"
+
+    tput clear
+    local cols=$(get_term_size | cut -d' ' -f1)
+    render_top_section "$SCRIPT_NAME v$SCRIPT_VERSION"
+    if is_minimal_mode; then
+        echo -e "${BLUE}> $(truncate_text "Started: $(date)" $((cols-2)))${NC}"
+        echo -e "${BLUE}> $(truncate_text "Log: $LOG_FILE" $((cols-2)))${NC}"
+    else
+        echo -e "${BLUE}ℹ $(truncate_text "Started: $(date)" $((cols-3)))${NC}"
+        echo -e "${BLUE}ℹ $(truncate_text "Log: $LOG_FILE" $((cols-3)))${NC}"
+    fi
 }
 
 # Parse command-line arguments
@@ -71,11 +221,11 @@ parse_args() {
         case "$1" in
             --skip-git)
                 SKIP_GIT="true"
-                status_warning "Skipping Git repository update per user request"
+                status_warning "Skipping Git update"
                 shift
                 ;;
             *)
-                status_error "Unknown option: $1\nUsage: $0 [--skip-git]"
+                status_error "Unknown option: $1"
                 ;;
         esac
     done
@@ -83,45 +233,119 @@ parse_args() {
 
 # Check system requirements
 check_requirements() {
-    status_start "Verifying system requirements"
-    
-    # Required commands
+    render_section "System Check"
+    status_start "Verifying requirements"
+
     local missing=()
     for cmd in git make gcc sudo rsync; do
         if ! command -v "$cmd" >/dev/null; then
             missing+=("$cmd")
         fi
     done
-    
+
     if [ ${#missing[@]} -gt 0 ]; then
-        status_error "Missing required commands: ${missing[*]}"
+        status_error "Missing commands: ${missing[*]}"
     fi
-    
-    # Disk space check
+
     local free_space
     free_space=$(df --output=avail "$HOME" | tail -1)
+    local cols=$(get_term_size | cut -d' ' -f1)
     if [ "$free_space" -lt 1048576 ]; then
-        status_warning "Low disk space: $((free_space / 1024))MB available (1GB recommended)"
+        status_warning "Low disk space: $((free_space / 1024))MB"
     else
-        echo -e "${GREEN}✓  System has sufficient disk space: $((free_space / 1024))MB available${NC}"
+        if is_minimal_mode; then
+            echo -e "${GREEN}+ $(truncate_text "Disk: $((free_space / 1024))MB free" $((cols-2)))${NC}"
+        else
+            echo -e "${GREEN}✔ $(truncate_text "Disk: $((free_space / 1024))MB free" $((cols-3)))${NC}"
+        fi
     fi
-    
-    status_success "System meets all requirements"
+
+    status_success "Requirements met"
 }
 
 # Check connectivity
 check_connectivity() {
     if [ "$SKIP_GIT" = "true" ]; then
-        status_warning "Skipping connectivity check (Git update disabled)"
+        status_warning "Skipping network check"
         return 0
     fi
-    
-    status_start "Checking network connectivity"
+
+    render_section "Network Check"
+    status_start "Checking connectivity"
     if ping -c 1 -W 2 github.com >/dev/null 2>&1; then
-        status_success "Network connection verified"
+        status_success "Network verified"
         return 0
     else
-        status_warning "Cannot reach GitHub - network issues may affect update"
+        status_warning "Cannot reach GitHub"
+        return 1
+    fi
+}
+
+# Create backup
+create_backup() {
+    render_section "Backup"
+    local cols=$(get_term_size | cut -d' ' -f1)
+    if is_minimal_mode; then
+        echo -ne "${YELLOW}> Backup? [${BOLD}Y${RESET}/n]: ${NC}"
+    else
+        echo -ne "${YELLOW}⚠ Backup? [${BOLD}Y${RESET}/n]: ${NC}"
+    fi
+    read -r -n 1 -p "" REPLY
+    echo
+    if [ "$REPLY" != "n" ] && [ "$REPLY" != "N" ]; then
+        status_start "Creating backup"
+        # Clean up old backups to keep only the 4 most recent (before adding new one)
+        local backup_pattern="$HOME/saturn-backup-*"
+        local backup_dirs
+        backup_dirs=($(ls -dt $backup_pattern 2>/dev/null))
+        if is_minimal_mode; then
+            echo -e "${BLUE}> $(truncate_text "Found ${#backup_dirs[@]} existing backups" $((cols-2)))${NC}"
+        else
+            echo -e "${BLUE}ℹ $(truncate_text "Found ${#backup_dirs[@]} existing backups" $((cols-3)))${NC}"
+        fi
+        if [ ${#backup_dirs[@]} -gt 4 ]; then
+            for old_backup in "${backup_dirs[@]:4}"; do
+                rm -rf "$old_backup"
+                if is_minimal_mode; then
+                    echo -e "${BLUE}> $(truncate_text "Deleted old backup: $old_backup" $((cols-2)))${NC}"
+                else
+                    echo -e "${BLUE}ℹ $(truncate_text "Deleted old backup: $old_backup" $((cols-3)))${NC}"
+                fi
+            done
+        fi
+
+        if is_minimal_mode; then
+            echo -e "${BLUE}> $(truncate_text "Location: $BACKUP_DIR" $((cols-2)))${NC}"
+        else
+            echo -e "${BLUE}ℹ $(truncate_text "Location: $BACKUP_DIR" $((cols-3)))${NC}"
+        fi
+
+        if ! mkdir -p "$BACKUP_DIR"; then
+            status_error "Cannot create backup dir"
+        fi
+
+        {
+            rsync -a "$SATURN_DIR/" "$BACKUP_DIR/" > /tmp/rsync_output 2>&1 &
+            local rsync_pid=$!
+            progress_bar "$rsync_pid" "Copying files" 10
+            local rsync_status=$?
+            cat /tmp/rsync_output
+            sleep 0.1 # Ensure output is fully cleared
+            return $rsync_status
+        } || {
+            status_error "Backup failed"
+        }
+
+        local backup_size=$(du -sh "$BACKUP_DIR" | cut -f1)
+        if is_minimal_mode; then
+            echo -e "${BLUE}> $(truncate_text "Size: $backup_size" $((cols-2)))${NC}"
+        else
+            echo -e "${BLUE}ℹ $(truncate_text "Size: $backup_size" $((cols-3)))${NC}"
+        fi
+        status_success "Backup created"
+        return 0
+    else
+        status_warning "Backup skipped"
         return 1
     fi
 }
@@ -129,227 +353,297 @@ check_connectivity() {
 # Update Git repository
 update_git() {
     if [ "$SKIP_GIT" = "true" ]; then
-        status_warning "Skipping repository update per configuration"
+        status_warning "Skipping repository update"
         return 0
     fi
-    
-    status_start "Updating Git repository"
-    cd "$SATURN_DIR" || {
-        status_error "Cannot access Saturn directory: $SATURN_DIR"
-    }
-    
-    # Validate repository
-    if ! git rev-parse --git-dir >/dev/null 2>&1; then
-        status_error "Directory is not a valid Git repository: $SATURN_DIR"
-    fi
-    
-    # Stash uncommitted changes
-    if ! git diff-index --quiet HEAD --; then
-        echo -e "${YELLOW}⚠  Preserving uncommitted changes with git stash${NC}"
-        git stash push -m "Auto-stash before update $(date)" >/dev/null
-    fi
-    
-    # Get current status (compatible method)
-    local current_branch
-    # Try modern method first, fallback to compatible method
-    if current_branch=$(git branch --show-current 2>/dev/null); then
-        echo -e "${BLUE}ℹ  Current branch: $current_branch${NC}"
-    else
-        # Compatible method for older Git versions
-        current_branch=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD)
-        echo -e "${BLUE}ℹ  Current reference: $current_branch${NC}"
-    fi
-    
-    local current_commit=$(git rev-parse --short HEAD)
-    echo -e "${BLUE}ℹ  Current commit: $current_commit${NC}"
-    
-    # Pull changes
-    if git pull origin main; then
-        local new_commit=$(git rev-parse --short HEAD)
-        if [ "$current_commit" != "$new_commit" ]; then
-            echo -e "${BLUE}ℹ  New commit: $new_commit${NC}"
-            echo -e "${BLUE}ℹ  Changes: $(git log --oneline "$current_commit..HEAD" 2>/dev/null | wc -l) commits applied${NC}"
-        else
-            echo -e "${BLUE}ℹ  Repository already at latest version${NC}"
-        fi
-        status_success "Repository updated successfully"
-    else
-        status_error "Failed to update repository - check network connection"
-    fi
-}
 
-# Create backup
-create_backup() {
-    status_start "Creating system backup"
-    echo -e "${BLUE}ℹ  Backup location: $BACKUP_DIR${NC}"
-    
-    # Create backup directory
-    if ! mkdir -p "$BACKUP_DIR"; then
-        status_error "Failed to create backup directory"
+    render_section "Git Update"
+    status_start "Updating repository"
+    cd "$SATURN_DIR" || {
+        status_error "Cannot access: $SATURN_DIR"
+    }
+
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
+        status_error "Not a Git repository"
     fi
-    
-    # Perform backup
-    if rsync -a "$SATURN_DIR/" "$BACKUP_DIR/"; then
-        local backup_size=$(du -sh "$BACKUP_DIR" | cut -f1)
-        echo -e "${BLUE}ℹ  Backup size: $backup_size${NC}"
-        status_success "Backup created successfully"
+
+    if ! git diff-index --quiet HEAD --; then
+        status_warning "Stashing changes"
+        git stash push -m "Auto-stash $(date)" >/dev/null
+    fi
+
+    local cols=$(get_term_size | cut -d' ' -f1)
+    local current_branch
+    if current_branch=$(git branch --show-current 2>/dev/null); then
+        if is_minimal_mode; then
+            echo -e "${BLUE}> $(truncate_text "Branch: $current_branch" $((cols-2)))${NC}"
+        else
+            echo -e "${BLUE}ℹ $(truncate_text "Branch: $current_branch" $((cols-3)))${NC}"
+        fi
     else
-        status_error "Backup operation failed"
+        current_branch=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD)
+        if is_minimal_mode; then
+            echo -e "${BLUE}> $(truncate_text "Ref: $current_branch" $((cols-2)))${NC}"
+        else
+            echo -e "${BLUE}ℹ $(truncate_text "Ref: $current_branch" $((cols-3)))${NC}"
+        fi
     fi
+
+    local current_commit=$(git rev-parse --short HEAD)
+    if is_minimal_mode; then
+        echo -e "${BLUE}> $(truncate_text "Commit: $current_commit" $((cols-2)))${NC}"
+    else
+        echo -e "${BLUE}ℹ $(truncate_text "Commit: $current_commit" $((cols-3)))${NC}"
+    fi
+
+    {
+        git pull origin main > /tmp/git_output 2>&1 &
+        progress_bar $! "Pulling changes" 10
+        local git_status=$?
+        cat /tmp/git_output
+        return $git_status
+    } || {
+        status_error "Git update failed"
+    }
+
+    local new_commit=$(git rev-parse --short HEAD)
+    if [ "$current_commit" != "$new_commit" ]; then
+        if is_minimal_mode; then
+            echo -e "${BLUE}> $(truncate_text "New commit: $new_commit" $((cols-2)))${NC}"
+            echo -e "${BLUE}> $(truncate_text "Changes: $(git log --oneline "$current_commit..HEAD" 2>/dev/null | wc -l) commits" $((cols-2)))${NC}"
+        else
+            echo -e "${BLUE}ℹ $(truncate_text "New commit: $new_commit" $((cols-3)))${NC}"
+            echo -e "${BLUE}ℹ $(truncate_text "Changes: $(git log --oneline "$current_commit..HEAD" 2>/dev/null | wc -l) commits" $((cols-3)))${NC}"
+        fi
+    else
+        if is_minimal_mode; then
+            echo -e "${BLUE}> Up to date${NC}"
+        else
+            echo -e "${BLUE}ℹ Up to date${NC}"
+        fi
+    fi
+    status_success "Repository updated"
 }
 
 # Install libraries
 install_libraries() {
-    status_start "Installing required libraries"
+    render_section "Libraries"
+    status_start "Installing libraries"
     if [ -f "$SATURN_DIR/scripts/install-libraries.sh" ]; then
-        if bash "$SATURN_DIR/scripts/install-libraries.sh"; then
-            status_success "Library installation completed"
-        else
-            status_error "Library installation failed"
-        fi
+        {
+            bash "$SATURN_DIR/scripts/install-libraries.sh" > /tmp/library_output 2>&1 &
+            progress_bar $! "Installing" 10
+            local library_status=$?
+            cat /tmp/library_output
+            return $library_status
+        } || {
+            status_error "Library install failed"
+        }
+        status_success "Libraries installed"
     else
-        status_warning "Installation script not found - skipping"
+        status_warning "No install script"
     fi
 }
 
 # Build p2app
 build_p2app() {
-    status_start "Building p2app application"
+    render_section "p2app Build"
+    status_start "Building p2app"
     if [ -f "$SATURN_DIR/scripts/update-p2app.sh" ]; then
-        if bash "$SATURN_DIR/scripts/update-p2app.sh"; then
-            status_success "p2app built successfully"
-        else
+        {
+            bash "$SATURN_DIR/scripts/update-p2app.sh" > /tmp/p2app_output 2>&1 &
+            progress_bar $! "Building" 10
+            local p2app_status=$?
+            cat /tmp/p2app_output
+            return $p2app_status
+        } || {
             status_error "p2app build failed"
-        fi
+        }
+        status_success "p2app built"
     else
-        status_warning "Build script not found - skipping"
+        status_warning "No build script"
     fi
 }
 
 # Build desktop apps
 build_desktop_apps() {
-    status_start "Building desktop applications"
+    render_section "Desktop Apps"
+    status_start "Building apps"
     if [ -f "$SATURN_DIR/scripts/update-desktop-apps.sh" ]; then
-        if bash "$SATURN_DIR/scripts/update-desktop-apps.sh"; then
-            status_success "Desktop applications built successfully"
-        else
-            status_error "Desktop application build failed"
-        fi
+        {
+            bash "$SATURN_DIR/scripts/update-desktop-apps.sh" > /tmp/desktop_output 2>&1 &
+            progress_bar $! "Building" 10
+            local desktop_status=$?
+            cat /tmp/desktop_output
+            return $desktop_status
+        } || {
+            status_error "App build failed"
+        }
+        status_success "Apps built"
     else
-        status_warning "Build script not found - skipping"
+        status_warning "No build script"
     fi
 }
 
 # Install udev rules
 install_udev_rules() {
-    status_start "Configuring system udev rules"
+    render_section "Udev Rules"
+    status_start "Installing rules"
     local rules_dir="$SATURN_DIR/rules"
     local install_script="$rules_dir/install-rules.sh"
-    
+
     if [ -f "$install_script" ]; then
-        # Ensure the script is executable
         if [ ! -x "$install_script" ]; then
-            echo -e "${YELLOW}⚠  Setting execute permission: $install_script${NC}"
+            status_warning "Setting permissions"
             chmod +x "$install_script"
         fi
-        
-        # Execute from the rules directory
-        if (cd "$rules_dir" && sudo ./install-rules.sh); then
-            status_success "Udev rules installed successfully"
-        else
-            status_error "Udev rules installation failed"
-        fi
+
+        {
+            (cd "$rules_dir" && sudo ./install-rules.sh) > /tmp/udev_output 2>&1 &
+            progress_bar $! "Installing" 10
+            local udev_status=$?
+            cat /tmp/udev_output
+            return $udev_status
+        } || {
+            status_error "Udev install failed"
+        }
+        status_success "Rules installed"
     else
-        status_warning "Installation script not found - skipping"
+        status_warning "No install script"
     fi
 }
 
 # Install desktop icons
 install_desktop_icons() {
-    status_start "Installing desktop shortcuts"
+    render_section "Desktop Icons"
+    status_start "Installing shortcuts"
     if [ -d "$SATURN_DIR/desktop" ] && [ -d "$HOME/Desktop" ]; then
-        if cp "$SATURN_DIR/desktop/"* "$HOME/Desktop/" && chmod +x "$HOME/Desktop/"*.desktop; then
-            status_success "Desktop shortcuts installed"
-        else
-            status_error "Failed to install desktop shortcuts"
-        fi
+        {
+            cp "$SATURN_DIR/desktop/"* "$HOME/Desktop/" && chmod +x "$HOME/Desktop/"*.desktop > /tmp/icons_output 2>&1 &
+            progress_bar $! "Copying" 10
+            local icons_status=$?
+            cat /tmp/icons_output
+            return $icons_status
+        } || {
+            status_error "Shortcut install failed"
+        }
+        status_success "Shortcuts installed"
     else
-        status_warning "Desktop directory not found - skipping"
+        status_warning "No desktop dir"
     fi
 }
 
 # Check FPGA binary
 check_fpga_binary() {
-    status_start "Verifying FPGA binary"
+    render_section "FPGA Binary"
+    status_start "Verifying binary"
     if [ -f "$SATURN_DIR/scripts/find-bin.sh" ]; then
-        if bash "$SATURN_DIR/scripts/find-bin.sh"; then
-            status_success "FPGA binary validation complete"
-        else
-            status_error "FPGA binary verification failed"
-        fi
+        {
+            bash "$SATURN_DIR/scripts/find-bin.sh" > /tmp/fpga_output 2>&1 &
+            progress_bar $! "Verifying" 10
+            local fpga_status=$?
+            cat /tmp/fpga_output
+            return $fpga_status
+        } || {
+            status_error "FPGA check failed"
+        }
+        status_success "Binary verified"
     else
-        status_warning "Verification script not found - skipping"
+        status_warning "No verify script"
     fi
 }
 
 # Print summary report
 print_summary_report() {
     local duration=$(( $(date +%s) - start_time ))
-    echo -e "\n${BLUE}${BOLD}=========================== UPDATE SUMMARY ===========================${NC}"
-    echo -e "${GREEN}✓  Update completed successfully at $(date)${NC}"
-    echo -e "${BLUE}ℹ  Total duration: $duration seconds${NC}"
-    echo -e "${BLUE}ℹ  Log file: $LOG_FILE${NC}"
-    
-    if [ "$BACKUP_CREATED" = true ]; then
-        echo -e "${GREEN}✓  Backup created: $BACKUP_DIR${NC}"
+    render_section "Summary"
+    local cols=$(get_term_size | cut -d' ' -f1)
+    if is_minimal_mode; then
+        echo -e "${GREEN}+ $(truncate_text "Completed: $(date)" $((cols-2)))${NC}"
+        echo -e "${BLUE}> $(truncate_text "Duration: $duration seconds" $((cols-2)))${NC}"
+        echo -e "${BLUE}> $(truncate_text "Log: $LOG_FILE" $((cols-2)))${NC}"
+        if [ "$BACKUP_CREATED" = true ]; then
+            echo -e "${GREEN}+ $(truncate_text "Backup: $BACKUP_DIR" $((cols-2)))${NC}"
+        else
+            status_warning "No backup created"
+        fi
     else
-        echo -e "${YELLOW}⚠  No backup created${NC}"
+        echo -e "${GREEN}✔ $(truncate_text "Completed: $(date)" $((cols-3)))${NC}"
+        echo -e "${BLUE}ℹ $(truncate_text "Duration: $duration seconds" $((cols-3)))${NC}"
+        echo -e "${BLUE}ℹ $(truncate_text "Log: $LOG_FILE" $((cols-3)))${NC}"
+        if [ "$BACKUP_CREATED" = true ]; then
+            echo -e "${GREEN}✔ $(truncate_text "Backup: $BACKUP_DIR" $((cols-3)))${NC}"
+        else
+            status_warning "No backup created"
+        fi
     fi
-    
-    echo -e "${BLUE}${BOLD}====================================================================${NC}"
+}
+
+# System stats for footer
+get_system_stats() {
+    if is_minimal_mode; then
+        return
+    fi
+    local cpu=$(top -bn1 | head -n3 | grep "Cpu(s)" | awk '{print $2}' | cut -d. -f1)
+    local mem=$(free -m | awk '/Mem:/ {print $3 "/" $2 "MB"}')
+    local disk=$(df -h "$HOME" | tail -1 | awk '{print $3 "/" $2}')
+    local cols=$(get_term_size | cut -d' ' -f1)
+    echo -e "${BLUE}ℹ $(truncate_text "CPU: $cpu% | Mem: $mem | Disk: $disk" $((cols-3)))${NC}"
 }
 
 # Main execution
 main() {
     local start_time=$(date +%s)
     local BACKUP_CREATED=false
-    
+
     init_logging
     parse_args "$@"
-    
-    # System information header
-    echo -e "${BLUE}${BOLD}"
-    echo -e "System Information:"
-    echo -e "  Hostname: $(hostname)"
-    echo -e "  User: $USER"
-    echo -e "  System: $(uname -srm)"
-    [ -f /etc/os-release ] && echo -e "  OS: $(grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '\"')"
-    echo -e "${NC}${RESET}"
-    
+
+    render_section "System Info"
+    local cols=$(get_term_size | cut -d' ' -f1)
+    local host_info=$(truncate_text "Host: $(hostname)" $((cols-3)))
+    local user_info=$(truncate_text "User: $USER" $((cols-3)))
+    local system_info=$(truncate_text "System: $(uname -srm)" $((cols-3)))
+    local os_info=$(truncate_text "OS: $( [ -f /etc/os-release ] && grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '\"' || echo "Unknown" )" $((cols-3)))
+    if is_minimal_mode; then
+        echo -e "${BLUE}> $host_info${NC}"
+        echo -e "${BLUE}> $user_info${NC}"
+        echo -e "${BLUE}> $system_info${NC}"
+        echo -e "${BLUE}> $os_info${NC}"
+    else
+        echo -e "${BLUE}ℹ $host_info${NC}"
+        echo -e "${BLUE}ℹ $user_info${NC}"
+        echo -e "${BLUE}ℹ $system_info${NC}"
+        echo -e "${BLUE}ℹ $os_info${NC}"
+    fi
+
     check_requirements
     check_connectivity
-    
+
     [ -d "$SATURN_DIR" ] || {
-        status_error "Saturn directory not found: $SATURN_DIR"
+        status_error "No Saturn dir: $SATURN_DIR"
     }
-    
-    # Directory information
-    echo -e "${BLUE}ℹ  Saturn directory: $SATURN_DIR${NC}"
-    echo -e "${BLUE}ℹ  Directory size: $(du -sh "$SATURN_DIR" | cut -f1)${NC}"
-    echo -e "${BLUE}ℹ  Contents: $(find "$SATURN_DIR" -type f | wc -l) files, $(find "$SATURN_DIR" -type d | wc -l) directories${NC}"
-    
-    # Backup prompt
-    echo -ne "${YELLOW}?  Create backup before updating? [Y/n]: ${NC}"
-    read -n 1 -r
-    echo
-    if [ "$REPLY" != "n" ] && [ "$REPLY" != "N" ]; then
-        create_backup
+
+    render_section "Repository"
+    local repo_dir=$(truncate_text "Dir: $SATURN_DIR" $((cols-3)))
+    local repo_size=$(truncate_text "Size: $(du -sh "$SATURN_DIR" | cut -f1)" $((cols-3)))
+    local repo_contents=$(truncate_text "Files: $(find "$SATURN_DIR" -type f | wc -l), Dirs: $(find "$SATURN_DIR" -type d | wc -l)" $((cols-3)))
+    if is_minimal_mode; then
+        echo -e "${BLUE}> $repo_dir${NC}"
+        echo -e "${BLUE}> $repo_size${NC}"
+        echo -e "${BLUE}> $repo_contents${NC}"
+    else
+        echo -e "${BLUE}ℹ $repo_dir${NC}"
+        echo -e "${BLUE}ℹ $repo_size${NC}"
+        echo -e "${BLUE}ℹ $repo_contents${NC}"
+    fi
+
+    if create_backup; then
         BACKUP_CREATED=true
     else
-        status_warning "Backup skipped per user request"
+        BACKUP_CREATED=false
     fi
-    
-    # Execute update steps
+
     update_git
     install_libraries
     build_p2app
@@ -357,28 +651,42 @@ main() {
     install_udev_rules
     install_desktop_icons
     check_fpga_binary
-    
-    # Print summary report
+
     print_summary_report
-    
-    # FPGA programming instructions
-    echo -e "\n${GREEN}${BOLD}FPGA PROGRAMMING INSTRUCTIONS:${NC}${RESET}"
-    echo -e "${GREEN}1. Launch the 'flashwriter' application from your desktop"
-    echo -e "2. Navigate to: File → Open → Home → github → Saturn → FPGA"
-    echo -e "3. Select the appropriate .BIT file"
-    echo -e "4. Verify 'primary' is selected"
-    echo -e "5. Click 'Program' to initiate FPGA programming${NC}"
-    
-    # Important notes
-    echo -e "\n${YELLOW}${BOLD}IMPORTANT NOTES:${NC}${RESET}"
-    echo -e "${YELLOW}- FPGA programming takes approximately 3 minutes to complete"
-    echo -e "- A power cycle is REQUIRED after programming completes"
-    echo -e "- Keep this terminal open until programming is fully complete"
-    echo -e "- Consult log file for detailed operation records: $LOG_FILE${NC}"
-    
-    # Footer
-    echo -e "\n${BLUE}${BOLD}Saturn Update Manager v$SCRIPT_VERSION - Operation Complete${NC}"
-    echo -e "${BLUE}${BOLD}====================================================================${NC}"
+
+    render_section "FPGA Programming"
+    if is_minimal_mode; then
+        echo -e "${GREEN}+ $(truncate_text "Launch 'flashwriter' from desktop" $((cols-2)))${NC}"
+        echo -e "${GREEN}+ $(truncate_text "Navigate: File > Open > ~/github/Saturn/FPGA" $((cols-2)))${NC}"
+        echo -e "${GREEN}+ $(truncate_text "Select .BIT file" $((cols-2)))${NC}"
+        echo -e "${GREEN}+ $(truncate_text "Verify 'primary' selected" $((cols-2)))${NC}"
+        echo -e "${GREEN}+ $(truncate_text "Click 'Program'" $((cols-2)))${NC}"
+    else
+        echo -e "${GREEN}✔ $(truncate_text "Launch 'flashwriter' from desktop" $((cols-3)))${NC}"
+        echo -e "${GREEN}✔ $(truncate_text "Navigate: File > Open > ~/github/Saturn/FPGA" $((cols-3)))${NC}"
+        echo -e "${GREEN}✔ $(truncate_text "Select .BIT file" $((cols-3)))${NC}"
+        echo -e "${GREEN}✔ $(truncate_text "Verify 'primary' selected" $((cols-3)))${NC}"
+        echo -e "${GREEN}✔ $(truncate_text "Click 'Program'" $((cols-3)))${NC}"
+    fi
+
+    render_section "Important Notes"
+    if is_minimal_mode; then
+        echo -e "${YELLOW}! $(truncate_text "FPGA programming takes ~3 minutes" $((cols-2)))${NC}"
+        echo -e "${YELLOW}! $(truncate_text "Power cycle required after" $((cols-2)))${NC}"
+        echo -e "${YELLOW}! $(truncate_text "Keep terminal open" $((cols-2)))${NC}"
+        echo -e "${YELLOW}! $(truncate_text "Log: $LOG_FILE" $((cols-2)))${NC}"
+    else
+        echo -e "${YELLOW}⚠ $(truncate_text "FPGA programming takes ~3 minutes" $((cols-3)))${NC}"
+        echo -e "${YELLOW}⚠ $(truncate_text "Power cycle required after" $((cols-3)))${NC}"
+        echo -e "${YELLOW}⚠ $(truncate_text "Keep terminal open" $((cols-3)))${NC}"
+        echo -e "${YELLOW}⚠ $(truncate_text "Log: $LOG_FILE" $((cols-3)))${NC}"
+    fi
+
+    echo -e "${CYAN}${BOLD}"
+    render_top_section "$SCRIPT_NAME v$SCRIPT_VERSION Done"
+    completion_animation
+    get_system_stats
+    echo -e "${NC}${RESET}"
 }
 
 # Run main
