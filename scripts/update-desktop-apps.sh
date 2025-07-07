@@ -44,5 +44,11 @@ cd ~/github/Saturn/sw_tools/flashwriter
 make clean 
 make
 
+
+echo "##############################################################"
+echo ""
+echo "Copying Desktop shortcuts"
+echo ""
+echo "##############################################################"
 cp ~/github/Saturn/desktop/* ~/Desktop/
 
