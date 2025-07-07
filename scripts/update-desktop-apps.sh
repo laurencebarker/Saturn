@@ -44,5 +44,5 @@ cd ~/github/Saturn/sw_tools/flashwriter
 make clean 
 make
 
-
+cp ~/github/Saturn/desktop/* ~/Desktop/
 
