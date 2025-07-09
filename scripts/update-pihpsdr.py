@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
-# update-pihpsdr.py- piHPSDR Update Script
+# update-pihpsdr.py - piHPSDR Update Script
 # Automates cloning, updating, and building the pihpsdr repository from ~/github/Saturn/scripts
-# Version: 1.0 (Scalable CLI with Enhanced Visuals and Backup Flags)
+# Version: 1.4 (Scalable CLI with Enhanced Visuals and Backup Flags)
 # Written by: Jerry DeLong KD4YAL
-# Dependencies: rich (version 14.0.0) and psutil (version 7.0.0) are installed in ~/venv.
-# source ~/venv/bin/activate
-# python3 ~/github/Saturn/scripts/update-pihpsdr.py -y
-# deactivate
+# Dependencies: rich (version 14.0.0), psutil (version 7.0.0) in ~/venv, optional pyfiglet
+# Usage: source ~/venv/bin/activate; python3 ~/github/Saturn/scripts/update-pihpsdr.py [-y | -n] [--skip-git] [--no-gpio] [--dry-run] [--verbose] [--show-compile]; deactivate
 
-
-#!/usr/bin/env python3
 import argparse
 import logging
 import os
@@ -21,11 +17,23 @@ from pathlib import Path
 import shutil
 import psutil
 import glob
+import re
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
 from rich.status import Status
 from rich.theme import Theme
+
+try:
+    from pyfiglet import Figlet
+except ImportError:
+    Figlet = None  # Handle missing pyfiglet
+
+# ANSI color codes for banner
+class Colors:
+    BANNER = '\033[1;31m'  # Red for banner text
+    ACCENT = '\033[38;5;39m'  # Blue for banner subtitle
+    END = '\033[0m'
 
 # Initialize console with custom theme
 theme = Theme({
@@ -40,30 +48,30 @@ console = Console(theme=theme)
 
 # Script metadata
 SCRIPT_NAME = "piHPSDR Update"
-SCRIPT_VERSION = "1.0"
+SCRIPT_VERSION = "1.4"
 PIHPSDR_DIR = Path.home() / "github" / "pihpsdr"
 LOG_DIR = Path.home() / "saturn-logs"
 BACKUP_DIR = Path.home() / f"pihpsdr-backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
 REPO_URL = "https://github.com/dl1ycf/pihpsdr"
 DEFAULT_BRANCH = "master"
 
-# Setup logging to file and console
-def setup_logging():
+# Setup logging to file and console (console only for verbose mode)
+def setup_logging(verbose=False):
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     log_file = LOG_DIR / f"pihpsdr-update-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
+    handlers = [logging.FileHandler(log_file)]
+    if verbose:
+        handlers.append(logging.StreamHandler(sys.stdout))
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler(sys.stdout),
-        ],
+        handlers=handlers,
     )
     return log_file
 
 # Initialize logging and console with color check
-def init_logging():
-    log_file = setup_logging()
+def init_logging(verbose=False):
+    log_file = setup_logging(verbose)
     console.clear()
     # Check terminal color support for proper rendering
     try:
@@ -72,8 +80,16 @@ def init_logging():
             console.print(f"[warning]⚠ Terminal lacks 256-color support (TERM={os.environ.get('TERM', 'unknown')}, colors={colors}). Some styles may not render.")
     except subprocess.CalledProcessError:
         console.print(f"[warning]⚠ Unable to check terminal color support. Some styles may not render.")
-    render_top_section(f"{SCRIPT_NAME} v{SCRIPT_VERSION}")
     cols, _ = get_term_size()
+    if Figlet:
+        f = Figlet(font='standard', width=cols-2, justify='center')
+        pihpsdr_ascii = f.renderText('piHPSDR')
+    else:
+        pihpsdr_ascii = "piHPSDR\n"
+    banner = f"""
+{Colors.BANNER}{pihpsdr_ascii.rstrip()}{Colors.END}
+{Colors.ACCENT}{'Update Manager v1.4'.center(cols-2)}{Colors.END}\n\n"""
+    print(banner)
     console.print(f"[info]ℹ {truncate_text(f'Started: {datetime.now()}', cols-3)}")
     console.print(f"[info]ℹ {truncate_text(f'Log: {log_file}', cols-3)}")
     draw_transition()
@@ -139,15 +155,18 @@ def draw_transition():
             time.sleep(0.1)
 
 # Run a command with progress bar or status
-def run_with_progress(command, description, total_steps=10, timeout=300):
+def run_with_progress(command, description, total_steps=50, timeout=300, show_output=False):
     process = subprocess.Popen(
         command,
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
+        bufsize=1,  # Line-buffered
+        universal_newlines=True,
     )
     cols, _ = get_term_size()
+    bar_width = cols - 20  # Fixed width to match update-G2.py
     output_lines = []
     start_time = time.time()
     if is_terminal_resizing():
@@ -156,12 +175,19 @@ def run_with_progress(command, description, total_steps=10, timeout=300):
                 if time.time() - start_time > timeout:
                     process.terminate()
                     status_error(f"{description} timed out after {timeout} seconds")
-                time.sleep(1.0 if total_steps <= 50 else 1.5)
+                time.sleep(1.0)
+                # Try to read output incrementally
+                try:
+                    line = process.stdout.readline()
+                    if line:
+                        output_lines.append(line)
+                except:
+                    pass
     else:
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
-            BarColumn(bar_width=cols-20),
+            BarColumn(bar_width=bar_width),
             "[progress.percentage]{task.percentage:>3.0f}%",
             TimeRemainingColumn(),
         ) as progress:
@@ -173,11 +199,25 @@ def run_with_progress(command, description, total_steps=10, timeout=300):
                     status_error(f"{description} timed out after {timeout} seconds")
                 step += 1
                 progress.update(task, advance=1)
-                time.sleep(1.0 if total_steps <= 50 else 1.5)  # Slower for long tasks
+                time.sleep(1.0)
+                # Try to read output incrementally
+                try:
+                    line = process.stdout.readline()
+                    if line:
+                        output_lines.append(line)
+                except:
+                    pass
             progress.update(task, completed=total_steps)
-    output = process.communicate()[0]
-    output_lines.append(output)
-    return process.returncode, "\n".join(output_lines)
+    # Capture remaining output
+    output, _ = process.communicate()
+    if output:
+        output_lines.append(output)
+    output_text = "\n".join(output_lines).strip()
+    if not output_text:
+        logging.warning(f"No output captured for command: {command}")
+    if show_output and output_text:
+        console.print(f"[info]ℹ {truncate_text(f'{description} output: {output_text}', cols-3)}")
+    return process.returncode, output_text
 
 # Status reporting functions
 def status_start(msg):
@@ -202,6 +242,25 @@ def status_error(msg):
     logging.error(msg)
     sys.exit(1)
 
+# Check network connectivity
+def check_connectivity(args):
+    render_section("Network Check")
+    status_start("Checking connectivity")
+    cols, _ = get_term_size()
+    if args.skip_git:
+        status_warning("Skipping network check")
+        return
+    try:
+        output = subprocess.run(["ping", "-c", "1", "-W", "2", "github.com"], check=True, capture_output=True, text=True).stdout
+        # Extract RTT from ping output (e.g., "time=123.456 ms")
+        rtt_match = re.search(r"time=([\d.]+)\s*ms", output)
+        rtt = float(rtt_match.group(1)) if rtt_match else None
+        status_success("Network verified")
+        if rtt:
+            console.print(f"[info]ℹ {truncate_text(f'RTT: {rtt:.3f} ms', cols-3)}")
+    except subprocess.CalledProcessError as e:
+        status_warning(f"Cannot reach GitHub: {e.stderr.strip()}")
+
 # Parse command-line arguments
 def parse_args():
     parser = argparse.ArgumentParser(description="piHPSDR Update Script")
@@ -210,7 +269,8 @@ def parse_args():
     parser.add_argument("-n", action="store_true", help="Skip backup")
     parser.add_argument("--no-gpio", action="store_true", help="Disable GPIO for Radioberry")
     parser.add_argument("--dry-run", action="store_true", help="Simulate operations")
-    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output for Git and backup")
+    parser.add_argument("--show-compile", action="store_true", help="Show compile output for build steps")
     args = parser.parse_args()
     if args.y and args.n:
         status_error("Cannot use -y and -n together")
@@ -279,10 +339,11 @@ def create_backup(args):
                     f"rsync -a {PIHPSDR_DIR}/ {BACKUP_DIR}/",
                     "Copying files",
                     total_steps=50,
+                    show_output=args.verbose,
                 )
                 if status != 0:
                     status_error(f"Backup failed: {output}")
-                logging.info(output)
+                logging.info(f"Backup output: {output}")
                 if args.verbose:
                     console.print(f"[info]ℹ Backup output: {truncate_text(output, cols-3)}")
                 # Calculate backup size
@@ -341,10 +402,11 @@ def update_git(args):
                     f"git pull origin {DEFAULT_BRANCH}",
                     "Pulling changes",
                     total_steps=50,
+                    show_output=args.verbose,
                 )
                 if status != 0:
                     status_error(f"Git update failed: {output}")
-                logging.info(output)
+                logging.info(f"Git pull output: {output}")
                 if args.verbose:
                     console.print(f"[info]ℹ Git output: {truncate_text(output, cols-3)}")
                 new_commit = subprocess.check_output(
@@ -372,10 +434,11 @@ def update_git(args):
                     f"git clone {REPO_URL} {PIHPSDR_DIR}",
                     "Cloning repository",
                     total_steps=50,
+                    show_output=args.verbose,
                 )
                 if status != 0:
                     status_error(f"Git clone failed: {output}")
-                logging.info(output)
+                logging.info(f"Git clone output: {output}")
                 if args.verbose:
                     console.print(f"[info]ℹ Git output: {truncate_text(output, cols-3)}")
                 os.chdir(PIHPSDR_DIR)
@@ -396,12 +459,12 @@ def build_pihpsdr(args):
     try:
         os.chdir(PIHPSDR_DIR)
         if not args.dry_run:
-            status, output = run_with_progress("make clean", "Cleaning build", total_steps=20)
+            status, output = run_with_progress("make clean", "Cleaning build", total_steps=50, show_output=args.show_compile)
             if status != 0:
                 status_error(f"make clean failed: {output}")
-            logging.info(output)
-            if args.verbose:
-                cols, _ = get_term_size()  # Define cols locally for verbose output
+            logging.info(f"Clean output: {output}")
+            if args.show_compile and output.strip():
+                cols, _ = get_term_size()
                 console.print(f"[info]ℹ Clean output: {truncate_text(output, cols-3)}")
         else:
             console.print(f"[info]ℹ Dry run: Would run make clean in {PIHPSDR_DIR}")
@@ -414,14 +477,14 @@ def build_pihpsdr(args):
                 status, output = run_with_progress(
                     f"bash {libinstall_script}",
                     "Installing dependencies",
-                    total_steps=200,
-                    timeout=600,
+                    total_steps=50,
+                    show_output=args.show_compile,
                 )
                 if status != 0:
                     status_error(f"Dependency installation failed: {output}")
-                logging.info(output)
-                if args.verbose:
-                    cols, _ = get_term_size()  # Define cols locally for verbose output
+                logging.info(f"Dependency output: {output}")
+                if args.show_compile and output.strip():
+                    cols, _ = get_term_size()
                     console.print(f"[info]ℹ Dependency output: {truncate_text(output, cols-3)}")
             else:
                 console.print(f"[info]ℹ Dry run: Would run {libinstall_script}")
@@ -442,15 +505,17 @@ def build_pihpsdr(args):
                 status, output = run_with_progress(
                     "make",
                     "Building piHPSDR",
-                    total_steps=200,
-                    timeout=600,
+                    total_steps=50,
+                    show_output=args.show_compile,
                 )
                 if status != 0:
                     status_error(f"piHPSDR build failed: {output}")
-                logging.info(output)
-                if args.verbose:
-                    cols, _ = get_term_size()  # Define cols locally for verbose output
+                logging.info(f"Build output: {output}")
+                if args.show_compile and output.strip():
+                    cols, _ = get_term_size()
                     console.print(f"[info]ℹ Build output: {truncate_text(output, cols-3)}")
+                if not output.strip():
+                    logging.warning("No build output captured for 'make' command")
             else:
                 console.print(f"[info]ℹ Dry run: Would build with GPIO disabled")
         else:
@@ -458,15 +523,17 @@ def build_pihpsdr(args):
                 status, output = run_with_progress(
                     "make",
                     "Building piHPSDR",
-                    total_steps=200,
-                    timeout=600,
+                    total_steps=50,
+                    show_output=args.show_compile,
                 )
                 if status != 0:
                     status_error(f"piHPSDR build failed: {output}")
-                logging.info(output)
-                if args.verbose:
-                    cols, _ = get_term_size()  # Define cols locally for verbose output
+                logging.info(f"Build output: {output}")
+                if args.show_compile and output.strip():
+                    cols, _ = get_term_size()
                     console.print(f"[info]ℹ Build output: {truncate_text(output, cols-3)}")
+                if not output.strip():
+                    logging.warning("No build output captured for 'make' command")
             else:
                 console.print(f"[info]ℹ Dry run: Would build piHPSDR")
         status_success("piHPSDR built")
@@ -477,7 +544,6 @@ def build_pihpsdr(args):
 def get_system_stats():
     if is_minimal_mode():
         return
-    global cols
     cols, _ = get_term_size()
     cpu = psutil.cpu_percent(interval=1)
     mem = psutil.virtual_memory()
@@ -505,7 +571,7 @@ def main():
     backup_created = False
     args = parse_args()
 
-    log_file = init_logging()
+    log_file = init_logging(args.verbose)
 
     # Print flag messages
     if args.skip_git:
@@ -520,9 +586,12 @@ def main():
         console.print(f"[warning]⚠ Dry run enabled")
     if args.verbose:
         console.print(f"[info]ℹ Verbose output enabled")
+    if args.show_compile:
+        console.print(f"[info]ℹ Compile output enabled")
     draw_transition()
 
     check_requirements(args)
+    check_connectivity(args)
     if PIHPSDR_DIR.exists():
         backup_created = create_backup(args)
     update_git(args)
