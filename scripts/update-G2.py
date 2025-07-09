@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+# update-G2.py- G2 Update Script
+# Automates updating the Saturn G2
+# Version: 2.1
+# Written by: Jerry DeLong KD4YAL
+# Dependencies: rich (version 14.0.0) and psutil (version 7.0.0) (pyfiglet 1.0.3) are installed in ~/venv.
+# source ~/venv/bin/activate
+# python3 ~/github/Saturn/scripts/update-G2.py
+# deactivate
 
 import os
 import sys
@@ -8,20 +16,27 @@ import shutil
 import glob
 from datetime import datetime
 
+try:
+    from pyfiglet import Figlet
+except ImportError:
+    Figlet = None  # Handle missing pyfiglet
+
 # ANSI color codes
-RED = '\033[1;31m'
-GREEN = '\033[1;32m'
-YELLOW = '\033[1;33m'
-BLUE = '\033[1;34m'
-CYAN = '\033[1;36m'
-PURPLE = '\033[1;35m'
-DIM_CYAN = '\033[48;5;24m'  # Background cyan for headers
-NC = '\033[0m'
-BOLD = '\033[1m'
-RESET = '\033[0m'
+class Colors:
+    NEON_BLUE = '\033[1;38;5;51m'  # Neon blue for headers
+    CYAN = '\033[1;36m'
+    GREEN = '\033[1;32m'
+    YELLOW = '\033[1;33m'
+    RED = '\033[1;31m'
+    BOLD = '\033[1m'
+    END = '\033[0m'
+    BANNER = '\033[1;31m'  # Red for banner text
+    ACCENT = '\033[38;5;39m'  # Blue for banner subtitle
+    GRADIENT_GREEN = ['\033[38;5;28m', '\033[38;5;34m', '\033[38;5;40m']  # For progress bar
+    NEON_GREEN = '\033[1;38;5;46m'  # For success messages
 
 # Script metadata
-SCRIPT_NAME = "Saturn Update"
+SCRIPT_NAME = "SATURN UPDATE"
 SCRIPT_VERSION = "2.1"
 SATURN_DIR = os.path.expanduser("~/github/Saturn")
 LOG_DIR = os.path.expanduser("~/saturn-logs")
@@ -36,42 +51,44 @@ DEBUG = False
 # Terminal utilities
 def get_term_size():
     cols, lines = shutil.get_terminal_size((80, 24))
-    cols = max(20, min(80, cols))
-    lines = max(8, lines)
+    cols = max(40, min(80, cols))
+    lines = max(15, lines)
     return cols, lines
-
-def is_minimal_mode():
-    cols, lines = get_term_size()
-    return cols < 40 or lines < 15
 
 def truncate_text(text, max_len):
     clean_text = ''.join(c for c in text if c.isprintable())
     if len(clean_text) > max_len:
-        return text[:max_len-2] + ".."
-    return text
+        return clean_text[:max_len-2] + ".."
+    return clean_text
 
 def debug_print(msg):
     if DEBUG:
-        print(f"\033[0m[DEBUG] {msg}\033[0m")
+        print(f"{Colors.END}[DEBUG] {msg}{Colors.END}")
 
-def draw_double_line_top():
+# UI functions
+def print_header(title):
     cols, _ = get_term_size()
-    print(f"\033[0m╔{'═' * (cols-2)}╗\033[0m")
+    title = truncate_text(title, cols-12)
+    print(f"\n{Colors.NEON_BLUE}═════ {title} ═════{Colors.END}\n")
 
-def draw_double_line_bottom():
-    cols, _ = get_term_size()
-    print(f"\033[0m╚{'═' * (cols-2)}╝\033[0m")
+def print_success(msg):
+    print(f"{Colors.NEON_GREEN}✔ {msg}{Colors.END}")
 
-def draw_transition():
-    if is_minimal_mode():
-        return
+def print_warning(msg):
     cols, _ = get_term_size()
-    for _ in range(3):
-        print(f"\r{CYAN}{'.' * cols}\033[0m", end="", flush=True)
-        time.sleep(0.1)
-        print(f"\r{' ' * cols}\033[0m", end="", flush=True)
-        time.sleep(0.1)
-    print("\033[0m")
+    msg = truncate_text(msg, cols-7)
+    print(f"{Colors.YELLOW}⚠ {msg}{Colors.END}")
+
+def print_error(msg):
+    cols, _ = get_term_size()
+    msg = truncate_text(msg, cols-7)
+    print(f"{Colors.RED}✗ {msg}{Colors.END}", file=sys.stderr)
+    sys.exit(1)
+
+def print_info(msg):
+    cols, _ = get_term_size()
+    msg = truncate_text(msg, cols-7)
+    print(f"{Colors.CYAN}ℹ {msg}{Colors.END}")
 
 def progress_bar(pid, msg, total_steps):
     cols, _ = get_term_size()
@@ -84,83 +101,25 @@ def progress_bar(pid, msg, total_steps):
         step += 1
         percent = min(100, (step * 100) // total_steps)
         filled = (bar_width * percent) // 100
-        empty = bar_width - filled
-        bar = "█" * filled + " " * empty
-        print(f"\r{BLUE}[{bar}] {percent:2d}% {msg}\033[0m", end="", flush=True)
+        bar = ""
+        for i in range(filled):
+            bar += f"{Colors.GRADIENT_GREEN[min(2, i//5)]}█"
+        bar += f"{Colors.END}{' ' * (bar_width - filled)}"
+        print(f"\r{Colors.CYAN}[{bar}] {percent:2d}% {msg}{Colors.END}", end="", flush=True)
         time.sleep(0.5)
-    print(f"\033[2K\r{' ' * cols}\033[0m\033[0G", end="", flush=True)  # Clear line and reset cursor
-    debug_print("Progress bar completed, cursor reset")
+    print(f"\r{Colors.CYAN}[{Colors.GRADIENT_GREEN[2]}{'█' * bar_width}{Colors.END}] 100% Complete{Colors.END}", end="", flush=True)
+    print(f"\033[2K\r{' ' * cols}\033[0m\033[0G", end="", flush=True)
     os.system("tput cnorm")
     return pid.wait()
 
-def render_section(title):
+def system_scan_effect(items):
     cols, _ = get_term_size()
-    title = truncate_text(title, cols-4)
-    debug_print(f"Rendering section: {title}")
-    print("\033[0m", end="")
-    draw_double_line_top()
-    print(f"\033[0m{CYAN}{BOLD}{DIM_CYAN}{' ' * ((cols - len(title) - 2) // 2)}{title}{' ' * ((cols - len(title) - 2) // 2)}\033[0m")
-    draw_double_line_bottom()
-    print("\033[0m", end="")
-    draw_transition()
-
-def render_top_section(title):
-    cols, _ = get_term_size()
-    title = truncate_text(title, cols-4)
-    debug_print(f"Rendering top section: {title}")
-    print("\033[0m", end="")
-    draw_double_line_top()
-    print(f"\033[0m{CYAN}{BOLD}{DIM_CYAN}{' ' * ((cols - len(title) - 2) // 2)}{title}{' ' * ((cols - len(title) - 2) // 2)}\033[0m")
-    draw_double_line_bottom()
-    print("\033[0m", end="")
-    draw_transition()
-
-def completion_animation():
-    if is_minimal_mode():
-        return
-    cols, _ = get_term_size()
-    for _ in range(3):
-        print(f"\r{GREEN}{'✔' * cols}\033[0m", end="", flush=True)
-        time.sleep(0.1)
-        print(f"\r{' ' * cols}\033[0m", end="", flush=True)
-        time.sleep(0.1)
-    print(f"{GREEN}✔ Complete!\033[0m")
-
-# Status reporting
-def status_start(msg):
-    cols, _ = get_term_size()
-    msg = truncate_text(msg, cols-7)
-    if is_minimal_mode():
-        print(f"{PURPLE}> {msg}\033[0m")
-    else:
-        print(f"{PURPLE}{BOLD}⏳ {msg}\033[0m")
-    print("\033[0m", end="")
-
-def status_success(msg):
-    cols, _ = get_term_size()
-    msg = truncate_text(msg, cols-7)
-    if is_minimal_mode():
-        print(f"{GREEN}  + {msg}\033[0m")
-    else:
-        print(f"{GREEN}  ✔ {msg}\033[0m")
-    print("\033[0m", end="")
-
-def status_warning(msg):
-    cols, _ = get_term_size()
-    msg = truncate_text(msg, cols-7)
-    if is_minimal_mode():
-        print(f"{YELLOW}  ! {msg}\033[0m")
-    else:
-        print(f"{YELLOW}  ⚠ {msg}\033[0m")
-    print("\033[0m", end="")
-
-def status_error(msg):
-    cols, _ = get_term_size()
-    msg = truncate_text(msg, cols-7)
-    print(f"{RED}  ✗ {msg}\033[0m", file=sys.stderr)
-    print("\033[0m", end="")
-    draw_double_line_bottom()
-    sys.exit(1)
+    print(f"{Colors.NEON_GREEN}[SYSTEM SCAN INITIATED]{Colors.END}")
+    for item in items:
+        print(f"\r{Colors.CYAN}Scanning: {item}...{Colors.END}", end="", flush=True)
+        time.sleep(0.3)
+        print(f"\r{Colors.NEON_GREEN}✓ {item} - OK{' ' * (cols - len(item) - 8)}{Colors.END}")
+    print(f"\n{Colors.NEON_GREEN}[SCAN COMPLETE]{Colors.END}\n")
 
 # Initialize logging
 def init_logging():
@@ -168,8 +127,7 @@ def init_logging():
     try:
         os.makedirs(LOG_DIR, exist_ok=True)
     except Exception as e:
-        status_error(f"Failed to create log dir: {str(e)}")
-    # Use Tee to write to both terminal and log file
+        print_error(f"Failed to create log dir: {str(e)}")
     class Tee:
         def __init__(self, *files):
             self.files = files
@@ -183,20 +141,22 @@ def init_logging():
     try:
         log_file = open(LOG_FILE, 'a')
     except Exception as e:
-        status_error(f"Failed to open log file {LOG_FILE}: {str(e)}")
+        print_error(f"Failed to open log file {LOG_FILE}: {str(e)}")
     sys.stdout = Tee(sys.__stdout__, log_file)
     sys.stderr = Tee(sys.__stderr__, log_file)
-    os.system("tput clear")  # Clear screen at start
-    debug_print("Rendering top section")
-    render_top_section(f"{SCRIPT_NAME} v{SCRIPT_VERSION}")
+    os.system("tput clear")
     cols, _ = get_term_size()
-    if is_minimal_mode():
-        print(f"{BLUE}  > {truncate_text(f'Started: {datetime.now()}', cols-2)}\033[0m")
-        print(f"{BLUE}  > {truncate_text(f'Log: {LOG_FILE}', cols-2)}\033[0m")
+    if Figlet:
+        f = Figlet(font='standard', width=cols-2, justify='center')
+        g2_saturn_ascii = f.renderText('G2 Saturn')
     else:
-        print(f"{BLUE}  ℹ {truncate_text(f'Started: {datetime.now()}', cols-3)}\033[0m")
-        print(f"{BLUE}  ℹ {truncate_text(f'Log: {LOG_FILE}', cols-3)}\033[0m")
-    print("\033[0m", end="")
+        g2_saturn_ascii = "G2 Saturn\n"
+    banner = f"""
+{Colors.BANNER}{g2_saturn_ascii.rstrip()}{Colors.END}
+{Colors.ACCENT}{'Update Manager v2.1'.center(cols-2)}{Colors.END}\n\n"""
+    print(banner)
+    print_info(f"Started: {datetime.now()}")
+    print_info(f"Log: {LOG_FILE}")
 
 # Parse command-line arguments
 def parse_args(args):
@@ -205,7 +165,7 @@ def parse_args(args):
     for arg in args:
         if arg == "--skip-git":
             SKIP_GIT = True
-            status_warning("Skipping Git update")
+            print_warning("Skipping Git update")
         if arg == "--debug":
             DEBUG = True
             debug_print("Debug mode enabled")
@@ -213,414 +173,380 @@ def parse_args(args):
 # Check system requirements
 def check_requirements():
     debug_print("Checking requirements")
-    render_section("System Check")
-    status_start("Verifying requirements")
-    missing = [cmd for cmd in ["git", "make", "gcc", "sudo", "rsync"] if shutil.which(cmd) is None]
+    print_header("System Check")
+    print(f"{Colors.NEON_BLUE}⚡ Verifying requirements...{Colors.END}")
+    requirements = ["git", "make", "gcc", "sudo", "rsync"]
+    system_scan_effect(requirements)
+    missing = [cmd for cmd in requirements if shutil.which(cmd) is None]
     if missing:
-        status_error(f"Missing commands: {', '.join(missing)}")
+        print_error(f"Missing commands: {', '.join(missing)}")
     try:
-        free_space = shutil.disk_usage(SATURN_DIR).free
+        free_space = shutil.disk_usage(SATURN_DIR).free / 1024**3  # Convert to GB
         cols, _ = get_term_size()
-        if free_space < 1048576:
-            status_warning(f"Low disk space: {free_space // 1024}MB")
+        if free_space < 1:
+            print_warning(f"Low disk space: {free_space:.2f}GB")
         else:
-            if is_minimal_mode():
-                print(f"{GREEN}  + {truncate_text(f'Disk: {free_space // 1024}MB free', cols-2)}\033[0m")
-            else:
-                print(f"{GREEN}  ✔ {truncate_text(f'Disk: {free_space // 1024}MB free', cols-3)}\033[0m")
-        status_success("Requirements met")
+            print_success(f"Disk: {free_space:.2f}GB free")
+        print_success("Requirements met")
     except Exception as e:
-        status_error(f"Failed to check disk space: {str(e)}")
+        print_error(f"Failed to check disk space: {str(e)}")
 
 # Check connectivity
 def check_connectivity():
     debug_print("Checking connectivity")
     if SKIP_GIT:
-        status_warning("Skipping network check")
+        print_warning("Skipping network check")
         return 0
-    render_section("Network Check")
-    status_start("Checking connectivity")
+    print_header("Network Check")
+    print(f"{Colors.NEON_BLUE}⚡ Checking connectivity...{Colors.END}")
     try:
         subprocess.run(["ping", "-c", "1", "-W", "2", "github.com"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        status_success("Network verified")
+        print_success("Network verified")
         return 0
     except subprocess.CalledProcessError as e:
-        status_warning(f"Cannot reach GitHub: {e.stderr.strip()}")
+        print_warning(f"Cannot reach GitHub: {e.stderr.strip()}")
         return 1
 
 # Update Git repository
 def update_git():
     if SKIP_GIT:
-        status_warning("Skipping repository update")
+        print_warning("Skipping repository update")
         return 0
     debug_print("Updating Git repository")
-    render_section("Git Update")
-    status_start("Updating repository")
+    print_header("Git Update")
+    print(f"{Colors.NEON_BLUE}⚡ Updating repository...{Colors.END}")
     if not os.path.isdir(SATURN_DIR):
-        status_error(f"Cannot access: {SATURN_DIR}")
+        print_error(f"Cannot access: {SATURN_DIR}")
     os.chdir(SATURN_DIR)
     try:
         subprocess.run(["git", "rev-parse", "--git-dir"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     except subprocess.CalledProcessError as e:
-        status_error(f"Not a Git repository: {e.stderr.strip()}")
+        print_error(f"Not a Git repository: {e.stderr.strip()}")
     try:
-        # Check and set remote URL
         current_remote = subprocess.run(["git", "config", "--get", "remote.origin.url"], capture_output=True, text=True).stdout.strip()
         if current_remote != REPO_URL:
-            status_warning(f"Updating remote URL from {current_remote} to {REPO_URL}")
+            print_warning(f"Updating remote URL from {current_remote} to {REPO_URL}")
             subprocess.run(["git", "remote", "set-url", "origin", REPO_URL], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        # Check available branches
         subprocess.run(["git", "fetch", "origin"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         branch_check = subprocess.run(["git", "ls-remote", "--heads", "origin"], capture_output=True, text=True)
         available_branches = [line.split("refs/heads/")[1].strip() for line in branch_check.stdout.splitlines() if "refs/heads/" in line]
         target_branch = "main"
         if "main" not in available_branches:
             if "master" in available_branches:
-                status_warning("Branch 'main' not found, using 'master'")
+                print_warning("Branch 'main' not found, using 'master'")
                 target_branch = "master"
             else:
-                status_error(f"No suitable branch found. Available: {', '.join(available_branches or ['none'])}")
-        # Ensure local branch is 'main'
+                print_error(f"No suitable branch found. Available: {', '.join(available_branches or ['none'])}")
         current_branch = subprocess.run(["git", "branch", "--show-current"], capture_output=True, text=True).stdout.strip()
         if not current_branch:
             current_branch = subprocess.run(["git", "symbolic-ref", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
         if current_branch != target_branch:
-            status_warning(f"Switching to branch '{target_branch}'")
+            print_warning(f"Switching to branch '{target_branch}'")
             try:
                 subprocess.run(["git", "checkout", target_branch], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             except subprocess.CalledProcessError as e:
                 subprocess.run(["git", "branch", target_branch], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 subprocess.run(["git", "checkout", target_branch], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        cols, _ = get_term_size()
-        if is_minimal_mode():
-            print(f"{BLUE}  > {truncate_text(f'Branch: {target_branch}', cols-2)}\033[0m")
-        else:
-            print(f"{BLUE}  ℹ {truncate_text(f'Branch: {target_branch}', cols-3)}\033[0m")
-        # Check for local changes (tracked and untracked)
+        print_info(f"Branch: {target_branch}")
         diff_result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
         untracked_files = [line.strip().split()[1] for line in diff_result.stdout.splitlines() if line.startswith("??")]
         if diff_result.stdout:
-            status_warning("Local changes detected")
+            print_warning("Local changes detected")
             if untracked_files:
-                untracked_text = f"Untracked files: {', '.join(untracked_files)}"
-                if is_minimal_mode():
-                    print(f"{YELLOW}  > {truncate_text(untracked_text, cols-2)}\033[0m")
-                else:
-                    print(f"{YELLOW}  ⚠ {truncate_text(untracked_text, cols-3)}\033[0m")
-            print(f"{YELLOW}  ⚠ Stash changes or reset to remote? [S/r/n]: \033[0m", end="", flush=True)
+                print_warning(f"Untracked files: {', '.join(untracked_files)}")
+            print(f"{Colors.YELLOW}⚠ Stash changes or reset to remote? [S/r/n]: {Colors.END}", end="", flush=True)
             reply = input("").lower()
-            print("\033[0m")
+            print(Colors.END)
             if reply == "r":
-                status_warning("Resetting to remote state (discards local changes)")
+                print_warning("Resetting to remote state (discards local changes)")
                 try:
                     subprocess.run(["git", "reset", "--hard", f"origin/{target_branch}"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                     subprocess.run(["git", "clean", "-fd"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                    if is_minimal_mode():
-                        print(f"{BLUE}  > {truncate_text(f'Reset to origin/{target_branch}', cols-2)}\033[0m")
-                    else:
-                        print(f"{BLUE}  ℹ {truncate_text(f'Reset to origin/{target_branch}', cols-3)}\033[0m")
+                    print_info(f"Reset to origin/{target_branch}")
                 except subprocess.CalledProcessError as e:
-                    status_error(f"Reset failed: {e.stderr.strip()}")
+                    print_error(f"Reset failed: {e.stderr.strip()}")
             elif reply != "n":
-                status_warning("Stashing local changes (including untracked files)")
+                print_warning("Stashing local changes (including untracked files)")
                 try:
-                    stash_result = subprocess.run(["git", "stash", "push", "--include-untracked", "-m", f"Auto-stash {datetime.now()}"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                    if is_minimal_mode():
-                        print(f"{BLUE}  > {truncate_text('Changes stashed successfully', cols-2)}\033[0m")
-                    else:
-                        print(f"{BLUE}  ℹ {truncate_text('Changes stashed successfully', cols-3)}\033[0m")
+                    subprocess.run(["git", "stash", "push", "--include-untracked", "-m", f"Auto-stash {datetime.now()}"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                    print_info("Changes stashed successfully")
                 except subprocess.CalledProcessError as e:
-                    status_error(f"Stash failed: {e.stderr.strip()}")
+                    print_error(f"Stash failed: {e.stderr.strip()}")
             else:
-                status_warning("Skipping Git update due to local changes")
+                print_warning("Skipping Git update due to local changes")
                 return 0
-        # Get current commit
         try:
             current_commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
-            if is_minimal_mode():
-                print(f"{BLUE}  > {truncate_text(f'Commit: {current_commit}', cols-2)}\033[0m")
-            else:
-                print(f"{BLUE}  ℹ {truncate_text(f'Commit: {current_commit}', cols-3)}\033[0m")
+            print_info(f"Commit: {current_commit}")
         except subprocess.CalledProcessError as e:
-            status_error(f"Failed to get commit: {e.stderr.strip()}")
-        # Display remote URL
-        if is_minimal_mode():
-            print(f"{BLUE}  > {truncate_text(f'Remote: {REPO_URL}', cols-2)}\033[0m")
-        else:
-            print(f"{BLUE}  ℹ {truncate_text(f'Remote: {REPO_URL}', cols-3)}\033[0m")
-        # Perform git pull
+            print_error(f"Failed to get commit: {e.stderr.strip()}")
+        print_info(f"Remote: {REPO_URL}")
         try:
             with open("/tmp/git_output", "w") as f:
                 process = subprocess.Popen(["git", "pull", "origin", target_branch], stdout=f, stderr=f, text=True)
                 progress_bar(process, "Pulling changes", 10)
-                process.wait()
                 if process.returncode != 0:
                     with open("/tmp/git_output", "r") as f:
                         error_output = f.read().strip()
-                    status_error(f"Git update failed: {error_output}")
+                    print_error(f"Git update failed: {error_output}")
         except Exception as e:
-            status_error(f"Failed to access /tmp/git_output: {str(e)}")
-        # Check for new commits
+            print_error(f"Failed to access /tmp/git_output: {str(e)}")
         try:
             new_commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
             if current_commit != new_commit:
                 log_result = subprocess.run(["git", "log", "--oneline", f"{current_commit}..{new_commit}"], capture_output=True, text=True).stdout.strip()
                 change_count = len(log_result.splitlines())
-                if is_minimal_mode():
-                    print(f"{BLUE}  > {truncate_text(f'New commit: {new_commit}', cols-2)}\033[0m")
-                    print(f"{BLUE}  > {truncate_text(f'Changes: {change_count} commits', cols-2)}\033[0m")
-                else:
-                    print(f"{BLUE}  ℹ {truncate_text(f'New commit: {new_commit}', cols-3)}\033[0m")
-                    print(f"{BLUE}  ℹ {truncate_text(f'Changes: {change_count} commits', cols-3)}\033[0m")
+                print_info(f"New commit: {new_commit}")
+                print_info(f"Changes: {change_count} commits")
             else:
-                if is_minimal_mode():
-                    print(f"{BLUE}  > Up to date\033[0m")
-                else:
-                    print(f"{BLUE}  ℹ Up to date\033[0m")
-            status_success("Repository updated")
+                print_info("Up to date")
+            print_success("Repository updated")
         except subprocess.CalledProcessError as e:
-            status_error(f"Failed to get new commit: {e.stderr.strip()}")
+            print_error(f"Failed to get new commit: {e.stderr.strip()}")
     except subprocess.CalledProcessError as e:
-        status_error(f"Git update failed: {e.stderr.strip()}")
+        print_error(f"Git update failed: {e.stderr.strip()}")
     except Exception as e:
-        status_error(f"Unexpected Git error: {str(e)}")
+        print_error(f"Unexpected Git error: {str(e)}")
 
 # Create backup
 def create_backup():
     debug_print("Creating backup")
-    render_section("Backup")
+    print_header("Backup")
     cols, _ = get_term_size()
-    if is_minimal_mode():
-        print(f"{YELLOW}  > Backup? [{BOLD}Y{RESET}/n]: \033[0m", end="", flush=True)
-    else:
-        print(f"{YELLOW}  ⚠ Backup? [{BOLD}Y{RESET}/n]: \033[0m", end="", flush=True)
+    print(f"{Colors.YELLOW}⚠ Backup? [{Colors.BOLD}Y{Colors.END}/n]: ", end="", flush=True)
     reply = input("").lower()
-    print("\033[0m")
+    print(Colors.END)
     if reply != "n":
-        status_start("Creating backup")
-        # Limit to 5 backups
+        print(f"{Colors.NEON_BLUE}⚡ Creating backup...{Colors.END}")
         backup_pattern = os.path.expanduser("~/saturn-backup-*")
         backup_dirs = sorted(glob.glob(backup_pattern), key=os.path.getmtime, reverse=True)
         if len(backup_dirs) > 4:
             for old_backup in backup_dirs[4:]:
                 try:
                     shutil.rmtree(old_backup)
-                    print(f"{BLUE}  ℹ {truncate_text(f'Deleted old backup: {old_backup}', cols-3)}\033[0m")
+                    print_info(f"Deleted old backup: {old_backup}")
                 except Exception as e:
-                    print(f"{YELLOW}  ⚠ {truncate_text(f'Failed to delete backup {old_backup}: {str(e)}', cols-3)}\033[0m")
-        if is_minimal_mode():
-            print(f"{BLUE}  > {truncate_text(f'Location: {BACKUP_DIR}', cols-2)}\033[0m")
-        else:
-            print(f"{BLUE}  ℹ {truncate_text(f'Location: {BACKUP_DIR}', cols-3)}\033[0m")
+                    print_warning(f"Failed to delete backup {old_backup}: {str(e)}")
+        print_info(f"Location: {BACKUP_DIR}")
         try:
             os.makedirs(BACKUP_DIR, exist_ok=True)
         except Exception as e:
-            status_error(f"Cannot create backup dir: {str(e)}")
+            print_error(f"Cannot create backup dir: {str(e)}")
         try:
             with open("/tmp/rsync_output", "w") as f:
                 process = subprocess.Popen(["rsync", "-a", f"{SATURN_DIR}/", BACKUP_DIR], stdout=f, stderr=f, text=True)
                 progress_bar(process, "Copying files", 10)
-                process.wait()
                 if process.returncode != 0:
                     with open("/tmp/rsync_output", "r") as f:
                         error_output = f.read().strip()
-                    status_error(f"Backup failed: {error_output}")
+                    print_error(f"Backup failed: {error_output}")
         except Exception as e:
-            status_error(f"Failed to access /tmp/rsync_output: {str(e)}")
+            print_error(f"Failed to access /tmp/rsync_output: {str(e)}")
         backup_size = subprocess.run(["du", "-sh", BACKUP_DIR], capture_output=True, text=True).stdout.split()[0]
-        if is_minimal_mode():
-            print(f"{BLUE}  > {truncate_text(f'Size: {backup_size}', cols-2)}\033[0m")
-        else:
-            print(f"{BLUE}  ℹ {truncate_text(f'Size: {backup_size}', cols-3)}\033[0m")
-        status_success("Backup created")
+        print_info(f"Size: {backup_size}")
+        print_success("Backup created")
         return True
     else:
-        status_warning("Backup skipped")
+        print_warning("Backup skipped")
         return False
 
 # Install libraries
 def install_libraries():
     debug_print("Installing libraries")
-    render_section("Libraries")
-    status_start("Installing libraries")
+    print_header("Libraries")
+    print(f"{Colors.NEON_BLUE}⚡ Installing libraries...{Colors.END}")
     install_script = os.path.join(SATURN_DIR, "scripts", "install-libraries.sh")
     if os.path.isfile(install_script):
         try:
             with open("/tmp/library_output", "w") as f:
                 process = subprocess.Popen(["bash", install_script], stdout=f, stderr=f, text=True)
                 progress_bar(process, "Installing", 10)
-                process.wait()
                 if process.returncode != 0:
                     with open("/tmp/library_output", "r") as f:
                         error_output = f.read().strip()
-                    status_error(f"Library install failed: {error_output}")
-            status_success("Libraries installed")
+                    print_error(f"Library install failed: {error_output}")
+            print_success("Libraries installed")
+            return True
         except Exception as e:
-            status_error(f"Failed to access /tmp/library_output: {str(e)}")
+            print_error(f"Failed to access /tmp/library_output: {str(e)}")
     else:
-        status_warning("No install script")
+        print_warning("No install script")
+        return False
 
 # Build p2app
 def build_p2app():
     debug_print("Building p2app")
-    render_section("p2app Build")
-    status_start("Building p2app")
+    print_header("p2app Build")
+    print(f"{Colors.NEON_BLUE}⚡ Building p2app...{Colors.END}")
     build_script = os.path.join(SATURN_DIR, "scripts", "update-p2app.sh")
     if os.path.isfile(build_script):
         try:
             with open("/tmp/p2app_output", "w") as f:
                 process = subprocess.Popen(["bash", build_script], stdout=f, stderr=f, text=True)
                 progress_bar(process, "Building", 10)
-                process.wait()
                 if process.returncode != 0:
                     with open("/tmp/p2app_output", "r") as f:
                         error_output = f.read().strip()
-                    status_error(f"p2app build failed: {error_output}")
-            status_success("p2app built")
+                    print_error(f"p2app build failed: {error_output}")
+            print_success("p2app built")
+            return True
         except Exception as e:
-            status_error(f"Failed to access /tmp/p2app_output: {str(e)}")
+            print_error(f"Failed to access /tmp/p2app_output: {str(e)}")
     else:
-        status_warning("No build script")
+        print_warning("No build script")
+        return False
 
 # Build desktop apps
 def build_desktop_apps():
     debug_print("Building desktop apps")
-    render_section("Desktop Apps")
-    status_start("Building apps")
+    print_header("Desktop Apps")
+    print(f"{Colors.NEON_BLUE}⚡ Building apps...{Colors.END}")
     build_script = os.path.join(SATURN_DIR, "scripts", "update-desktop-apps.sh")
     if os.path.isfile(build_script):
         try:
             with open("/tmp/desktop_output", "w") as f:
                 process = subprocess.Popen(["bash", build_script], stdout=f, stderr=f, text=True)
                 progress_bar(process, "Building", 10)
-                process.wait()
                 if process.returncode != 0:
                     with open("/tmp/desktop_output", "r") as f:
                         error_output = f.read().strip()
-                    status_error(f"App build failed: {error_output}")
-            status_success("Apps built")
+                    print_error(f"App build failed: {error_output}")
+            print_success("Apps built")
+            return True
         except Exception as e:
-            status_error(f"Failed to access /tmp/desktop_output: {str(e)}")
+            print_error(f"Failed to access /tmp/desktop_output: {str(e)}")
     else:
-        status_warning("No build script")
+        print_warning("No build script")
+        return False
 
 # Install udev rules
 def install_udev_rules():
     debug_print("Installing udev rules")
-    render_section("Udev Rules")
-    status_start("Installing rules")
+    print_header("Udev Rules")
+    print(f"{Colors.NEON_BLUE}⚡ Installing rules...{Colors.END}")
     rules_dir = os.path.join(SATURN_DIR, "rules")
     install_script = os.path.join(rules_dir, "install-rules.sh")
     if os.path.isfile(install_script):
         if not os.access(install_script, os.X_OK):
-            status_warning("Setting permissions")
+            print_warning("Setting permissions")
             os.chmod(install_script, 0o755)
         try:
             with open("/tmp/udev_output", "w") as f:
                 process = subprocess.Popen(["sudo", "./install-rules.sh"], cwd=rules_dir, stdout=f, stderr=f, text=True)
                 progress_bar(process, "Installing", 10)
-                process.wait()
                 if process.returncode != 0:
                     with open("/tmp/udev_output", "r") as f:
                         error_output = f.read().strip()
-                    status_error(f"Udev install failed: {error_output}")
-            status_success("Rules installed")
+                    print_error(f"Udev install failed: {error_output}")
+            print_success("Rules installed")
+            return True
         except Exception as e:
-            status_error(f"Failed to access /tmp/udev_output: {str(e)}")
+            print_error(f"Failed to access /tmp/udev_output: {str(e)}")
     else:
-        status_warning("No install script")
+        print_warning("No install script")
+        return False
 
 # Install desktop icons
 def install_desktop_icons():
     debug_print("Installing desktop icons")
-    render_section("Desktop Icons")
-    status_start("Installing shortcuts")
+    print_header("Desktop Icons")
+    print(f"{Colors.NEON_BLUE}⚡ Installing shortcuts...{Colors.END}")
     desktop_dir = os.path.join(SATURN_DIR, "desktop")
     home_desktop = os.path.expanduser("~/Desktop")
     if not os.path.isdir(desktop_dir):
-        status_warning(f"Desktop directory does not exist: {desktop_dir}")
-        return
+        print_warning(f"Desktop directory does not exist: {desktop_dir}")
+        return False
     if not os.path.isdir(home_desktop):
-        status_warning(f"Home Desktop directory does not exist: {home_desktop}")
-        return
+        print_warning(f"Home Desktop directory does not exist: {home_desktop}")
+        return False
     desktop_files = glob.glob(os.path.join(desktop_dir, "*.desktop"))
     if not desktop_files:
-        status_warning(f"No .desktop files found in {desktop_dir}")
-        return
+        print_warning(f"No .desktop files found in {desktop_dir}")
+        return False
     try:
         for file in desktop_files:
             dest_file = os.path.join(home_desktop, os.path.basename(file))
             shutil.copy2(file, dest_file)
             os.chmod(dest_file, 0o755)
-        status_success("Shortcuts installed")
+        print_success("Shortcuts installed")
+        return True
     except Exception as e:
-        status_error(f"Shortcut install failed: {str(e)}")
+        print_error(f"Shortcut install failed: {str(e)}")
 
 # Check FPGA binary
 def check_fpga_binary():
     debug_print("Checking FPGA binary")
-    render_section("FPGA Binary")
-    status_start("Verifying binary")
+    print_header("FPGA Binary")
+    print(f"{Colors.NEON_BLUE}⚡ Verifying binary...{Colors.END}")
     check_script = os.path.join(SATURN_DIR, "scripts", "find-bin.sh")
     if os.path.isfile(check_script):
         try:
             with open("/tmp/fpga_output", "w") as f:
                 process = subprocess.Popen(["bash", check_script], stdout=f, stderr=f, text=True)
                 progress_bar(process, "Verifying", 10)
-                process.wait()
                 if process.returncode != 0:
                     with open("/tmp/fpga_output", "r") as f:
                         error_output = f.read().strip()
-                    status_error(f"FPGA check failed: {error_output}")
-            status_success("Binary verified")
+                    print_error(f"FPGA check failed: {error_output}")
+            print_success("Binary verified")
+            return True
         except Exception as e:
-            status_error(f"Failed to access /tmp/fpga_output: {str(e)}")
+            print_error(f"Failed to access /tmp/fpga_output: {str(e)}")
     else:
-        status_warning("No verify script")
+        print_warning("No verify script")
+        return False
 
 # Print summary report
 def print_summary_report(start_time, backup_created):
     debug_print("Printing summary report")
-    duration = int(time.time() - start_time)
-    render_section("Summary")
+    print_header("Summary")
     cols, _ = get_term_size()
-    completed_text = truncate_text(f"Completed: {datetime.now()}", cols-3)
-    duration_text = truncate_text(f"Duration: {duration} seconds", cols-3)
-    log_text = truncate_text(f"Log: {LOG_FILE}", cols-3)
-    backup_text = truncate_text(f"Backup: {BACKUP_DIR}", cols-3)
-    if is_minimal_mode():
-        print(f"{GREEN}  + {completed_text}\033[0m")
-        print(f"{BLUE}  > {duration_text}\033[0m")
-        print(f"{BLUE}  > {log_text}\033[0m")
-        if backup_created:
-            print(f"{GREEN}  + {backup_text}\033[0m")
-        else:
-            status_warning("No backup created")
+    completed_text = truncate_text(f"Completed: {datetime.now()}", cols-7)
+    duration_text = truncate_text(f"Duration: {int(time.time() - start_time)} seconds", cols-7)
+    log_text = truncate_text(f"Log: {LOG_FILE}", cols-7)
+    backup_text = truncate_text(f"Backup: {BACKUP_DIR}", cols-7)
+    print_success(completed_text)
+    print_info(duration_text)
+    print_info(log_text)
+    if backup_created:
+        print_success(backup_text)
     else:
-        print(f"{GREEN}  ✔ {completed_text}\033[0m")
-        print(f"{BLUE}  ℹ {duration_text}\033[0m")
-        print(f"{BLUE}  ℹ {log_text}\033[0m")
-        if backup_created:
-            print(f"{GREEN}  ✔ {backup_text}\033[0m")
-        else:
-            status_warning("No backup created")
-    print("\033[0m", end="")
+        print_warning("No backup created")
 
-# System stats for footer
+# FPGA programming instructions
+def print_fpga_instructions():
+    debug_print("Printing FPGA instructions")
+    print_header("FPGA Programming")
+    instructions = [
+        "Launch 'flashwriter' from desktop (use 'xvfb-run flashwriter' if headless)",
+        "Navigate: File > Open > ~/github/Saturn/FPGA",
+        "Select .BIT file",
+        "Verify 'primary' selected",
+        "Click 'Program'"
+    ]
+    for instruction in instructions:
+        print_success(instruction)
+
+# System stats
 def get_system_stats():
     debug_print("Getting system stats")
-    if is_minimal_mode():
-        return
     try:
-        cpu = int(subprocess.run(["top", "-bn1"], capture_output=True, text=True).stdout.splitlines()[2].split()[1].split('.')[0])
-        mem = subprocess.run(["free", "-m"], capture_output=True, text=True).stdout.splitlines()[1].split()[2] + "/" + subprocess.run(["free", "-m"], capture_output=True, text=True).stdout.splitlines()[1].split()[1] + "MB"
+        # Parse 'top' output more robustly
+        top_output = subprocess.run(["top", "-bn1"], capture_output=True, text=True).stdout.splitlines()
+        cpu = 0
+        for line in top_output:
+            if line.strip().startswith("%Cpu"):
+                cpu = float(line.split()[1])  # Get %CPU from %Cpu(s) line
+                break
+        mem = subprocess.run(["free", "-m"], capture_output=True, text=True).stdout.splitlines()[1].split()
+        mem_used = mem[2] + "/" + mem[1] + "MB"
         disk_usage = shutil.disk_usage(SATURN_DIR)
         disk = f"{disk_usage.used / 1024**3:.1f}G/{disk_usage.total / 1024**3:.1f}G"
         cols, _ = get_term_size()
-        stats_text = truncate_text(f"CPU: {cpu}% | Mem: {mem} | Disk: {disk}", cols-3)
-        print(f"{BLUE}  ℹ {stats_text}\033[0m")
+        stats_text = truncate_text(f"CPU: {cpu:.0f}% | Mem: {mem_used} | Disk: {disk}", cols-7)
+        print_info(stats_text)
     except Exception as e:
-        print(f"{YELLOW}  ⚠ Failed to retrieve system stats: {str(e)}\033[0m")
+        print_warning(f"Failed to retrieve system stats: {str(e)}")
 
 # Main execution
 def main(args):
@@ -631,14 +557,15 @@ def main(args):
     init_logging()
     parse_args(args)
 
-    render_section("System Info")
+    print_header("System Info")
     cols, _ = get_term_size()
-    host_info = truncate_text(f"Host: {os.uname().nodename}", cols-3)
+    host_info = truncate_text(f"Host: {os.uname().nodename}", cols-7)
     try:
-        user_info = truncate_text(f"User: {os.getlogin()}", cols-3)
+        user_info = truncate_text(f"User: {os.getlogin()}", cols-7)
     except OSError:
-        user_info = truncate_text(f"User: {os.environ.get('USER', 'unknown')}", cols-3)
-    system_info = truncate_text(f"System: {os.uname().sysname} {os.uname().release} {os.uname().machine}", cols-3)
+        user_info = truncate_text(f"User: {os.environ.get('USER', 'unknown')}", cols-7)
+    system_info = truncate_text(f"System: {os.uname().sysname} {os.uname().release} {os.uname().machine}", cols-7)
+    os_info = "Unknown"
     if os.path.isfile('/etc/os-release'):
         try:
             with open('/etc/os-release') as f:
@@ -646,48 +573,33 @@ def main(args):
                     if line.startswith("PRETTY_NAME="):
                         os_info = line.split("=")[1].strip().strip('"')
                         break
-                else:
-                    os_info = "Unknown"
         except Exception as e:
             os_info = f"Unknown ({str(e)})"
-    else:
-        os_info = "Unknown"
-    os_info = truncate_text(f"OS: {os_info}", cols-3)
-    if is_minimal_mode():
-        print(f"{BLUE}  > {host_info}\033[0m")
-        print(f"{BLUE}  > {user_info}\033[0m")
-        print(f"{BLUE}  > {system_info}\033[0m")
-        print(f"{BLUE}  > {os_info}\033[0m")
-    else:
-        print(f"{BLUE}  ℹ {host_info}\033[0m")
-        print(f"{BLUE}  ℹ {user_info}\033[0m")
-        print(f"{BLUE}  ℹ {system_info}\033[0m")
-        print(f"{BLUE}  ℹ {os_info}\033[0m")
-    print("\033[0m", end="")
+    os_info = truncate_text(f"OS: {os_info}", cols-7)
+    print_info(host_info)
+    print_info(user_info)
+    print_info(system_info)
+    print_info(os_info)
 
     check_requirements()
     check_connectivity()
 
     if not os.path.isdir(SATURN_DIR):
-        status_error(f"No Saturn dir: {SATURN_DIR}")
+        print_error(f"No Saturn dir: {SATURN_DIR}")
 
-    render_section("Repository")
+    print_header("Repository")
     cols, _ = get_term_size()
-    repo_dir = truncate_text(f"Dir: {SATURN_DIR}", cols-3)
+    repo_dir = truncate_text(f"Dir: {SATURN_DIR}", cols-7)
     try:
-        repo_size = truncate_text(f"Size: {subprocess.run(['du', '-sh', SATURN_DIR], capture_output=True, text=True).stdout.split()[0]}", cols-3)
-        repo_contents = truncate_text(f"Files: {len([f for f in os.walk(SATURN_DIR) if f[2]])}, Dirs: {len([d for d in os.walk(SATURN_DIR) if d[1]])}", cols-3)
-        if is_minimal_mode():
-            print(f"{BLUE}  > {repo_dir}\033[0m")
-            print(f"{BLUE}  > {repo_size}\033[0m")
-            print(f"{BLUE}  > {repo_contents}\033[0m")
-        else:
-            print(f"{BLUE}  ℹ {repo_dir}\033[0m")
-            print(f"{BLUE}  ℹ {repo_size}\033[0m")
-            print(f"{BLUE}  ℹ {repo_contents}\033[0m")
+        repo_size = subprocess.run(['du', '-sh', SATURN_DIR], capture_output=True, text=True).stdout.split()[0]
+        file_count = len([f for r, d, f in os.walk(SATURN_DIR) for f in f])
+        dir_count = len([d for r, d, f in os.walk(SATURN_DIR) for d in d])
+        repo_contents = truncate_text(f"Files: {file_count}, Dirs: {dir_count}", cols-7)
+        print_info(repo_dir)
+        print_info(f"Size: {repo_size}")
+        print_info(repo_contents)
     except Exception as e:
-        status_error(f"Failed to get repository info: {str(e)}")
-    print("\033[0m", end="")
+        print_error(f"Failed to get repository info: {str(e)}")
 
     if create_backup():
         BACKUP_CREATED = True
@@ -704,50 +616,21 @@ def main(args):
 
     print_summary_report(start_time, BACKUP_CREATED)
 
-    render_section("FPGA Programming")
-    cols, _ = get_term_size()
-    launch_text = truncate_text("Launch 'flashwriter' from desktop", cols-3)
-    navigate_text = truncate_text("Navigate: File > Open > ~/github/Saturn/FPGA", cols-3)
-    select_text = truncate_text("Select .BIT file", cols-3)
-    verify_text = truncate_text("Verify 'primary' selected", cols-3)
-    click_text = truncate_text("Click 'Program'", cols-3)
-    if is_minimal_mode():
-        print(f"{GREEN}  + {launch_text}\033[0m")
-        print(f"{GREEN}  + {navigate_text}\033[0m")
-        print(f"{GREEN}  + {select_text}\033[0m")
-        print(f"{GREEN}  + {verify_text}\033[0m")
-        print(f"{GREEN}  + {click_text}\033[0m")
-    else:
-        print(f"{GREEN}  ✔ {launch_text}\033[0m")
-        print(f"{GREEN}  ✔ {navigate_text}\033[0m")
-        print(f"{GREEN}  ✔ {select_text}\033[0m")
-        print(f"{GREEN}  ✔ {verify_text}\033[0m")
-        print(f"{GREEN}  ✔ {click_text}\033[0m")
-    print("\033[0m", end="")
+    print_fpga_instructions()
 
-    render_section("Important Notes")
+    print_header("Important Notes")
     cols, _ = get_term_size()
-    fpga_time_text = truncate_text("FPGA programming takes ~3 minutes", cols-3)
-    power_cycle_text = truncate_text("Power cycle required after", cols-3)
-    terminal_text = truncate_text("Keep terminal open", cols-3)
-    log_text = truncate_text(f"Log: {LOG_FILE}", cols-3)
-    if is_minimal_mode():
-        print(f"{YELLOW}  ! {fpga_time_text}\033[0m")
-        print(f"{YELLOW}  ! {power_cycle_text}\033[0m")
-        print(f"{YELLOW}  ! {terminal_text}\033[0m")
-        print(f"{YELLOW}  ! {log_text}\033[0m")
-    else:
-        print(f"{YELLOW}  ⚠ {fpga_time_text}\033[0m")
-        print(f"{YELLOW}  ⚠ {power_cycle_text}\033[0m")
-        print(f"{YELLOW}  ⚠ {terminal_text}\033[0m")
-        print(f"{YELLOW}  ⚠ {log_text}\033[0m")
-    print("\033[0m", end="")
+    fpga_time_text = truncate_text("FPGA programming takes ~3 minutes", cols-7)
+    power_cycle_text = truncate_text("Power cycle required after", cols-7)
+    terminal_text = truncate_text("Keep terminal open", cols-7)
+    log_text = truncate_text(f"Log: {LOG_FILE}", cols-7)
+    print_warning(fpga_time_text)
+    print_warning(power_cycle_text)
+    print_warning(terminal_text)
+    print_warning(log_text)
 
-    print(f"{CYAN}{BOLD}", end="")
-    render_top_section(f"{SCRIPT_NAME} v{SCRIPT_VERSION} Done")
-    completion_animation()
+    print_header(f"{SCRIPT_NAME} v{SCRIPT_VERSION} Done")
     get_system_stats()
-    print("\033[0m")
 
 if __name__ == "__main__":
     main(sys.argv[1:])
