@@ -50,5 +50,8 @@ echo ""
 echo "Copying Desktop shortcuts"
 echo ""
 echo "##############################################################"
-cp ~/github/Saturn/desktop/* ~/Desktop/
+#
+
+
+
 
