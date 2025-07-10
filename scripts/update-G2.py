@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-# update-G2.py- G2 Update Script
+# update-G2.py - G2 Update Script
 # Automates updating the Saturn G2
-# Version: 2.1
+# Version: 2.4
 # Written by: Jerry DeLong KD4YAL
-# Dependencies: rich (version 14.0.0) and psutil (version 7.0.0) (pyfiglet 1.0.3) are installed in ~/venv.
-# source ~/venv/bin/activate
-# python3 ~/github/Saturn/scripts/update-G2.py
-# deactivate
+# Dependencies: pyfiglet (version 1.0.3) installed in ~/venv
+# Usage: source ~/venv/bin/activate; python3 ~/github/Saturn/scripts/update-G2.py; deactivate
 
 import os
 import sys
@@ -14,6 +12,8 @@ import time
 import subprocess
 import shutil
 import glob
+import argparse
+import logging
 from datetime import datetime
 
 try:
@@ -23,30 +23,28 @@ except ImportError:
 
 # ANSI color codes
 class Colors:
-    NEON_BLUE = '\033[1;38;5;51m'  # Neon blue for headers
-    CYAN = '\033[1;36m'
-    GREEN = '\033[1;32m'
-    YELLOW = '\033[1;33m'
-    RED = '\033[1;31m'
-    BOLD = '\033[1m'
+    RED = '\033[31m'  # Standard red for banner
+    BLUE = '\033[34m'  # Standard blue for subtitle
+    CYAN = '\033[36m'
+    GREEN = '\033[32m'
+    YELLOW = '\033[33m'
     END = '\033[0m'
-    BANNER = '\033[1;31m'  # Red for banner text
-    ACCENT = '\033[38;5;39m'  # Blue for banner subtitle
-    GRADIENT_GREEN = ['\033[38;5;28m', '\033[38;5;34m', '\033[38;5;40m']  # For progress bar
-    NEON_GREEN = '\033[1;38;5;46m'  # For success messages
 
 # Script metadata
 SCRIPT_NAME = "SATURN UPDATE"
-SCRIPT_VERSION = "2.1"
+SCRIPT_VERSION = "2.4"
 SATURN_DIR = os.path.expanduser("~/github/Saturn")
 LOG_DIR = os.path.expanduser("~/saturn-logs")
 LOG_FILE = os.path.join(LOG_DIR, f"saturn-update-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
 BACKUP_DIR = os.path.expanduser(f"~/saturn-backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}")
 REPO_URL = "https://github.com/kd4yal2024/Saturn"
 
-# Flags
-SKIP_GIT = False
-DEBUG = False
+# Setup logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.FileHandler(LOG_FILE)]
+)
 
 # Terminal utilities
 def get_term_size():
@@ -62,64 +60,58 @@ def truncate_text(text, max_len):
     return clean_text
 
 def debug_print(msg):
-    if DEBUG:
+    if args.debug:
         print(f"{Colors.END}[DEBUG] {msg}{Colors.END}")
+        logging.debug(msg)
 
 # UI functions
 def print_header(title):
     cols, _ = get_term_size()
     title = truncate_text(title, cols-12)
-    print(f"\n{Colors.NEON_BLUE}═════ {title} ═════{Colors.END}\n")
+    print(f"\n{Colors.BLUE}═════ {title} ═════{Colors.END}\n")
+    logging.info(f"Header: {title}")
 
 def print_success(msg):
-    print(f"{Colors.NEON_GREEN}✔ {msg}{Colors.END}")
+    print(f"{Colors.GREEN}✔ {msg}{Colors.END}")
+    logging.info(f"Success: {msg}")
 
 def print_warning(msg):
     cols, _ = get_term_size()
     msg = truncate_text(msg, cols-7)
     print(f"{Colors.YELLOW}⚠ {msg}{Colors.END}")
+    logging.warning(msg)
 
 def print_error(msg):
     cols, _ = get_term_size()
     msg = truncate_text(msg, cols-7)
     print(f"{Colors.RED}✗ {msg}{Colors.END}", file=sys.stderr)
+    logging.error(msg)
     sys.exit(1)
 
 def print_info(msg):
     cols, _ = get_term_size()
     msg = truncate_text(msg, cols-7)
     print(f"{Colors.CYAN}ℹ {msg}{Colors.END}")
+    logging.info(msg)
 
 def progress_bar(pid, msg, total_steps):
+    if args.dry_run:
+        print_info(f"[Dry Run] Simulating progress for: {msg}")
+        return 0
     cols, _ = get_term_size()
     max_width = cols - 20
     msg = truncate_text(msg, max_width)
-    bar_width = cols - 20
-    step = 0
-    os.system("tput civis")
-    while pid.poll() is None:
-        step += 1
-        percent = min(100, (step * 100) // total_steps)
-        filled = (bar_width * percent) // 100
-        bar = ""
-        for i in range(filled):
-            bar += f"{Colors.GRADIENT_GREEN[min(2, i//5)]}█"
-        bar += f"{Colors.END}{' ' * (bar_width - filled)}"
-        print(f"\r{Colors.CYAN}[{bar}] {percent:2d}% {msg}{Colors.END}", end="", flush=True)
-        time.sleep(0.5)
-    print(f"\r{Colors.CYAN}[{Colors.GRADIENT_GREEN[2]}{'█' * bar_width}{Colors.END}] 100% Complete{Colors.END}", end="", flush=True)
-    print(f"\033[2K\r{' ' * cols}\033[0m\033[0G", end="", flush=True)
-    os.system("tput cnorm")
+    print(f"{Colors.CYAN}Progress: {msg}{Colors.END}")
     return pid.wait()
 
 def system_scan_effect(items):
     cols, _ = get_term_size()
-    print(f"{Colors.NEON_GREEN}[SYSTEM SCAN INITIATED]{Colors.END}")
+    print(f"{Colors.GREEN}[SYSTEM SCAN INITIATED]{Colors.END}")
     for item in items:
-        print(f"\r{Colors.CYAN}Scanning: {item}...{Colors.END}", end="", flush=True)
+        print(f"{Colors.CYAN}Scanning: {item}...{Colors.END}")
         time.sleep(0.3)
-        print(f"\r{Colors.NEON_GREEN}✓ {item} - OK{' ' * (cols - len(item) - 8)}{Colors.END}")
-    print(f"\n{Colors.NEON_GREEN}[SCAN COMPLETE]{Colors.END}\n")
+        print(f"{Colors.GREEN}✓ {item} - OK{' ' * (cols - len(item) - 8)}{Colors.END}")
+    print(f"\n{Colors.GREEN}[SCAN COMPLETE]{Colors.END}\n")
 
 # Initialize logging
 def init_logging():
@@ -152,29 +144,29 @@ def init_logging():
     else:
         g2_saturn_ascii = "G2 Saturn\n"
     banner = f"""
-{Colors.BANNER}{g2_saturn_ascii.rstrip()}{Colors.END}
-{Colors.ACCENT}{'Update Manager v2.1'.center(cols-2)}{Colors.END}\n\n"""
+{Colors.RED}{g2_saturn_ascii.rstrip()}{Colors.END}
+{Colors.BLUE}{'Update Manager v2.4'.center(cols-2)}{Colors.END}\n\n"""
+    logging.debug(f"Banner raw output: {repr(banner)}")
     print(banner)
     print_info(f"Started: {datetime.now()}")
     print_info(f"Log: {LOG_FILE}")
 
 # Parse command-line arguments
-def parse_args(args):
-    global SKIP_GIT, DEBUG
-    debug_print("Parsing arguments")
-    for arg in args:
-        if arg == "--skip-git":
-            SKIP_GIT = True
-            print_warning("Skipping Git update")
-        if arg == "--debug":
-            DEBUG = True
-            debug_print("Debug mode enabled")
+def parse_args():
+    parser = argparse.ArgumentParser(description="Saturn G2 Update Script")
+    parser.add_argument("--skip-git", action="store_true", help="Skip Git repository update")
+    parser.add_argument("-y", "--yes", action="store_true", help="Auto-confirm backup creation")
+    parser.add_argument("-n", "--no", action="store_true", help="Skip backup creation")
+    parser.add_argument("--dry-run", action="store_true", help="Simulate actions without executing")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    parser.add_argument("--debug", action="store_true", help="Enable debug output")
+    return parser.parse_args()
 
 # Check system requirements
 def check_requirements():
     debug_print("Checking requirements")
     print_header("System Check")
-    print(f"{Colors.NEON_BLUE}⚡ Verifying requirements...{Colors.END}")
+    print(f"{Colors.CYAN}⚡ Verifying requirements...{Colors.END}")
     requirements = ["git", "make", "gcc", "sudo", "rsync"]
     system_scan_effect(requirements)
     missing = [cmd for cmd in requirements if shutil.which(cmd) is None]
@@ -194,13 +186,15 @@ def check_requirements():
 # Check connectivity
 def check_connectivity():
     debug_print("Checking connectivity")
-    if SKIP_GIT:
+    if args.skip_git:
         print_warning("Skipping network check")
         return 0
     print_header("Network Check")
-    print(f"{Colors.NEON_BLUE}⚡ Checking connectivity...{Colors.END}")
+    print(f"{Colors.CYAN}⚡ Checking connectivity...{Colors.END}")
     try:
-        subprocess.run(["ping", "-c", "1", "-W", "2", "github.com"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = subprocess.run(["ping", "-c", "1", "-W", "2", "github.com"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if args.verbose:
+            print_info(f"Ping output: {result.stdout.strip()}")
         print_success("Network verified")
         return 0
     except subprocess.CalledProcessError as e:
@@ -209,12 +203,15 @@ def check_connectivity():
 
 # Update Git repository
 def update_git():
-    if SKIP_GIT:
+    if args.skip_git:
         print_warning("Skipping repository update")
+        return 0
+    if args.dry_run:
+        print_info("[Dry Run] Simulating Git update")
         return 0
     debug_print("Updating Git repository")
     print_header("Git Update")
-    print(f"{Colors.NEON_BLUE}⚡ Updating repository...{Colors.END}")
+    print(f"{Colors.CYAN}⚡ Updating repository...{Colors.END}")
     if not os.path.isdir(SATURN_DIR):
         print_error(f"Cannot access: {SATURN_DIR}")
     os.chdir(SATURN_DIR)
@@ -298,6 +295,8 @@ def update_git():
                 change_count = len(log_result.splitlines())
                 print_info(f"New commit: {new_commit}")
                 print_info(f"Changes: {change_count} commits")
+                if args.verbose:
+                    print_info(f"Git log:\n{log_result}")
             else:
                 print_info("Up to date")
             print_success("Repository updated")
@@ -312,59 +311,80 @@ def update_git():
 def create_backup():
     debug_print("Creating backup")
     print_header("Backup")
-    cols, _ = get_term_size()
-    print(f"{Colors.YELLOW}⚠ Backup? [{Colors.BOLD}Y{Colors.END}/n]: ", end="", flush=True)
-    reply = input("").lower()
-    print(Colors.END)
-    if reply != "n":
-        print(f"{Colors.NEON_BLUE}⚡ Creating backup...{Colors.END}")
-        backup_pattern = os.path.expanduser("~/saturn-backup-*")
-        backup_dirs = sorted(glob.glob(backup_pattern), key=os.path.getmtime, reverse=True)
-        if len(backup_dirs) > 4:
-            for old_backup in backup_dirs[4:]:
-                try:
-                    shutil.rmtree(old_backup)
-                    print_info(f"Deleted old backup: {old_backup}")
-                except Exception as e:
-                    print_warning(f"Failed to delete backup {old_backup}: {str(e)}")
-        print_info(f"Location: {BACKUP_DIR}")
-        try:
-            os.makedirs(BACKUP_DIR, exist_ok=True)
-        except Exception as e:
-            print_error(f"Cannot create backup dir: {str(e)}")
-        try:
-            with open("/tmp/rsync_output", "w") as f:
-                process = subprocess.Popen(["rsync", "-a", f"{SATURN_DIR}/", BACKUP_DIR], stdout=f, stderr=f, text=True)
-                progress_bar(process, "Copying files", 10)
-                if process.returncode != 0:
-                    with open("/tmp/rsync_output", "r") as f:
-                        error_output = f.read().strip()
-                    print_error(f"Backup failed: {error_output}")
-        except Exception as e:
-            print_error(f"Failed to access /tmp/rsync_output: {str(e)}")
-        backup_size = subprocess.run(["du", "-sh", BACKUP_DIR], capture_output=True, text=True).stdout.split()[0]
-        print_info(f"Size: {backup_size}")
-        print_success("Backup created")
+    if args.no:
+        print_warning("Backup skipped via -n flag")
+        return False
+    if args.yes:
+        print_info("Auto-creating backup via -y flag")
+    elif args.dry_run:
+        print_info("[Dry Run] Simulating backup creation")
         return True
     else:
-        print_warning("Backup skipped")
-        return False
+        print(f"{Colors.YELLOW}⚠ Backup? Y/n: {Colors.END}", end="", flush=True)
+        reply = input("").lower()
+        print(Colors.END)
+        if reply == "n":
+            print_warning("Backup skipped")
+            return False
+    print(f"{Colors.CYAN}⚡ Creating backup...{Colors.END}")
+    backup_pattern = os.path.expanduser("~/saturn-backup-*")
+    backup_dirs = sorted(glob.glob(backup_pattern), key=os.path.getmtime, reverse=True)
+    if len(backup_dirs) > 4:
+        for old_backup in backup_dirs[4:]:
+            try:
+                if not args.dry_run:
+                    shutil.rmtree(old_backup)
+                print_info(f"Deleted old backup: {old_backup}")
+            except Exception as e:
+                print_warning(f"Failed to delete backup {old_backup}: {str(e)}")
+    print_info(f"Location: {BACKUP_DIR}")
+    try:
+        if not args.dry_run:
+            os.makedirs(BACKUP_DIR, exist_ok=True)
+    except Exception as e:
+        print_error(f"Cannot create backup dir: {str(e)}")
+    try:
+        with open("/tmp/rsync_output", "w") as f:
+            process = subprocess.Popen(["rsync", "-a", f"{SATURN_DIR}/", BACKUP_DIR], stdout=f, stderr=f, text=True)
+            return_code = progress_bar(process, "Copying files", 10)
+            if return_code != 0:
+                with open("/tmp/rsync_output", "r") as f:
+                    error_output = f.read().strip()
+                print_error(f"Backup failed: {error_output}")
+            if args.verbose:
+                with open("/tmp/rsync_output", "r") as f:
+                    print_info(f"Rsync output: {f.read().strip()}")
+    except Exception as e:
+        print_error(f"Failed to access /tmp/rsync_output: {str(e)}")
+    if args.dry_run:
+        print_info("[Dry Run] Backup created")
+        return True
+    backup_size = subprocess.run(["du", "-sh", BACKUP_DIR], capture_output=True, text=True).stdout.split()[0]
+    print_info(f"Size: {backup_size}")
+    print_success("Backup created")
+    return True
 
 # Install libraries
 def install_libraries():
     debug_print("Installing libraries")
     print_header("Libraries")
-    print(f"{Colors.NEON_BLUE}⚡ Installing libraries...{Colors.END}")
+    if args.dry_run:
+        print_info("[Dry Run] Simulating library installation")
+        return True
+    print(f"{Colors.CYAN}⚡ Installing libraries...{Colors.END}")
     install_script = os.path.join(SATURN_DIR, "scripts", "install-libraries.sh")
     if os.path.isfile(install_script):
         try:
             with open("/tmp/library_output", "w") as f:
                 process = subprocess.Popen(["bash", install_script], stdout=f, stderr=f, text=True)
-                progress_bar(process, "Installing", 10)
-                if process.returncode != 0:
+                return_code = progress_bar(process, "Installing", 10)
+                if return_code != 0:
                     with open("/tmp/library_output", "r") as f:
                         error_output = f.read().strip()
                     print_error(f"Library install failed: {error_output}")
+                if args.verbose:
+                    with open("/tmp/library_output", "r") as f:
+                        print_info(f"Install output: {f.read().strip()}")
             print_success("Libraries installed")
             return True
         except Exception as e:
@@ -377,17 +397,23 @@ def install_libraries():
 def build_p2app():
     debug_print("Building p2app")
     print_header("p2app Build")
-    print(f"{Colors.NEON_BLUE}⚡ Building p2app...{Colors.END}")
+    if args.dry_run:
+        print_info("[Dry Run] Simulating p2app build")
+        return True
+    print(f"{Colors.CYAN}⚡ Building p2app...{Colors.END}")
     build_script = os.path.join(SATURN_DIR, "scripts", "update-p2app.sh")
     if os.path.isfile(build_script):
         try:
             with open("/tmp/p2app_output", "w") as f:
                 process = subprocess.Popen(["bash", build_script], stdout=f, stderr=f, text=True)
-                progress_bar(process, "Building", 10)
-                if process.returncode != 0:
+                return_code = progress_bar(process, "Building", 10)
+                if return_code != 0:
                     with open("/tmp/p2app_output", "r") as f:
                         error_output = f.read().strip()
                     print_error(f"p2app build failed: {error_output}")
+                if args.verbose:
+                    with open("/tmp/p2app_output", "r") as f:
+                        print_info(f"Build output: {f.read().strip()}")
             print_success("p2app built")
             return True
         except Exception as e:
@@ -400,17 +426,23 @@ def build_p2app():
 def build_desktop_apps():
     debug_print("Building desktop apps")
     print_header("Desktop Apps")
-    print(f"{Colors.NEON_BLUE}⚡ Building apps...{Colors.END}")
+    if args.dry_run:
+        print_info("[Dry Run] Simulating desktop app build")
+        return True
+    print(f"{Colors.CYAN}⚡ Building apps...{Colors.END}")
     build_script = os.path.join(SATURN_DIR, "scripts", "update-desktop-apps.sh")
     if os.path.isfile(build_script):
         try:
             with open("/tmp/desktop_output", "w") as f:
                 process = subprocess.Popen(["bash", build_script], stdout=f, stderr=f, text=True)
-                progress_bar(process, "Building", 10)
-                if process.returncode != 0:
+                return_code = progress_bar(process, "Building", 10)
+                if return_code != 0:
                     with open("/tmp/desktop_output", "r") as f:
                         error_output = f.read().strip()
                     print_error(f"App build failed: {error_output}")
+                if args.verbose:
+                    with open("/tmp/desktop_output", "r") as f:
+                        print_info(f"Build output: {f.read().strip()}")
             print_success("Apps built")
             return True
         except Exception as e:
@@ -423,21 +455,28 @@ def build_desktop_apps():
 def install_udev_rules():
     debug_print("Installing udev rules")
     print_header("Udev Rules")
-    print(f"{Colors.NEON_BLUE}⚡ Installing rules...{Colors.END}")
+    if args.dry_run:
+        print_info("[Dry Run] Simulating udev rules installation")
+        return True
+    print(f"{Colors.CYAN}⚡ Installing rules...{Colors.END}")
     rules_dir = os.path.join(SATURN_DIR, "rules")
     install_script = os.path.join(rules_dir, "install-rules.sh")
     if os.path.isfile(install_script):
         if not os.access(install_script, os.X_OK):
             print_warning("Setting permissions")
-            os.chmod(install_script, 0o755)
+            if not args.dry_run:
+                os.chmod(install_script, 0o755)
         try:
             with open("/tmp/udev_output", "w") as f:
                 process = subprocess.Popen(["sudo", "./install-rules.sh"], cwd=rules_dir, stdout=f, stderr=f, text=True)
-                progress_bar(process, "Installing", 10)
-                if process.returncode != 0:
+                return_code = progress_bar(process, "Installing", 10)
+                if return_code != 0:
                     with open("/tmp/udev_output", "r") as f:
                         error_output = f.read().strip()
                     print_error(f"Udev install failed: {error_output}")
+                if args.verbose:
+                    with open("/tmp/udev_output", "r") as f:
+                        print_info(f"Udev output: {f.read().strip()}")
             print_success("Rules installed")
             return True
         except Exception as e:
@@ -450,7 +489,10 @@ def install_udev_rules():
 def install_desktop_icons():
     debug_print("Installing desktop icons")
     print_header("Desktop Icons")
-    print(f"{Colors.NEON_BLUE}⚡ Installing shortcuts...{Colors.END}")
+    if args.dry_run:
+        print_info("[Dry Run] Simulating desktop icon installation")
+        return True
+    print(f"{Colors.CYAN}⚡ Installing shortcuts...{Colors.END}")
     desktop_dir = os.path.join(SATURN_DIR, "desktop")
     home_desktop = os.path.expanduser("~/Desktop")
     if not os.path.isdir(desktop_dir):
@@ -466,8 +508,9 @@ def install_desktop_icons():
     try:
         for file in desktop_files:
             dest_file = os.path.join(home_desktop, os.path.basename(file))
-            shutil.copy2(file, dest_file)
-            os.chmod(dest_file, 0o755)
+            if not args.dry_run:
+                shutil.copy2(file, dest_file)
+                os.chmod(dest_file, 0o755)
         print_success("Shortcuts installed")
         return True
     except Exception as e:
@@ -477,17 +520,23 @@ def install_desktop_icons():
 def check_fpga_binary():
     debug_print("Checking FPGA binary")
     print_header("FPGA Binary")
-    print(f"{Colors.NEON_BLUE}⚡ Verifying binary...{Colors.END}")
+    if args.dry_run:
+        print_info("[Dry Run] Simulating FPGA binary check")
+        return True
+    print(f"{Colors.CYAN}⚡ Verifying binary...{Colors.END}")
     check_script = os.path.join(SATURN_DIR, "scripts", "find-bin.sh")
     if os.path.isfile(check_script):
         try:
             with open("/tmp/fpga_output", "w") as f:
                 process = subprocess.Popen(["bash", check_script], stdout=f, stderr=f, text=True)
-                progress_bar(process, "Verifying", 10)
-                if process.returncode != 0:
+                return_code = progress_bar(process, "Verifying", 10)
+                if return_code != 0:
                     with open("/tmp/fpga_output", "r") as f:
                         error_output = f.read().strip()
                     print_error(f"FPGA check failed: {error_output}")
+                if args.verbose:
+                    with open("/tmp/fpga_output", "r") as f:
+                        print_info(f"FPGA output: {f.read().strip()}")
             print_success("Binary verified")
             return True
         except Exception as e:
@@ -531,15 +580,14 @@ def print_fpga_instructions():
 def get_system_stats():
     debug_print("Getting system stats")
     try:
-        # Parse 'top' output more robustly
         top_output = subprocess.run(["top", "-bn1"], capture_output=True, text=True).stdout.splitlines()
         cpu = 0
         for line in top_output:
             if line.strip().startswith("%Cpu"):
-                cpu = float(line.split()[1])  # Get %CPU from %Cpu(s) line
+                cpu = float(line.split()[1])
                 break
         mem = subprocess.run(["free", "-m"], capture_output=True, text=True).stdout.splitlines()[1].split()
-        mem_used = mem[2] + "/" + mem[1] + "MB"
+        mem_used = f"{mem[2]}/{mem[1]}MB"
         disk_usage = shutil.disk_usage(SATURN_DIR)
         disk = f"{disk_usage.used / 1024**3:.1f}G/{disk_usage.total / 1024**3:.1f}G"
         cols, _ = get_term_size()
@@ -549,13 +597,14 @@ def get_system_stats():
         print_warning(f"Failed to retrieve system stats: {str(e)}")
 
 # Main execution
-def main(args):
+def main():
+    global args
+    args = parse_args()
     start_time = time.time()
     BACKUP_CREATED = False
 
     debug_print("Starting main execution")
     init_logging()
-    parse_args(args)
 
     print_header("System Info")
     cols, _ = get_term_size()
@@ -603,8 +652,6 @@ def main(args):
 
     if create_backup():
         BACKUP_CREATED = True
-    else:
-        BACKUP_CREATED = False
 
     update_git()
     install_libraries()
@@ -633,5 +680,5 @@ def main(args):
     get_system_stats()
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
     os.chdir(os.path.expanduser("~"))

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Saturn Update Manager
+Comment=Web-based GUI to manage updates for update-G2.py and update-pihpsdr.py
+Exec=bash -c ". %h/venv/bin/activate && export DISPLAY=:0 && python3 %h/github/Saturn/scripts/saturn_update_manager.py >> %h/saturn-logs/saturn-update-manager.log 2>&1 & sleep 2; chromium-browser http://localhost:5000"
+Icon=system-software-update
+Terminal=false
+Categories=System;Utility;
