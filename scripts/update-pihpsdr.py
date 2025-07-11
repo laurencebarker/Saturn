@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # update-pihpsdr.py - piHPSDR Update Script
 # Automates cloning, updating, and building the pihpsdr repository from ~/github/Saturn/scripts
-# Version: 1.6
-# Written by: Jerry DeLong KD4YAL
-# Dependencies: psutil (version 7.0.0) in ~/venv, optional pyfiglet
+# Version: 1.7
+# Written by: Jerry DeLong KD4YAL,
+# Dependencies: psutil (version 7.0.0) in ~/venv, optional pyfiglet, urllib.error
 # Usage: source ~/venv/bin/activate; python3 ~/github/Saturn/scripts/update-pihpsdr.py; deactivate
 
 import os
@@ -18,6 +18,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 import psutil
+import urllib.error
 
 try:
     from pyfiglet import Figlet
@@ -35,7 +36,7 @@ class Colors:
 
 # Script metadata
 SCRIPT_NAME = "piHPSDR Update"
-SCRIPT_VERSION = "1.6"
+SCRIPT_VERSION = "1.7"
 SCRIPT_START_TIME = datetime.now()
 TIMESTAMP = SCRIPT_START_TIME.strftime('%Y%m%d-%H%M%S')
 PIHPSDR_DIR = Path.home() / "github" / "pihpsdr"
@@ -144,7 +145,7 @@ def init_logging(verbose=False):
         pihpsdr_ascii = "piHPSDR\n"
     banner = f"""
 {Colors.RED}{pihpsdr_ascii.rstrip()}{Colors.END}
-{Colors.BLUE}{'Update Manager v1.6'.center(cols-2)}{Colors.END}\n\n"""
+{Colors.BLUE}{'Update Manager v1.7'.center(cols-2)}{Colors.END}\n\n"""
     logging.debug(f"Banner raw output: {repr(banner)}")
     print(banner)
     print_info(f"Started: {SCRIPT_START_TIME}")
@@ -158,8 +159,8 @@ def parse_args():
     parser.add_argument("-n", "--no", action="store_true", help="Skip backup creation")
     parser.add_argument("--no-gpio", action="store_true", help="Disable GPIO for Radioberry")
     parser.add_argument("--dry-run", action="store_true", help="Simulate actions without executing")
-    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
-    parser.add_argument("--show-compile", action="store_true", help="Show compile output")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output for all commands")
+    parser.add_argument("--show-compile", action="store_true", help="Show detailed compile output")
     parser.add_argument("--debug", action="store_true", help="Enable debug output")
     args = parser.parse_args()
     if args.yes and args.no:
@@ -200,17 +201,23 @@ def check_connectivity():
         return 0
     print_header("Network Check")
     print(f"{Colors.CYAN}⚡ Checking connectivity...{Colors.END}")
-    try:
-        result = subprocess.run(["ping", "-c", "1", "-W", "2", "github.com"], check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        rtt_match = re.search(r"time=([\d.]+)\s*ms", result.stdout)
-        rtt = float(rtt_match.group(1)) if rtt_match else None
-        if args.verbose and rtt:
-            print_info(f"RTT: {rtt:.3f} ms")
-        print_success("Network verified")
-        return 0
-    except subprocess.CalledProcessError as e:
-        print_warning(f"Cannot reach GitHub: {e.output.strip()}")
-        return 1
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
+        try:
+            result = subprocess.run(["ping", "-c", "1", "-W", "2", "github.com"], check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            rtt_match = re.search(r"time=([\d.]+)\s*ms", result.stdout)
+            rtt = float(rtt_match.group(1)) if rtt_match else None
+            if args.verbose and rtt:
+                print_info(f"RTT: {rtt:.3f} ms")
+            print_success("Network verified")
+            return 0
+        except subprocess.CalledProcessError as e:
+            if attempt < max_attempts:
+                print_warning(f"Cannot reach GitHub (attempt {attempt}/{max_attempts}): {e.output.strip()}. Retrying...")
+                time.sleep(2)
+            else:
+                print_warning(f"Cannot reach GitHub after {max_attempts} attempts: {e.output.strip()}")
+                return 1
 
 # Create backup
 def create_backup():
@@ -296,16 +303,31 @@ def update_git():
             if subprocess.run(["git", "diff-index", "--quiet", "HEAD", "--"]).returncode != 0:
                 print_warning("Stashing changes")
                 subprocess.run(["git", "stash", "push", "-m", f"Auto-stash {datetime.now()}"], check=True)
-            with open("/tmp/git_output", "w") as f:
-                process = subprocess.Popen(["git", "pull", "origin", DEFAULT_BRANCH], stdout=f, stderr=f, text=True)
-                return_code = progress_bar(process, "Pulling changes", 50)
-                if return_code != 0:
-                    with open("/tmp/git_output", "r") as f:
-                        error_output = f.read().strip()
-                    print_error(f"Git update failed: {error_output}")
-            if args.verbose:
-                with open("/tmp/git_output", "r") as f:
-                    print_info(f"Git output: {f.read().strip()}")
+            max_attempts = 3
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    with open("/tmp/git_output", "w") as f:
+                        process = subprocess.Popen(["git", "pull", "origin", DEFAULT_BRANCH], stdout=f, stderr=f, text=True)
+                        return_code = progress_bar(process, "Pulling changes", 50)
+                        if return_code == 0:
+                            break
+                        with open("/tmp/git_output", "r") as f:
+                            error_output = f.read().strip()
+                        if attempt < max_attempts:
+                            print_warning(f"Git update failed (attempt {attempt}/{max_attempts}): {error_output}. Retrying...")
+                            time.sleep(2)
+                        else:
+                            print_error(f"Git update failed after {max_attempts} attempts: {error_output}")
+                    if args.verbose:
+                        with open("/tmp/git_output", "r") as f:
+                            print_info(f"Git output: {f.read().strip()}")
+                    break
+                except subprocess.CalledProcessError as e:
+                    if attempt < max_attempts:
+                        print_warning(f"Git update failed (attempt {attempt}/{max_attempts}): {e.output.strip()}. Retrying...")
+                        time.sleep(2)
+                    else:
+                        print_error(f"Git update failed after {max_attempts} attempts: {e.output.strip()}")
             new_commit = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], text=True).strip()
             if current_commit != new_commit:
                 changes = subprocess.check_output(["git", "log", "--oneline", f"{current_commit}..HEAD"], text=True).strip().splitlines()
@@ -320,23 +342,35 @@ def update_git():
             print_error(f"Git update failed: {e.output.strip()}")
     else:
         print(f"{Colors.CYAN}⚡ Cloning repository...{Colors.END}")
-        try:
-            with open("/tmp/git_output", "w") as f:
-                process = subprocess.Popen(["git", "clone", REPO_URL, str(PIHPSDR_DIR)], stdout=f, stderr=f, text=True)
-                return_code = progress_bar(process, "Cloning repository", 50)
-                if return_code != 0:
+        max_attempts = 3
+        for attempt in range(1, max_attempts + 1):
+            try:
+                with open("/tmp/git_output", "w") as f:
+                    process = subprocess.Popen(["git", "clone", REPO_URL, str(PIHPSDR_DIR)], stdout=f, stderr=f, text=True)
+                    return_code = progress_bar(process, "Cloning repository", 50)
+                    if return_code == 0:
+                        break
                     with open("/tmp/git_output", "r") as f:
                         error_output = f.read().strip()
-                    print_error(f"Git clone failed: {error_output}")
-            if args.verbose:
-                with open("/tmp/git_output", "r") as f:
-                    print_info(f"Git output: {f.read().strip()}")
-            os.chdir(PIHPSDR_DIR)
-            new_commit = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], text=True).strip()
-            print_info(f"Commit: {new_commit}")
-            print_success("Repository cloned")
-        except subprocess.CalledProcessError as e:
-            print_error(f"Git clone failed: {e.output.strip()}")
+                    if attempt < max_attempts:
+                        print_warning(f"Git clone failed (attempt {attempt}/{max_attempts}): {error_output}. Retrying...")
+                        time.sleep(2)
+                    else:
+                        print_error(f"Git clone failed after {max_attempts} attempts: {error_output}")
+                if args.verbose:
+                    with open("/tmp/git_output", "r") as f:
+                        print_info(f"Git output: {f.read().strip()}")
+                os.chdir(PIHPSDR_DIR)
+                new_commit = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], text=True).strip()
+                print_info(f"Commit: {new_commit}")
+                print_success("Repository cloned")
+                break
+            except subprocess.CalledProcessError as e:
+                if attempt < max_attempts:
+                    print_warning(f"Git clone failed (attempt {attempt}/{max_attempts}): {e.output.strip()}. Retrying...")
+                    time.sleep(2)
+                else:
+                    print_error(f"Git clone failed after {max_attempts} attempts: {e.output.strip()}")
 
 # Build piHPSDR
 def build_pihpsdr():
@@ -353,7 +387,7 @@ def build_pihpsdr():
                     with open("/tmp/make_clean_output", "r") as f:
                         error_output = f.read().strip()
                     print_error(f"make clean failed: {error_output}")
-            if args.show_compile:
+            if args.verbose or args.show_compile:
                 with open("/tmp/make_clean_output", "r") as f:
                     print_info(f"Clean output: {f.read().strip()}")
         else:
@@ -363,20 +397,35 @@ def build_pihpsdr():
         print(f"{Colors.CYAN}⚡ Installing dependencies...{Colors.END}")
         libinstall_script = PIHPSDR_DIR / "LINUX" / "libinstall.sh"
         if libinstall_script.exists():
-            if not args.dry_run:
-                with open("/tmp/libinstall_output", "w") as f:
-                    process = subprocess.Popen(["bash", str(libinstall_script)], stdout=f, stderr=f, text=True)
-                    return_code = progress_bar(process, "Installing dependencies", 50)
-                    if return_code != 0:
-                        with open("/tmp/libinstall_output", "r") as f:
-                            error_output = f.read().strip()
-                        print_error(f"Dependency installation failed: {error_output}")
-                if args.show_compile:
-                    with open("/tmp/libinstall_output", "r") as f:
-                        print_info(f"Dependency output: {f.read().strip()}")
-            else:
-                print_info(f"[Dry Run] Simulating {libinstall_script}")
-            print_success("Dependencies installed")
+            max_attempts = 3
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    if not args.dry_run:
+                        with open("/tmp/libinstall_output", "w") as f:
+                            process = subprocess.Popen(["bash", str(libinstall_script)], stdout=f, stderr=f, text=True)
+                            return_code = progress_bar(process, "Installing dependencies", 50)
+                            if return_code == 0:
+                                break
+                            with open("/tmp/libinstall_output", "r") as f:
+                                error_output = f.read().strip()
+                            if attempt < max_attempts:
+                                print_warning(f"Dependency installation failed (attempt {attempt}/{max_attempts}): {error_output}. Retrying...")
+                                time.sleep(2)
+                            else:
+                                print_error(f"Dependency installation failed after {max_attempts} attempts: {error_output}")
+                        if args.verbose or args.show_compile:
+                            with open("/tmp/libinstall_output", "r") as f:
+                                print_info(f"Dependency output: {f.read().strip()}")
+                    else:
+                        print_info(f"[Dry Run] Simulating {libinstall_script}")
+                    print_success("Dependencies installed")
+                    break
+                except (subprocess.CalledProcessError, urllib.error.URLError) as e:
+                    if attempt < max_attempts:
+                        print_warning(f"Dependency installation failed (attempt {attempt}/{max_attempts}): {str(e)}. Retrying...")
+                        time.sleep(2)
+                    else:
+                        print_error(f"Dependency installation failed after {max_attempts} attempts: {str(e)}")
         else:
             print_error(f"No libinstall.sh script found at {libinstall_script}")
 
@@ -400,7 +449,7 @@ def build_pihpsdr():
                         with open("/tmp/make_output", "r") as f:
                             error_output = f.read().strip()
                         print_error(f"piHPSDR build failed: {error_output}")
-                if args.show_compile:
+                if args.verbose or args.show_compile:
                     with open("/tmp/make_output", "r") as f:
                         print_info(f"Build output: {f.read().strip()}")
             else:
@@ -414,7 +463,7 @@ def build_pihpsdr():
                         with open("/tmp/make_output", "r") as f:
                             error_output = f.read().strip()
                         print_error(f"piHPSDR build failed: {error_output}")
-                if args.show_compile:
+                if args.verbose or args.show_compile:
                     with open("/tmp/make_output", "r") as f:
                         print_info(f"Build output: {f.read().strip()}")
             else:
@@ -475,9 +524,9 @@ def main():
     if args.dry_run:
         print_warning("Dry run enabled")
     if args.verbose:
-        print_info("Verbose output enabled")
+        print_info("Verbose output enabled for all commands")
     if args.show_compile:
-        print_info("Compile output enabled")
+        print_info("Detailed compile output enabled")
     if args.debug:
         print_info("Debug output enabled")
 
