@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # update-pihpsdr.py - piHPSDR Update Script
 # Automates cloning, updating, and building the pihpsdr repository from ~/github/Saturn/scripts
-# Version: 1.7
-# Written by: Jerry DeLong KD4YAL,
+# Version: 1.10
+# Written by: Jerry DeLong KD4YAL
+# Changes: Removed --show-compile flag, merged into --verbose, fixed make process output to display in CLI,
+#          changed make output color to white in CLI with --verbose, updated version to 1.10
 # Dependencies: psutil (version 7.0.0) in ~/venv, optional pyfiglet, urllib.error
 # Usage: source ~/venv/bin/activate; python3 ~/github/Saturn/scripts/update-pihpsdr.py; deactivate
 
@@ -27,16 +29,17 @@ except ImportError:
 
 # ANSI color codes
 class Colors:
-    RED = '\033[31m'  # Standard red for banner
-    BLUE = '\033[34m'  # Standard blue for subtitle
-    CYAN = '\033[36m'
-    GREEN = '\033[32m'
-    YELLOW = '\033[33m'
+    RED = '\033[31m'    # Standard red for banner
+    BLUE = '\033[34m'   # Standard blue for subtitle
+    CYAN = '\033[36m'   # Cyan for info messages
+    GREEN = '\033[32m'  # Green for success
+    YELLOW = '\033[33m' # Yellow for warnings
+    WHITE = '\033[37m'  # White for build output
     END = '\033[0m'
 
 # Script metadata
 SCRIPT_NAME = "piHPSDR Update"
-SCRIPT_VERSION = "1.7"
+SCRIPT_VERSION = "1.10"
 SCRIPT_START_TIME = datetime.now()
 TIMESTAMP = SCRIPT_START_TIME.strftime('%Y%m%d-%H%M%S')
 PIHPSDR_DIR = Path.home() / "github" / "pihpsdr"
@@ -97,6 +100,12 @@ def print_info(msg):
     print(f"{Colors.CYAN}ℹ {msg}{Colors.END}")
     logging.info(msg)
 
+def print_build_output(msg):
+    cols, _ = get_term_size()
+    msg = truncate_text(msg, cols-7)
+    print(f"{Colors.WHITE}{msg}{Colors.END}")
+    logging.info(msg)
+
 def progress_bar(pid, msg, total_steps):
     if args.dry_run:
         print_info(f"[Dry Run] Simulating progress for: {msg}")
@@ -145,7 +154,7 @@ def init_logging(verbose=False):
         pihpsdr_ascii = "piHPSDR\n"
     banner = f"""
 {Colors.RED}{pihpsdr_ascii.rstrip()}{Colors.END}
-{Colors.BLUE}{'Update Manager v1.7'.center(cols-2)}{Colors.END}\n\n"""
+{Colors.BLUE}{'Update Manager v1.10'.center(cols-2)}{Colors.END}\n\n"""
     logging.debug(f"Banner raw output: {repr(banner)}")
     print(banner)
     print_info(f"Started: {SCRIPT_START_TIME}")
@@ -159,8 +168,7 @@ def parse_args():
     parser.add_argument("-n", "--no", action="store_true", help="Skip backup creation")
     parser.add_argument("--no-gpio", action="store_true", help="Disable GPIO for Radioberry")
     parser.add_argument("--dry-run", action="store_true", help="Simulate actions without executing")
-    parser.add_argument("--verbose", action="store_true", help="Enable verbose output for all commands")
-    parser.add_argument("--show-compile", action="store_true", help="Show detailed compile output")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output for all commands, including detailed compile output")
     parser.add_argument("--debug", action="store_true", help="Enable debug output")
     args = parser.parse_args()
     if args.yes and args.no:
@@ -207,7 +215,7 @@ def check_connectivity():
             result = subprocess.run(["ping", "-c", "1", "-W", "2", "github.com"], check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
             rtt_match = re.search(r"time=([\d.]+)\s*ms", result.stdout)
             rtt = float(rtt_match.group(1)) if rtt_match else None
-            if args.verbose and rtt:
+            if args.verbose:
                 print_info(f"RTT: {rtt:.3f} ms")
             print_success("Network verified")
             return 0
@@ -380,16 +388,23 @@ def build_pihpsdr():
         os.chdir(PIHPSDR_DIR)
         print(f"{Colors.CYAN}⚡ Cleaning build...{Colors.END}")
         if not args.dry_run:
-            with open("/tmp/make_clean_output", "w") as f:
-                process = subprocess.Popen(["make", "clean"], stdout=f, stderr=f, text=True)
-                return_code = progress_bar(process, "Cleaning build", 50)
+            if args.verbose:
+                process = subprocess.Popen(["make", "clean"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
+                while process.poll() is None:
+                    line = process.stdout.readline().strip()
+                    if line:
+                        print_build_output(line)
+                return_code = process.wait()
                 if return_code != 0:
-                    with open("/tmp/make_clean_output", "r") as f:
-                        error_output = f.read().strip()
-                    print_error(f"make clean failed: {error_output}")
-            if args.verbose or args.show_compile:
-                with open("/tmp/make_clean_output", "r") as f:
-                    print_info(f"Clean output: {f.read().strip()}")
+                    print_error(f"make clean failed: Check log for details")
+            else:
+                with open("/tmp/make_clean_output", "w") as f:
+                    process = subprocess.Popen(["make", "clean"], stdout=f, stderr=f, text=True)
+                    return_code = progress_bar(process, "Cleaning build", 50)
+                    if return_code != 0:
+                        with open("/tmp/make_clean_output", "r") as f:
+                            error_output = f.read().strip()
+                        print_error(f"make clean failed: {error_output}")
         else:
             print_info("[Dry Run] Simulating make clean")
         print_success("Build cleaned")
@@ -401,21 +416,23 @@ def build_pihpsdr():
             for attempt in range(1, max_attempts + 1):
                 try:
                     if not args.dry_run:
-                        with open("/tmp/libinstall_output", "w") as f:
-                            process = subprocess.Popen(["bash", str(libinstall_script)], stdout=f, stderr=f, text=True)
-                            return_code = progress_bar(process, "Installing dependencies", 50)
-                            if return_code == 0:
-                                break
-                            with open("/tmp/libinstall_output", "r") as f:
-                                error_output = f.read().strip()
-                            if attempt < max_attempts:
-                                print_warning(f"Dependency installation failed (attempt {attempt}/{max_attempts}): {error_output}. Retrying...")
-                                time.sleep(2)
-                            else:
-                                print_error(f"Dependency installation failed after {max_attempts} attempts: {error_output}")
-                        if args.verbose or args.show_compile:
-                            with open("/tmp/libinstall_output", "r") as f:
-                                print_info(f"Dependency output: {f.read().strip()}")
+                        if args.verbose:
+                            process = subprocess.Popen(["bash", str(libinstall_script)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
+                            while process.poll() is None:
+                                line = process.stdout.readline().strip()
+                                if line:
+                                    print_build_output(line)
+                            return_code = process.wait()
+                            if return_code != 0:
+                                print_error(f"Dependency installation failed: Check log for details")
+                        else:
+                            with open("/tmp/libinstall_output", "w") as f:
+                                process = subprocess.Popen(["bash", str(libinstall_script)], stdout=f, stderr=f, text=True)
+                                return_code = progress_bar(process, "Installing dependencies", 50)
+                                if return_code != 0:
+                                    with open("/tmp/libinstall_output", "r") as f:
+                                        error_output = f.read().strip()
+                                    print_error(f"Dependency installation failed: {error_output}")
                     else:
                         print_info(f"[Dry Run] Simulating {libinstall_script}")
                     print_success("Dependencies installed")
@@ -442,30 +459,44 @@ def build_pihpsdr():
                         f.write(content)
                 except Exception as e:
                     print_error(f"Failed to modify Makefile for no-gpio: {str(e)}")
-                with open("/tmp/make_output", "w") as f:
-                    process = subprocess.Popen(["make"], stdout=f, stderr=f, text=True)
-                    return_code = progress_bar(process, "Building piHPSDR", 50)
+                if args.verbose:
+                    process = subprocess.Popen(["make"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
+                    while process.poll() is None:
+                        line = process.stdout.readline().strip()
+                        if line:
+                            print_build_output(line)
+                    return_code = process.wait()
                     if return_code != 0:
-                        with open("/tmp/make_output", "r") as f:
-                            error_output = f.read().strip()
-                        print_error(f"piHPSDR build failed: {error_output}")
-                if args.verbose or args.show_compile:
-                    with open("/tmp/make_output", "r") as f:
-                        print_info(f"Build output: {f.read().strip()}")
+                        print_error(f"piHPSDR build failed: Check log for details")
+                else:
+                    with open("/tmp/make_output", "w") as f:
+                        process = subprocess.Popen(["make"], stdout=f, stderr=f, text=True)
+                        return_code = progress_bar(process, "Building piHPSDR", 50)
+                        if return_code != 0:
+                            with open("/tmp/make_output", "r") as f:
+                                error_output = f.read().strip()
+                            print_error(f"piHPSDR build failed: {error_output}")
             else:
                 print_info("[Dry Run] Simulating build with GPIO disabled")
         else:
             if not args.dry_run:
-                with open("/tmp/make_output", "w") as f:
-                    process = subprocess.Popen(["make"], stdout=f, stderr=f, text=True)
-                    return_code = progress_bar(process, "Building piHPSDR", 50)
+                if args.verbose:
+                    process = subprocess.Popen(["make"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
+                    while process.poll() is None:
+                        line = process.stdout.readline().strip()
+                        if line:
+                            print_build_output(line)
+                    return_code = process.wait()
                     if return_code != 0:
-                        with open("/tmp/make_output", "r") as f:
-                            error_output = f.read().strip()
-                        print_error(f"piHPSDR build failed: {error_output}")
-                if args.verbose or args.show_compile:
-                    with open("/tmp/make_output", "r") as f:
-                        print_info(f"Build output: {f.read().strip()}")
+                        print_error(f"piHPSDR build failed: Check log for details")
+                else:
+                    with open("/tmp/make_output", "w") as f:
+                        process = subprocess.Popen(["make"], stdout=f, stderr=f, text=True)
+                        return_code = progress_bar(process, "Building piHPSDR", 50)
+                        if return_code != 0:
+                            with open("/tmp/make_output", "r") as f:
+                                error_output = f.read().strip()
+                            print_error(f"piHPSDR build failed: {error_output}")
             else:
                 print_info("[Dry Run] Simulating piHPSDR build")
         print_success("piHPSDR built")
@@ -524,9 +555,7 @@ def main():
     if args.dry_run:
         print_warning("Dry run enabled")
     if args.verbose:
-        print_info("Verbose output enabled for all commands")
-    if args.show_compile:
-        print_info("Detailed compile output enabled")
+        print_info("Verbose output enabled for all commands, including detailed compile output")
     if args.debug:
         print_info("Debug output enabled")
 
