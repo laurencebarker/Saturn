@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # update-G2.py - G2 Update Script
 # Automates updating the Saturn G2
-# Version: 2.5
+# Version: 2.7
 # Written by: Jerry DeLong KD4YAL
-# Changes: Added white output for build script processes with --verbose, updated version to 2.5
+# Changes: Added white output for build script processes with --verbose,
+#          added listing of all conflicting files when local changes detected,
+#          modified to automatically stash changes and show stash reference,
+#          updated version to 2.7
 # Dependencies: pyfiglet (version 1.0.3) installed in ~/venv
 # Usage: source ~/venv/bin/activate; python3 ~/github/Saturn/scripts/update-G2.py; deactivate
 
@@ -34,7 +37,7 @@ class Colors:
 
 # Script metadata
 SCRIPT_NAME = "SATURN UPDATE"
-SCRIPT_VERSION = "2.5"
+SCRIPT_VERSION = "2.7"
 SATURN_DIR = os.path.expanduser("~/github/Saturn")
 LOG_DIR = os.path.expanduser("~/saturn-logs")
 LOG_FILE = os.path.join(LOG_DIR, f"saturn-update-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
@@ -153,7 +156,7 @@ def init_logging():
         g2_saturn_ascii = "G2 Saturn\n"
     banner = f"""
 {Colors.RED}{g2_saturn_ascii.rstrip()}{Colors.END}
-{Colors.BLUE}{'Update Manager v2.5'.center(cols-2)}{Colors.END}\n\n"""
+{Colors.BLUE}{'Update Manager v2.7'.center(cols-2)}{Colors.END}\n\n"""
     logging.debug(f"Banner raw output: {repr(banner)}")
     print(banner)
     print_info(f"Started: {datetime.now()}")
@@ -254,32 +257,33 @@ def update_git():
                 subprocess.run(["git", "checkout", target_branch], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         print_info(f"Branch: {target_branch}")
         diff_result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
-        untracked_files = [line.strip().split()[1] for line in diff_result.stdout.splitlines() if line.startswith("??")]
         if diff_result.stdout:
             print_warning("Local changes detected")
-            if untracked_files:
-                print_warning(f"Untracked files: {', '.join(untracked_files)}")
-            print(f"{Colors.YELLOW}⚠ Stash changes or reset to remote? [S/r/n]: {Colors.END}", end="", flush=True)
-            reply = input("").lower()
-            print(Colors.END)
-            if reply == "r":
-                print_warning("Resetting to remote state (discards local changes)")
-                try:
-                    subprocess.run(["git", "reset", "--hard", f"origin/{target_branch}"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                    subprocess.run(["git", "clean", "-fd"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                    print_info(f"Reset to origin/{target_branch}")
-                except subprocess.CalledProcessError as e:
-                    print_error(f"Reset failed: {e.stderr.strip()}")
-            elif reply != "n":
-                print_warning("Stashing local changes (including untracked files)")
-                try:
-                    subprocess.run(["git", "stash", "push", "--include-untracked", "-m", f"Auto-stash {datetime.now()}"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                    print_info("Changes stashed successfully")
-                except subprocess.CalledProcessError as e:
-                    print_error(f"Stash failed: {e.stderr.strip()}")
-            else:
-                print_warning("Skipping Git update due to local changes")
-                return 0
+            # Collect all conflicting files (modified, staged, untracked)
+            conflict_files = []
+            for line in diff_result.stdout.splitlines():
+                status, file_path = line.strip().split(maxsplit=1)
+                if status == '??':
+                    conflict_files.append(f"Untracked: {file_path}")
+                elif status in ('M', 'A', 'D', 'R', 'C'):
+                    conflict_files.append(f"Modified: {file_path}")
+                elif status.startswith((' M', 'A ', 'D ', 'R ', 'C ')):
+                    conflict_files.append(f"Staged: {file_path}")
+            if conflict_files:
+                print_warning(f"Conflicting files: {', '.join(conflict_files)}")
+            print_warning("Automatically stashing local changes (including untracked files)")
+            try:
+                stash_result = subprocess.run(
+                    ["git", "stash", "push", "--include-untracked", "-m", f"Auto-stash {datetime.now()}"],
+                    check=True, capture_output=True, text=True
+                )
+                stash_list = subprocess.run(
+                    ["git", "stash", "list"], capture_output=True, text=True
+                ).stdout.splitlines()
+                stash_ref = stash_list[0].split(":")[0] if stash_list else "unknown"
+                print_info(f"Changes stashed in {stash_ref}")
+            except subprocess.CalledProcessError as e:
+                print_error(f"Stash failed: {e.stderr.strip()}")
         try:
             current_commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
             print_info(f"Commit: {current_commit}")
