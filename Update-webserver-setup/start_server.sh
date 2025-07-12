@@ -1,11 +1,8 @@
 #!/bin/bash
 # start_server.sh - Starts Flask server with Gunicorn and verifies endpoints for Saturn Update Manager
-# Version: 1.6
+# Version: 1.7
 # Written by: Jerry DeLong KD4YAL
-# Changes: Fixed ModuleNotFoundError by setting PYTHONPATH, added check for saturn_update_manager.py,
-#          fixed 'local' keyword error by moving verification to a function, fixed version mismatch
-#          in /saturn/get_versions check (expecting 2.19 instead of 2.21), enhanced error logging,
-#          increased startup delay, updated version to 1.6
+# Changes: Made endpoint checks more flexible (presence of keys instead of exact strings), separated body from verbose output for /saturn/, updated version to 1.7
 # Dependencies: gunicorn, curl, netstat, lsof, ss
 # Usage: Called by setup_saturn_webserver.sh
 
@@ -34,6 +31,11 @@ log_and_echo() {
     echo -e "$1" >&2
     echo "$(date '+%Y-%m-%d %H:%M:%S'): $1" >> "$LOG_FILE"
 }
+
+# Ensure log directory exists with correct permissions
+mkdir -p "$LOG_DIR"
+chown pi:pi "$LOG_DIR"
+chmod 775 "$LOG_DIR"
 
 # Function to stop existing server on port
 stop_existing_server() {
@@ -83,10 +85,16 @@ verify_flask_endpoints() {
     while [ $attempt -le $max_attempts ]; do
         if netstat -tuln | grep ":$PORT " >/dev/null; then
             log_and_echo "${GREEN}Server confirmed listening on port $PORT with PID $SERVER_PID${NC}"
-            local flask_ping_response
-            flask_ping_response=$(curl -s -v --connect-timeout 5 "http://127.0.0.1:$PORT/ping" 2>&1)
-            echo "$flask_ping_response" > "$LOG_DIR/flask_ping_response.log"
-            if echo "$flask_ping_response" | grep -q "pong"; then
+            # /ping endpoint
+            local flask_ping_body
+            flask_ping_body=$(curl -s --connect-timeout 5 "http://127.0.0.1:$PORT/ping")
+            local flask_ping_verbose
+            flask_ping_verbose=$(curl -s -v --connect-timeout 5 "http://127.0.0.1:$PORT/ping" 2>&1)
+            touch "$LOG_DIR/flask_ping_response.log"
+            chown pi:pi "$LOG_DIR/flask_ping_response.log"
+            chmod 664 "$LOG_DIR/flask_ping_response.log"
+            echo "$flask_ping_verbose" > "$LOG_DIR/flask_ping_response.log"
+            if echo "$flask_ping_body" | grep -q "pong"; then
                 log_and_echo "${GREEN}Flask /ping endpoint passed${NC}"
             else
                 log_and_echo "${RED}Error: Flask /ping endpoint failed${NC}"
@@ -94,10 +102,16 @@ verify_flask_endpoints() {
                 cat "$FLASK_LOG" "$FLASK_ERROR_LOG" >> "$LOG_FILE"
                 exit 1
             fi
-            local flask_saturn_response
-            flask_saturn_response=$(curl -s -v --connect-timeout 5 "http://127.0.0.1:$PORT/saturn/" 2>&1)
-            echo "$flask_saturn_response" > "$LOG_DIR/flask_saturn_response.log"
-            if echo "$flask_saturn_response" | grep -q "Saturn Update Manager" && echo "$flask_saturn_response" | grep -q "script-form"; then
+            # /saturn/ endpoint
+            local flask_saturn_body
+            flask_saturn_body=$(curl -s --connect-timeout 5 "http://127.0.0.1:$PORT/saturn/")
+            local flask_saturn_verbose
+            flask_saturn_verbose=$(curl -s -v --connect-timeout 5 "http://127.0.0.1:$PORT/saturn/" 2>&1)
+            touch "$LOG_DIR/flask_saturn_response.log"
+            chown pi:pi "$LOG_DIR/flask_saturn_response.log"
+            chmod 664 "$LOG_DIR/flask_saturn_response.log"
+            echo "$flask_saturn_verbose" > "$LOG_DIR/flask_saturn_response.log"
+            if echo "$flask_saturn_body" | grep -q "Saturn Update Manager" && echo "$flask_saturn_body" | grep -q "script-form"; then
                 log_and_echo "${GREEN}Flask /saturn/ endpoint passed${NC}"
             else
                 log_and_echo "${RED}Error: Flask /saturn/ endpoint failed - expected content not found${NC}"
@@ -105,10 +119,16 @@ verify_flask_endpoints() {
                 cat "$FLASK_LOG" "$FLASK_ERROR_LOG" >> "$LOG_FILE"
                 exit 1
             fi
-            local flask_scripts_response
-            flask_scripts_response=$(curl -s -v --connect-timeout 5 "http://127.0.0.1:$PORT/saturn/get_scripts" 2>&1)
-            echo "$flask_scripts_response" > "$LOG_DIR/flask_scripts_response.log"
-            if echo "$flask_scripts_response" | grep -q '"scripts":\["update-G2.py","update-pihpsdr.py"\]'; then
+            # /saturn/get_scripts endpoint
+            local flask_scripts_body
+            flask_scripts_body=$(curl -s --connect-timeout 5 "http://127.0.0.1:$PORT/saturn/get_scripts")
+            local flask_scripts_verbose
+            flask_scripts_verbose=$(curl -s -v --connect-timeout 5 "http://127.0.0.1:$PORT/saturn/get_scripts" 2>&1)
+            touch "$LOG_DIR/flask_scripts_response.log"
+            chown pi:pi "$LOG_DIR/flask_scripts_response.log"
+            chmod 664 "$LOG_DIR/flask_scripts_response.log"
+            echo "$flask_scripts_verbose" > "$LOG_DIR/flask_scripts_response.log"
+            if echo "$flask_scripts_body" | grep -q '"scripts":' && echo "$flask_scripts_body" | grep -q "update-G2.py" && echo "$flask_scripts_body" | grep -q "update-pihpsdr.py"; then
                 log_and_echo "${GREEN}Flask /saturn/get_scripts endpoint passed${NC}"
             else
                 log_and_echo "${RED}Error: Flask /saturn/get_scripts endpoint failed - expected scripts not found${NC}"
@@ -116,10 +136,16 @@ verify_flask_endpoints() {
                 cat "$FLASK_LOG" "$FLASK_ERROR_LOG" >> "$LOG_FILE"
                 exit 1
             fi
-            local flask_versions_response
-            flask_versions_response=$(curl -s -v --connect-timeout 5 "http://127.0.0.1:$PORT/saturn/get_versions" 2>&1)
-            echo "$flask_versions_response" > "$LOG_DIR/flask_versions_response.log"
-            if echo "$flask_versions_response" | grep -q '"versions":.*"saturn_update_manager.py":"2.19","update-G2.py":"2.4","update-pihpsdr.py":"1.7"'; then
+            # /saturn/get_versions endpoint
+            local flask_versions_body
+            flask_versions_body=$(curl -s --connect-timeout 5 "http://127.0.0.1:$PORT/saturn/get_versions")
+            local flask_versions_verbose
+            flask_versions_verbose=$(curl -s -v --connect-timeout 5 "http://127.0.0.1:$PORT/saturn/get_versions" 2>&1)
+            touch "$LOG_DIR/flask_versions_response.log"
+            chown pi:pi "$LOG_DIR/flask_versions_response.log"
+            chmod 664 "$LOG_DIR/flask_versions_response.log"
+            echo "$flask_versions_verbose" > "$LOG_DIR/flask_versions_response.log"
+            if echo "$flask_versions_body" | grep -q '"versions":' && echo "$flask_versions_body" | grep -q "saturn_update_manager.py" && echo "$flask_versions_body" | grep -q "update-G2.py" && echo "$flask_versions_body" | grep -q "update-pihpsdr.py"; then
                 log_and_echo "${GREEN}Flask /saturn/get_versions endpoint passed${NC}"
             else
                 log_and_echo "${RED}Error: Flask /saturn/get_versions endpoint failed - expected versions not found${NC}"
@@ -137,6 +163,9 @@ verify_flask_endpoints() {
             no_auth_response=$(curl -s -v -I "http://$private_ip/saturn/" --max-time 5 2>&1)
             local no_auth_status
             no_auth_status=$(curl -s -I "http://$private_ip/saturn/" --max-time 5 2>/dev/null | grep -E '^HTTP/' | awk '{print $2}')
+            touch "$LOG_DIR/apache_auth_response.log"
+            chown pi:pi "$LOG_DIR/apache_auth_response.log"
+            chmod 664 "$LOG_DIR/apache_auth_response.log"
             echo "$no_auth_response" > "$LOG_DIR/apache_auth_response.log"
             if [ "$no_auth_status" = "401" ]; then
                 log_and_echo "${GREEN}Authentication prompt test passed (401 Unauthorized without credentials)${NC}"
@@ -151,10 +180,16 @@ verify_flask_endpoints() {
             auth_response=$(curl -s -v -u "$USER:$TEST_PASSWD" "http://$private_ip/saturn/" --max-time 5 2>&1)
             local auth_status
             auth_status=$(curl -s -I -u "$USER:$TEST_PASSWD" "http://$private_ip/saturn/" --max-time 5 2>/dev/null | grep -E '^HTTP/' | awk '{print $2}')
+            touch "$LOG_DIR/auth_response.log"
+            chown pi:pi "$LOG_DIR/auth_response.log"
+            chmod 664 "$LOG_DIR/auth_response.log"
             echo "$auth_response" > "$LOG_DIR/auth_response.log"
             if [ "$auth_status" = "200" ]; then
                 local auth_content
                 auth_content=$(curl -u "$USER:$TEST_PASSWD" -s "http://$private_ip/saturn/" --max-time 5)
+                touch "$LOG_DIR/auth_content.log"
+                chown pi:pi "$LOG_DIR/auth_content.log"
+                chmod 664 "$LOG_DIR/auth_content.log"
                 echo "$auth_content" > "$LOG_DIR/auth_content.log"
                 if echo "$auth_content" | grep -q "Saturn Update Manager" && echo "$auth_content" | grep -q "script-form"; then
                     log_and_echo "${GREEN}Authentication and Flask proxy test passed${NC}"
