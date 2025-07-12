@@ -2,18 +2,20 @@
 
 ## Overview
 
-The Saturn Update Manager is a web-based GUI designed to manage and execute update scripts (e.g., `update-G2.py`, `update-pihpsdr.py`, and maintenance tools like `log_cleaner.sh`) for the Saturn project on a Raspberry Pi running Bookworm. The setup is modularized into multiple Bash scripts located in `~/github/Saturn/Update-webserver-setup`, providing a robust and maintainable way to configure a Flask-based web server with Gunicorn and an Apache reverse proxy. The system includes password protection, subnet restrictions, enhanced output streaming for script execution, and custom themes for UI personalization.
+The Saturn Update Manager is a web-based GUI designed to manage and execute update scripts (e.g., `update-G2.py`, `update-pihpsdr.py`, and maintenance tools like `log_cleaner.sh`) for the Saturn project on a Raspberry Pi running Bookworm or Buster. The setup is modularized into multiple Bash scripts located in `~/github/Saturn/Update-webserver-setup`, providing a robust and maintainable way to configure a Flask-based web server with Gunicorn and an Apache reverse proxy. The system includes password protection, subnet restrictions, enhanced output streaming for script execution, and custom themes for UI personalization. For Buster support, specific dependency and startup scripts are used to ensure compatibility with Python 3.7.
 
 ### Key Features
 - **Web Interface**: Accessible via a browser at `http://<private_ip>/saturn/` with credentials (`admin:password123` by default).
 - **Script Execution**: Runs scripts defined in `config.json` (e.g., `update-G2.py` version 2.4, `update-pihpsdr.py` version 1.7, `log_cleaner.sh`) with configurable flags.
 - **Custom Themes**: Load and apply themes from `themes.json` via a dropdown selector, using CSS variables for dynamic styling (e.g., colors for background, text, buttons).
-- **Modular Setup**: Split into five scripts for easier maintenance:
-  - `setup_saturn_webserver.sh` (version 2.67): Main orchestration script.
-  - `install_deps.sh` (version 1.0): Installs dependencies.
+- **Modular Setup**: Split into scripts for easier maintenance:
+  - `setup_saturn_webserver.sh` (version 2.67): Main orchestration script, detects OS and calls Buster-specific scripts if needed.
+  - `install_deps.sh` (version 1.0): Installs dependencies for Bookworm.
+  - `install_deps_buster.sh` (version 1.0): Installs Buster-compatible dependencies (e.g., Flask 2.2.5, ansi2html 1.9.2, psutil 5.9.8).
   - `configure_apache.sh` (version 1.0): Configures Apache proxy.
   - `create_files.sh` (version 1.5): Creates `index.html`, `saturn_update_manager.py`, `themes.json`, and desktop shortcut; backs up existing `config.json`.
-  - `start_server.sh` (version 1.6): Starts and verifies Flask server.
+  - `start_server.sh` (version 1.6): Starts and verifies Flask server for Bookworm.
+  - `start_server_buster.sh` (version 1.6): Starts and verifies Flask server for Buster, with adjusted version checks.
 - **Error Handling**: Fixes `tput` errors in update scripts by setting `TERM=dumb` for non-interactive environments, ensuring banners display correctly.
 - **Security**: Enforces Apache authentication and subnet restrictions.
 - **Forced Logoff**: The "Exit" button terminates the server and prompts re-authentication.
@@ -23,7 +25,7 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
 - **Removed Features**: `--show-compile` merged into `--verbose` for `update-pihpsdr.py`; script search input removed.
 
 ## Prerequisites
-- **Operating System**: Raspberry Pi OS Bookworm.
+- **Operating System**: Raspberry Pi OS Bookworm (64-bit) or Buster (32-bit).
 - **Hardware**: Raspberry Pi with network connectivity.
 - **Dependencies**: `python3`, `python3-pip`, `lsof`, `apache2`, `apache2-utils`, `python3-gunicorn`.
 - **Scripts**: `update-G2.py` (version 2.4), `update-pihpsdr.py` (version 1.7), and others in `~/scripts`.
@@ -34,10 +36,12 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
 ~/github/Saturn/
 ├── Update-webserver-setup/
 │   ├── setup_saturn_webserver.sh  # Main setup script
-│   ├── install_deps.sh            # Installs dependencies
+│   ├── install_deps.sh            # Installs dependencies for Bookworm
+│   ├── install_deps_buster.sh     # Installs dependencies for Buster
 │   ├── configure_apache.sh        # Configures Apache proxy
 │   ├── create_files.sh            # Creates web app files
-│   ├── start_server.sh            # Starts and verifies Flask server
+│   ├── start_server.sh            # Starts and verifies Flask server for Bookworm
+│   ├── start_server_buster.sh     # Starts and verifies Flask server for Buster
 ├── scripts/
 │   ├── update-G2.py               # Update script (version 2.4)
 │   ├── update-pihpsdr.py          # Update script (version 1.7)
@@ -77,11 +81,11 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
      ```bash
      sudo bash ~/github/Saturn/Update-webserver-setup/setup_saturn_webserver.sh
      ```
-   - This script runs:
-     - `install_deps.sh`: Installs system packages and Python dependencies in a virtual environment (`~/venv`).
+   - This script detects the OS from `/etc/os-release` and runs:
+     - `install_deps.sh` or `install_deps_buster.sh`: Installs system packages and Python dependencies in a virtual environment (`~/venv`).
      - `configure_apache.sh`: Sets up Apache as a reverse proxy with password protection and subnet restrictions.
      - `create_files.sh`: Creates `index.html`, `saturn_update_manager.py` (version 2.22), `themes.json`, and a desktop shortcut; backs up existing `config.json` if present.
-     - `start_server.sh`: Starts the Flask server with Gunicorn and verifies endpoints.
+     - `start_server.sh` or `start_server_buster.sh`: Starts the Flask server with Gunicorn and verifies endpoints.
 
 4. **Verify Setup**:
    - Check the log file for success:
@@ -129,7 +133,7 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
        ```bash
        sudo bash ~/github/Saturn/Update-webserver-setup/create_files.sh
        ```
-     - Check `PYTHONPATH` in `start_server.sh` includes `~/scripts`.
+     - Check PYTHONPATH in `start_server.sh` includes `~/scripts`.
 
 2. **Error: `Failed to obtain valid SERVER_PID for Flask server`**
    - **Cause**: Gunicorn failed to start or write the PID file.
@@ -192,6 +196,7 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
 - **Config Backup**: Existing `config.json` is backed up (e.g., `config.json.bak.<timestamp>`) before overwriting.
 - **Network Issues**: Ensure the Raspberry Pi has a valid IP (e.g., `192.168.0.139`) and is on the same subnet as the client.
 - **Backup Prompt**: If the backup prompt does not appear, ensure `-y` or `-n` flags are not selected when running scripts.
+- **Buster Compatibility**: On Buster, uses Flask 2.2.5, ansi2html 1.9.2, and psutil 5.9.8 for Python 3.7 compatibility.
 
 ## Support
 For further assistance, check the logs and share relevant outputs with your query. Ensure all scripts are in `~/github/Saturn/Update-webserver-setup` and have correct permissions (`chmod +x`).
