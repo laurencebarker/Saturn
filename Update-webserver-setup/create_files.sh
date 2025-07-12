@@ -1,6 +1,6 @@
-#!/bin/bash
-# create_files.sh - Creates index.html, saturn_update_manager.py, and SaturnUpdateManager.desktop
-# Version: 1.0
+ff#!/bin/bash
+# create_files.sh - Creates index.html, saturn_update_manager.py, config.json, themes.json, and SaturnUpdateManager.desktop
+# Version: 1.5
 # Written by: Jerry DeLong KD4YAL
 # Dependencies: bash
 # Usage: Called by setup_saturn_webserver.sh
@@ -12,9 +12,12 @@ SCRIPTS_DIR="/home/pi/github/Saturn/scripts"
 TEMPLATES_DIR="$SCRIPTS_DIR/templates"
 LOG_DIR="/home/pi/saturn-logs"
 DESKTOP_FILE="$SCRIPTS_DIR/SaturnUpdateManager.desktop"
-DESKTOP_DEST="/home/pi/Desktop/SaturnUpdateManager.desktop"
+DESKTOP_DEST="/home/pi/github/Saturn/desktop/SaturnUpdateManager.desktop"
 SATURN_SCRIPT="$SCRIPTS_DIR/saturn_update_manager.py"
 INDEX_HTML="$TEMPLATES_DIR/index.html"
+CONFIG_JSON="/home/pi/scripts/config.json"
+THEMES_JSON="/home/pi/scripts/themes.json"
+LOG_CLEANER_SCRIPT="/home/pi/scripts/log_cleaner.sh"
 LOG_FILE="$LOG_DIR/setup_saturn_webserver-$(date +%Y%m%d-%H%M%S).log"
 VENV_PATH="/home/pi/venv"
 
@@ -32,11 +35,91 @@ log_and_echo() {
 
 # Create directories
 log_and_echo "${CYAN}Creating directories...${NC}"
-mkdir -p "$SCRIPTS_DIR" "$TEMPLATES_DIR" "$LOG_DIR"
-chmod -R u+rwX "$SCRIPTS_DIR" "$TEMPLATES_DIR" "$LOG_DIR"
-chown pi:pi "$LOG_DIR" "$TEMPLATES_DIR"
-chmod 775 "$LOG_DIR"
+mkdir -p "$SCRIPTS_DIR" "$TEMPLATES_DIR" "$LOG_DIR" "/home/pi/github/Saturn/desktop" "/home/pi/scripts"
+chmod -R u+rwX "$SCRIPTS_DIR" "$TEMPLATES_DIR" "$LOG_DIR" "/home/pi/github/Saturn/desktop" "/home/pi/scripts"
+chown pi:pi "$LOG_DIR" "$TEMPLATES_DIR" "/home/pi/github/Saturn/desktop" "/home/pi/scripts"
+chmod 775 "$LOG_DIR" "/home/pi/github/Saturn/desktop" "/home/pi/scripts"
 log_and_echo "${GREEN}Directories created${NC}"
+
+# Create config.json (back up if exists)
+log_and_echo "${CYAN}Creating config.json in /home/pi/scripts...${NC}"
+if [ -f "$CONFIG_JSON" ]; then
+    BACKUP_FILE="${CONFIG_JSON}.bak.$(date +%Y%m%d-%H%M%S)"
+    cp "$CONFIG_JSON" "$BACKUP_FILE"
+    log_and_echo "${GREEN}Backed up existing config.json to $BACKUP_FILE${NC}"
+fi
+cat > "$CONFIG_JSON" << 'EOF'
+[
+  {
+    "filename": "update-G2.py",
+    "name": "Update G2",
+    "description": "Updates Saturn G2 component",
+    "directory": "~/github/Saturn/scripts",
+    "category": "Update Scripts",
+    "flags": ["--skip-git", "-y", "-n", "--dry-run", "--verbose"]
+  },
+  {
+    "filename": "update-pihpsdr.py",
+    "name": "Update piHPSDR",
+    "description": "Updates piHPSDR component",
+    "directory": "~/github/Saturn/scripts",
+    "category": "Update Scripts",
+    "flags": ["--skip-git", "-y", "--no-gpio", "--verbose"]
+  },
+  {
+    "filename": "log_cleaner.sh",
+    "name": "Log Cleaner",
+    "description": "Searches for *.log files, reports space usage, and optionally deletes them",
+    "directory": "~/scripts",
+    "category": "Maintenance",
+    "flags": ["--delete-all", "--no-recursive", "--dry-run"]
+  }
+]
+EOF
+chmod 644 "$CONFIG_JSON"
+chown pi:pi "$CONFIG_JSON"
+log_and_echo "${GREEN}config.json created (or updated with backup if existed)${NC}"
+
+# Create themes.json if not exists
+log_and_echo "${CYAN}Creating themes.json in /home/pi/scripts (overwriting if exists)...${NC}"
+rm -f "$THEMES_JSON"
+cat > "$THEMES_JSON" << 'EOF'
+[
+  {
+    "name": "Default",
+    "description": "Standard light theme",
+    "styles": {
+      "--bg-color": "#f3f4f6",
+      "--text-color": "#333333",
+      "--primary-color": "#3b82f6",
+      "--secondary-color": "#10b981"
+    }
+  },
+  {
+    "name": "Dark Mode",
+    "description": "Dark theme for low-light environments",
+    "styles": {
+      "--bg-color": "#1a1a1a",
+      "--text-color": "#ffffff",
+      "--primary-color": "#60a5fa",
+      "--secondary-color": "#34d399"
+    }
+  },
+  {
+    "name": "High Contrast",
+    "description": "High contrast theme for accessibility",
+    "styles": {
+      "--bg-color": "#ffffff",
+      "--text-color": "#000000",
+      "--primary-color": "#0000ff",
+      "--secondary-color": "#008000"
+    }
+  }
+]
+EOF
+chmod 644 "$THEMES_JSON"
+chown pi:pi "$THEMES_JSON"
+log_and_echo "${GREEN}themes.json created with example entries${NC}"
 
 # Create index.html
 log_and_echo "${CYAN}Creating index.html in $TEMPLATES_DIR (overwriting if exists)...${NC}"
@@ -50,6 +133,23 @@ cat > "$INDEX_HTML" << 'EOF'
     <title>Saturn Update Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --text-color: #333333;
+            --primary-color: #3b82f6;
+            --secondary-color: #10b981;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+        }
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
         pre {
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -73,17 +173,55 @@ cat > "$INDEX_HTML" << 'EOF'
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6; }
         .container { max-width: 800px; }
         .ansi_31 { color: #ff5555 !important; }
         .ansi_32 { color: #55ff55 !important; }
         .ansi_33 { color: #ffff55 !important; }
         .ansi_34 { color: #5555ff !important; }
         .ansi_36 { color: #55ffff !important; }
+        /* Spinner for loading */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary-color);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* Progress bar styling */
+        progress {
+            width: 100%;
+            height: 20px;
+            appearance: none;
+            border: none;
+            background-color: #e5e7eb;
+            border-radius: 0.25rem;
+        }
+        progress::-webkit-progress-bar {
+            background-color: #e5e7eb;
+            border-radius: 0.25rem;
+        }
+        progress::-webkit-progress-value {
+            background-color: var(--primary-color);
+            border-radius: 0.25rem;
+        }
+        progress::-moz-progress-bar {
+            background-color: var(--primary-color);
+            border-radius: 0.25rem;
+        }
+        /* Mobile adjustments */
+        @media (max-width: 640px) {
+            .container { padding: 1rem; }
+            button { padding: 0.75rem 1.5rem; font-size: 1.125rem; }
+            select, input { font-size: 1rem; padding: 0.5rem; }
+        }
     </style>
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto p-4">
+<body>
+    <div class="container mx-auto p-4 sm:p-6">
         <h1 class="text-3xl font-bold text-red-600 text-center mb-2">Saturn Update Manager</h1>
         <p class="text-lg text-gray-600 text-center mb-4">Build Version: 2.65 (Setup Script)</p>
         
@@ -92,24 +230,37 @@ cat > "$INDEX_HTML" << 'EOF'
             <ul id="version-list" class="list-disc pl-5 text-gray-600"></ul>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+        <div class="bg-white rounded-lg shadow-md p-4 mb-4 relative">
+            <!-- Loading Spinner -->
+            <div id="loader" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 hidden">
+                <div class="spinner"></div>
+            </div>
             <form id="script-form" class="flex flex-col space-y-4">
                 <div class="flex items-center space-x-4">
                     <label for="script" class="text-lg font-medium text-gray-700">Select Script:</label>
-                    <select id="script" name="script" class="border rounded px-2 py-1 bg-blue-100 text-blue-800">
+                    <select id="script" name="script" class="border rounded px-2 py-1 bg-blue-100 text-blue-800 w-full">
                         <option value="">Select a script</option>
                     </select>
                 </div>
                 <div id="flags" class="flex flex-wrap gap-4"></div>
                 <div class="flex justify-center space-x-4">
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Run</button>
-                    <button type="button" id="change-password-btn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Change Password</button>
-                    <button type="button" id="exit-btn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Exit</button>
+                    <button type="submit" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Run</button>
+                    <button type="button" id="change-password-btn" class="btn-secondary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Change Password</button>
+                    <button type="button" id="exit-btn" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Exit</button>
                 </div>
             </form>
         </div>
 
+        <div class="flex flex-col space-y-2 mb-4">
+            <label for="theme" class="text-lg font-medium text-gray-700">Select Theme:</label>
+            <select id="theme" class="border rounded px-2 py-1 bg-blue-100 text-blue-800 w-full">
+                <option value="">Select a theme</option>
+            </select>
+        </div>
+
         <div class="output-container">
+            <!-- Progress Bar -->
+            <progress id="progress" value="0" max="100" class="mb-2 hidden"></progress>
             <pre id="output" class="text-sm"></pre>
         </div>
 
@@ -119,7 +270,7 @@ cat > "$INDEX_HTML" << 'EOF'
                 <h2 class="text-xl font-bold mb-4">Backup Prompt</h2>
                 <p class="mb-4">Create a backup? (Y/n)</p>
                 <div class="flex justify-end space-x-4">
-                    <button id="backup-yes" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Yes</button>
+                    <button id="backup-yes" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90">Yes</button>
                     <button id="backup-no" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">No</button>
                 </div>
             </div>
@@ -140,7 +291,7 @@ cat > "$INDEX_HTML" << 'EOF'
                     </div>
                     <p id="password-error" class="text-red-500 hidden">Passwords do not match or are too short.</p>
                     <div class="flex justify-end space-x-4">
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Submit</button>
+                        <button type="submit" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90">Submit</button>
                         <button type="button" id="password-cancel" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
                     </div>
                 </form>
@@ -149,8 +300,12 @@ cat > "$INDEX_HTML" << 'EOF'
     </div>
 
     <script>
+        function showLoader(show) {
+            document.getElementById('loader').classList.toggle('hidden', !show);
+        }
+
         async function loadVersions() {
-            console.log('Attempting to load script versions from /saturn/get_versions');
+            showLoader(true);
             try {
                 const response = await fetch('/saturn/get_versions', {
                     headers: {
@@ -179,13 +334,80 @@ cat > "$INDEX_HTML" << 'EOF'
             } catch (error) {
                 console.error('Error loading versions:', error);
                 document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading versions: ${error.message}</span>\n`;
+            } finally {
+                showLoader(false);
             }
         }
 
-        async function loadFlags(script) {
-            console.log('Attempting to load flags for:', script);
+        async function loadScripts() {
+            showLoader(true);
             try {
-                const response = await fetch(`/saturn/get_flags?script=${encodeURIComponent(script)}`, {
+                const response = await fetch('/saturn/get_scripts', {
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Fetch scripts failed:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                const data = await response.json();
+                console.log('Scripts response:', data);
+                const scriptSelect = document.getElementById('script');
+                scriptSelect.innerHTML = '<option value="">Select a script</option>';
+                const output = document.getElementById('output');
+                if (data.warnings && data.warnings.length > 0) {
+                    output.innerHTML += data.warnings.map(w => `<span style="color:#FFFF00">Warning: ${w}</span>`).join('\n') + '\n';
+                }
+                if (data.scripts) {
+                    if (Array.isArray(data.scripts)) {
+                        // Fallback for flat array
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = 'Scripts';
+                        data.scripts.forEach(script => {
+                            const option = document.createElement('option');
+                            option.value = script;
+                            option.textContent = script;
+                            optgroup.appendChild(option);
+                        });
+                        scriptSelect.appendChild(optgroup);
+                    } else {
+                        // Grouped object
+                        const categories = Object.keys(data.scripts).sort();
+                        categories.forEach(category => {
+                            const optgroup = document.createElement('optgroup');
+                            optgroup.label = category;
+                            data.scripts[category].forEach(script => {
+                                const option = document.createElement('option');
+                                option.value = script.filename;
+                                option.textContent = script.name;
+                                option.title = script.description;
+                                optgroup.appendChild(option);
+                            });
+                            scriptSelect.appendChild(optgroup);
+                        });
+                    }
+                    if (scriptSelect.options.length > 1) {
+                        scriptSelect.value = scriptSelect.options[1].value;
+                        loadFlags(scriptSelect.value);
+                    }
+                } else {
+                    console.warn('No scripts returned from /saturn/get_scripts');
+                    output.innerHTML += `<span style="color:#FF0000">Error: No scripts available</span>\n`;
+                }
+            } catch (error) {
+                console.error('Error loading scripts:', error);
+                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading scripts: ${error.message}</span>\n`;
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        async function loadFlags(filename) {
+            showLoader(true);
+            try {
+                const response = await fetch(`/saturn/get_flags?script=${encodeURIComponent(filename)}`, {
                     headers: {
                         'Cache-Control': 'no-cache'
                     }
@@ -210,62 +432,101 @@ cat > "$INDEX_HTML" << 'EOF'
                     label.innerHTML = `<input type="checkbox" name="flags" value="${flag}" class="form-checkbox h-5 w-5 text-blue-600" ${flag === '--verbose' ? 'checked' : ''}> <span>${flag}</span>`;
                     flagsDiv.appendChild(label);
                 });
-                console.log(`Loaded flags for ${script}:`, data.flags);
+                console.log(`Loaded flags for ${filename}:`, data.flags);
             } catch (error) {
                 console.error('Error loading flags:', error);
                 document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading flags: ${error.message}</span>\n`;
+            } finally {
+                showLoader(false);
             }
         }
 
-        async function loadScripts() {
-            console.log('Attempting to load scripts from /saturn/get_scripts');
+        async function loadThemes() {
             try {
-                const response = await fetch('/saturn/get_scripts', {
+                const response = await fetch('/saturn/get_themes', {
                     headers: {
                         'Cache-Control': 'no-cache'
                     }
                 });
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error('Fetch scripts failed:', response.status, errorText);
+                    console.error('Fetch themes failed:', response.status, errorText);
                     throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
                 const data = await response.json();
-                console.log('Scripts response:', data);
-                const scriptSelect = document.getElementById('script');
-                scriptSelect.innerHTML = '<option value="">Select a script</option>';
-                if (data.scripts) {
-                    data.scripts.forEach(script => {
-                        const option = document.createElement('option');
-                        option.value = script;
-                        option.textContent = script;
-                        scriptSelect.appendChild(option);
-                    });
-                    if (data.scripts.length > 0) {
-                        console.log('Loading flags for first script:', data.scripts[0]);
-                        loadFlags(data.scripts[0]);
-                    }
-                } else {
-                    console.warn('No scripts returned from /saturn/get_scripts');
-                    document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error: No scripts available</span>\n`;
+                console.log('Themes response:', data);
+                const themeSelect = document.getElementById('theme');
+                themeSelect.innerHTML = '<option value="">Select a theme</option>';
+                data.themes.forEach(theme => {
+                    const option = document.createElement('option');
+                    option.value = theme.name;
+                    option.textContent = theme.name;
+                    option.title = theme.description;
+                    themeSelect.appendChild(option);
+                });
+                if (data.warnings && data.warnings.length > 0) {
+                    document.getElementById('output').innerHTML += data.warnings.map(w => `<span style="color:#FFFF00">Warning: ${w}</span>`).join('\n') + '\n';
                 }
             } catch (error) {
-                console.error('Error loading scripts:', error);
-                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading scripts: ${error.message}</span>\n`;
+                console.error('Error loading themes:', error);
+                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading themes: ${error.message}</span>\n`;
             }
+        }
+
+        async function applyTheme(name) {
+            try {
+                const response = await fetch(`/saturn/get_theme?name=${encodeURIComponent(name)}`, {
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Fetch theme failed:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                const data = await response.json();
+                console.log('Theme data:', data);
+                if (data.styles) {
+                    Object.entries(data.styles).forEach(([key, value]) => {
+                        document.documentElement.style.setProperty(key, value);
+                    });
+                    localStorage.setItem('selectedTheme', name);
+                }
+            } catch (error) {
+                console.error('Error applying theme:', error);
+                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error applying theme: ${error.message}</span>\n`;
+            }
+        }
+
+        document.getElementById('theme').addEventListener('change', function() {
+            const selectedTheme = this.value;
+            if (selectedTheme) {
+                applyTheme(selectedTheme);
+            }
+        });
+
+        // Load saved theme on page load
+        const savedTheme = localStorage.getItem('selectedTheme');
+        if (savedTheme) {
+            document.getElementById('theme').value = savedTheme;
+            applyTheme(savedTheme);
         }
 
         document.getElementById('script-form').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const script = document.getElementById('script').value;
+            const filename = document.getElementById('script').value;
             const flags = Array.from(document.querySelectorAll('input[name="flags"]:checked')).map(cb => cb.value);
             const output = document.getElementById('output');
+            const progress = document.getElementById('progress');
             output.innerHTML = '';
-            console.log(`Submitting run request for ${script}, flags:`, flags);
+            progress.classList.remove('hidden');
+            progress.value = 0;
+            console.log(`Submitting run request for ${filename}, flags:`, flags);
 
             try {
                 const formData = new FormData();
-                formData.append('script', script);
+                formData.append('script', filename);
                 flags.forEach(flag => formData.append('flags', flag));
                 const response = await fetch('/saturn/run', {
                     method: 'POST',
@@ -307,6 +568,7 @@ cat > "$INDEX_HTML" << 'EOF'
                             }
                             buffer = '';
                         }
+                        progress.classList.add('hidden');
                         break;
                     }
                     const chunk = decoder.decode(value, { stream: true });
@@ -326,6 +588,11 @@ cat > "$INDEX_HTML" << 'EOF'
                                 console.log(`Appended HTML: ${data}`);
                                 output.scrollTop = output.scrollHeight;
                                 output.style.height = output.scrollHeight + 'px';
+                                // Parse for progress (example: look for "Progress: 50%")
+                                const match = data.match(/Progress:\s*(\d+)%/i);
+                                if (match) {
+                                    progress.value = parseInt(match[1], 10);
+                                }
                             }
                         }
                     }
@@ -333,6 +600,7 @@ cat > "$INDEX_HTML" << 'EOF'
             } catch(error) {
                 console.error('Run error:', error);
                 document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error: ${error.message}</span>\n`;
+                progress.classList.add('hidden');
             }
         });
 
@@ -454,32 +722,31 @@ cat > "$INDEX_HTML" << 'EOF'
             }
         });
 
-        console.log('Loading initial scripts and versions');
+        console.log('Loading initial scripts, versions, and themes');
         loadScripts();
         loadVersions();
+        loadThemes();
     </script>
 </body>
 </html>
 EOF
-chmod -R u+rwX "$INDEX_HTML"
+chmod 644 "$INDEX_HTML"
 chown pi:pi "$INDEX_HTML"
 log_and_echo "${GREEN}index.html created${NC}"
-if ! grep -q "Saturn Update Manager" "$INDEX_HTML" || ! grep -q "script-form" "$INDEX_HTML" || ! grep -q "version-list" "$INDEX_HTML"; then
+if ! grep -q "Saturn Update Manager" "$INDEX_HTML" || ! grep -q "script-form" "$INDEX_HTML" || ! grep -q "version-list" "$INDEX_HTML" || ! grep -q "spinner" "$INDEX_HTML"; then
     log_and_echo "${RED}Error: Failed to create valid index.html${NC}"
     exit 1
 fi
 log_and_echo "${GREEN}Verified index.html content${NC}"
 
-# Create saturn_update_manager.py
-log_and_echo "${CYAN}Creating saturn_update_manager.py (overwriting if exists)...${NC}"
+# Create saturn_update_manager.py (overwriting if exists)...
 rm -f "$SATURN_SCRIPT"
 cat > "$SATURN_SCRIPT" << 'EOF'
 #!/usr/bin/env python3
-# saturn_update_manager.py - Web-based Update Manager for update-G2.py and update-pihpsdr.py
-# Runs from Raspberry Pi desktop, executing scripts within the GUI with a black background
-# Version: 2.19
-# Written by: Jerry DeLong KD4YAL, updated by Grok 3
-# Dependencies: flask, ansi2html (1.9.2), subprocess, os, threading, logging, re, shutil, select, urllib.error
+# saturn_update_manager.py - Web-based Update Manager for various scripts via config.json and themes via themes.json
+# Version: 2.22
+# Written by: Jerry DeLong KD4YAL
+# Dependencies: flask, ansi2html (1.9.2), subprocess, os, threading, logging, re, shutil, select, urllib.error, json
 # Usage: . ~/venv/bin/activate; gunicorn -w 1 -b 0.0.0.0:5000 -t 600 saturn_update_manager:app
 
 import logging
@@ -496,6 +763,7 @@ import sys
 import time
 import select
 import urllib.error
+import json
 from flask import Flask, render_template, request, Response, jsonify
 from ansi2html import Ansi2HTMLConverter
 
@@ -511,7 +779,7 @@ logging.basicConfig(
 )
 logging.info("Initializing Saturn Update Manager")
 
-app = Flask(__name__, template_folder='/home/pi/github/Saturn/scripts/templates')
+app = Flask(__name__, template_folder=os.path.join(Path.home(), 'github', 'Saturn', 'scripts', 'templates'))
 shutdown_event = threading.Event()
 
 class SaturnUpdateManager:
@@ -520,48 +788,106 @@ class SaturnUpdateManager:
         self.venv_path = Path.home() / "venv" / "bin" / "activate"
         self.scripts_dir = Path.home() / "github" / "Saturn" / "scripts"
         self.log_dir = Path.home() / "saturn-logs"
-        self.scripts = {
-            "update-G2.py": ["--skip-git", "-y", "-n", "--dry-run", "--verbose"],
-            "update-pihpsdr.py": ["--skip-git", "-y", "--no-gpio", "--verbose"]
-        }
+        self.config_path = Path.home() / "scripts" / "config.json"
+        self.themes_path = Path.home() / "scripts" / "themes.json"
+        self.config = []
+        self.themes = []
         self.versions = {
-            "saturn_update_manager.py": "2.19",
-            "update-G2.py": "2.4",
-            "update-pihpsdr.py": "1.7"
+            "saturn_update_manager.py": "2.22"
         }
         self.process = None
         self.backup_response = None
         self.running = False
         self.output_lock = threading.Lock()
         self.converter = Ansi2HTMLConverter(inline=True)
-        logging.info(f"Starting Saturn Update Manager v2.19")
+        logging.info(f"Starting Saturn Update Manager v2.22")
 
         error_message = self.validate_setup()
         if error_message:
             logging.error(f"Initialization failed: {error_message}")
-            print(f"Error: {error_message}\nCheck log: {log_file}")
+            print(f"Error: {error_message}\\nCheck log: {log_file}")
             sys.exit(1)
+
+        self.load_config()
+        self.load_themes()
+
+    def load_config(self):
+        logging.debug(f"Loading config from {self.config_path}")
+        self.script_warnings = []
+        self.grouped_scripts = {}
+        if not self.config_path.exists():
+            logging.error(f"Config file not found: {self.config_path}")
+            self.script_warnings.append("Config file missing—using empty config")
+            return
+        try:
+            with open(self.config_path, 'r') as f:
+                data = json.load(f)
+            if not isinstance(data, list):
+                raise ValueError("config.json must be a list of script entries")
+            home = os.path.expanduser("~")
+            trusted_dirs = [os.path.join(home, "github"), home]  # Expandable
+            for entry in data:
+                directory = os.path.expanduser(entry.get("directory", ""))
+                filename = entry.get("filename", "")
+                path = os.path.join(directory, filename)
+                if os.path.isfile(path) and os.access(path, os.X_OK):
+                    if any(path.startswith(d) for d in trusted_dirs):
+                        entry["category"] = entry.get("category", "Uncategorized")
+                        self.config.append(entry)
+                        # Extract version if present
+                        with open(path, 'r') as script_file:
+                            for line in script_file:
+                                if line.startswith("# Version:"):
+                                    self.versions[filename] = line.split(":", 1)[-1].strip()
+                                    break
+                    else:
+                        self.script_warnings.append(f"Skipped {filename}: outside trusted directories")
+                else:
+                    self.script_warnings.append(f"Skipped {filename}: missing or not executable")
+            for script in self.config:
+                cat = script["category"]
+                if cat not in self.grouped_scripts:
+                    self.grouped_scripts[cat] = []
+                self.grouped_scripts[cat].append(script)
+            logging.info(f"Loaded {len(self.config)} valid scripts from config")
+        except (json.JSONDecodeError, ValueError) as e:
+            logging.error(f"Config error: {str(e)}")
+            self.script_warnings.append(f"Invalid config.json: {str(e)} - using empty config")
+        except Exception as e:
+            logging.error(f"Error loading config: {str(e)}")
+            self.script_warnings.append(f"Config load error: {str(e)} - using empty config")
+
+    def load_themes(self):
+        logging.debug(f"Loading themes from {self.themes_path}")
+        self.theme_warnings = []
+        if not self.themes_path.exists():
+            logging.error(f"Themes file not found: {self.themes_path}")
+            self.theme_warnings.append("Themes file missing—using empty themes")
+            return
+        try:
+            with open(self.themes_path, 'r') as f:
+                data = json.load(f)
+            if not isinstance(data, list):
+                raise ValueError("themes.json must be a list of theme entries")
+            for entry in data:
+                if "name" in entry and "styles" in entry and isinstance(entry["styles"], dict):
+                    self.themes.append(entry)
+                else:
+                    self.theme_warnings.append(f"Skipped invalid theme: {entry.get('name', 'unnamed')}")
+            logging.info(f"Loaded {len(self.themes)} valid themes from themes.json")
+        except (json.JSONDecodeError, ValueError) as e:
+            logging.error(f"Themes error: {str(e)}")
+            self.theme_warnings.append(f"Invalid themes.json: {str(e)} - using empty themes")
+        except Exception as e:
+            logging.error(f"Error loading themes: {str(e)}")
+            self.theme_warnings.append(f"Themes load error: {str(e)} - using empty themes")
 
     def validate_setup(self):
         try:
             logging.debug("Validating setup...")
-            logging.debug(f"Checking virtual environment at {self.venv_path}")
             if not self.venv_path.exists():
                 logging.error(f"Virtual environment not found at {self.venv_path}")
                 return f"Virtual environment not found at {self.venv_path}"
-            for script in self.scripts:
-                script_path = self.scripts_dir / script
-                logging.debug(f"Checking script: {script_path}")
-                if not script_path.exists():
-                    logging.error(f"Script not found: {script_path}")
-                    return f"Script not found: {script_path}"
-                if not os.access(script_path, os.X_OK):
-                    try:
-                        os.chmod(script_path, 0o755)
-                        logging.info(f"Set executable permissions for {script_path}")
-                    except Exception as e:
-                        logging.error(f"Cannot set executable permissions for {script_path}: {str(e)}")
-                        return f"Cannot set executable permissions for {script_path}: {str(e)}"
             try:
                 import flask
                 import ansi2html
@@ -588,7 +914,7 @@ class SaturnUpdateManager:
     def install_desktop_icons(self):
         logging.debug("Installing desktop icons...")
         desktop_dir = self.scripts_dir
-        home_desktop = Path.home() / "Desktop"
+        home_desktop = Path.home() / "github" / "Saturn" / "desktop"
         desktop_file = desktop_dir / "SaturnUpdateManager.desktop"
         dest_file = home_desktop / "SaturnUpdateManager.desktop"
 
@@ -598,7 +924,7 @@ class SaturnUpdateManager:
                 f.write(f"""[Desktop Entry]
 Type=Application
 Name=Saturn Update Manager
-Comment=Web-based GUI to manage updates for update-G2.py and update-pihpsdr.py
+Comment=Web-based GUI to manage updates for various scripts
 Exec=xdg-open http://localhost/saturn/
 Icon=system-software-update
 Terminal=false
@@ -642,37 +968,48 @@ Categories=System;Utility;
             logging.error(f"Error changing password: {str(e)}")
             return {"status": "error", "message": f"Error changing password: {str(e)}"}
 
-    def run_script(self, script, flags):
-        logging.debug(f"Running script: {script} with flags: {flags}")
+    def run_script(self, filename, flags):
+        logging.debug(f"Running script: {filename} with flags: {flags}")
         self.running = True
         self.process = None
         self.backup_response = None
-        script_path = self.scripts_dir / script
-        if not script_path.exists():
-            logging.error(f"Script {script_path} does not exist")
-            error_msg = f"Error: Script {script_path} does not exist\n"
-            yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
+        script_entry = next((s for s in self.config if s["filename"] == filename), None)
+        if not script_entry:
+            logging.error(f"Script not found in config: {filename}")
+            error_msg = f"Error: Script {filename} not found\\n"
+            yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
             return
-        cmd = f". {self.venv_path} && python3 {shlex.quote(str(script_path))} {' '.join(shlex.quote(flag) for flag in flags)} && deactivate"
+        script_path = os.path.join(os.path.expanduser(script_entry["directory"]), filename)
+        if not os.path.isfile(script_path):
+            logging.error(f"Script path invalid: {script_path}")
+            error_msg = f"Error: Script path invalid {script_path}\\n"
+            yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
+            return
+        if filename.endswith('.sh'):
+            cmd = f"bash {shlex.quote(script_path)} {' '.join(shlex.quote(flag) for flag in flags)}"
+            test_cmd = f"bash -n {shlex.quote(script_path)}"
+        else:
+            cmd = f". {self.venv_path} && python3 {shlex.quote(script_path)} {' '.join(shlex.quote(flag) for flag in flags)} && deactivate"
+            test_cmd = f". {self.venv_path} && python3 -m py_compile {shlex.quote(script_path)}"
         logging.info(f"Executing command: {cmd}")
 
         try:
             # Test script syntax
-            test_cmd = f". {self.venv_path} && python3 -m py_compile {shlex.quote(str(script_path))}"
             logging.debug(f"Testing script syntax with: {test_cmd}")
             test_result = subprocess.run(test_cmd, shell=True, capture_output=True, text=True, timeout=10)
             if test_result.returncode != 0:
                 logging.error(f"Syntax check failed: {test_result.stderr}")
-                error_msg = f"Error: Syntax check failed: {test_result.stderr}\n"
-                yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
+                error_msg = f"Error: Syntax check failed: {test_result.stderr}\\n"
+                yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
                 return
             logging.debug(f"Syntax check passed")
 
             env = os.environ.copy()
             env["PYTHONUNBUFFERED"] = "1"
             env["PATH"] = f"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:{env.get('PATH', '')}"
-            env["HOME"] = "/home/pi"
-            env["PYTHONPATH"] = f"{self.venv_path.parent}/lib/python3.11/site-packages:{env.get('PYTHONPATH', '')}"
+            env["HOME"] = str(Path.home())
+            if not filename.endswith('.sh'):
+                env["PYTHONPATH"] = f"{str(self.venv_path.parent / 'lib' / 'python3.11' / 'site-packages')}:{env.get('PYTHONPATH', '')}"
             env["LC_ALL"] = "en_US.UTF-8"
             env["TERM"] = env.get("TERM", "dumb")
             logging.debug(f"Environment: {env}")
@@ -682,7 +1019,7 @@ Categories=System;Utility;
                 stdin=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True, env=env
             )
             logging.debug(f"Started process with PID: {self.process.pid}")
-            backup_prompt = re.compile(r'⚠?\s*Backup\?\s*Y/n\s*:?', re.IGNORECASE)
+            backup_prompt = re.compile(r'⚠?\\s*Backup\\?\\s*Y/n\\s*:?', re.IGNORECASE)
             timeout = 600
             start_time = datetime.now()
             output_buffer = []
@@ -691,7 +1028,7 @@ Categories=System;Utility;
                 try:
                     if time.time() - last_heartbeat > 5:
                         with self.output_lock:
-                            yield "data: \n\n"
+                            yield "data: \\n\\n"
                             logging.debug("Sent heartbeat")
                             sys.stdout.flush()
                         last_heartbeat = time.time()
@@ -709,34 +1046,34 @@ Categories=System;Utility;
                             continue
 
                         with self.output_lock:
-                            clean_line = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', line)
-                            converted_line = self.converter.convert(line.rstrip('\n'), full=False)
+                            clean_line = re.sub(r'\\x1B\\[[0-?]*[ -/]*[@-~]', '', line)
+                            converted_line = self.converter.convert(line.rstrip('\\n'), full=False)
                             output_buffer.append(converted_line)
 
                             if stream is self.process.stdout:
                                 logging.debug(f"stdout: {clean_line.strip()}")
                                 if backup_prompt.search(clean_line) and '-y' not in flags and '-n' not in flags:
                                     logging.info("Detected backup prompt")
-                                    yield "data: BACKUP_PROMPT\n\n"
+                                    yield "data: BACKUP_PROMPT\\n\\n"
                                     sys.stdout.flush()
                                     while self.backup_response is None and self.process.poll() is None:
                                         if (datetime.now() - start_time).seconds > timeout:
                                             logging.error("Backup prompt timed out")
-                                            error_msg = "Error: Backup prompt timed out after 600 seconds\n"
-                                            yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
+                                            error_msg = "Error: Backup prompt timed out after 600 seconds\\n"
+                                            yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
                                             sys.stdout.flush()
                                             self.process.terminate()
                                             break
                                         time.sleep(0.2)
                                     if self.backup_response:
                                         try:
-                                            self.process.stdin.write(self.backup_response + '\n')
+                                            self.process.stdin.write(self.backup_response + '\\n')
                                             self.process.stdin.flush()
                                             logging.info(f"Sent backup response: {self.backup_response}")
                                         except Exception as e:
                                             logging.error(f"Failed to send backup response: {str(e)}")
-                                            error_msg = f"Error sending backup response: {e}\n"
-                                            yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
+                                            error_msg = f"Error sending backup response: {e}\\n"
+                                            yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
                                             sys.stdout.flush()
                             else:
                                 logging.error(f"stderr: {clean_line.strip()}")
@@ -744,82 +1081,82 @@ Categories=System;Utility;
                                     logging.warning(f"Ignoring tput error: {clean_line.strip()}")
                                 elif "network error" in clean_line.lower():
                                     logging.error(f"Network error detected in stderr: {clean_line.strip()}")
-                                    error_msg = f"Error: Network issue during script execution: {clean_line.strip()}. Check connectivity and try again.\n"
-                                    yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
+                                    error_msg = f"Error: Network issue during script execution: {clean_line.strip()}. Check connectivity and try again.\\n"
+                                    yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
                                     sys.stdout.flush()
 
                             if len(output_buffer) >= 10:
-                                chunk = "\n".join(output_buffer)
+                                chunk = "\\n".join(output_buffer)
                                 logging.debug(f"Streaming chunk: {chunk}")
-                                yield f"data: {chunk}\n\n"
+                                yield f"data: {chunk}\\n\\n"
                                 sys.stdout.flush()
                                 output_buffer = []
 
                     time.sleep(0.005)
                 except (BrokenPipeError, ConnectionResetError) as e:
                     logging.error(f"Stream interrupted: {str(e)}")
-                    error_msg = f"Error: Stream interrupted: {str(e)}\n"
-                    yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
+                    error_msg = f"Error: Stream interrupted: {str(e)}\\n"
+                    yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
                     sys.stdout.flush()
                     break
                 except urllib.error.URLError as e:
                     logging.error(f"Network error during script execution: {str(e)}")
-                    error_msg = f"Error: Network failure: {str(e)}. Please check your internet connection and try again.\n"
-                    yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
+                    error_msg = f"Error: Network failure: {str(e)}. Please check your internet connection and try again.\\n"
+                    yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
                     sys.stdout.flush()
                     break
 
             with self.output_lock:
                 if output_buffer:
-                    chunk = "\n".join(output_buffer)
+                    chunk = "\\n".join(output_buffer)
                     logging.debug(f"Streaming final chunk: {chunk}")
-                    yield f"data: {chunk}\n\n"
+                    yield f"data: {chunk}\\n\\n"
                     sys.stdout.flush()
 
             stdout, stderr = self.process.communicate()
             if stdout:
                 with self.output_lock:
                     logging.debug(f"Final script stdout: {stdout.strip()}")
-                    converted_output = self.converter.convert(stdout.rstrip('\n'), full=False)
-                    yield f"data: {converted_output}\n\n"
+                    converted_output = self.converter.convert(stdout.rstrip('\\n'), full=False)
+                    yield f"data: {converted_output}\\n\\n"
                     sys.stdout.flush()
             if stderr:
                 with self.output_lock:
                     logging.error(f"Final script stderr: {stderr.strip()}")
-                    converted_err = self.converter.convert(stderr.rstrip('\n'), full=False)
-                    yield f"data: {converted_err}\n\n"
+                    converted_err = self.converter.convert(stderr.rstrip('\\n'), full=False)
+                    yield f"data: {converted_err}\\n\\n"
                     sys.stdout.flush()
                     if "tput: No value for $TERM" in stderr:
                         logging.warning(f"Ignoring tput error in final stderr: {stderr.strip()}")
                     elif "network error" in stderr.lower():
                         logging.error(f"Network error in final stderr: {stderr.strip()}")
-                        error_msg = f"Error: Network issue in final output: {stderr.strip()}. Check connectivity and retry.\n"
-                        yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
+                        error_msg = f"Error: Network issue in final output: {stderr.strip()}. Check connectivity and retry.\\n"
+                        yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
                         sys.stdout.flush()
             if self.process.returncode == 0:
-                success_msg = f"Completed: Log at ~/saturn-logs/{script.replace('.py', '')}-*.log\n"
+                success_msg = f"Completed: Log at ~/saturn-logs/{filename.replace('.py', '').replace('.sh', '')}-*.log\\n"
                 with self.output_lock:
                     converted_success = self.converter.convert(success_msg, full=False)
                     logging.debug(f"Success message HTML: {converted_success}")
-                    yield f"data: {converted_success}\n\n"
+                    yield f"data: {converted_success}\\n\\n"
                     sys.stdout.flush()
-                    logging.info(f"Script {script} completed successfully with PID {self.process.pid}")
+                    logging.info(f"Script {filename} completed successfully with PID {self.process.pid}")
             else:
-                error_msg = f"Failed: Check output for errors (return code: {self.process.returncode})\n"
+                error_msg = f"Failed: Check output for errors (return code: {self.process.returncode})\\n"
                 with self.output_lock:
                     converted_error = self.converter.convert(error_msg, full=False)
                     logging.debug(f"Error message HTML: {converted_error}")
-                    yield f"data: {converted_error}\n\n"
+                    yield f"data: {converted_error}\\n\\n"
                     sys.stdout.flush()
-                    logging.error(f"Script {script} failed with return code {self.process.returncode}")
+                    logging.error(f"Script {filename} failed with return code {self.process.returncode}")
         except Exception as e:
             logging.error(f"Script execution failed: {str(e)}")
-            error_msg = f"Error: {str(e)}\n"
+            error_msg = f"Error: {str(e)}\\n"
             if isinstance(e, urllib.error.URLError):
-                error_msg = f"Error: Network failure: {str(e)}. Please check your internet connection and try again.\n"
+                error_msg = f"Error: Network failure: {str(e)}. Please check your internet connection and try again.\\n"
             with self.output_lock:
                 converted_error = self.converter.convert(error_msg, full=False)
-                yield f"data: {converted_error}\n\n"
+                yield f"data: {converted_error}\\n\\n"
                 sys.stdout.flush()
         finally:
             self.running = False
@@ -844,34 +1181,44 @@ def ping():
 @app.route('/saturn/')
 def index():
     logging.debug(f"Serving index page for /saturn/, client: {request.remote_addr}, headers: {request.headers}")
-    if not os.path.exists('/home/pi/github/Saturn/scripts/templates/index.html'):
-        logging.error("index.html not found")
-        return "Error: index.html not found", 500
     try:
-        with open('/home/pi/github/Saturn/scripts/templates/index.html', 'r') as f:
-            content = f.read()
-        if "script-form" not in content:
-            logging.error("index.html does not contain expected content (script-form)")
-            return "Error: Invalid index.html content", 500
-        response = Response(content)
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
-        return response
+        return render_template('index.html')
     except Exception as e:
-        logging.error(f"Error reading index.html: {str(e)}")
-        return f"Error reading index.html: {str(e)}", 500
+        logging.error(f"Error rendering index.html: {str(e)}")
+        return f"Error rendering index.html: {str(e)}", 500
 
 @app.route('/saturn/get_scripts', methods=['GET'])
 def get_scripts():
     logging.debug(f"Fetching available scripts for /saturn/get_scripts, client: {request.remote_addr}, headers: {request.headers}")
-    scripts = list(app.saturn.scripts.keys())
-    logging.info(f"Returning scripts: {scripts}")
-    response = jsonify({"scripts": scripts})
+    response = jsonify({"scripts": app.saturn.grouped_scripts, "warnings": app.saturn.script_warnings})
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response, 200
+
+@app.route('/saturn/get_themes', methods=['GET'])
+def get_themes():
+    logging.debug(f"Fetching available themes for /saturn/get_themes, client: {request.remote_addr}, headers: {request.headers}")
+    themes = [{"name": t["name"], "description": t.get("description", "")} for t in app.saturn.themes]
+    response = jsonify({"themes": themes, "warnings": app.saturn.theme_warnings})
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response, 200
+
+@app.route('/saturn/get_theme', methods=['GET'])
+def get_theme():
+    name = request.args.get('name')
+    logging.debug(f"Fetching theme {name} for /saturn/get_theme, client: {request.remote_addr}, headers: {request.headers}")
+    theme = next((t for t in app.saturn.themes if t["name"] == name), None)
+    if theme:
+        response = jsonify({"styles": theme["styles"]})
+    else:
+        response = jsonify({"error": f"Theme not found: {name}"})
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response, 200 if theme else 404
 
 @app.route('/saturn/get_versions', methods=['GET'])
 def get_versions():
@@ -885,17 +1232,18 @@ def get_versions():
 
 @app.route('/saturn/get_flags', methods=['GET'])
 def get_flags():
-    script = request.args.get('script')
-    logging.debug(f"Fetching flags for script: {script} on /saturn/get_flags, client: {request.remote_addr}, headers: {request.headers}")
-    if script in app.saturn.scripts:
-        logging.info(f"Returning flags for {script}: {app.saturn.scripts[script]}")
-        response = jsonify({"flags": app.saturn.scripts[script]})
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
-        return response, 200
-    logging.warning(f"Invalid script requested: {script}")
-    response = jsonify({"flags": [], "error": f"Invalid script: {script}"})
+    filename = request.args.get('script')
+    logging.debug(f"Fetching flags for script: {filename} on /saturn/get_flags, client: {request.remote_addr}, headers: {request.headers}")
+    for script in app.saturn.config:
+        if script["filename"] == filename:
+            logging.info(f"Returning flags for {filename}: {script['flags']}")
+            response = jsonify({"flags": script["flags"]})
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+            return response, 200
+    logging.warning(f"Invalid script requested: {filename}")
+    response = jsonify({"flags": [], "error": f"Invalid script: {filename}"})
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
@@ -903,13 +1251,13 @@ def get_flags():
 
 @app.route('/saturn/run', methods=['POST'])
 def run():
-    script = request.form.get('script')
+    filename = request.form.get('script')
     flags = request.form.getlist('flags')
-    logging.debug(f"Received run request for script: {script}, flags: {flags} on /saturn/run, client: {request.remote_addr}, headers: {request.headers}")
-    if not script or script not in app.saturn.scripts:
-        logging.error(f"Invalid script: {script}")
-        error_msg = f"Error: Invalid script {script}\n"
-        response = Response(f"data: {app.saturn.converter.convert(error_msg, full=False)}\n\n", mimetype='text/event-stream', status=400)
+    logging.debug(f"Received run request for script: {filename}, flags: {flags} on /saturn/run, client: {request.remote_addr}, headers: {request.headers}")
+    if not filename:
+        logging.error(f"Invalid script: {filename}")
+        error_msg = f"Error: Invalid script {filename}\\n"
+        response = Response(f"data: {app.saturn.converter.convert(error_msg, full=False)}\\n\\n", mimetype='text/event-stream', status=400)
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
@@ -919,17 +1267,17 @@ def run():
 
     def generate():
         try:
-            for output in app.saturn.run_script(script, flags):
+            for output in app.saturn.run_script(filename, flags):
                 logging.debug(f"Streaming event: {output}")
                 yield output
                 sys.stdout.flush()
         except Exception as e:
             logging.error(f"Run endpoint error: {str(e)}")
-            error_msg = f"Error: {str(e)}\n"
+            error_msg = f"Error: {str(e)}\\n"
             if isinstance(e, urllib.error.URLError):
-                error_msg = f"Error: Network failure: {str(e)}. Please check your internet connection and try again.\n"
+                error_msg = f"Error: Network failure: {str(e)}. Please check your internet connection and try again.\\n"
             converted_error = app.saturn.converter.convert(error_msg, full=False)
-            yield f"data: {converted_error}\n\n"
+            yield f"data: {converted_error}\\n\\n"
             sys.stdout.flush()
 
     response = Response(generate(), mimetype='text/event-stream')
@@ -942,9 +1290,8 @@ def run():
 
 @app.route('/saturn/backup_response', methods=['POST'])
 def backup_response():
-    script = request.form.get('script')
     response = request.form.get('response')
-    logging.debug(f"Received backup response: {response} for script: {script} on /saturn/backup_response, client: {request.remote_addr}, headers: {request.headers}")
+    logging.debug(f"Received backup response: {response} on /saturn/backup_response, client: {request.remote_addr}, headers: {request.headers}")
     if response in ['y', 'n']:
         app.saturn.backup_response = response
         logging.info(f"Backup response set: {response}")
@@ -1006,11 +1353,11 @@ try:
 except Exception as e:
     error_log = Path.home() / "saturn-logs" / f"saturn-update-manager-error-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
     with open(error_log, "w") as f:
-        f.write(f"Web server initialization error: {str(e)}\n")
+        f.write(f"Web server initialization error: {str(e)}\\n")
     logging.error(f"Web server initialization error: {str(e)}")
     sys.exit(1)
 EOF
-chmod -R u+rwX "$SATURN_SCRIPT"
+chmod +x "$SATURN_SCRIPT"
 chown pi:pi "$SATURN_SCRIPT"
 log_and_echo "${GREEN}saturn_update_manager.py created${NC}"
 log_and_echo "${CYAN}Validating saturn_update_manager.py syntax...${NC}"
@@ -1023,33 +1370,119 @@ else
 fi
 log_and_echo "${GREEN}Verified Flask-based saturn_update_manager.py${NC}"
 
-# Create SaturnUpdateManager.desktop
-log_and_echo "${CYAN}Creating SaturnUpdateManager.desktop (overwriting if exists)...${NC}"
+# Create log_cleaner.sh (overwriting if exists)...
+log_and_echo "${CYAN}Creating log_cleaner.sh in /home/pi/scripts (overwriting if exists)...${NC}"
+rm -f "$LOG_CLEANER_SCRIPT"
+cat > "$LOG_CLEANER_SCRIPT" << 'EOF'
+#!/bin/bash
+# log_cleaner.sh - Script to find *.log files in home directory, report total space used, and optionally delete them
+# Usage: ./log_cleaner.sh [--delete-all] [--recursive] [--dry-run]
+
+# Flags
+DELETE_ALL=false
+RECURSIVE=true  # Default to recursive search
+DRY_RUN=false
+
+# Parse arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --delete-all) DELETE_ALL=true ;;
+        --no-recursive) RECURSIVE=false ;;
+        --dry-run) DRY_RUN=true ;;
+        *) echo "Unknown parameter: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+HOME_DIR="$HOME"
+
+# Build find command
+FIND_CMD="find $HOME_DIR -maxdepth 1 -type f -name '*.log'"  # Non-recursive by default
+if $RECURSIVE; then
+    FIND_CMD="find $HOME_DIR -type f -name '*.log'"
+fi
+
+# Find all *.log files
+LOG_FILES=$($FIND_CMD)
+
+if [ -z "$LOG_FILES" ]; then
+    echo "No *.log files found in $HOME_DIR."
+    exit 0
+fi
+
+# Calculate total size
+TOTAL_SIZE=$($FIND_CMD -exec du -b {} + | awk '{total += $1} END {print total}')
+
+# Human-readable size
+if command -v numfmt &> /dev/null; then
+    HUMAN_SIZE=$(numfmt --to=iec-i --suffix=B --padding=7 $TOTAL_SIZE)
+else
+    HUMAN_SIZE="$TOTAL_SIZE bytes"
+fi
+
+echo "Total space used by *.log files: $HUMAN_SIZE"
+
+# List files with sizes
+echo "Log files found:"
+while IFS= read -r file; do
+    SIZE=$(du -h "$file" | cut -f1)
+    echo "- $file ($SIZE)"
+done <<< "$LOG_FILES"
+
+# Deletion logic
+if $DELETE_ALL; then
+    if $DRY_RUN; then
+        echo "[Dry run] Would delete all found *.log files."
+    else
+        while IFS= read -r file; do
+            rm -f "$file"
+            echo "Deleted: $file"
+        done <<< "$LOG_FILES"
+        echo "All *.log files deleted."
+    fi
+else
+    read -p "Delete all these files? (y/n): " confirm
+    if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
+        if $DRY_RUN; then
+            echo "[Dry run] Would delete all found *.log files."
+        else
+            while IFS= read -r file; do
+                rm -f "$file"
+                echo "Deleted: $file"
+            done <<< "$LOG_FILES"
+            echo "All *.log files deleted."
+        fi
+    else
+        echo "Deletion cancelled."
+    fi
+fi
+EOF
+chmod +x "$LOG_CLEANER_SCRIPT"
+chown pi:pi "$LOG_CLEANER_SCRIPT"
+log_and_echo "${GREEN}log_cleaner.sh created${NC}"
+
+# Create SaturnUpdateManager.desktop (overwriting if exists)...
 rm -f "$DESKTOP_FILE"
 cat > "$DESKTOP_FILE" << EOF
 [Desktop Entry]
 Type=Application
 Name=Saturn Update Manager
-Comment=Web-based GUI to manage updates for update-G2.py and update-pihpsdr.py
+Comment=Web-based GUI to manage updates for various scripts
 Exec=xdg-open http://localhost/saturn/
 Icon=system-software-update
 Terminal=false
 Categories=System;Utility;
 EOF
-chmod u+rwX "$DESKTOP_FILE"
+chmod +x "$DESKTOP_FILE"
 chown pi:pi "$DESKTOP_FILE"
 log_and_echo "${GREEN}SaturnUpdateManager.desktop created${NC}"
 
 # Install desktop shortcut
 log_and_echo "${CYAN}Installing desktop shortcut...${NC}"
-if [ ! -d "/home/pi/Desktop" ]; then
-    log_and_echo "${YELLOW}Warning: Desktop directory not found at /home/pi/Desktop${NC}"
-else
-    cp "$DESKTOP_FILE" "$DESKTOP_DEST"
-    chmod u+rwX "$DESKTOP_DEST"
-    chown pi:pi "$DESKTOP_DEST"
-    log_and_echo "${GREEN}Desktop shortcut installed to $DESKTOP_DEST${NC}"
-fi
+cp "$DESKTOP_FILE" "$DESKTOP_DEST"
+chmod +x "$DESKTOP_DEST"
+chown pi:pi "$DESKTOP_DEST"
+log_and_echo "${GREEN}Desktop shortcut installed to $DESKTOP_DEST${NC}"
 
 # Verify scripts
 log_and_echo "${CYAN}Checking for update-G2.py and update-pihpsdr.py...${NC}"
@@ -1058,19 +1491,9 @@ for script in "update-G2.py" "update-pihpsdr.py"; do
         log_and_echo "${RED}Error: $script not found at $SCRIPTS_DIR/$script. Please ensure it exists.${NC}"
         exit 1
     else
-        chmod u+rwX "$SCRIPTS_DIR/$script"
+        chmod +x "$SCRIPTS_DIR/$script"
         chown pi:pi "$SCRIPTS_DIR/$script"
-        if [ "$script" = "update-G2.py" ]; then
-            version=$(grep "Version:" "$SCRIPTS_DIR/$script" | head -n1 | awk '{print $NF}')
-            if [ "$version" != "2.4" ]; then
-                log_and_echo "${YELLOW}Warning: $script version is $version, expected 2.4. Please update.${NC}"
-            fi
-        elif [ "$script" = "update-pihpsdr.py" ]; then
-            version=$(grep "Version:" "$SCRIPTS_DIR/$script" | head -n1 | awk '{print $NF}')
-            if [ "$version" != "1.7" ]; then
-                log_and_echo "${YELLOW}Warning: $script version is $version, expected 1.7. Please update.${NC}"
-            fi
-        fi
-        log_and_echo "${GREEN}$script verified and permissions set${NC}"
+        version=$(grep "Version:" "$SCRIPTS_DIR/$script" | head -n1 | awk '{print $NF}')
+        log_and_echo "${GREEN}$script verified (version $version) and permissions set${NC}"
     fi
 done
