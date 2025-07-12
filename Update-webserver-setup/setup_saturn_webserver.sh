@@ -22,6 +22,7 @@ set -e
 SETUP_DIR="/home/pi/github/Saturn/Update-webserver-setup"
 LOG_DIR="/home/pi/saturn-logs"
 LOG_FILE="$LOG_DIR/setup_saturn_webserver-$(date +%Y%m%d-%H%M%S).log"
+SCRIPTS_DIR="/home/pi/scripts"
 
 # Colors for output
 RED='\033[0;31m'
@@ -47,6 +48,20 @@ log_and_echo "${CYAN}Creating setup directory at $SETUP_DIR...${NC}"
 mkdir -p "$SETUP_DIR" || { log_and_echo "${RED}Error: Failed to create $SETUP_DIR${NC}"; exit 1; }
 chown pi:pi "$SETUP_DIR"
 chmod 755 "$SETUP_DIR"
+
+# Copy update scripts to ~/scripts
+log_and_echo "${CYAN}Copying update-G2.py and update-pihpsdr.py to $SCRIPTS_DIR...${NC}"
+mkdir -p "$SCRIPTS_DIR"
+for script in update-G2.py update-pihpsdr.py; do
+    if [ -f "$SETUP_DIR/$script" ]; then
+        cp "$SETUP_DIR/$script" "$SCRIPTS_DIR/"
+        chown pi:pi "$SCRIPTS_DIR/$script"
+        chmod +x "$SCRIPTS_DIR/$script"
+        log_and_echo "${GREEN}$script copied to $SCRIPTS_DIR${NC}"
+    else
+        log_and_echo "${YELLOW}$script not found in $SETUP_DIR, skipping${NC}"
+    fi
+done
 
 # Verify modular scripts exist
 for script in install_deps.sh configure_apache.sh create_files.sh start_server.sh; do
