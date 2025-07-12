@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # update-G2.py - G2 Update Script
 # Automates updating the Saturn G2
-# Version: 2.4
-# Written by: Jerry DeLong KD4YAL
+# Version: 2.5
+# Written by: Jerry DeLong KD4YAL, updated by Grok 3
+# Changes: Added white output for build script processes with --verbose, updated version to 2.5
 # Dependencies: pyfiglet (version 1.0.3) installed in ~/venv
 # Usage: source ~/venv/bin/activate; python3 ~/github/Saturn/scripts/update-G2.py; deactivate
 
@@ -23,16 +24,17 @@ except ImportError:
 
 # ANSI color codes
 class Colors:
-    RED = '\033[31m'  # Standard red for banner
-    BLUE = '\033[34m'  # Standard blue for subtitle
-    CYAN = '\033[36m'
-    GREEN = '\033[32m'
-    YELLOW = '\033[33m'
+    RED = '\033[31m'    # Standard red for banner
+    BLUE = '\033[34m'   # Standard blue for subtitle
+    CYAN = '\033[36m'   # Cyan for info messages
+    GREEN = '\033[32m'  # Green for success
+    YELLOW = '\033[33m' # Yellow for warnings
+    WHITE = '\033[37m'  # White for build output
     END = '\033[0m'
 
 # Script metadata
 SCRIPT_NAME = "SATURN UPDATE"
-SCRIPT_VERSION = "2.4"
+SCRIPT_VERSION = "2.5"
 SATURN_DIR = os.path.expanduser("~/github/Saturn")
 LOG_DIR = os.path.expanduser("~/saturn-logs")
 LOG_FILE = os.path.join(LOG_DIR, f"saturn-update-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
@@ -94,6 +96,12 @@ def print_info(msg):
     print(f"{Colors.CYAN}ℹ {msg}{Colors.END}")
     logging.info(msg)
 
+def print_build_output(msg):
+    cols, _ = get_term_size()
+    msg = truncate_text(msg, cols-7)
+    print(f"{Colors.WHITE}{msg}{Colors.END}")
+    logging.info(msg)
+
 def progress_bar(pid, msg, total_steps):
     if args.dry_run:
         print_info(f"[Dry Run] Simulating progress for: {msg}")
@@ -145,7 +153,7 @@ def init_logging():
         g2_saturn_ascii = "G2 Saturn\n"
     banner = f"""
 {Colors.RED}{g2_saturn_ascii.rstrip()}{Colors.END}
-{Colors.BLUE}{'Update Manager v2.4'.center(cols-2)}{Colors.END}\n\n"""
+{Colors.BLUE}{'Update Manager v2.5'.center(cols-2)}{Colors.END}\n\n"""
     logging.debug(f"Banner raw output: {repr(banner)}")
     print(banner)
     print_info(f"Started: {datetime.now()}")
@@ -158,7 +166,7 @@ def parse_args():
     parser.add_argument("-y", "--yes", action="store_true", help="Auto-confirm backup creation")
     parser.add_argument("-n", "--no", action="store_true", help="Skip backup creation")
     parser.add_argument("--dry-run", action="store_true", help="Simulate actions without executing")
-    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output for all commands, including detailed build output")
     parser.add_argument("--debug", action="store_true", help="Enable debug output")
     return parser.parse_args()
 
@@ -194,7 +202,7 @@ def check_connectivity():
     try:
         result = subprocess.run(["ping", "-c", "1", "-W", "2", "github.com"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if args.verbose:
-            print_info(f"Ping output: {result.stdout.strip()}")
+            print_build_output(f"Ping output: {result.stdout.strip()}")
         print_success("Network verified")
         return 0
     except subprocess.CalledProcessError as e:
@@ -286,6 +294,9 @@ def update_git():
                     with open("/tmp/git_output", "r") as f:
                         error_output = f.read().strip()
                     print_error(f"Git update failed: {error_output}")
+            if args.verbose:
+                with open("/tmp/git_output", "r") as f:
+                    print_build_output(f"Git output: {f.read().strip()}")
         except Exception as e:
             print_error(f"Failed to access /tmp/git_output: {str(e)}")
         try:
@@ -296,7 +307,7 @@ def update_git():
                 print_info(f"New commit: {new_commit}")
                 print_info(f"Changes: {change_count} commits")
                 if args.verbose:
-                    print_info(f"Git log:\n{log_result}")
+                    print_build_output(f"Git log: {log_result}")
             else:
                 print_info("Up to date")
             print_success("Repository updated")
@@ -353,7 +364,7 @@ def create_backup():
                 print_error(f"Backup failed: {error_output}")
             if args.verbose:
                 with open("/tmp/rsync_output", "r") as f:
-                    print_info(f"Rsync output: {f.read().strip()}")
+                    print_build_output(f"Rsync output: {f.read().strip()}")
     except Exception as e:
         print_error(f"Failed to access /tmp/rsync_output: {str(e)}")
     if args.dry_run:
@@ -375,16 +386,23 @@ def install_libraries():
     install_script = os.path.join(SATURN_DIR, "scripts", "install-libraries.sh")
     if os.path.isfile(install_script):
         try:
-            with open("/tmp/library_output", "w") as f:
-                process = subprocess.Popen(["bash", install_script], stdout=f, stderr=f, text=True)
-                return_code = progress_bar(process, "Installing", 10)
+            if args.verbose:
+                process = subprocess.Popen(["bash", install_script], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
+                while process.poll() is None:
+                    line = process.stdout.readline().strip()
+                    if line:
+                        print_build_output(line)
+                return_code = process.wait()
                 if return_code != 0:
-                    with open("/tmp/library_output", "r") as f:
-                        error_output = f.read().strip()
-                    print_error(f"Library install failed: {error_output}")
-                if args.verbose:
-                    with open("/tmp/library_output", "r") as f:
-                        print_info(f"Install output: {f.read().strip()}")
+                    print_error(f"Library install failed: Check log for details")
+            else:
+                with open("/tmp/library_output", "w") as f:
+                    process = subprocess.Popen(["bash", install_script], stdout=f, stderr=f, text=True)
+                    return_code = progress_bar(process, "Installing", 10)
+                    if return_code != 0:
+                        with open("/tmp/library_output", "r") as f:
+                            error_output = f.read().strip()
+                        print_error(f"Library install failed: {error_output}")
             print_success("Libraries installed")
             return True
         except Exception as e:
@@ -404,16 +422,23 @@ def build_p2app():
     build_script = os.path.join(SATURN_DIR, "scripts", "update-p2app.sh")
     if os.path.isfile(build_script):
         try:
-            with open("/tmp/p2app_output", "w") as f:
-                process = subprocess.Popen(["bash", build_script], stdout=f, stderr=f, text=True)
-                return_code = progress_bar(process, "Building", 10)
+            if args.verbose:
+                process = subprocess.Popen(["bash", build_script], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
+                while process.poll() is None:
+                    line = process.stdout.readline().strip()
+                    if line:
+                        print_build_output(line)
+                return_code = process.wait()
                 if return_code != 0:
-                    with open("/tmp/p2app_output", "r") as f:
-                        error_output = f.read().strip()
-                    print_error(f"p2app build failed: {error_output}")
-                if args.verbose:
-                    with open("/tmp/p2app_output", "r") as f:
-                        print_info(f"Build output: {f.read().strip()}")
+                    print_error(f"p2app build failed: Check log for details")
+            else:
+                with open("/tmp/p2app_output", "w") as f:
+                    process = subprocess.Popen(["bash", build_script], stdout=f, stderr=f, text=True)
+                    return_code = progress_bar(process, "Building", 10)
+                    if return_code != 0:
+                        with open("/tmp/p2app_output", "r") as f:
+                            error_output = f.read().strip()
+                        print_error(f"p2app build failed: {error_output}")
             print_success("p2app built")
             return True
         except Exception as e:
@@ -433,16 +458,23 @@ def build_desktop_apps():
     build_script = os.path.join(SATURN_DIR, "scripts", "update-desktop-apps.sh")
     if os.path.isfile(build_script):
         try:
-            with open("/tmp/desktop_output", "w") as f:
-                process = subprocess.Popen(["bash", build_script], stdout=f, stderr=f, text=True)
-                return_code = progress_bar(process, "Building", 10)
+            if args.verbose:
+                process = subprocess.Popen(["bash", build_script], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
+                while process.poll() is None:
+                    line = process.stdout.readline().strip()
+                    if line:
+                        print_build_output(line)
+                return_code = process.wait()
                 if return_code != 0:
-                    with open("/tmp/desktop_output", "r") as f:
-                        error_output = f.read().strip()
-                    print_error(f"App build failed: {error_output}")
-                if args.verbose:
-                    with open("/tmp/desktop_output", "r") as f:
-                        print_info(f"Build output: {f.read().strip()}")
+                    print_error(f"App build failed: Check log for details")
+            else:
+                with open("/tmp/desktop_output", "w") as f:
+                    process = subprocess.Popen(["bash", build_script], stdout=f, stderr=f, text=True)
+                    return_code = progress_bar(process, "Building", 10)
+                    if return_code != 0:
+                        with open("/tmp/desktop_output", "r") as f:
+                            error_output = f.read().strip()
+                        print_error(f"App build failed: {error_output}")
             print_success("Apps built")
             return True
         except Exception as e:
@@ -467,16 +499,23 @@ def install_udev_rules():
             if not args.dry_run:
                 os.chmod(install_script, 0o755)
         try:
-            with open("/tmp/udev_output", "w") as f:
-                process = subprocess.Popen(["sudo", "./install-rules.sh"], cwd=rules_dir, stdout=f, stderr=f, text=True)
-                return_code = progress_bar(process, "Installing", 10)
+            if args.verbose:
+                process = subprocess.Popen(["sudo", "./install-rules.sh"], cwd=rules_dir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
+                while process.poll() is None:
+                    line = process.stdout.readline().strip()
+                    if line:
+                        print_build_output(line)
+                return_code = process.wait()
                 if return_code != 0:
-                    with open("/tmp/udev_output", "r") as f:
-                        error_output = f.read().strip()
-                    print_error(f"Udev install failed: {error_output}")
-                if args.verbose:
-                    with open("/tmp/udev_output", "r") as f:
-                        print_info(f"Udev output: {f.read().strip()}")
+                    print_error(f"Udev install failed: Check log for details")
+            else:
+                with open("/tmp/udev_output", "w") as f:
+                    process = subprocess.Popen(["sudo", "./install-rules.sh"], cwd=rules_dir, stdout=f, stderr=f, text=True)
+                    return_code = progress_bar(process, "Installing", 10)
+                    if return_code != 0:
+                        with open("/tmp/udev_output", "r") as f:
+                            error_output = f.read().strip()
+                        print_error(f"Udev install failed: {error_output}")
             print_success("Rules installed")
             return True
         except Exception as e:
@@ -527,16 +566,23 @@ def check_fpga_binary():
     check_script = os.path.join(SATURN_DIR, "scripts", "find-bin.sh")
     if os.path.isfile(check_script):
         try:
-            with open("/tmp/fpga_output", "w") as f:
-                process = subprocess.Popen(["bash", check_script], stdout=f, stderr=f, text=True)
-                return_code = progress_bar(process, "Verifying", 10)
+            if args.verbose:
+                process = subprocess.Popen(["bash", check_script], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
+                while process.poll() is None:
+                    line = process.stdout.readline().strip()
+                    if line:
+                        print_build_output(line)
+                return_code = process.wait()
                 if return_code != 0:
-                    with open("/tmp/fpga_output", "r") as f:
-                        error_output = f.read().strip()
-                    print_error(f"FPGA check failed: {error_output}")
-                if args.verbose:
-                    with open("/tmp/fpga_output", "r") as f:
-                        print_info(f"FPGA output: {f.read().strip()}")
+                    print_error(f"FPGA check failed: Check log for details")
+            else:
+                with open("/tmp/fpga_output", "w") as f:
+                    process = subprocess.Popen(["bash", check_script], stdout=f, stderr=f, text=True)
+                    return_code = progress_bar(process, "Verifying", 10)
+                    if return_code != 0:
+                        with open("/tmp/fpga_output", "r") as f:
+                            error_output = f.read().strip()
+                        print_error(f"FPGA check failed: {error_output}")
             print_success("Binary verified")
             return True
         except Exception as e:
