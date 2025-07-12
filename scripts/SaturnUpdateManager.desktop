@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Saturn Update Manager
-Comment=Web-based GUI to manage updates for update-G2.py and update-pihpsdr.py
-Exec=xdg-open http://localhost/saturn/
-Icon=system-software-update
-Terminal=false
-Categories=System;Utility;
