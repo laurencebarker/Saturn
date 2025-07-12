@@ -176,5 +176,5 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
 ## Support
 For further assistance, check the logs and share relevant outputs with your query. Ensure all scripts are in `~/github/Saturn/Update-webserver-setup` and have correct permissions (`chmod +x`).
 
-**Author**: Jerry DeLong KD4YAL, with updates by Grok 3 (xAI)
+**Author**: Jerry DeLong KD4YAL
 **Last Updated**: July 11, 2025
