@@ -12,6 +12,7 @@ if [ -f ~/venv/bin/activate ]; then
     source ~/venv/bin/activate
     pip install rich==14.0.0
     pip install psutil==7.0.0
+    pip install pyfiglet
 else
     echo "Error: Virtual environment not found at ~/venv"
     exit 1

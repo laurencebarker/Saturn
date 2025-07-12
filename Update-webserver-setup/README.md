@@ -1,4 +1,4 @@
-# Update Manager Web Server Setup
+# Saturn Update Manager Web Server Setup
 
 ## Overview
 
@@ -10,10 +10,10 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
 - **Custom Themes**: Load and apply themes from `themes.json` via a dropdown selector, using CSS variables for dynamic styling (e.g., colors for background, text, buttons).
 - **Modular Setup**: Split into five scripts for easier maintenance:
   - `setup_saturn_webserver.sh` (version 2.67): Main orchestration script.
-  - `install_deps.sh` (version 1.0): Installs system and Python dependencies.
-  - `configure_apache.sh` (version 1.0): Configures Apache as a reverse proxy.
+  - `install_deps.sh` (version 1.0): Installs dependencies.
+  - `configure_apache.sh` (version 1.0): Configures Apache proxy.
   - `create_files.sh` (version 1.5): Creates `index.html`, `saturn_update_manager.py`, `themes.json`, and desktop shortcut; backs up existing `config.json`.
-  - `start_server.sh` (version 1.6): Starts the Flask server and verifies endpoints.
+  - `start_server.sh` (version 1.6): Starts and verifies Flask server.
 - **Error Handling**: Fixes `tput` errors in update scripts by setting `TERM=dumb` for non-interactive environments, ensuring banners display correctly.
 - **Security**: Enforces Apache authentication and subnet restrictions.
 - **Forced Logoff**: The "Exit" button terminates the server and prompts re-authentication.
@@ -26,7 +26,7 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
 - **Operating System**: Raspberry Pi OS Bookworm.
 - **Hardware**: Raspberry Pi with network connectivity.
 - **Dependencies**: `python3`, `python3-pip`, `lsof`, `apache2`, `apache2-utils`, `python3-gunicorn`.
-- **Scripts**: `update-G2.py` (version 2.4), `update-pihpsdr.py` (version 1.7), and others in `~/github/Saturn/scripts`.
+- **Scripts**: `update-G2.py` (version 2.4), `update-pihpsdr.py` (version 1.7), and others in `~/scripts`.
 - **User**: Commands must be run as the `pi` user with `sudo` privileges.
 
 ## Directory Structure
@@ -39,15 +39,16 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
 │   ├── create_files.sh            # Creates web app files
 │   ├── start_server.sh            # Starts and verifies Flask server
 ├── scripts/
-│   ├── saturn_update_manager.py   # Flask app (version 2.22)
 │   ├── update-G2.py               # Update script (version 2.4)
 │   ├── update-pihpsdr.py          # Update script (version 1.7)
+~/scripts/
+│   ├── saturn_update_manager.py   # Flask app (version 2.22)
 │   ├── templates/
 │   │   ├── index.html             # Web interface
-│   ├── SaturnUpdateManager.desktop  # Desktop shortcut
-~/scripts/
 │   ├── config.json                # Script configurations
 │   ├── themes.json                # Theme configurations
+│   ├── log_cleaner.sh             # Maintenance script
+│   ├── SaturnUpdateManager.desktop  # Desktop shortcut
 ~/saturn-logs/
 │   ├── setup_saturn_webserver-*.log  # Setup logs
 │   ├── saturn-update-manager-*.log   # Gunicorn stdout logs
@@ -123,12 +124,12 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
 1. **Error: `ModuleNotFoundError: No module named 'saturn_update_manager'`**
    - **Cause**: Gunicorn cannot find `saturn_update_manager.py`.
    - **Solution**:
-     - Verify the file exists: `ls -l ~/github/Saturn/scripts/saturn_update_manager.py`.
+     - Verify the file exists: `ls -l ~/scripts/saturn_update_manager.py`.
      - Re-run `create_files.sh` to recreate it:
        ```bash
        sudo bash ~/github/Saturn/Update-webserver-setup/create_files.sh
        ```
-     - Check `PYTHONPATH` in `start_server.sh` includes `~/github/Saturn/scripts`.
+     - Check `PYTHONPATH` in `start_server.sh` includes `~/scripts`.
 
 2. **Error: `Failed to obtain valid SERVER_PID for Flask server`**
    - **Cause**: Gunicorn failed to start or write the PID file.
@@ -140,7 +141,7 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
 3. **Error: `Flask /saturn/get_versions endpoint failed - expected versions not found`**
    - **Cause**: Version mismatch between `start_server.sh` and `saturn_update_manager.py`.
    - **Solution**:
-     - Check the version in `saturn_update_manager.py`: `grep "Version:" ~/github/Saturn/scripts/saturn_update_manager.py`.
+     - Check the version in `saturn_update_manager.py`: `grep "Version:" ~/scripts/saturn_update_manager.py`.
      - Update `start_server.sh` to match (currently expects 2.22) or re-run `create_files.sh` to set version 2.22:
        ```bash
        sudo bash ~/github/Saturn/Update-webserver-setup/create_files.sh
