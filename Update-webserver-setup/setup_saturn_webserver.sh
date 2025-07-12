@@ -63,8 +63,29 @@ for script in update-G2.py update-pihpsdr.py; do
     fi
 done
 
+# Detect OS version
+source /etc/os-release
+
 # Verify modular scripts exist
-for script in install_deps.sh configure_apache.sh create_files.sh start_server.sh; do
+for script in configure_apache.sh create_files.sh; do
+    if [ ! -f "$SETUP_DIR/$script" ]; then
+        log_and_echo "${RED}Error: $script not found in $SETUP_DIR${NC}"
+        exit 1
+    fi
+    chmod 755 "$SETUP_DIR/$script"
+    chown pi:pi "$SETUP_DIR/$script"
+done
+
+# Check for Buster-specific deps and start scripts
+if [ "$VERSION" = "10 (buster)" ]; then
+    DEPS_SCRIPT="install_deps_buster.sh"
+    START_SCRIPT="start_server_buster.sh"
+else
+    DEPS_SCRIPT="install_deps.sh"
+    START_SCRIPT="start_server.sh"
+fi
+
+for script in "$DEPS_SCRIPT" "$START_SCRIPT"; do
     if [ ! -f "$SETUP_DIR/$script" ]; then
         log_and_echo "${RED}Error: $script not found in $SETUP_DIR${NC}"
         exit 1
@@ -76,8 +97,8 @@ done
 # Run modular scripts
 log_and_echo "${CYAN}Starting setup at $(date)${NC}"
 
-log_and_echo "${CYAN}Executing install_deps.sh...${NC}"
-bash "$SETUP_DIR/install_deps.sh" >> "$LOG_FILE" 2>&1 || { log_and_echo "${RED}Error: install_deps.sh failed${NC}"; exit 1; }
+log_and_echo "${CYAN}Executing $DEPS_SCRIPT...${NC}"
+bash "$SETUP_DIR/$DEPS_SCRIPT" >> "$LOG_FILE" 2>&1 || { log_and_echo "${RED}Error: $DEPS_SCRIPT failed${NC}"; exit 1; }
 
 log_and_echo "${CYAN}Executing configure_apache.sh...${NC}"
 bash "$SETUP_DIR/configure_apache.sh" >> "$LOG_FILE" 2>&1 || { log_and_echo "${RED}Error: configure_apache.sh failed${NC}"; exit 1; }
@@ -85,8 +106,8 @@ bash "$SETUP_DIR/configure_apache.sh" >> "$LOG_FILE" 2>&1 || { log_and_echo "${R
 log_and_echo "${CYAN}Executing create_files.sh...${NC}"
 bash "$SETUP_DIR/create_files.sh" >> "$LOG_FILE" 2>&1 || { log_and_echo "${RED}Error: create_files.sh failed${NC}"; exit 1; }
 
-log_and_echo "${CYAN}Executing start_server.sh...${NC}"
-bash "$SETUP_DIR/start_server.sh" >> "$LOG_FILE" 2>&1 || { log_and_echo "${RED}Error: start_server.sh failed${NC}"; exit 1; }
+log_and_echo "${CYAN}Executing $START_SCRIPT...${NC}"
+bash "$SETUP_DIR/$START_SCRIPT" >> "$LOG_FILE" 2>&1 || { log_and_echo "${RED}Error: $START_SCRIPT failed${NC}"; exit 1; }
 
 private_ip=$(ip addr show | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d'/' -f1 | head -n1)
 log_and_echo "${GREEN}Setup completed at $(date). Log: $LOG_FILE${NC}"
