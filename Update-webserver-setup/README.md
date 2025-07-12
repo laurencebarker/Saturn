@@ -158,7 +158,6 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
 4. **Error: `tput: No value for $TERM and no -T specified` in Web Output**
    - **Cause**: Update scripts use `tput` in a non-interactive environment.
    - **Solution**: The fix is already implemented in `saturn_update_manager.py` (sets `TERM=dumb`). Verify by running a script with `--verbose` and checking for banners.
-
 5. **Apache Authentication Fails (HTTP 401 or 403)**
    - **Cause**: Incorrect `.htpasswd` file or subnet configuration.
    - **Solution**:
@@ -168,7 +167,6 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
        sudo bash ~/github/Saturn/Update-webserver-setup/configure_apache.sh
        ```
      - Verify `.htpasswd`: `cat /etc/apache2/.htpasswd`.
-
 6. **Web Interface Not Loading**:
    - **Cause**: Apache or Gunicorn not running, or network issues.
    - **Solution**:
@@ -176,7 +174,6 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
      - Check Gunicorn process: `ps aux | grep gunicorn`.
      - Verify port 5000: `netstat -tuln | grep 5000`.
      - Restart the server: `sudo bash ~/github/Saturn/Update-webserver-setup/start_server.sh`.
-
 7. **Theme Dropdown Not Showing or Not Working**:
    - **Cause**: Themes not loaded (invalid `themes.json`) or JS fetch error.
    - **Solution**:
@@ -184,22 +181,18 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
      - Validate `themes.json`: `python3 -c "import json; json.load(open('/home/pi/scripts/themes.json'))"`.
      - Ensure `loadThemes()` is called in index.html's script.
      - Clear browser cache/localStorage and reload.
-
 ### Log Files
 - **Setup Logs**: `~/saturn-logs/setup_saturn_webserver-*.log`
 - **Gunicorn Logs**: `~/saturn-logs/saturn-update-manager-*.log` (stdout), `~/saturn-logs/saturn-update-manager-error-*.log` (stderr)
 - **Endpoint Logs**: `~/saturn-logs/flask_*.log`, `~/saturn-logs/auth_*.log`
 - **Apache Logs**: `/var/log/apache2/saturn_error.log`, `/var/log/apache2/saturn_access.log`
-
 ### Additional Notes
 - **Version Consistency**: If `saturn_update_manager.py` is version 2.22 but other scripts expect older versions, re-run `create_files.sh` to update.
 - **Config Backup**: Existing `config.json` is backed up (e.g., `config.json.bak.<timestamp>`) before overwriting.
 - **Network Issues**: Ensure the Raspberry Pi has a valid IP (e.g., `192.168.0.139`) and is on the same subnet as the client.
 - **Backup Prompt**: If the backup prompt does not appear, ensure `-y` or `-n` flags are not selected when running scripts.
 - **Buster Compatibility**: On Buster, uses Flask 2.2.5, ansi2html 1.9.2, and psutil 5.9.8 for Python 3.7 compatibility.
-
 ## Support
 For further assistance, check the logs and share relevant outputs with your query. Ensure all scripts are in `~/github/Saturn/Update-webserver-setup` and have correct permissions (`chmod +x`).
-
 **Author**: Jerry DeLong KD4YAL  
 **Last Updated**: July 12, 2025
