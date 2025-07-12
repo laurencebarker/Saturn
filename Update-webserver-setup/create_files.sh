@@ -1,4 +1,4 @@
-ff#!/bin/bash
+#!/bin/bash
 # create_files.sh - Creates index.html, saturn_update_manager.py, config.json, themes.json, and SaturnUpdateManager.desktop
 # Version: 1.5
 # Written by: Jerry DeLong KD4YAL
@@ -8,18 +8,19 @@ ff#!/bin/bash
 set -e
 
 # Paths
-SCRIPTS_DIR="/home/pi/github/Saturn/scripts"
+SCRIPTS_DIR="/home/pi/scripts"
 TEMPLATES_DIR="$SCRIPTS_DIR/templates"
 LOG_DIR="/home/pi/saturn-logs"
 DESKTOP_FILE="$SCRIPTS_DIR/SaturnUpdateManager.desktop"
 DESKTOP_DEST="/home/pi/github/Saturn/desktop/SaturnUpdateManager.desktop"
 SATURN_SCRIPT="$SCRIPTS_DIR/saturn_update_manager.py"
 INDEX_HTML="$TEMPLATES_DIR/index.html"
-CONFIG_JSON="/home/pi/scripts/config.json"
-THEMES_JSON="/home/pi/scripts/themes.json"
-LOG_CLEANER_SCRIPT="/home/pi/scripts/log_cleaner.sh"
+CONFIG_JSON="$SCRIPTS_DIR/config.json"
+THEMES_JSON="$SCRIPTS_DIR/themes.json"
+LOG_CLEANER_SCRIPT="$SCRIPTS_DIR/log_cleaner.sh"
 LOG_FILE="$LOG_DIR/setup_saturn_webserver-$(date +%Y%m%d-%H%M%S).log"
 VENV_PATH="/home/pi/venv"
+OLD_SCRIPTS_DIR="/home/pi/github/Saturn/scripts"
 
 # Colors for output
 RED='\033[0;31m'
@@ -35,14 +36,25 @@ log_and_echo() {
 
 # Create directories
 log_and_echo "${CYAN}Creating directories...${NC}"
-mkdir -p "$SCRIPTS_DIR" "$TEMPLATES_DIR" "$LOG_DIR" "/home/pi/github/Saturn/desktop" "/home/pi/scripts"
-chmod -R u+rwX "$SCRIPTS_DIR" "$TEMPLATES_DIR" "$LOG_DIR" "/home/pi/github/Saturn/desktop" "/home/pi/scripts"
-chown pi:pi "$LOG_DIR" "$TEMPLATES_DIR" "/home/pi/github/Saturn/desktop" "/home/pi/scripts"
-chmod 775 "$LOG_DIR" "/home/pi/github/Saturn/desktop" "/home/pi/scripts"
+mkdir -p "$SCRIPTS_DIR" "$TEMPLATES_DIR" "$LOG_DIR" "/home/pi/github/Saturn/desktop"
+chmod -R u+rwX "$SCRIPTS_DIR" "$TEMPLATES_DIR" "$LOG_DIR" "/home/pi/github/Saturn/desktop"
+chown pi:pi "$LOG_DIR" "$TEMPLATES_DIR" "/home/pi/github/Saturn/desktop"
+chmod 775 "$LOG_DIR" "/home/pi/github/Saturn/desktop" "$SCRIPTS_DIR"
 log_and_echo "${GREEN}Directories created${NC}"
 
+# Move update scripts if they exist in old location
+log_and_echo "${CYAN}Checking for update scripts in old location and moving if necessary...${NC}"
+for script in "update-G2.py" "update-pihpsdr.py"; do
+    if [ -f "$OLD_SCRIPTS_DIR/$script" ] && [ ! -f "$SCRIPTS_DIR/$script" ]; then
+        cp "$OLD_SCRIPTS_DIR/$script" "$SCRIPTS_DIR/"
+        chmod +x "$SCRIPTS_DIR/$script"
+        chown pi:pi "$SCRIPTS_DIR/$script"
+        log_and_echo "${GREEN}Moved $script to $SCRIPTS_DIR${NC}"
+    fi
+done
+
 # Create config.json (back up if exists)
-log_and_echo "${CYAN}Creating config.json in /home/pi/scripts...${NC}"
+log_and_echo "${CYAN}Creating config.json in $SCRIPTS_DIR...${NC}"
 if [ -f "$CONFIG_JSON" ]; then
     BACKUP_FILE="${CONFIG_JSON}.bak.$(date +%Y%m%d-%H%M%S)"
     cp "$CONFIG_JSON" "$BACKUP_FILE"
@@ -54,7 +66,7 @@ cat > "$CONFIG_JSON" << 'EOF'
     "filename": "update-G2.py",
     "name": "Update G2",
     "description": "Updates Saturn G2 component",
-    "directory": "~/github/Saturn/scripts",
+    "directory": "~/scripts",
     "category": "Update Scripts",
     "flags": ["--skip-git", "-y", "-n", "--dry-run", "--verbose"]
   },
@@ -62,7 +74,7 @@ cat > "$CONFIG_JSON" << 'EOF'
     "filename": "update-pihpsdr.py",
     "name": "Update piHPSDR",
     "description": "Updates piHPSDR component",
-    "directory": "~/github/Saturn/scripts",
+    "directory": "~/scripts",
     "category": "Update Scripts",
     "flags": ["--skip-git", "-y", "--no-gpio", "--verbose"]
   },
@@ -81,7 +93,7 @@ chown pi:pi "$CONFIG_JSON"
 log_and_echo "${GREEN}config.json created (or updated with backup if existed)${NC}"
 
 # Create themes.json if not exists
-log_and_echo "${CYAN}Creating themes.json in /home/pi/scripts (overwriting if exists)...${NC}"
+log_and_echo "${CYAN}Creating themes.json in $SCRIPTS_DIR (overwriting if exists)...${NC}"
 rm -f "$THEMES_JSON"
 cat > "$THEMES_JSON" << 'EOF'
 [
@@ -224,7 +236,7 @@ cat > "$INDEX_HTML" << 'EOF'
     <div class="container mx-auto p-4 sm:p-6">
         <h1 class="text-3xl font-bold text-red-600 text-center mb-2">Saturn Update Manager</h1>
         <p class="text-lg text-gray-600 text-center mb-4">Build Version: 2.65 (Setup Script)</p>
-        
+
         <div class="bg-white rounded-lg shadow-md p-4 mb-4">
             <h2 class="text-xl font-semibold text-gray-700 mb-2">Script Versions</h2>
             <ul id="version-list" class="list-disc pl-5 text-gray-600"></ul>
@@ -779,14 +791,14 @@ logging.basicConfig(
 )
 logging.info("Initializing Saturn Update Manager")
 
-app = Flask(__name__, template_folder=os.path.join(Path.home(), 'github', 'Saturn', 'scripts', 'templates'))
+app = Flask(__name__, template_folder=os.path.join(Path.home(), 'scripts', 'templates'))
 shutdown_event = threading.Event()
 
 class SaturnUpdateManager:
     def __init__(self):
         logging.debug("Starting SaturnUpdateManager initialization")
         self.venv_path = Path.home() / "venv" / "bin" / "activate"
-        self.scripts_dir = Path.home() / "github" / "Saturn" / "scripts"
+        self.scripts_dir = Path.home() / "scripts"
         self.log_dir = Path.home() / "saturn-logs"
         self.config_path = Path.home() / "scripts" / "config.json"
         self.themes_path = Path.home() / "scripts" / "themes.json"
@@ -805,7 +817,7 @@ class SaturnUpdateManager:
         error_message = self.validate_setup()
         if error_message:
             logging.error(f"Initialization failed: {error_message}")
-            print(f"Error: {error_message}\\nCheck log: {log_file}")
+            print(f"Error: {error_message}\nCheck log: {log_file}")
             sys.exit(1)
 
         self.load_config()
@@ -976,14 +988,14 @@ Categories=System;Utility;
         script_entry = next((s for s in self.config if s["filename"] == filename), None)
         if not script_entry:
             logging.error(f"Script not found in config: {filename}")
-            error_msg = f"Error: Script {filename} not found\\n"
-            yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
+            error_msg = f"Error: Script {filename} not found\n"
+            yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
             return
         script_path = os.path.join(os.path.expanduser(script_entry["directory"]), filename)
         if not os.path.isfile(script_path):
             logging.error(f"Script path invalid: {script_path}")
-            error_msg = f"Error: Script path invalid {script_path}\\n"
-            yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
+            error_msg = f"Error: Script path invalid {script_path}\n"
+            yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
             return
         if filename.endswith('.sh'):
             cmd = f"bash {shlex.quote(script_path)} {' '.join(shlex.quote(flag) for flag in flags)}"
@@ -999,8 +1011,8 @@ Categories=System;Utility;
             test_result = subprocess.run(test_cmd, shell=True, capture_output=True, text=True, timeout=10)
             if test_result.returncode != 0:
                 logging.error(f"Syntax check failed: {test_result.stderr}")
-                error_msg = f"Error: Syntax check failed: {test_result.stderr}\\n"
-                yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
+                error_msg = f"Error: Syntax check failed: {test_result.stderr}\n"
+                yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
                 return
             logging.debug(f"Syntax check passed")
 
@@ -1019,7 +1031,7 @@ Categories=System;Utility;
                 stdin=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True, env=env
             )
             logging.debug(f"Started process with PID: {self.process.pid}")
-            backup_prompt = re.compile(r'⚠?\\s*Backup\\?\\s*Y/n\\s*:?', re.IGNORECASE)
+            backup_prompt = re.compile(r'⚠?\s*Backup\?\s*Y/n\s*:?', re.IGNORECASE)
             timeout = 600
             start_time = datetime.now()
             output_buffer = []
@@ -1028,7 +1040,7 @@ Categories=System;Utility;
                 try:
                     if time.time() - last_heartbeat > 5:
                         with self.output_lock:
-                            yield "data: \\n\\n"
+                            yield "data: \n\n"
                             logging.debug("Sent heartbeat")
                             sys.stdout.flush()
                         last_heartbeat = time.time()
@@ -1046,34 +1058,34 @@ Categories=System;Utility;
                             continue
 
                         with self.output_lock:
-                            clean_line = re.sub(r'\\x1B\\[[0-?]*[ -/]*[@-~]', '', line)
-                            converted_line = self.converter.convert(line.rstrip('\\n'), full=False)
+                            clean_line = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', line)
+                            converted_line = self.converter.convert(line.rstrip('\n'), full=False)
                             output_buffer.append(converted_line)
 
                             if stream is self.process.stdout:
                                 logging.debug(f"stdout: {clean_line.strip()}")
                                 if backup_prompt.search(clean_line) and '-y' not in flags and '-n' not in flags:
                                     logging.info("Detected backup prompt")
-                                    yield "data: BACKUP_PROMPT\\n\\n"
+                                    yield "data: BACKUP_PROMPT\n\n"
                                     sys.stdout.flush()
                                     while self.backup_response is None and self.process.poll() is None:
                                         if (datetime.now() - start_time).seconds > timeout:
                                             logging.error("Backup prompt timed out")
-                                            error_msg = "Error: Backup prompt timed out after 600 seconds\\n"
-                                            yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
+                                            error_msg = "Error: Backup prompt timed out after 600 seconds\n"
+                                            yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
                                             sys.stdout.flush()
                                             self.process.terminate()
                                             break
                                         time.sleep(0.2)
                                     if self.backup_response:
                                         try:
-                                            self.process.stdin.write(self.backup_response + '\\n')
+                                            self.process.stdin.write(self.backup_response + '\n')
                                             self.process.stdin.flush()
                                             logging.info(f"Sent backup response: {self.backup_response}")
                                         except Exception as e:
                                             logging.error(f"Failed to send backup response: {str(e)}")
-                                            error_msg = f"Error sending backup response: {e}\\n"
-                                            yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
+                                            error_msg = f"Error sending backup response: {e}\n"
+                                            yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
                                             sys.stdout.flush()
                             else:
                                 logging.error(f"stderr: {clean_line.strip()}")
@@ -1081,82 +1093,82 @@ Categories=System;Utility;
                                     logging.warning(f"Ignoring tput error: {clean_line.strip()}")
                                 elif "network error" in clean_line.lower():
                                     logging.error(f"Network error detected in stderr: {clean_line.strip()}")
-                                    error_msg = f"Error: Network issue during script execution: {clean_line.strip()}. Check connectivity and try again.\\n"
-                                    yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
+                                    error_msg = f"Error: Network issue during script execution: {clean_line.strip()}. Check connectivity and try again.\n"
+                                    yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
                                     sys.stdout.flush()
 
                             if len(output_buffer) >= 10:
-                                chunk = "\\n".join(output_buffer)
+                                chunk = "\n".join(output_buffer)
                                 logging.debug(f"Streaming chunk: {chunk}")
-                                yield f"data: {chunk}\\n\\n"
+                                yield f"data: {chunk}\n\n"
                                 sys.stdout.flush()
                                 output_buffer = []
 
                     time.sleep(0.005)
                 except (BrokenPipeError, ConnectionResetError) as e:
                     logging.error(f"Stream interrupted: {str(e)}")
-                    error_msg = f"Error: Stream interrupted: {str(e)}\\n"
-                    yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
+                    error_msg = f"Error: Stream interrupted: {str(e)}\n"
+                    yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
                     sys.stdout.flush()
                     break
                 except urllib.error.URLError as e:
                     logging.error(f"Network error during script execution: {str(e)}")
-                    error_msg = f"Error: Network failure: {str(e)}. Please check your internet connection and try again.\\n"
-                    yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
+                    error_msg = f"Error: Network failure: {str(e)}. Please check your internet connection and try again.\n"
+                    yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
                     sys.stdout.flush()
                     break
 
             with self.output_lock:
                 if output_buffer:
-                    chunk = "\\n".join(output_buffer)
+                    chunk = "\n".join(output_buffer)
                     logging.debug(f"Streaming final chunk: {chunk}")
-                    yield f"data: {chunk}\\n\\n"
+                    yield f"data: {chunk}\n\n"
                     sys.stdout.flush()
 
             stdout, stderr = self.process.communicate()
             if stdout:
                 with self.output_lock:
                     logging.debug(f"Final script stdout: {stdout.strip()}")
-                    converted_output = self.converter.convert(stdout.rstrip('\\n'), full=False)
-                    yield f"data: {converted_output}\\n\\n"
+                    converted_output = self.converter.convert(stdout.rstrip('\n'), full=False)
+                    yield f"data: {converted_output}\n\n"
                     sys.stdout.flush()
             if stderr:
                 with self.output_lock:
                     logging.error(f"Final script stderr: {stderr.strip()}")
-                    converted_err = self.converter.convert(stderr.rstrip('\\n'), full=False)
-                    yield f"data: {converted_err}\\n\\n"
+                    converted_err = self.converter.convert(stderr.rstrip('\n'), full=False)
+                    yield f"data: {converted_err}\n\n"
                     sys.stdout.flush()
                     if "tput: No value for $TERM" in stderr:
                         logging.warning(f"Ignoring tput error in final stderr: {stderr.strip()}")
                     elif "network error" in stderr.lower():
                         logging.error(f"Network error in final stderr: {stderr.strip()}")
-                        error_msg = f"Error: Network issue in final output: {stderr.strip()}. Check connectivity and retry.\\n"
-                        yield f"data: {self.converter.convert(error_msg, full=False)}\\n\\n"
+                        error_msg = f"Error: Network issue in final output: {stderr.strip()}. Check connectivity and retry.\n"
+                        yield f"data: {self.converter.convert(error_msg, full=False)}\n\n"
                         sys.stdout.flush()
             if self.process.returncode == 0:
-                success_msg = f"Completed: Log at ~/saturn-logs/{filename.replace('.py', '').replace('.sh', '')}-*.log\\n"
+                success_msg = f"Completed: Log at ~/saturn-logs/{filename.replace('.py', '').replace('.sh', '')}-*.log\n"
                 with self.output_lock:
                     converted_success = self.converter.convert(success_msg, full=False)
                     logging.debug(f"Success message HTML: {converted_success}")
-                    yield f"data: {converted_success}\\n\\n"
+                    yield f"data: {converted_success}\n\n"
                     sys.stdout.flush()
                     logging.info(f"Script {filename} completed successfully with PID {self.process.pid}")
             else:
-                error_msg = f"Failed: Check output for errors (return code: {self.process.returncode})\\n"
+                error_msg = f"Failed: Check output for errors (return code: {self.process.returncode})\n"
                 with self.output_lock:
                     converted_error = self.converter.convert(error_msg, full=False)
                     logging.debug(f"Error message HTML: {converted_error}")
-                    yield f"data: {converted_error}\\n\\n"
+                    yield f"data: {converted_error}\n\n"
                     sys.stdout.flush()
                     logging.error(f"Script {filename} failed with return code {self.process.returncode}")
         except Exception as e:
             logging.error(f"Script execution failed: {str(e)}")
-            error_msg = f"Error: {str(e)}\\n"
+            error_msg = f"Error: {str(e)}\n"
             if isinstance(e, urllib.error.URLError):
-                error_msg = f"Error: Network failure: {str(e)}. Please check your internet connection and try again.\\n"
+                error_msg = f"Error: Network failure: {str(e)}. Please check your internet connection and try again.\n"
             with self.output_lock:
                 converted_error = self.converter.convert(error_msg, full=False)
-                yield f"data: {converted_error}\\n\\n"
+                yield f"data: {converted_error}\n\n"
                 sys.stdout.flush()
         finally:
             self.running = False
@@ -1256,8 +1268,8 @@ def run():
     logging.debug(f"Received run request for script: {filename}, flags: {flags} on /saturn/run, client: {request.remote_addr}, headers: {request.headers}")
     if not filename:
         logging.error(f"Invalid script: {filename}")
-        error_msg = f"Error: Invalid script {filename}\\n"
-        response = Response(f"data: {app.saturn.converter.convert(error_msg, full=False)}\\n\\n", mimetype='text/event-stream', status=400)
+        error_msg = f"Error: Invalid script {filename}\n"
+        response = Response(f"data: {app.saturn.converter.convert(error_msg, full=False)}\n\n", mimetype='text/event-stream', status=400)
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
@@ -1273,11 +1285,11 @@ def run():
                 sys.stdout.flush()
         except Exception as e:
             logging.error(f"Run endpoint error: {str(e)}")
-            error_msg = f"Error: {str(e)}\\n"
+            error_msg = f"Error: {str(e)}\n"
             if isinstance(e, urllib.error.URLError):
-                error_msg = f"Error: Network failure: {str(e)}. Please check your internet connection and try again.\\n"
+                error_msg = f"Error: Network failure: {str(e)}. Please check your internet connection and try again.\n"
             converted_error = app.saturn.converter.convert(error_msg, full=False)
-            yield f"data: {converted_error}\\n\\n"
+            yield f"data: {converted_error}\n\n"
             sys.stdout.flush()
 
     response = Response(generate(), mimetype='text/event-stream')
@@ -1353,7 +1365,7 @@ try:
 except Exception as e:
     error_log = Path.home() / "saturn-logs" / f"saturn-update-manager-error-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
     with open(error_log, "w") as f:
-        f.write(f"Web server initialization error: {str(e)}\\n")
+        f.write(f"Web server initialization error: {str(e)}\n")
     logging.error(f"Web server initialization error: {str(e)}")
     sys.exit(1)
 EOF
@@ -1371,7 +1383,7 @@ fi
 log_and_echo "${GREEN}Verified Flask-based saturn_update_manager.py${NC}"
 
 # Create log_cleaner.sh (overwriting if exists)...
-log_and_echo "${CYAN}Creating log_cleaner.sh in /home/pi/scripts (overwriting if exists)...${NC}"
+log_and_echo "${CYAN}Creating log_cleaner.sh in $SCRIPTS_DIR (overwriting if exists)...${NC}"
 rm -f "$LOG_CLEANER_SCRIPT"
 cat > "$LOG_CLEANER_SCRIPT" << 'EOF'
 #!/bin/bash
