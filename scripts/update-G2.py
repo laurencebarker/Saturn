@@ -2,7 +2,7 @@
 # update-G2.py - G2 Update Script
 # Automates updating the Saturn G2
 # Version: 2.5
-# Written by: Jerry DeLong KD4YAL, updated by Grok 3
+# Written by: Jerry DeLong KD4YAL
 # Changes: Added white output for build script processes with --verbose, updated version to 2.5
 # Dependencies: pyfiglet (version 1.0.3) installed in ~/venv
 # Usage: source ~/venv/bin/activate; python3 ~/github/Saturn/scripts/update-G2.py; deactivate
