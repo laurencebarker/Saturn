@@ -1,3 +1,4 @@
+```bash
 #!/bin/bash
 # setup_saturn_webserver.sh - Main script to setup web server for saturn_update_manager.py on Raspberry Pi Bookworm
 # Version: 2.65
@@ -23,6 +24,8 @@ SETUP_DIR="/home/pi/github/Saturn/Update-webserver-setup"
 LOG_DIR="/home/pi/saturn-logs"
 LOG_FILE="$LOG_DIR/setup_saturn_webserver-$(date +%Y%m%d-%H%M%S).log"
 SCRIPTS_DIR="/home/pi/scripts"
+WRAPPER_SCRIPT="$SCRIPTS_DIR/start_server_wrapper.sh"
+SERVICE_FILE="/etc/systemd/system/saturn-update-manager.service"
 
 # Colors for output
 RED='\033[0;31m'
@@ -109,6 +112,106 @@ bash "$SETUP_DIR/create_files.sh" >> "$LOG_FILE" 2>&1 || { log_and_echo "${RED}E
 log_and_echo "${CYAN}Executing $START_SCRIPT...${NC}"
 bash "$SETUP_DIR/$START_SCRIPT" >> "$LOG_FILE" 2>&1 || { log_and_echo "${RED}Error: $START_SCRIPT failed${NC}"; exit 1; }
 
+# Install systemd service if not already installed
+log_and_echo "${CYAN}Checking if systemd service is already installed...${NC}"
+if [ -f "$SERVICE_FILE" ]; then
+    log_and_echo "${YELLOW}Service already installed at $SERVICE_FILE, skipping installation${NC}"
+else
+    log_and_echo "${CYAN}Creating start_server_wrapper.sh...${NC}"
+    cat << EOF > "$WRAPPER_SCRIPT"
+#!/bin/bash
+# start_server_wrapper.sh - Wrapper to select and run start_server.sh or start_server_buster.sh based on OS
+# Version: 1.0
+# Written by: Jerry DeLong KD4YAL
+# Usage: Called by systemd service
+
+set -e
+
+# Paths
+SETUP_DIR="/home/pi/github/Saturn/Update-webserver-setup"
+LOG_DIR="/home/pi/saturn-logs"
+LOG_FILE="\$LOG_DIR/start_server_wrapper-\$(date +%Y%m%d-%H%M%S).log"
+
+# Colors for output
+RED='\\033[0;31m'
+GREEN='\\033[0;32m'
+CYAN='\\033[0;36m'
+NC='\\033[0m'
+
+# Function to log and echo output
+log_and_echo() {
+    echo -e "\$1" >&2
+    echo "\$(date '+%Y-%m-%d %H:%M:%S'): \$1" >> "\$LOG_FILE"
+}
+
+# Create log directory
+mkdir -p "\$LOG_DIR"
+chown pi:pi "\$LOG_DIR"
+chmod 775 "\$LOG_DIR"
+
+# Detect OS version
+source /etc/os-release
+if [ "\$VERSION" = "10 (buster)" ]; then
+    START_SCRIPT="\$SETUP_DIR/start_server_buster.sh"
+else
+    START_SCRIPT="\$SETUP_DIR/start_server.sh"
+fi
+
+# Verify script exists
+if [ ! -f "\$START_SCRIPT" ]; then
+    log_and_echo "\${RED}Error: \$START_SCRIPT not found\${NC}"
+    exit 1
+fi
+
+# Run the appropriate start script
+log_and_echo "\${CYAN}Running \$START_SCRIPT...\${NC}"
+bash "\$START_SCRIPT" || { log_and_echo "\${RED}Error: \$START_SCRIPT failed\${NC}"; exit 1; }
+log_and_echo "\${GREEN}\$START_SCRIPT executed successfully\${NC}"
+EOF
+    chown pi:pi "$WRAPPER_SCRIPT"
+    chmod +x "$WRAPPER_SCRIPT"
+    log_and_echo "${GREEN}start_server_wrapper.sh created${NC}"
+
+    log_and_echo "${CYAN}Creating systemd service file...${NC}"
+    cat << EOF > "$SERVICE_FILE"
+[Unit]
+Description=Saturn Update Manager Web Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/bin/bash $WRAPPER_SCRIPT
+User=pi
+Group=pi
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:$LOG_DIR/saturn-service.log
+StandardError=append:$LOG_DIR/saturn-service-error.log
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    chmod 644 "$SERVICE_FILE"
+    log_and_echo "${GREEN}Systemd service file created at $SERVICE_FILE${NC}"
+
+    log_and_echo "${CYAN}Reloading systemd daemon...${NC}"
+    systemctl daemon-reload || { log_and_echo "${RED}Error: Failed to reload systemd daemon${NC}"; exit 1; }
+
+    log_and_echo "${CYAN}Enabling service at boot...${NC}"
+    systemctl enable saturn-update-manager || { log_and_echo "${RED}Error: Failed to enable service${NC}"; exit 1; }
+fi
+
+# Test starting the service
+log_and_echo "${CYAN}Testing starting the service...${NC}"
+systemctl start saturn-update-manager || { log_and_echo "${RED}Error: Failed to start service${NC}"; exit 1; }
+log_and_echo "${GREEN}Service started successfully${NC}"
+
+# Show service status
+log_and_echo "${CYAN}Showing service status...${NC}"
+systemctl status saturn-update-manager
+
 private_ip=$(ip addr show | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d'/' -f1 | head -n1)
 log_and_echo "${GREEN}Setup completed at $(date). Log: $LOG_FILE${NC}"
 log_and_echo "${CYAN}Test LAN access with: curl -u admin:password123 http://$private_ip/saturn/${NC}"
+```
