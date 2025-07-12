@@ -12,7 +12,7 @@ set -e
 VENV_PATH="/home/pi/venv"
 LOG_DIR="/home/pi/saturn-logs"
 LOG_FILE="$LOG_DIR/setup_saturn_webserver-$(date +%Y%m%d-%H%M%S).log"
-SCRIPTS_DIR="/home/pi/github/Saturn/scripts"
+SCRIPTS_DIR="/home/pi/scripts"
 SATURN_SCRIPT="$SCRIPTS_DIR/saturn_update_manager.py"
 PORT=5000
 FALLBACK_PORT=5001
