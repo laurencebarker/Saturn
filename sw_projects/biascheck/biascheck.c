@@ -155,6 +155,7 @@ void on_close_button_clicked()
 {
     SetMOX(false);
     SetTXEnable(false);
+    SetTXWatchdogOverride(false);
     gtk_main_quit();
 } 
 
