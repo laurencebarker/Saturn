@@ -112,10 +112,3 @@ bash "$SETUP_DIR/$START_SCRIPT" >> "$LOG_FILE" 2>&1 || { log_and_echo "${RED}Err
 private_ip=$(ip addr show | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d'/' -f1 | head -n1)
 log_and_echo "${GREEN}Setup completed at $(date). Log: $LOG_FILE${NC}"
 log_and_echo "${CYAN}Test LAN access with: curl -u admin:password123 http://$private_ip/saturn/${NC}"
-
-
-
-
-
-
-18.1s
