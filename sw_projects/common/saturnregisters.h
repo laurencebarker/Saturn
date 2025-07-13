@@ -218,6 +218,15 @@ void SetMOX(bool Mox);
 void SetTXEnable(bool Enabled);
 
 //
+// SetTXWatchdogOverride(bool Enabled)
+// sets or clears watchdog override bit
+// set or clear the relevant bit in  TX Config
+// normally this should NOT be set; it is needed for things line biascheck,
+// where TX should be enabled but there is no sample data transfer
+//
+void SetTXWatchdogOverride(bool Enabled);
+
+//
 // SetATUTune(bool TuneEnabled)
 // drives the ATU tune output to selected state.
 //

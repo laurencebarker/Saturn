@@ -284,6 +284,7 @@ uint32_t DDCRegisters[VNUMDDC] =
 #define VTXCONFIGMUXRESETBIT 29
 #define VTXCONFIGIQDEINTERLEAVEBIT 30
 #define VTXCONFIGIQSTREAMENABLED 31
+#define VTXCONFIGWATCHDOGOVERRIDE 28
 
 
 
@@ -442,6 +443,26 @@ void SetTXEnable(bool Enabled)
     GPIORegValue = Register;                        // store it back
     RegisterWrite(VADDRRFGPIOREG, Register);        // and write to it
     sem_post(&RFGPIOMutex);                         // clear protected access
+}
+
+
+//
+// SetTXWatchdogOverride(bool Enabled)
+// sets or clears watchdog override bit
+// set or clear the relevant bit in  TX Config
+// normally this should NOT be set; it is needed for things line biascheck,
+// where TX should be enabled but there is no sample data transfer
+//
+void SetTXWatchdogOverride(bool Enabled)
+{
+    uint32_t Register;
+    Register = TXConfigRegValue;                    // get current register value
+    if (Enabled)
+        Register |= (1 << VTXCONFIGWATCHDOGOVERRIDE);
+    else
+        Register &= ~(1 << VTXCONFIGWATCHDOGOVERRIDE);
+    TXConfigRegValue = Register;                    // store it back
+    RegisterWrite(VADDRTXCONFIGREG, Register);      // and write to it
 }
 
 
