@@ -1,8 +1,9 @@
 #!/bin/bash
-# install_deps_buster.sh - Installs dependencies for Saturn Update Manager on Raspbian Buster
-# Version: 1.0
+# install_deps_buster.sh - Installs system and Python dependencies for Saturn Update Manager on Buster
+# Version: 1.1
 # Written by: Jerry DeLong KD4YAL
-# Dependencies: bash
+# Changes: Added gevent==21.12.0 to pip install for Buster-compatible async workers, updated version to 1.1
+# Dependencies: bash, apt-get, python3, python3-venv, python3-pip
 # Usage: Called by setup_saturn_webserver.sh on Buster systems
 
 set -e
@@ -24,29 +25,28 @@ log_and_echo() {
     echo "$(date '+%Y-%m-%d %H:%M:%S'): $1" >> "$LOG_FILE"
 }
 
-# Install system dependencies
+# Update package lists
 log_and_echo "${CYAN}Updating package lists...${NC}"
-apt update || { log_and_echo "${RED}Error: Updating package lists failed${NC}"; exit 1; }
+apt-get update
 log_and_echo "${GREEN}Updating package lists completed${NC}"
 
+# Install system dependencies
 log_and_echo "${CYAN}Installing system dependencies...${NC}"
-apt install -y apache2 apache2-utils python3 python3-venv python3-pip libapache2-mod-proxy-uwsgi lsof || { log_and_echo "${RED}Error: Installing system dependencies failed${NC}"; exit 1; }
-a2enmod proxy proxy_http proxy_uwsgi rewrite ssl || { log_and_echo "${RED}Error: Enabling Apache modules failed${NC}"; exit 1; }
+apt-get install -y python3 python3-venv python3-pip apache2 apache2-utils libapache2-mod-proxy-uwsgi lsof
+a2enmod proxy proxy_http proxy_uwsgi rewrite ssl
 log_and_echo "${GREEN}System dependencies installed${NC}"
 
-# Remove existing virtual environment as root
+# Create virtual environment if not exists
 log_and_echo "${CYAN}Removing existing virtual environment at $VENV_PATH if exists...${NC}"
-rm -rf "$VENV_PATH" || { log_and_echo "${RED}Error: Removing virtual environment failed${NC}"; exit 1; }
-
-# Create virtual environment as pi user
+rm -rf "$VENV_PATH"
 log_and_echo "${CYAN}Creating virtual environment at $VENV_PATH...${NC}"
-sudo -u pi python3 -m venv "$VENV_PATH" || { log_and_echo "${RED}Error: Creating virtual environment failed${NC}"; exit 1; }
-chown -R pi:pi "$VENV_PATH"
+python3 -m venv "$VENV_PATH"
 log_and_echo "${GREEN}Virtual environment created${NC}"
 
-# Install Python dependencies as pi user with Buster-compatible versions
+# Install Python dependencies
 log_and_echo "${CYAN}Installing Python dependencies...${NC}"
-sudo -u pi bash -c "source $VENV_PATH/bin/activate && \
-    pip install --upgrade pip setuptools wheel && \
-    pip install flask==2.2.5 gunicorn ansi2html==1.9.2 psutil==5.9.8" || { log_and_echo "${RED}Error: Installing Python dependencies failed${NC}"; exit 1; }
+source "$VENV_PATH/bin/activate"
+pip install --upgrade pip setuptools wheel
+pip install flask==2.2.5 ansi2html==1.9.2 psutil==5.9.8 gunicorn gevent==21.12.0
+deactivate
 log_and_echo "${GREEN}Python dependencies installed${NC}"
