@@ -1,6 +1,6 @@
 #!/bin/bash
 # create_files.sh - Creates index.html, saturn_update_manager.py, config.json, themes.json, and SaturnUpdateManager.desktop
-# Version: 1.5
+# Version: 1.8
 # Written by: Jerry DeLong KD4YAL
 # Dependencies: bash
 # Usage: Called by setup_saturn_webserver.sh
@@ -12,12 +12,13 @@ SCRIPTS_DIR="/home/pi/scripts"
 TEMPLATES_DIR="$SCRIPTS_DIR/templates"
 LOG_DIR="/home/pi/saturn-logs"
 DESKTOP_FILE="$SCRIPTS_DIR/SaturnUpdateManager.desktop"
-DESKTOP_DEST="/home/pi/github/Saturn/desktop/SaturnUpdateManager.desktop"
+DESKTOP_DEST="/home/pi/Desktop/SaturnUpdateManager.desktop"
 SATURN_SCRIPT="$SCRIPTS_DIR/saturn_update_manager.py"
 INDEX_HTML="$TEMPLATES_DIR/index.html"
 CONFIG_JSON="$SCRIPTS_DIR/config.json"
 THEMES_JSON="$SCRIPTS_DIR/themes.json"
 LOG_CLEANER_SCRIPT="$SCRIPTS_DIR/log_cleaner.sh"
+RESTORE_SCRIPT="$SCRIPTS_DIR/restore-backup.sh"
 LOG_FILE="$LOG_DIR/setup_saturn_webserver-$(date +%Y%m%d-%H%M%S).log"
 VENV_PATH="/home/pi/venv"
 OLD_SCRIPTS_DIR="/home/pi/github/Saturn/scripts"
@@ -36,10 +37,10 @@ log_and_echo() {
 
 # Create directories
 log_and_echo "${CYAN}Creating directories...${NC}"
-mkdir -p "$SCRIPTS_DIR" "$TEMPLATES_DIR" "$LOG_DIR" "/home/pi/github/Saturn/desktop"
-chmod -R u+rwX "$SCRIPTS_DIR" "$TEMPLATES_DIR" "$LOG_DIR" "/home/pi/github/Saturn/desktop"
-chown pi:pi "$LOG_DIR" "$TEMPLATES_DIR" "/home/pi/github/Saturn/desktop"
-chmod 775 "$LOG_DIR" "/home/pi/github/Saturn/desktop" "$SCRIPTS_DIR"
+mkdir -p "$SCRIPTS_DIR" "$TEMPLATES_DIR" "$LOG_DIR" "/home/pi/Desktop"
+chmod -R u+rwX "$SCRIPTS_DIR" "$TEMPLATES_DIR" "$LOG_DIR" "/home/pi/Desktop"
+chown pi:pi "$LOG_DIR" "$TEMPLATES_DIR" "/home/pi/Desktop"
+chmod 775 "$LOG_DIR" "/home/pi/Desktop" "$SCRIPTS_DIR"
 log_and_echo "${GREEN}Directories created${NC}"
 
 # Move update scripts if they exist in old location
@@ -76,7 +77,7 @@ cat > "$CONFIG_JSON" << 'EOF'
     "description": "Updates piHPSDR component",
     "directory": "~/scripts",
     "category": "Update Scripts",
-    "flags": ["--skip-git", "-y", "--no-gpio", "--verbose"]
+    "flags": ["--skip-git", "-y", "-n", "--no-gpio", "--dry-run", "--verbose"]
   },
   {
     "filename": "log_cleaner.sh",
@@ -85,6 +86,14 @@ cat > "$CONFIG_JSON" << 'EOF'
     "directory": "~/scripts",
     "category": "Maintenance",
     "flags": ["--delete-all", "--no-recursive", "--dry-run"]
+  },
+  {
+    "filename": "restore-backup.sh",
+    "name": "Restore Backup",
+    "description": "Restores from a previous Saturn or piHPSDR backup directory",
+    "directory": "~/scripts",
+    "category": "Maintenance",
+    "flags": ["--pihpsdr", "--saturn", "--latest", "--list", "--dry-run", "--verbose"]
   }
 ]
 EOF
@@ -104,7 +113,8 @@ cat > "$THEMES_JSON" << 'EOF'
       "--bg-color": "#f3f4f6",
       "--text-color": "#333333",
       "--primary-color": "#3b82f6",
-      "--secondary-color": "#10b981"
+      "--secondary-color": "#10b981",
+      "--card-bg": "#ffffff"
     }
   },
   {
@@ -114,7 +124,8 @@ cat > "$THEMES_JSON" << 'EOF'
       "--bg-color": "#1a1a1a",
       "--text-color": "#ffffff",
       "--primary-color": "#60a5fa",
-      "--secondary-color": "#34d399"
+      "--secondary-color": "#34d399",
+      "--card-bg": "#333333"
     }
   },
   {
@@ -124,7 +135,8 @@ cat > "$THEMES_JSON" << 'EOF'
       "--bg-color": "#ffffff",
       "--text-color": "#000000",
       "--primary-color": "#0000ff",
-      "--secondary-color": "#008000"
+      "--secondary-color": "#008000",
+      "--card-bg": "#ffffff"
     }
   }
 ]
@@ -150,6 +162,7 @@ cat > "$INDEX_HTML" << 'EOF'
             --text-color: #333333;
             --primary-color: #3b82f6;
             --secondary-color: #10b981;
+            --card-bg: #ffffff;
         }
         body {
             background-color: var(--bg-color);
@@ -237,14 +250,14 @@ cat > "$INDEX_HTML" << 'EOF'
         <h1 class="text-3xl font-bold text-red-600 text-center mb-2">Saturn Update Manager</h1>
         <p class="text-lg text-gray-600 text-center mb-4">Build Version: 2.65 (Setup Script)</p>
 
-        <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+        <div id="versions-container" class="rounded-lg shadow-md p-4 mb-4" style="display: none; background-color: var(--card-bg);">
             <h2 class="text-xl font-semibold text-gray-700 mb-2">Script Versions</h2>
             <ul id="version-list" class="list-disc pl-5 text-gray-600"></ul>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md p-4 mb-4 relative">
+        <div class="rounded-lg shadow-md p-4 mb-4 relative" style="background-color: var(--card-bg);">
             <!-- Loading Spinner -->
-            <div id="loader" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 hidden">
+            <div id="loader" class="absolute inset-0 flex items-center justify-center bg-opacity-75 hidden" style="background-color: var(--card-bg);">
                 <div class="spinner"></div>
             </div>
             <form id="script-form" class="flex flex-col space-y-4">
@@ -255,10 +268,20 @@ cat > "$INDEX_HTML" << 'EOF'
                     </select>
                 </div>
                 <div id="flags" class="flex flex-wrap gap-4"></div>
+                <div id="restore-dir-div" class="flex flex-col space-y-2 hidden">
+                    <label for="restore-dir-select" class="text-lg font-medium text-gray-700">Select Backup Directory:</label>
+                    <select id="restore-dir-select" class="border rounded px-2 py-1 bg-blue-100 text-blue-800 w-full">
+                        <option value="">Select...</option>
+                    </select>
+                </div>
                 <div class="flex justify-center space-x-4">
                     <button type="submit" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Run</button>
                     <button type="button" id="change-password-btn" class="btn-secondary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Change Password</button>
                     <button type="button" id="exit-btn" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Exit</button>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="show-versions" class="form-checkbox h-5 w-5 text-blue-600">
+                        <span>Show Versions</span>
+                    </label>
                 </div>
             </form>
         </div>
@@ -278,7 +301,7 @@ cat > "$INDEX_HTML" << 'EOF'
 
         <!-- Backup Prompt Modal -->
         <div id="backup-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
-            <div class="bg-white rounded-lg p-6 max-w-sm w-full">
+            <div class="rounded-lg p-6 max-w-sm w-full" style="background-color: var(--card-bg);">
                 <h2 class="text-xl font-bold mb-4">Backup Prompt</h2>
                 <p class="mb-4">Create a backup? (Y/n)</p>
                 <div class="flex justify-end space-x-4">
@@ -290,7 +313,7 @@ cat > "$INDEX_HTML" << 'EOF'
 
         <!-- Change Password Modal -->
         <div id="password-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
-            <div class="bg-white rounded-lg p-6 max-w-sm w-full">
+            <div class="rounded-lg p-6 max-w-sm w-full" style="background-color: var(--card-bg);">
                 <h2 class="text-xl font-bold mb-4">Change Password</h2>
                 <form id="password-form" class="flex flex-col space-y-4">
                     <div>
@@ -445,6 +468,11 @@ cat > "$INDEX_HTML" << 'EOF'
                     flagsDiv.appendChild(label);
                 });
                 console.log(`Loaded flags for ${filename}:`, data.flags);
+                if (filename === 'restore-backup.sh') {
+                    document.getElementById('restore-dir-div').classList.remove('hidden');
+                } else {
+                    document.getElementById('restore-dir-div').classList.add('hidden');
+                }
             } catch (error) {
                 console.error('Error loading flags:', error);
                 document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading flags: ${error.message}</span>\n`;
@@ -525,16 +553,68 @@ cat > "$INDEX_HTML" << 'EOF'
             applyTheme(savedTheme);
         }
 
+        document.getElementById('flags').addEventListener('change', async function(e) {
+            if (e.target.name === 'flags' && (e.target.value === '--pihpsdr' || e.target.value === '--saturn')) {
+                let type = null;
+                const pihpsdrChecked = Array.from(document.querySelectorAll('input[name="flags"]')).find(cb => cb.value === '--pihpsdr' ).checked;
+                const saturnChecked = Array.from(document.querySelectorAll('input[name="flags"]')).find(cb => cb.value === '--saturn' ).checked;
+                if (pihpsdrChecked && saturnChecked) {
+                    document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error: Cannot select both --pihpsdr and --saturn</span>\n`;
+                    return;
+                }
+                if (pihpsdrChecked) type = 'pihpsdr';
+                if (saturnChecked) type = 'saturn';
+                if (type) {
+                    try {
+                        const response = await fetch(`/saturn/get_backups?type=${type}`, {
+                            headers: {
+                                'Cache-Control': 'no-cache'
+                            }
+                        });
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            console.error('Fetch backups failed:', response.status, errorText);
+                            throw new Error(`HTTP ${response.status}: ${errorText}`);
+                        }
+                        const data = await response.json();
+                        const select = document.getElementById('restore-dir-select');
+                        select.innerHTML = '<option value="">Select...</option>';
+                        data.backups.forEach(dir => {
+                            const option = document.createElement('option');
+                            option.value = dir;
+                            option.textContent = dir;
+                            select.appendChild(option);
+                        });
+                    } catch (error) {
+                        console.error('Error loading backups:', error);
+                        document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading backups: ${error.message}</span>\n`;
+                    }
+                } else {
+                    const select = document.getElementById('restore-dir-select');
+                    select.innerHTML = '<option value="">Select...</option>';
+                }
+            }
+        });
+
         document.getElementById('script-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             const filename = document.getElementById('script').value;
-            const flags = Array.from(document.querySelectorAll('input[name="flags"]:checked')).map(cb => cb.value);
+            let flags = Array.from(document.querySelectorAll('input[name="flags"]:checked')).map(cb => cb.value);
             const output = document.getElementById('output');
             const progress = document.getElementById('progress');
             output.innerHTML = '';
             progress.classList.remove('hidden');
             progress.value = 0;
             console.log(`Submitting run request for ${filename}, flags:`, flags);
+
+            const restoreDirDiv = document.getElementById('restore-dir-div');
+            if (filename === 'restore-backup.sh' && !restoreDirDiv.classList.contains('hidden')) {
+                const restoreDir = document.getElementById('restore-dir-select').value;
+                if (restoreDir) {
+                    flags.push('--backup-dir');
+                    flags.push(restoreDir);
+                }
+            }
 
             try {
                 const formData = new FormData();
@@ -734,6 +814,11 @@ cat > "$INDEX_HTML" << 'EOF'
             }
         });
 
+        // Toggle versions display
+        document.getElementById('show-versions').addEventListener('change', function() {
+            document.getElementById('versions-container').style.display = this.checked ? 'block' : 'none';
+        });
+
         console.log('Loading initial scripts, versions, and themes');
         loadScripts();
         loadVersions();
@@ -763,6 +848,7 @@ cat > "$SATURN_SCRIPT" << 'EOF'
 
 import logging
 import os
+import glob
 from pathlib import Path
 from datetime import datetime
 import subprocess
@@ -926,7 +1012,7 @@ class SaturnUpdateManager:
     def install_desktop_icons(self):
         logging.debug("Installing desktop icons...")
         desktop_dir = self.scripts_dir
-        home_desktop = Path.home() / "github" / "Saturn" / "desktop"
+        home_desktop = Path.home() / "Desktop"
         desktop_file = desktop_dir / "SaturnUpdateManager.desktop"
         dest_file = home_desktop / "SaturnUpdateManager.desktop"
 
@@ -979,6 +1065,14 @@ Categories=System;Utility;
         except Exception as e:
             logging.error(f"Error changing password: {str(e)}")
             return {"status": "error", "message": f"Error changing password: {str(e)}"}
+
+    def get_backups(self, type):
+        if type not in ['pihpsdr', 'saturn']:
+            return {"error": "Invalid type"}
+        pattern = f"~/{type}-backup-*"
+        backups = sorted(glob.glob(os.path.expanduser(pattern)), key=os.path.getmtime, reverse=True)
+        backups = [os.path.basename(b) for b in backups]
+        return {"backups": backups}
 
     def run_script(self, filename, flags):
         logging.debug(f"Running script: {filename} with flags: {flags}")
@@ -1261,11 +1355,29 @@ def get_flags():
     response.headers['Expires'] = '0'
     return response, 404
 
+@app.route('/saturn/get_backups', methods=['GET'])
+def get_backups():
+    try:
+        type = request.args.get('type')
+        logging.debug(f"Fetching backups for type: {type}")
+        backups = app.saturn.get_backups(type)
+        status = 200
+        if "error" in backups:
+            status = 400
+        return jsonify(backups), status
+    except Exception as e:
+        logging.error(f"Error in get_backups endpoint: {str(e)}")
+        return jsonify({"error": "Internal server error: " + str(e)}), 500
+
 @app.route('/saturn/run', methods=['POST'])
 def run():
     filename = request.form.get('script')
     flags = request.form.getlist('flags')
-    logging.debug(f"Received run request for script: {filename}, flags: {flags} on /saturn/run, client: {request.remote_addr}, headers: {request.headers}")
+    backup_dir = request.form.get('backup_dir', '')
+    logging.debug(f"Received run request for script: {filename}, flags: {flags}, backup_dir: {backup_dir}")
+    if backup_dir:
+        flags.append('--backup-dir')
+        flags.append(backup_dir)
     if not filename:
         logging.error(f"Invalid script: {filename}")
         error_msg = f"Error: Invalid script {filename}\n"
@@ -1472,6 +1584,100 @@ EOF
 chmod +x "$LOG_CLEANER_SCRIPT"
 chown pi:pi "$LOG_CLEANER_SCRIPT"
 log_and_echo "${GREEN}log_cleaner.sh created${NC}"
+
+# Create restore-backup.sh (overwriting if exists)...
+log_and_echo "${CYAN}Creating restore-backup.sh in $SCRIPTS_DIR (overwriting if exists)...${NC}"
+rm -f "$RESTORE_SCRIPT"
+cat > "$RESTORE_SCRIPT" << 'EOF'
+#!/bin/bash
+# restore-backup.sh - Restore from Saturn or piHPSDR backup directories
+# Version: 1.0
+# Usage: ./restore-backup.sh [--pihpsdr|--saturn] [--latest|--list|--backup-dir <dir>] [--dry-run] [--verbose]
+# Assumes backups are directories in ~/ named saturn-backup-YYYYMMDD-HHMMSS or pihpsdr-backup-YYYYMMDD-HHMMSS.
+
+set -e
+
+HOME_DIR="$HOME"
+SATURN_DIR="$HOME/github/Saturn"
+PIHPSDR_DIR="$HOME/github/pihpsdr"
+
+TYPE=""
+LATEST=false
+LIST=false
+BACKUP_DIR_ARG=""
+DRY_RUN=false
+VERBOSE=false
+
+# Parse arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --pihpsdr) TYPE="pihpsdr" ;;
+        --saturn) TYPE="saturn" ;;
+        --latest) LATEST=true ;;
+        --list) LIST=true ;;
+        --backup-dir) BACKUP_DIR_ARG="$2"; shift ;;
+        --dry-run) DRY_RUN=true ;;
+        --verbose) VERBOSE=true ;;
+        *) echo "Unknown parameter: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+if [ -z "$TYPE" ]; then
+    echo "Error: Must specify --pihpsdr or --saturn"
+    exit 1
+fi
+
+BACKUP_PATTERN="$HOME_DIR/${TYPE}-backup-*"
+TARGET_DIR=$( [ "$TYPE" = "pihpsdr" ] && echo "$PIHPSDR_DIR" || echo "$SATURN_DIR" )
+RSYNC_OPTS="-a"
+if $VERBOSE; then RSYNC_OPTS="-av"; fi
+if $DRY_RUN; then RSYNC_OPTS="$RSYNC_OPTS --dry-run"; fi
+
+if $LIST; then
+    echo "Available $TYPE backups:"
+    backups=$(ls -dt $BACKUP_PATTERN 2>/dev/null)
+    if [ -z "$backups" ]; then
+        echo "No backups found."
+    else
+        echo "$backups" | xargs -n1 basename
+    fi
+    exit 0
+fi
+
+SELECTED_BACKUP=""
+if [ -n "$BACKUP_DIR_ARG" ]; then
+    if [ -d "$BACKUP_DIR_ARG" ]; then
+        SELECTED_BACKUP="$BACKUP_DIR_ARG"
+    else
+        SELECTED_BACKUP="$HOME_DIR/$BACKUP_DIR_ARG"
+        if ! [ -d "$SELECTED_BACKUP" ]; then
+            echo "Invalid backup directory: $BACKUP_DIR_ARG"
+            exit 1
+        fi
+    fi
+elif $LATEST; then
+    SELECTED_BACKUP=$(ls -dt $BACKUP_PATTERN 2>/dev/null | head -1)
+    if [ -z "$SELECTED_BACKUP" ]; then
+        echo "No $TYPE backup found in $HOME_DIR."
+        exit 1
+    fi
+else
+    echo "Usage: Specify --latest or --backup-dir <dir> to restore, --list to list backups."
+    exit 1
+fi
+
+if $VERBOSE; then
+    echo "Restoring from $SELECTED_BACKUP to $TARGET_DIR"
+fi
+rsync $RSYNC_OPTS "$SELECTED_BACKUP/" "$TARGET_DIR/"
+if ! $DRY_RUN; then
+    echo "Restore completed. Reboot recommended."
+fi
+EOF
+chmod +x "$RESTORE_SCRIPT"
+chown pi:pi "$RESTORE_SCRIPT"
+log_and_echo "${GREEN}restore-backup.sh created${NC}"
 
 # Create SaturnUpdateManager.desktop (overwriting if exists)...
 rm -f "$DESKTOP_FILE"
