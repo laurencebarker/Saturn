@@ -33,6 +33,7 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
 - **User**: Commands must be run as the pi user with sudo privileges.
 
 ## Directory Structure
+```
 ~/github/Saturn/
 ├── Update-webserver-setup/
 │   ├── setup_saturn_webserver.sh  # Main setup script
@@ -55,13 +56,12 @@ The Saturn Update Manager is a web-based GUI designed to manage and execute upda
 │   ├── restore-backup.sh          # Restore script
 │   ├── SaturnUpdateManager.desktop  # Desktop shortcut
 ~/saturn-logs/
-│   ├── setup_saturn_webserver-*.log  # Setup logs
-│   ├── saturn-update-manager-*.log   # Gunicorn stdout logs
-│   ├── saturn-update-manager-error-*.log  # Gunicorn stderr logs
-│   ├── flask_*.log                  # Endpoint verification logs
+│   ├── setup_saturn_webserver-.log  # Setup logs
+│   ├── saturn-update-manager-.log   # Gunicorn stdout logs
+│   ├── saturn-update-manager-error-.log  # Gunicorn stderr logs
+│   ├── flask_.log                  # Endpoint verification logs
 │   ├── auth_*.log                   # Apache authentication logs
-
-
+```
 ## Installation
 1. **Clone or Create Repository**:
    - Ensure the scripts are in ~/github/Saturn/Update-webserver-setup.
