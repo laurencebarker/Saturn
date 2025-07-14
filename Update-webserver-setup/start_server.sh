@@ -1,9 +1,9 @@
 #!/bin/bash
 # start_server.sh - Starts Flask server with Gunicorn and verifies endpoints for Saturn Update Manager
-# Version: 1.7
+# Version: 1.8
 # Written by: Jerry DeLong KD4YAL
-# Changes: Made endpoint checks more flexible (presence of keys instead of exact strings), separated body from verbose output for /saturn/, updated version to 1.7
-# Dependencies: gunicorn, curl, netstat, lsof, ss
+# Changes: Increased Gunicorn workers to 5 for better concurrency, switched to gevent worker class for async/non-blocking handling (requires gevent installed), updated version to 1.8
+# Dependencies: gunicorn, curl, netstat, lsof, ss, gevent (pip install gevent in venv)
 # Usage: Called by setup_saturn_webserver.sh
 
 set -e
@@ -226,8 +226,8 @@ if [ ! -d "$VENV_PATH" ]; then
     log_and_echo "${RED}Error: Virtual environment not found at $VENV_PATH${NC}"
     exit 1
 fi
-if ! sudo -u pi bash -c ". $VENV_PATH/bin/activate && python3 -c 'import flask, ansi2html, psutil, pyfiglet, gunicorn, urllib.error' && which gunicorn" 2>/dev/null; then
-    log_and_echo "${RED}Error: Missing Python dependencies or gunicorn not installed${NC}"
+if ! sudo -u pi bash -c ". $VENV_PATH/bin/activate && python3 -c 'import flask, ansi2html, psutil, pyfiglet, gunicorn, urllib.error, gevent' && which gunicorn" 2>/dev/null; then
+    log_and_echo "${RED}Error: Missing Python dependencies or gunicorn/gevent not installed${NC}"
     exit 1
 fi
 log_and_echo "${GREEN}Virtual environment and dependencies verified${NC}"
@@ -255,7 +255,7 @@ pkill -u pi -f "gunicorn.*saturn_update_manager:app" 2>/dev/null || true
 sleep 2
 # Set PYTHONPATH to include SCRIPTS_DIR
 log_and_echo "${CYAN}Setting PYTHONPATH to $SCRIPTS_DIR${NC}"
-sudo -u pi bash -c "export PYTHONPATH=$SCRIPTS_DIR:\$PYTHONPATH && . $VENV_PATH/bin/activate && gunicorn -w 1 -b 0.0.0.0:$PORT -t 600 saturn_update_manager:app >> $FLASK_LOG 2>> $FLASK_ERROR_LOG & echo \$! > /tmp/saturn-flask.pid"
+sudo -u pi bash -c "export PYTHONPATH=$SCRIPTS_DIR:\$PYTHONPATH && . $VENV_PATH/bin/activate && gunicorn -w 5 --worker-class gevent -b 0.0.0.0:$PORT -t 600 saturn_update_manager:app >> $FLASK_LOG 2>> $FLASK_ERROR_LOG & echo \$! > /tmp/saturn-flask.pid"
 sleep 10  # Increased delay to ensure Gunicorn starts and writes PID
 if [ -f "/tmp/saturn-flask.pid" ]; then
     SERVER_PID=$(cat /tmp/saturn-flask.pid)
