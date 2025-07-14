@@ -1,7 +1,8 @@
 #!/bin/bash
 # configure_apache.sh - Configures Apache as a reverse proxy for Saturn Update Manager
-# Version: 1.0
+# Version: 1.3
 # Written by: Jerry DeLong KD4YAL
+# Changes: Moved Timeout directive outside <Location> to VirtualHost context (as it's not allowed in <Location>), kept SetEnv for chunked/no-keepalive, increased timeouts to 3600s, updated version to 1.3
 # Dependencies: apache2, apache2-utils
 # Usage: Called by setup_saturn_webserver.sh
 
@@ -90,7 +91,8 @@ cat > "$APACHE_CONF" << EOF
     DocumentRoot $WEB_DIR
     ProxyRequests Off
     ProxyPreserveHost On
-    ProxyTimeout 600
+    ProxyTimeout 3600
+    Timeout 3600
     LogLevel proxy:debug
     ErrorLog \${APACHE_LOG_DIR}/saturn_error.log
     CustomLog \${APACHE_LOG_DIR}/saturn_access.log combined
@@ -105,6 +107,8 @@ cat > "$APACHE_CONF" << EOF
             Require valid-user
             Require ip $SUBNET
         </RequireAll>
+        SetEnv proxy-sendchunked 1
+        SetEnv proxy-nokeepalive 1
     </Location>
     <Directory $WEB_DIR>
         Options -Indexes

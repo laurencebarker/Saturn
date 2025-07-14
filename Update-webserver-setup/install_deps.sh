@@ -1,7 +1,8 @@
 #!/bin/bash
 # install_deps.sh - Installs system and Python dependencies for Saturn Update Manager
-# Version: 1.0
+# Version: 1.1
 # Written by: Jerry DeLong KD4YAL
+# Changes: Added gevent to Python dependencies for async Gunicorn workers, updated version to 1.1
 # Dependencies: apt-get, python3, python3-pip
 # Usage: Called by setup_saturn_webserver.sh
 
@@ -50,8 +51,8 @@ if [ ! -d "$VENV_PATH" ]; then
 else
     log_and_echo "${GREEN}Virtual environment already exists${NC}"
 fi
-run_command "sudo -u pi $VENV_PATH/bin/pip install flask ansi2html==1.9.2 psutil==7.0.0 pyfiglet gunicorn" "Installing Python dependencies"
-if ! sudo -u pi bash -c ". $VENV_PATH/bin/activate && python3 -c 'import flask, ansi2html, psutil, pyfiglet, gunicorn' && which gunicorn" 2>/dev/null; then
+run_command "sudo -u pi $VENV_PATH/bin/pip install flask ansi2html==1.9.2 psutil==7.0.0 pyfiglet gunicorn gevent" "Installing Python dependencies"
+if ! sudo -u pi bash -c ". $VENV_PATH/bin/activate && python3 -c 'import flask, ansi2html, psutil, pyfiglet, gunicorn, gevent' && which gunicorn" 2>/dev/null; then
     log_and_echo "${RED}Error: Virtual environment verification failed${NC}"
     exit 1
 fi
