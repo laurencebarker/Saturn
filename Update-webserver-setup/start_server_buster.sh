@@ -1,8 +1,9 @@
 #!/bin/bash
 # start_server_buster.sh - Starts saturn_update_manager.py with Gunicorn and verifies endpoints on Buster
-# Version: 1.6
+# Version: 1.7
 # Written by: Jerry DeLong KD4YAL
-# Dependencies: bash, gunicorn, curl
+# Changes: Increased Gunicorn workers to 5 for better concurrency, switched to gevent worker class for async/non-blocking handling (requires gevent installed), updated version to 1.7
+# Dependencies: bash, gunicorn, curl, gevent (pip install gevent in venv)
 # Usage: Called by setup_saturn_webserver.sh on Buster systems
 
 set -e
@@ -44,6 +45,16 @@ else
   log_and_echo "${RED}Error: Incorrect ansi2html version. Expected 1.9.2, got $ANSI_VERSION${NC}"
   exit 1
 fi
+
+# Check for gevent
+GEVENT_VERSION=$(sudo -u pi $VENV_PATH/bin/python -c "import gevent; print(gevent.__version__)" | tail -1 | tr -d '\r\n' 2>/dev/null || echo "not installed")
+if [ "$GEVENT_VERSION" != "not installed" ]; then
+  log_and_echo "${GREEN}gevent version verified: $GEVENT_VERSION${NC}"
+else
+  log_and_echo "${RED}Error: gevent not installed in virtual environment${NC}"
+  exit 1
+fi
+
 log_and_echo "${GREEN}Virtual environment and dependencies verified${NC}"
 
 # Kill existing Gunicorn process if running
@@ -53,13 +64,13 @@ log_and_echo "${GREEN}Existing server stopped (if running)${NC}"
 
 # Start Flask server with Gunicorn as pi user
 log_and_echo "${CYAN}Starting Flask server with Gunicorn...${NC}"
-sudo -u pi nohup $VENV_PATH/bin/gunicorn --chdir $SCRIPTS_DIR -w 1 -b 0.0.0.0:5000 -t 600 saturn_update_manager:app > "$GUNICORN_LOG" 2> "$GUNICORN_ERROR_LOG" &
+sudo -u pi nohup $VENV_PATH/bin/gunicorn --chdir $SCRIPTS_DIR -w 5 --worker-class gevent -b 0.0.0.0:5000 -t 600 saturn_update_manager:app > "$GUNICORN_LOG" 2> "$GUNICORN_ERROR_LOG" &
 SERVER_PID=$!
 echo $SERVER_PID > "$SERVER_PID_FILE"
 log_and_echo "${GREEN}Flask server started with PID $SERVER_PID. Logs: $GUNICORN_LOG and $GUNICORN_ERROR_LOG${NC}"
 
-# Wait for server to start
-sleep 20
+# Wait for server to start (increased for gevent/multi-worker startup)
+sleep 30
 
 # Verify Flask endpoints
 log_and_echo "${CYAN}Verifying Flask endpoints...${NC}"
