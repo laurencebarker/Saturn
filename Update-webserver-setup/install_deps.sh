@@ -1,9 +1,9 @@
 #!/bin/bash
 # install_deps.sh - Installs system and Python dependencies for Saturn Update Manager
-# Version: 1.3
+# Version: 1.4
 # Written by: Jerry DeLong KD4YAL
-# Changes: Added forced venv recreation option to fix permissions, ensured chown/chmod, updated version to 1.3
-# Dependencies: apt-get, python3, python3-pip
+# Changes: Added verbose (-v) and increased timeout to pip to prevent hangs, wrapped pip in timeout command, explicitly use piwheels index, updated version to 1.4
+# Dependencies: apt-get, python3, python3-pip, timeout (coreutils)
 # Usage: Called by setup_saturn_webserver.sh
 
 set -e
@@ -55,8 +55,17 @@ log_and_echo "${GREEN}Virtual environment created${NC}"
 sudo chown -R pi:pi $VENV_PATH
 sudo chmod -R 755 $VENV_PATH
 
-# Install Python packages as 'pi' user
-run_command "sudo -u pi $VENV_PATH/bin/pip install flask ansi2html==1.9.2 psutil==7.0.0 pyfiglet gunicorn gevent" "Installing Python dependencies"
+# Install Python packages as 'pi' user with verbose, timeout, and piwheels
+log_and_echo "${CYAN}Installing Python dependencies...${NC}"
+cmd="sudo -u pi timeout 600 $VENV_PATH/bin/pip install -v --timeout 120 --index-url https://www.piwheels.org/simple flask ansi2html==1.9.2 psutil==7.0.0 pyfiglet gunicorn gevent"
+if output=$($cmd 2>&1); then
+    log_and_echo "$output"
+    log_and_echo "${GREEN}Installing Python dependencies completed${NC}"
+else
+    log_and_echo "${RED}Error: Installing Python dependencies failed or timed out${NC}"
+    log_and_echo "$output"
+    exit 1
+fi
 
 if ! sudo -u pi bash -c ". $VENV_PATH/bin/activate && python3 -c 'import flask, ansi2html, psutil, pyfiglet, gunicorn, gevent' && which gunicorn" 2>/dev/null; then
     log_and_echo "${RED}Error: Virtual environment verification failed${NC}"
