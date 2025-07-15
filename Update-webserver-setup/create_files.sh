@@ -1,6 +1,6 @@
 #!/bin/bash
 # create_files.sh - Creates index.html, saturn_update_manager.py, config.json, themes.json, and SaturnUpdateManager.desktop
-# Version: 1.9
+# Version: 2.0
 # Written by: Jerry DeLong KD4YAL
 # Dependencies: bash
 # Usage: Called by setup_saturn_webserver.sh
@@ -248,7 +248,6 @@ cat > "$INDEX_HTML" << 'EOF'
 <body>
     <div class="container mx-auto p-4 sm:p-6">
         <h1 class="text-3xl font-bold text-red-600 text-center mb-2">Saturn Update Manager</h1>
-        <p class="text-lg text-gray-600 text-center mb-4">Build Version: 2.65 (Setup Script)</p>
 
         <div id="versions-container" class="rounded-lg shadow-md p-4 mb-4" style="display: none; background-color: var(--card-bg);">
             <h2 class="text-xl font-semibold text-gray-700 mb-2">Script Versions</h2>
