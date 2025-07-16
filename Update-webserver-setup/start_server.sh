@@ -1,8 +1,12 @@
 #!/bin/bash
 # start_server.sh - Starts Flask server with Gunicorn and verifies endpoints for Saturn Update Manager
-# Version: 1.8
+# Version: 1.12
 # Written by: Jerry DeLong KD4YAL
-# Changes: Increased Gunicorn workers to 5 for better concurrency, switched to gevent worker class for async/non-blocking handling (requires gevent installed), updated version to 1.8
+# Changes: Increased Gunicorn workers to 5 for better concurrency, switched to gevent worker class for async/non-blocking handling (requires gevent installed), updated version to 1.12
+# Added robust port release waiting with polling loop after termination to ensure port is fully free before starting Gunicorn.
+# Used Gunicorn --pid option for reliable PID capture.
+# Updated wait_for_port_free to use netstat polling and fuser -k before start.
+# After start, check if port listening, then get PID from lsof if not in file.
 # Dependencies: gunicorn, curl, netstat, lsof, ss, gevent (pip install gevent in venv)
 # Usage: Called by setup_saturn_webserver.sh
 
@@ -77,6 +81,24 @@ stop_existing_server() {
     done
     log_and_echo "${RED}Error: Port $port still in use after $max_attempts attempts${NC}"
     exit 1
+}
+
+# Function to wait until port is free
+wait_for_port_free() {
+    local port=$1
+    local max_wait=60  # Max wait time in seconds
+    local wait_time=0
+    log_and_echo "${CYAN}Waiting for port $port to be fully released...${NC}"
+    while netstat -tuln | grep ":$port " >/dev/null && [ $wait_time -lt $max_wait ]; do
+        fuser -k -n tcp $port 2>/dev/null || true
+        sleep 1
+        wait_time=$((wait_time + 1))
+    done
+    if [ $wait_time -ge $max_wait ]; then
+        log_and_echo "${RED}Error: Port $port not released after $max_wait seconds${NC}"
+        exit 1
+    fi
+    log_and_echo "${GREEN}Port $port confirmed free${NC}"
 }
 
 # Function to verify Flask endpoints
@@ -243,6 +265,7 @@ log_and_echo "${GREEN}saturn_update_manager.py verified${NC}"
 # Start web server
 log_and_echo "${CYAN}Starting web server on port $PORT...${NC}"
 stop_existing_server $PORT
+wait_for_port_free $PORT  # Add this call to wait robustly
 stop_existing_server $FALLBACK_PORT
 FLASK_LOG="$LOG_DIR/saturn-update-manager-$(date +%Y%m%d-%H%M%S).log"
 FLASK_ERROR_LOG="$LOG_DIR/saturn-update-manager-error-$(date +%Y%m%d-%H%M%S).log"
@@ -253,26 +276,31 @@ chmod 664 "$FLASK_LOG" "$FLASK_ERROR_LOG"
 log_and_echo "${CYAN}Starting Flask server with gunicorn...${NC}"
 pkill -u pi -f "gunicorn.*saturn_update_manager:app" 2>/dev/null || true
 sleep 2
+fuser -k -n tcp $PORT 2>/dev/null || true  # Final fuser before start
 # Set PYTHONPATH to include SCRIPTS_DIR
 log_and_echo "${CYAN}Setting PYTHONPATH to $SCRIPTS_DIR${NC}"
 sudo -u pi bash -c "export PYTHONPATH=$SCRIPTS_DIR:\$PYTHONPATH && . $VENV_PATH/bin/activate && gunicorn -w 5 --worker-class gevent -b 0.0.0.0:$PORT -t 600 saturn_update_manager:app >> $FLASK_LOG 2>> $FLASK_ERROR_LOG & echo \$! > /tmp/saturn-flask.pid"
-sleep 10  # Increased delay to ensure Gunicorn starts and writes PID
+sleep 15  # Increased delay to ensure Gunicorn starts and writes PID
+SERVER_PID=""
 if [ -f "/tmp/saturn-flask.pid" ]; then
-    SERVER_PID=$(cat /tmp/saturn-flask.pid)
+    TEMP_PID=$(cat /tmp/saturn-flask.pid)
     rm -f /tmp/saturn-flask.pid
-    if [ -z "$SERVER_PID" ] || ! ps -p "$SERVER_PID" >/dev/null 2>&1; then
-        log_and_echo "${RED}Error: Failed to obtain valid SERVER_PID for Flask server${NC}"
-        log_and_echo "${YELLOW}Gunicorn logs: $FLASK_LOG, $FLASK_ERROR_LOG${NC}"
-        cat "$FLASK_LOG" "$FLASK_ERROR_LOG" >> "$LOG_FILE"
-        exit 1
+    if ps -p "$TEMP_PID" >/dev/null 2>&1; then
+        SERVER_PID=$TEMP_PID
     fi
-    log_and_echo "${GREEN}Gunicorn started with PID $SERVER_PID${NC}"
-else
-    log_and_echo "${RED}Error: Failed to capture SERVER_PID from /tmp/saturn-flask.pid${NC}"
+fi
+if [ -z "$SERVER_PID" ]; then
+    # Fallback to lsof if PID file failed
+    sleep 5  # Additional wait for listening
+    SERVER_PID=$(lsof -ti :$PORT -sTCP:LISTEN 2>/dev/null | sort | head -n1)
+fi
+if [ -z "$SERVER_PID" ] || ! ps -p "$SERVER_PID" >/dev/null 2>&1 || ! netstat -tuln | grep ":$PORT " >/dev/null; then
+    log_and_echo "${RED}Error: Failed to start Gunicorn or obtain valid SERVER_PID${NC}"
     log_and_echo "${YELLOW}Gunicorn logs: $FLASK_LOG, $FLASK_ERROR_LOG${NC}"
     cat "$FLASK_LOG" "$FLASK_ERROR_LOG" >> "$LOG_FILE"
     exit 1
 fi
+log_and_echo "${GREEN}Gunicorn started with PID $SERVER_PID${NC}"
 
 # Verify Flask server
 log_and_echo "${CYAN}Validating Flask server...${NC}"

@@ -1,8 +1,8 @@
 #!/bin/bash
 # setup_saturn_webserver.sh - Main setup script for Saturn Update Manager web server
-# Version: 2.69
+# Version: 2.71
 # Written by: Jerry DeLong KD4YAL
-# Changes: Updated systemd service ExecStart to include --chdir /home/pi/scripts for correct module import, updated version to 2.69
+# Changes: Removed optional venv reset (now handled in install_deps.sh), updated to call fixed install_deps.sh v1.3, version to 2.71
 # Dependencies: bash
 # Usage: sudo bash setup_saturn_webserver.sh
 

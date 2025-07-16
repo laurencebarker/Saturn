@@ -1,9 +1,9 @@
 #!/bin/bash
 # install_deps.sh - Installs system and Python dependencies for Saturn Update Manager
-# Version: 1.1
+# Version: 1.5
 # Written by: Jerry DeLong KD4YAL
-# Changes: Added gevent to Python dependencies for async Gunicorn workers, updated version to 1.1
-# Dependencies: apt-get, python3, python3-pip
+# Changes: Added verbose (-v) and increased timeout to pip to prevent hangs, wrapped pip in timeout command, explicitly use piwheels index, updated version to 1.4
+# Dependencies: apt-get, python3, python3-pip, timeout (coreutils)
 # Usage: Called by setup_saturn_webserver.sh
 
 set -e
@@ -39,19 +39,34 @@ run_command() {
     fi
 }
 
-# Install system dependencies
+# Install system dependencies (requires sudo)
+export DEBIAN_FRONTEND=noninteractive  # Make apt non-interactive to avoid prompts
 run_command "apt-get update" "Updating package lists"
-run_command "apt-get install -y python3 python3-pip lsof apache2 apache2-utils python3-gunicorn" "Installing system dependencies"
+run_command "apt-get install -y python3 python3-pip lsof apache2 apache2-utils python3-gunicorn build-essential python3-dev" "Installing system dependencies"
 
-# Setup virtual environment
-log_and_echo "${CYAN}Creating virtual environment at $VENV_PATH...${NC}"
-if [ ! -d "$VENV_PATH" ]; then
-    run_command "python3 -m venv $VENV_PATH" "Creating virtual environment"
-    chmod -R u+rwX "$VENV_PATH"
-else
-    log_and_echo "${GREEN}Virtual environment already exists${NC}"
+# Reset and recreate virtual environment as 'pi' user to fix permissions
+log_and_echo "${CYAN}Resetting and creating virtual environment at $VENV_PATH...${NC}"
+if [ -d "$VENV_PATH" ]; then
+    rm -rf "$VENV_PATH"
+    log_and_echo "${YELLOW}Existing venv deleted for clean recreation${NC}"
 fi
-run_command "sudo -u pi $VENV_PATH/bin/pip install flask ansi2html==1.9.2 psutil==7.0.0 pyfiglet gunicorn gevent" "Installing Python dependencies"
+sudo -u pi python3 -m venv $VENV_PATH
+log_and_echo "${GREEN}Virtual environment created${NC}"
+sudo chown -R pi:pi $VENV_PATH
+sudo chmod -R 755 $VENV_PATH
+
+# Install Python packages as 'pi' user with verbose, timeout, and piwheels as extra index
+log_and_echo "${CYAN}Installing Python dependencies...${NC}"
+cmd="sudo -u pi timeout 600 $VENV_PATH/bin/pip install -v --timeout 120 --extra-index-url https://www.piwheels.org/simple flask ansi2html==1.9.2 psutil==7.0.0 pyfiglet gunicorn gevent"
+if output=$($cmd 2>&1); then
+    log_and_echo "$output"
+    log_and_echo "${GREEN}Installing Python dependencies completed${NC}"
+else
+    log_and_echo "${RED}Error: Installing Python dependencies failed or timed out${NC}"
+    log_and_echo "$output"
+    exit 1
+fi
+
 if ! sudo -u pi bash -c ". $VENV_PATH/bin/activate && python3 -c 'import flask, ansi2html, psutil, pyfiglet, gunicorn, gevent' && which gunicorn" 2>/dev/null; then
     log_and_echo "${RED}Error: Virtual environment verification failed${NC}"
     exit 1
