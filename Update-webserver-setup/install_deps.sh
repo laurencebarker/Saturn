@@ -1,6 +1,6 @@
 #!/bin/bash
 # install_deps.sh - Installs system and Python dependencies for Saturn Update Manager
-# Version: 1.4
+# Version: 1.5
 # Written by: Jerry DeLong KD4YAL
 # Changes: Added verbose (-v) and increased timeout to pip to prevent hangs, wrapped pip in timeout command, explicitly use piwheels index, updated version to 1.4
 # Dependencies: apt-get, python3, python3-pip, timeout (coreutils)
@@ -42,7 +42,7 @@ run_command() {
 # Install system dependencies (requires sudo)
 export DEBIAN_FRONTEND=noninteractive  # Make apt non-interactive to avoid prompts
 run_command "apt-get update" "Updating package lists"
-run_command "apt-get install -y python3 python3-pip lsof apache2 apache2-utils python3-gunicorn" "Installing system dependencies"
+run_command "apt-get install -y python3 python3-pip lsof apache2 apache2-utils python3-gunicorn build-essential python3-dev" "Installing system dependencies"
 
 # Reset and recreate virtual environment as 'pi' user to fix permissions
 log_and_echo "${CYAN}Resetting and creating virtual environment at $VENV_PATH...${NC}"
@@ -55,9 +55,9 @@ log_and_echo "${GREEN}Virtual environment created${NC}"
 sudo chown -R pi:pi $VENV_PATH
 sudo chmod -R 755 $VENV_PATH
 
-# Install Python packages as 'pi' user with verbose, timeout, and piwheels
+# Install Python packages as 'pi' user with verbose, timeout, and piwheels as extra index
 log_and_echo "${CYAN}Installing Python dependencies...${NC}"
-cmd="sudo -u pi timeout 600 $VENV_PATH/bin/pip install -v --timeout 120 --index-url https://www.piwheels.org/simple flask ansi2html==1.9.2 psutil==7.0.0 pyfiglet gunicorn gevent"
+cmd="sudo -u pi timeout 600 $VENV_PATH/bin/pip install -v --timeout 120 --extra-index-url https://www.piwheels.org/simple flask ansi2html==1.9.2 psutil==7.0.0 pyfiglet gunicorn gevent"
 if output=$($cmd 2>&1); then
     log_and_echo "$output"
     log_and_echo "${GREEN}Installing Python dependencies completed${NC}"
