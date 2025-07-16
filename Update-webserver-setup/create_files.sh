@@ -1,6 +1,6 @@
 #!/bin/bash
 # create_files.sh - Creates index.html, saturn_update_manager.py, config.json, themes.json, and SaturnUpdateManager.desktop
-# Version: 1.8
+# Version: 2.0
 # Written by: Jerry DeLong KD4YAL
 # Dependencies: bash
 # Usage: Called by setup_saturn_webserver.sh
@@ -21,7 +21,7 @@ LOG_CLEANER_SCRIPT="$SCRIPTS_DIR/log_cleaner.sh"
 RESTORE_SCRIPT="$SCRIPTS_DIR/restore-backup.sh"
 LOG_FILE="$LOG_DIR/setup_saturn_webserver-$(date +%Y%m%d-%H%M%S).log"
 VENV_PATH="/home/pi/venv"
-OLD_SCRIPTS_DIR="/home/pi/github/Saturn/scripts"
+OLD_SCRIPTS_DIR="/home/pi/github/Saturn/Update-webserver-setup"
 
 # Colors for output
 RED='\033[0;31m'
@@ -248,7 +248,6 @@ cat > "$INDEX_HTML" << 'EOF'
 <body>
     <div class="container mx-auto p-4 sm:p-6">
         <h1 class="text-3xl font-bold text-red-600 text-center mb-2">Saturn Update Manager</h1>
-        <p class="text-lg text-gray-600 text-center mb-4">Build Version: 2.65 (Setup Script)</p>
 
         <div id="versions-container" class="rounded-lg shadow-md p-4 mb-4" style="display: none; background-color: var(--card-bg);">
             <h2 class="text-xl font-semibold text-gray-700 mb-2">Script Versions</h2>
@@ -1485,6 +1484,9 @@ chmod +x "$SATURN_SCRIPT"
 chown pi:pi "$SATURN_SCRIPT"
 log_and_echo "${GREEN}saturn_update_manager.py created${NC}"
 log_and_echo "${CYAN}Validating saturn_update_manager.py syntax...${NC}"
+sudo rm -rf "$SCRIPTS_DIR/__pycache__"
+sudo chown -R pi:pi "$SCRIPTS_DIR"
+sudo chmod -R 775 "$SCRIPTS_DIR"
 if output=$(sudo -u pi bash -c ". $VENV_PATH/bin/activate && python3 -m py_compile $SATURN_SCRIPT" 2>&1); then
     log_and_echo "${GREEN}Syntax validation passed${NC}"
 else
