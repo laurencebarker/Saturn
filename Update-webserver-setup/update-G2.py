@@ -42,7 +42,7 @@ SATURN_DIR = os.path.expanduser("~/github/Saturn")
 LOG_DIR = os.path.expanduser("~/saturn-logs")
 LOG_FILE = os.path.join(LOG_DIR, f"saturn-update-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
 BACKUP_DIR = os.path.expanduser(f"~/saturn-backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}")
-REPO_URL = "https://github.com/kd4yal2024/Saturn"
+REPO_URL = "https://github.com/laurencebarker/Saturn"
 
 # Setup logging
 logging.basicConfig(
