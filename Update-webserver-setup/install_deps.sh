@@ -8,6 +8,12 @@
 
 set -e
 
+# Check if running as root
+if [ "$(id -u)" != "0" ]; then
+    echo -e "${RED}Error: This script must be run with sudo or as root to perform APT operations.${NC}" >&2
+    exit 1
+fi
+
 # Paths
 VENV_PATH="/home/pi/venv"
 LOG_DIR="/home/pi/saturn-logs"
@@ -17,6 +23,7 @@ LOG_FILE="$LOG_DIR/setup_saturn_webserver-$(date +%Y%m%d-%H%M%S).log"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
+YELLOW='\033[0;33m'
 NC='\033[0m'
 
 # Function to log and echo output
