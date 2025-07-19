@@ -3,7 +3,7 @@
 # Automates updating the Saturn G2
 # Version: 2.8
 # Written by: Jerry DeLong KD4YAL
-# Changes: Removed hard-coded REPO_URL and remote update to use current origin for pull (allows forks); added system update after backup before git with -u flag; updated version to 2.8
+# Changes: Added system update function after backup and before git update with -u flag; version to 2.8
 # Dependencies: pyfiglet (version 1.0.3) installed in ~/venv
 # Usage: source ~/venv/bin/activate; python3 ~/github/Saturn/scripts/update-G2.py; deactivate
 
@@ -39,6 +39,7 @@ SATURN_DIR = os.path.expanduser("~/github/Saturn")
 LOG_DIR = os.path.expanduser("~/saturn-logs")
 LOG_FILE = os.path.join(LOG_DIR, f"saturn-update-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
 BACKUP_DIR = os.path.expanduser(f"~/saturn-backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}")
+REPO_URL = "https://github.com/laurencebarker/Saturn"
 
 # Setup logging
 logging.basicConfig(
@@ -287,11 +288,9 @@ def update_git():
             print_info(f"Commit: {current_commit}")
         except subprocess.CalledProcessError as e:
             print_error(f"Failed to get commit: {e.stderr.strip()}")
-        current_remote = subprocess.run(["git", "config", "--get", "remote.origin.url"], capture_output=True, text=True).stdout.strip()
-        print_info(f"Remote: {current_remote}")
         try:
             with open("/tmp/git_output", "w") as f:
-                process = subprocess.Popen(["git", "pull", "origin", target_branch], stdout=f, stderr=f, text=True)
+                process = subprocess.Popen(["git", "pull"], stdout=f, stderr=f, text=True)
                 progress_bar(process, "Pulling changes", 10)
                 if process.returncode != 0:
                     with open("/tmp/git_output", "r") as f:
@@ -754,24 +753,4 @@ def main():
     install_desktop_icons()
     check_fpga_binary()
 
-    print_summary_report(start_time, BACKUP_CREATED)
-
-    print_fpga_instructions()
-
-    print_header("Important Notes")
-    cols, _ = get_term_size()
-    fpga_time_text = truncate_text("FPGA programming takes ~3 minutes", cols-7)
-    power_cycle_text = truncate_text("Power cycle required after", cols-7)
-    terminal_text = truncate_text("Keep terminal open", cols-7)
-    log_text = truncate_text(f"Log: {LOG_FILE}", cols-7)
-    print_warning(fpga_time_text)
-    print_warning(power_cycle_text)
-    print_warning(terminal_text)
-    print_warning(log_text)
-
-    print_header(f"{SCRIPT_NAME} v{SCRIPT_VERSION} Done")
-    get_system_stats()
-
-if __name__ == "__main__":
-    main()
-    os.chdir(os.path.expanduser("~"))
+    print_summary_report(start
