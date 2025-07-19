@@ -11,7 +11,7 @@ sudo apt-get install -y libglib2.0-bin
 sudo apt-get install -y libgtk-3-dev
 if [ -f ~/venv/bin/activate ]; then
     source ~/venv/bin/activate
-    pip install rich
+    pip install rich==13.8.1
     pip install psutil
     pip install pyfiglet
 else
