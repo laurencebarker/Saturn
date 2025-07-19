@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 # update-G2.py - G2 Update Script
 # Automates updating the Saturn G2
-# Version: 2.7
+# Version: 2.8
 # Written by: Jerry DeLong KD4YAL
-# Changes: Added white output for build script processes with --verbose,
-#          added listing of all conflicting files when local changes detected,
-#          modified to automatically stash changes and show stash reference,
-#          updated version to 2.7
+# Changes: Added system update function after backup and before git update with -u flag; version to 2.8
 # Dependencies: pyfiglet (version 1.0.3) installed in ~/venv
 # Usage: source ~/venv/bin/activate; python3 ~/github/Saturn/scripts/update-G2.py; deactivate
 
@@ -37,7 +34,7 @@ class Colors:
 
 # Script metadata
 SCRIPT_NAME = "SATURN UPDATE"
-SCRIPT_VERSION = "2.7"
+SCRIPT_VERSION = "2.8"
 SATURN_DIR = os.path.expanduser("~/github/Saturn")
 LOG_DIR = os.path.expanduser("~/saturn-logs")
 LOG_FILE = os.path.join(LOG_DIR, f"saturn-update-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
@@ -156,7 +153,7 @@ def init_logging():
         g2_saturn_ascii = "G2 Saturn\n"
     banner = f"""
 {Colors.RED}{g2_saturn_ascii.rstrip()}{Colors.END}
-{Colors.BLUE}{'Update Manager v2.7'.center(cols-2)}{Colors.END}\n\n"""
+{Colors.BLUE}{'Update Manager v2.8'.center(cols-2)}{Colors.END}\n\n"""
     logging.debug(f"Banner raw output: {repr(banner)}")
     print(banner)
     print_info(f"Started: {datetime.now()}")
@@ -168,6 +165,7 @@ def parse_args():
     parser.add_argument("--skip-git", action="store_true", help="Skip Git repository update")
     parser.add_argument("-y", "--yes", action="store_true", help="Auto-confirm backup creation")
     parser.add_argument("-n", "--no", action="store_true", help="Skip backup creation")
+    parser.add_argument("-u", "--update", action="store_true", help="Run sudo apt update && sudo apt upgrade")
     parser.add_argument("--dry-run", action="store_true", help="Simulate actions without executing")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output for all commands, including detailed build output")
     parser.add_argument("--debug", action="store_true", help="Enable debug output")
@@ -272,6 +270,11 @@ def update_git():
             if conflict_files:
                 print_warning(f"Conflicting files: {', '.join(conflict_files)}")
             print_warning("Automatically stashing local changes (including untracked files)")
+            # Set git user if not configured
+            if not subprocess.run(["git", "config", "user.name"], capture_output=True).stdout.strip():
+                subprocess.run(["git", "config", "--local", "user.name", "pi"], check=True)
+                subprocess.run(["git", "config", "--local", "user.email", "pi@raspberrypi.local"], check=True)
+                print_info("Set local git user.name and user.email to defaults")
             try:
                 stash_result = subprocess.run(
                     ["git", "stash", "push", "--include-untracked", "-m", f"Auto-stash {datetime.now()}"],
@@ -378,6 +381,40 @@ def create_backup():
     print_info(f"Size: {backup_size}")
     print_success("Backup created")
     return True
+
+# System update
+def system_update():
+    if not args.update:
+        return
+    debug_print("Running system update")
+    print_header("System Update")
+    print(f"{Colors.CYAN}⚡ Running sudo apt update && sudo apt upgrade...{Colors.END}")
+    if args.dry_run:
+        print_info("[Dry Run] Simulating system update")
+        return
+    try:
+        # Run apt update
+        process = subprocess.Popen(["sudo", "apt", "update"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
+        while process.poll() is None:
+            line = process.stdout.readline().strip()
+            if line:
+                print_build_output(line)
+        return_code = process.wait()
+        if return_code != 0:
+            print_error("apt update failed")
+
+        # Run apt upgrade -y
+        process = subprocess.Popen(["sudo", "apt", "upgrade", "-y"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
+        while process.poll() is None:
+            line = process.stdout.readline().strip()
+            if line:
+                print_build_output(line)
+        return_code = process.wait()
+        if return_code != 0:
+            print_error("apt upgrade failed")
+        print_success("System updated")
+    except Exception as e:
+        print_error(f"System update failed: {str(e)}")
 
 # Install libraries
 def install_libraries():
@@ -702,6 +739,8 @@ def main():
 
     if create_backup():
         BACKUP_CREATED = True
+
+    system_update()
 
     update_git()
     install_libraries()
