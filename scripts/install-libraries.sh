@@ -11,8 +11,8 @@ sudo apt-get install -y libglib2.0-bin
 sudo apt-get install -y libgtk-3-dev
 if [ -f ~/venv/bin/activate ]; then
     source ~/venv/bin/activate
-    pip install rich==14.0.0
-    pip install psutil==7.0.0
+    pip install rich
+    pip install psutil
     pip install pyfiglet
 else
     echo "Error: Virtual environment not found at ~/venv"
