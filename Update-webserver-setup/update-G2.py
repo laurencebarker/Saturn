@@ -753,4 +753,9 @@ def main():
     install_desktop_icons()
     check_fpga_binary()
 
-    print_summary_report(start
+    print_summary_report(start_time, BACKUP_CREATED)
+    get_system_stats()
+    print_fpga_instructions()
+
+if __name__ == "__main__":
+    main()
