@@ -1688,7 +1688,7 @@ cat > "$DESKTOP_FILE" << EOF
 Type=Application
 Name=Saturn Update Manager
 Comment=Web-based GUI to manage updates for various scripts
-Exec=xdg-open http://localhost/saturn/
+Exec=xdg-open http://localhost:5000/saturn/
 Icon=system-software-update
 Terminal=false
 Categories=System;Utility;

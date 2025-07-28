@@ -103,6 +103,7 @@ cat > "$APACHE_CONF" << EOF
         AuthType Basic
         AuthName "Saturn Update Manager - Restricted Access"
         AuthUserFile $HTPASSWD_FILE
+        Allow from 127.0.0.0/8
         <RequireAll>
             Require valid-user
             Require ip $SUBNET
