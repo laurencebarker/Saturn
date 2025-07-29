@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saturn Update Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --text-color: #333333;
+            --primary-color: #3b82f6;
+            --secondary-color: #10b981;
+            --card-bg: #ffffff;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+        }
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', monospace;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 1rem;
+            overflow-y: auto;
+            min-height: 400px;
+            max-height: 500px;
+            line-height: 1.4;
+            margin: 0;
+            border: 1px solid #444;
+            box-sizing: border-box;
+        }
+        .output-container {
+            width: 100%;
+            min-height: 420px;
+            background-color: #1a1a1a;
+            padding: 0;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .container { max-width: 800px; }
+        .ansi_31 { color: #ff5555 !important; }
+        .ansi_32 { color: #55ff55 !important; }
+        .ansi_33 { color: #ffff55 !important; }
+        .ansi_34 { color: #5555ff !important; }
+        .ansi_36 { color: #55ffff !important; }
+        /* Spinner for loading */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary-color);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* Progress bar styling */
+        progress {
+            width: 100%;
+            height: 20px;
+            appearance: none;
+            border: none;
+            background-color: #e5e7eb;
+            border-radius: 0.25rem;
+        }
+        progress::-webkit-progress-bar {
+            background-color: #e5e7eb;
+            border-radius: 0.25rem;
+        }
+        progress::-webkit-progress-value {
+            background-color: var(--primary-color);
+            border-radius: 0.25rem;
+        }
+        progress::-moz-progress-bar {
+            background-color: var(--primary-color);
+            border-radius: 0.25rem;
+        }
+        /* Mobile adjustments */
+        @media (max-width: 640px) {
+            .container { padding: 1rem; }
+            button { padding: 0.75rem 1.5rem; font-size: 1.125rem; }
+            select, input { font-size: 1rem; padding: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-4 sm:p-6">
+        <h1 class="text-3xl font-bold text-red-600 text-center mb-2">Saturn Update Manager</h1>
+
+        <div id="versions-container" class="rounded-lg shadow-md p-4 mb-4" style="display: none; background-color: var(--card-bg);">
+            <h2 class="text-xl font-semibold text-gray-700 mb-2">Script Versions</h2>
+            <ul id="version-list" class="list-disc pl-5 text-gray-600"></ul>
+        </div>
+
+        <div class="rounded-lg shadow-md p-4 mb-4 relative" style="background-color: var(--card-bg);">
+            <!-- Loading Spinner -->
+            <div id="loader" class="absolute inset-0 flex items-center justify-center bg-opacity-75 hidden" style="background-color: var(--card-bg);">
+                <div class="spinner"></div>
+            </div>
+            <form id="script-form" class="flex flex-col space-y-4">
+                <div class="flex items-center space-x-4">
+                    <label for="script" class="text-lg font-medium text-gray-700">Select Script:</label>
+                    <select id="script" name="script" class="border rounded px-2 py-1 bg-blue-100 text-blue-800 w-full">
+                        <option value="">Select a script</option>
+                    </select>
+                </div>
+                <div id="flags" class="flex flex-wrap gap-4"></div>
+                <div id="restore-dir-div" class="flex flex-col space-y-2 hidden">
+                    <label for="restore-dir-select" class="text-lg font-medium text-gray-700">Select Backup Directory:</label>
+                    <select id="restore-dir-select" class="border rounded px-2 py-1 bg-blue-100 text-blue-800 w-full">
+                        <option value="">Select...</option>
+                    </select>
+                </div>
+                <div class="flex justify-center space-x-4">
+                    <button type="submit" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Run</button>
+                    <button type="button" id="change-password-btn" class="btn-secondary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Change Password</button>
+                    <button type="button" id="exit-btn" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Exit</button>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="show-versions" class="form-checkbox h-5 w-5 text-blue-600">
+                        <span>Show Versions</span>
+                    </label>
+                </div>
+            </form>
+        </div>
+
+        <div class="flex flex-col space-y-2 mb-4">
+            <label for="theme" class="text-lg font-medium text-gray-700">Select Theme:</label>
+            <select id="theme" class="border rounded px-2 py-1 bg-blue-100 text-blue-800 w-full">
+                <option value="">Select a theme</option>
+            </select>
+        </div>
+
+        <div class="output-container">
+            <!-- Progress Bar -->
+            <progress id="progress" value="0" max="100" class="mb-2 hidden"></progress>
+            <pre id="output" class="text-sm"></pre>
+        </div>
+
+        <!-- Backup Prompt Modal -->
+        <div id="backup-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+            <div class="rounded-lg p-6 max-w-sm w-full" style="background-color: var(--card-bg);">
+                <h2 class="text-xl font-bold mb-4">Backup Prompt</h2>
+                <p class="mb-4">Create a backup? (Y/n)</p>
+                <div class="flex justify-end space-x-4">
+                    <button id="backup-yes" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90">Yes</button>
+                    <button id="backup-no" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">No</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password Modal -->
+        <div id="password-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+            <div class="rounded-lg p-6 max-w-sm w-full" style="background-color: var(--card-bg);">
+                <h2 class="text-xl font-bold mb-4">Change Password</h2>
+                <form id="password-form" class="flex flex-col space-y-4">
+                    <div>
+                        <label for="new-password" class="text-lg font-medium text-gray-700">New Password:</label>
+                        <input type="password" id="new-password" name="new-password" class="border rounded px-2 py-1 w-full" required minlength="8">
+                    </div>
+                    <div>
+                        <label for="confirm-password" class="text-lg font-medium text-gray-700">Confirm Password:</label>
+                        <input type="password" id="confirm-password" name="confirm-password" class="border rounded px-2 py-1 w-full" required minlength="8">
+                    </div>
+                    <p id="password-error" class="text-red-500 hidden">Passwords do not match or are too short.</p>
+                    <div class="flex justify-end space-x-4">
+                        <button type="submit" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90">Submit</button>
+                        <button type="button" id="password-cancel" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showLoader(show) {
+            document.getElementById('loader').classList.toggle('hidden', !show);
+        }
+
+        async function loadVersions() {
+            showLoader(true);
+            try {
+                const response = await fetch('./get_versions', {
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Fetch versions failed:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                const data = await response.json();
+                console.log('Versions response:', data);
+                const versionList = document.getElementById('version-list');
+                versionList.innerHTML = '';
+                if (data.versions) {
+                    Object.entries(data.versions).forEach(([script, version]) => {
+                        const li = document.createElement('li');
+                        li.textContent = `${script}: ${version}`;
+                        versionList.appendChild(li);
+                    });
+                } else {
+                    console.warn('No versions returned from get_versions');
+                    document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error: No versions available</span><br>`;
+                }
+            } catch (error) {
+                console.error('Error loading versions:', error);
+                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading versions: ${error.message}</span><br>`;
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        async function loadScripts() {
+            showLoader(true);
+            try {
+                const response = await fetch('./get_scripts', {
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Fetch scripts failed:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                const data = await response.json();
+                console.log('Scripts response:', data);
+                const scriptSelect = document.getElementById('script');
+                scriptSelect.innerHTML = '<option value="">Select a script</option>';
+                const output = document.getElementById('output');
+                if (data.warnings && data.warnings.length > 0) {
+                    output.innerHTML += data.warnings.map(w => `<span style="color:#FFFF00">Warning: ${w}</span>`).join('<br>') + '<br>';
+                }
+                if (data.scripts) {
+                    if (Array.isArray(data.scripts)) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = 'Scripts';
+                        data.scripts.forEach(script => {
+                            const option = document.createElement('option');
+                            option.value = script;
+                            option.textContent = script;
+                            optgroup.appendChild(option);
+                        });
+                        scriptSelect.appendChild(optgroup);
+                    } else {
+                        const categories = Object.keys(data.scripts).sort();
+                        categories.forEach(category => {
+                            const optgroup = document.createElement('optgroup');
+                            optgroup.label = category;
+                            data.scripts[category].forEach(script => {
+                                const option = document.createElement('option');
+                                option.value = script.filename;
+                                option.textContent = script.name;
+                                option.title = script.description;
+                                optgroup.appendChild(option);
+                            });
+                            scriptSelect.appendChild(optgroup);
+                        });
+                    }
+                    if (scriptSelect.options.length > 1) {
+                        scriptSelect.value = scriptSelect.options[1].value;
+                        loadFlags(scriptSelect.value);
+                    }
+                } else {
+                    console.warn('No scripts returned from get_scripts');
+                    output.innerHTML += `<span style="color:#FF0000">Error: No scripts available</span><br>`;
+                }
+            } catch (error) {
+                console.error('Error loading scripts:', error);
+                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading scripts: ${error.message}</span><br>`;
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        async function loadFlags(filename) {
+            showLoader(true);
+            try {
+                const response = await fetch(`./get_flags?script=${encodeURIComponent(filename)}`, {
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Fetch flags failed:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                const data = await response.json();
+                console.log('Flags response:', data);
+                const flagsDiv = document.getElementById('flags');
+                flagsDiv.innerHTML = '';
+                if (data.error) {
+                    console.error('Error from get_flags:', data.error);
+                    document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error: ${data.error}</span><br>`;
+                    return;
+                }
+                data.flags.forEach(flag => {
+                    const label = document.createElement('label');
+                    label.className = 'flex items-center space-x-2';
+                    label.innerHTML = `<input type="checkbox" name="flags" value="${flag}" class="form-checkbox h-5 w-5 text-blue-600" ${flag === '--verbose' ? 'checked' : ''}> <span>${flag}</span>`;
+                    flagsDiv.appendChild(label);
+                });
+                console.log(`Loaded flags for ${filename}:`, data.flags);
+                if (filename === 'restore-backup.sh') {
+                    document.getElementById('restore-dir-div').classList.remove('hidden');
+                } else {
+                    document.getElementById('restore-dir-div').classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading flags:', error);
+                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading flags: ${error.message}</span><br>`;
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        async function loadThemes() {
+            try {
+                const response = await fetch('./get_themes', {
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Fetch themes failed:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                const data = await response.json();
+                console.log('Themes response:', data);
+                const themeSelect = document.getElementById('theme');
+                themeSelect.innerHTML = '<option value="">Select a theme</option>';
+                data.themes.forEach(theme => {
+                    const option = document.createElement('option');
+                    option.value = theme.name;
+                    option.textContent = theme.name;
+                    option.title = theme.description;
+                    themeSelect.appendChild(option);
+                });
+                if (data.warnings && data.warnings.length > 0) {
+                    document.getElementById('output').innerHTML += data.warnings.map(w => `<span style="color:#FFFF00">Warning: ${w}</span>`).join('<br>') + '<br>';
+                }
+            } catch (error) {
+                console.error('Error loading themes:', error);
+                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading themes: ${error.message}</span><br>`;
+            }
+        }
+
+        async function applyTheme(name) {
+            try {
+                const response = await fetch(`./get_theme?name=${encodeURIComponent(name)}`, {
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Fetch theme failed:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                const data = await response.json();
+                console.log('Theme data:', data);
+                if (data.styles) {
+                    Object.entries(data.styles).forEach(([key, value]) => {
+                        document.documentElement.style.setProperty(key, value);
+                    });
+                    localStorage.setItem('selectedTheme', name);
+                }
+            } catch (error) {
+                console.error('Error applying theme:', error);
+                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error applying theme: ${error.message}</span><br>`;
+            }
+        }
+
+        document.getElementById('theme').addEventListener('change', function() {
+            const selectedTheme = this.value;
+            if (selectedTheme) {
+                applyTheme(selectedTheme);
+            }
+        });
+
+        const savedTheme = localStorage.getItem('selectedTheme');
+        if (savedTheme) {
+            document.getElementById('theme').value = savedTheme;
+            applyTheme(savedTheme);
+        }
+
+        document.getElementById('flags').addEventListener('change', async function(e) {
+            if (e.target.name === 'flags' && (e.target.value === '--pihpsdr' || e.target.value === '--saturn')) {
+                let type = null;
+                const pihpsdrChecked = Array.from(document.querySelectorAll('input[name="flags"]')).find(cb => cb.value === '--pihpsdr').checked;
+                const saturnChecked = Array.from(document.querySelectorAll('input[name="flags"]')).find(cb => cb.value === '--saturn').checked;
+                if (pihpsdrChecked && saturnChecked) {
+                    document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error: Cannot select both --pihpsdr and --saturn</span><br>`;
+                    return;
+                }
+                if (pihpsdrChecked) type = 'pihpsdr';
+                if (saturnChecked) type = 'saturn';
+                if (type) {
+                    try {
+                        const response = await fetch(`./get_backups?type=${type}`, {
+                            headers: {
+                                'Cache-Control': 'no-cache'
+                            }
+                        });
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            console.error('Fetch backups failed:', response.status, errorText);
+                            throw new Error(`HTTP ${response.status}: ${errorText}`);
+                        }
+                        const data = await response.json();
+                        const select = document.getElementById('restore-dir-select');
+                        select.innerHTML = '<option value="">Select...</option>';
+                        data.backups.forEach(dir => {
+                            const option = document.createElement('option');
+                            option.value = dir;
+                            option.textContent = dir;
+                            select.appendChild(option);
+                        });
+                    } catch (error) {
+                        console.error('Error loading backups:', error);
+                        document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading backups: ${error.message}</span><br>`;
+                    }
+                } else {
+                    const select = document.getElementById('restore-dir-select');
+                    select.innerHTML = '<option value="">Select...</option>';
+                }
+            }
+        });
+
+        document.getElementById('script-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const filename = document.getElementById('script').value;
+            let flags = Array.from(document.querySelectorAll('input[name="flags"]:checked')).map(cb => cb.value);
+            const output = document.getElementById('output');
+            const progress = document.getElementById('progress');
+            output.innerHTML = ''; // Clear output to prevent duplication
+            progress.classList.remove('hidden');
+            progress.value = 0;
+            console.log(`Submitting run request for ${filename}, flags:`, flags);
+
+            const restoreDirDiv = document.getElementById('restore-dir-div');
+            if (filename === 'restore-backup.sh' && !restoreDirDiv.classList.contains('hidden')) {
+                const restoreDir = document.getElementById('restore-dir-select').value;
+                if (restoreDir) {
+                    flags.push('--backup-dir');
+                    flags.push(restoreDir);
+                }
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('script', filename);
+                flags.forEach(flag => formData.append('flags', flag));
+                const response = await fetch('./run', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'text/event-stream'
+                    }
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Run request failed:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                console.log('Run request sent successfully');
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        console.log('Stream complete');
+                        if (buffer) {
+                            console.log('Processing buffered data:', buffer);
+                            const lines = buffer.split('\n\n');
+                            for (const line of lines) {
+                                if (line.startsWith('data: ')) {
+                                    const data = line.substring(6);
+                                    console.log(`Received data: ${data}`);
+                                    if (data === 'BACKUP_PROMPT') {
+                                        console.log('Received BACKUP_PROMPT');
+                                        document.getElementById('backup-modal').classList.remove('hidden');
+                                    } else {
+                                        output.innerHTML += data + '<br>';
+                                        console.log(`Appended HTML: ${data}`);
+                                        output.scrollTop = output.scrollHeight;
+                                        output.style.height = output.scrollHeight + 'px';
+                                        // Parse for progress (example: look for "Progress: 50%")
+                                        const match = data.match(/Progress:\s*(\d+)%/i);
+                                        if (match) {
+                                            progress.value = parseInt(match[1], 10);
+                                        }
+                                    }
+                                }
+                            }
+                            buffer = '';
+                        }
+                        progress.classList.add('hidden');
+                        break;
+                    }
+                    const chunk = decoder.decode(value, { stream: true });
+                    console.log('Received chunk:', chunk);
+                    buffer += chunk;
+                    const lines = buffer.split('\n\n');
+                    buffer = lines.pop() || '';
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.substring(6);
+                            console.log(`Received data: ${data}`);
+                            if (data === 'BACKUP_PROMPT') {
+                                console.log('Received BACKUP_PROMPT');
+                                document.getElementById('backup-modal').classList.remove('hidden');
+                            } else {
+                                output.innerHTML += data + '<br>';
+                                console.log(`Appended HTML: ${data}`);
+                                output.scrollTop = output.scrollHeight;
+                                output.style.height = output.scrollHeight + 'px';
+                                // Parse for progress (example: look for "Progress: 50%")
+                                const match = data.match(/Progress:\s*(\d+)%/i);
+                                if (match) {
+                                    progress.value = parseInt(match[1], 10);
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch(error) {
+                console.error('Run error:', error);
+                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error: ${error.message}</span><br>`;
+                progress.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('script').addEventListener('change', function() {
+            console.log('Script changed:', this.value);
+            if (this.value) {
+                loadFlags(this.value);
+            }
+        });
+
+        document.getElementById('backup-yes').addEventListener('click', function() {
+            console.log('Sending backup response: y');
+            fetch('./backup_response', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'response=y'
+            }).then(() => {
+                console.log('Backup response sent: y');
+                document.getElementById('backup-modal').classList.add('hidden');
+            }).catch(error => {
+                console.error('Backup yes error:', error);
+                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error sending backup response: ${error.message}</span><br>`;
+            });
+        });
+
+        document.getElementById('backup-no').addEventListener('click', function() {
+            console.log('Sending backup response: n');
+            fetch('./backup_response', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'response=n'
+            }).then(() => {
+                console.log('Backup response sent: n');
+                document.getElementById('backup-modal').classList.add('hidden');
+            }).catch(error => {
+                console.error('Backup no error:', error);
+                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error sending backup response: ${error.message}</span><br>`;
+            });
+        });
+
+        document.getElementById('change-password-btn').addEventListener('click', function() {
+            console.log('Opening password change modal');
+            document.getElementById('password-modal').classList.remove('hidden');
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-password').value = '';
+            document.getElementById('password-error').classList.add('hidden');
+        });
+
+        document.getElementById('password-cancel').addEventListener('click', function() {
+            console.log('Closing password change modal');
+            document.getElementById('password-modal').classList.add('hidden');
+        });
+
+        document.getElementById('password-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const errorDiv = document.getElementById('password-error');
+            if (newPassword !== confirmPassword || newPassword.length < 8) {
+                console.error('Password validation failed');
+                errorDiv.textContent = 'Passwords do not match or are too short (minimum 8 characters).';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            try {
+                const response = await fetch('./change_password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `new_password=${encodeURIComponent(newPassword)}`
+                });
+                const data = await response.json();
+                if (response.ok && data.status === 'success') {
+                    console.log('Password changed successfully');
+                    document.getElementById('output').innerHTML += `<span style="color:#00FF00">Password changed successfully</span><br>`;
+                    document.getElementById('password-modal').classList.add('hidden');
+                } else {
+                    throw new Error(data.message || `HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error changing password:', error);
+                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error changing password: ${error.message}</span><br>`;
+            }
+        });
+
+        document.getElementById('exit-btn').addEventListener('click', async function(e) {
+            console.log('Initiating exit and logoff');
+            try {
+                const response = await fetch('./exit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Exit request failed:', response.status, errorText);
+                    document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error during exit: ${errorText}</span><br>`;
+                    return;
+                }
+                const data = await response.json();
+                console.log('Exit response:', data);
+                if (data.status === 'shutting down') {
+                    console.log('Server shutting down, forcing re-authentication');
+                    try {
+                        await fetch('./', {
+                            headers: {
+                                'Authorization': 'Basic invalid_credentials',
+                                'Cache-Control': 'no-cache'
+                            }
+                        });
+                    } catch (error) {
+                        console.log('Re-authentication triggered:', error);
+                        window.location.href = '/saturn/';
+                    }
+                }
+            } catch (error) {
+                console.error('Exit error:', error);
+                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error during exit: ${error.message}</span><br>`;
+            }
+        });
+
+        document.getElementById('show-versions').addEventListener('change', function() {
+            document.getElementById('versions-container').style.display = this.checked ? 'block' : 'none';
+        });
+
+        console.log('Loading initial scripts, versions, and themes');
+        loadScripts();
+        loadVersions();
+        loadThemes();
+    </script>
+</body>
+</html>
