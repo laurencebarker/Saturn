@@ -8,13 +8,14 @@
 import os
 import sys
 import argparse
-import time
 from pathlib import Path
 import shutil
 import subprocess
 import re
 import pwd
 from datetime import datetime
+import time  # Added to fix NameError in validate()
+
 from modules.logger import setup_logging
 from modules.os_detector import detect_os
 from modules.dependencies import install_system_deps
@@ -62,10 +63,25 @@ class SaturnInstaller:
         configure_apache(self.logger, self.htpasswd_file, self.apache_conf, self.port, self.user_home, self.args.dry_run)
         self.copy_files()
         verify_executables(self.logger, [self.repo_root / "modules", self.scripts_source], self.args.dry_run)
+        
+        # Kill any existing Gunicorn processes before setting up the service
+        self.kill_existing_gunicorn()
+        
         setup_systemd(self.logger, self.systemd_service, self.scripts_dir, self.venv_path, self.port, self.log_dir, self.args.dry_run)
         self.validate()
         ip = self.get_eth0_ip()
         self.logger.info(f"Installation complete. Access via curl -u admin:password123 http://{ip}/saturn/")
+
+    def kill_existing_gunicorn(self):
+        self.logger.info("Checking for existing Gunicorn processes...")
+        gunicorn_result = subprocess.run(["pgrep", "gunicorn"], capture_output=True, text=True, check=False)
+        if gunicorn_result.stdout.strip():
+            self.logger.info("Existing Gunicorn processes found. Killing them...")
+            if not self.args.dry_run:
+                subprocess.run(["pkill", "gunicorn"], check=True)
+            self.logger.info("Existing Gunicorn processes killed")
+        else:
+            self.logger.info("No existing Gunicorn processes found")
 
     def copy_files(self):
         self.logger.info("Copying customizable files (overwriting with backups for JSON)...")
