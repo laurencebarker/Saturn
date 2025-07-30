@@ -1,0 +1,34 @@
+[
+  {
+    "filename": "update-G2.py",
+    "name": "Update G2",
+    "description": "Updates Saturn G2",
+    "directory": "~/github/Saturn/update_manager/scripts",
+    "category": "Update Scripts",
+    "flags": ["--skip-git", "-y", "-n", "--dry-run", "--verbose"]
+  },
+  {
+    "filename": "update-pihpsdr.py",
+    "name": "Update piHPSDR",
+    "description": "Updates piHPSDR",
+    "directory": "~/github/Saturn/update_manager/scripts",
+    "category": "Update Scripts",
+    "flags": ["--skip-git", "-y", "-n", "--no-gpio", "--dry-run", "--verbose"]
+  },
+  {
+    "filename": "log_cleaner.sh",
+    "name": "Log Cleaner",
+    "description": "Searches for *.log files, reports space usage, and optionally deletes them",
+    "directory": "~/github/Saturn/update_manager/scripts",
+    "category": "Maintenance",
+    "flags": ["--delete-all", "--no-recursive", "--dry-run"]
+  },
+  {
+    "filename": "restore-backup.sh",
+    "name": "Restore Backup",
+    "description": "Restores from a previous Saturn or piHPSDR backup directory",
+    "directory": "~/github/Saturn/update_manager/scripts",
+    "category": "Maintenance",
+    "flags": ["--pihpsdr", "--saturn", "--latest", "--list", "--dry-run", "--verbose"]
+  }
+]
