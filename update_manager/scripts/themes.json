@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Default",
+    "description": "Standard light theme",
+    "styles": {
+      "--bg-color": "#f3f4f6",
+      "--text-color": "#333333",
+      "--primary-color": "#3b82f6",
+      "--secondary-color": "#10b981",
+      "--card-bg": "#ffffff"
+    }
+  },
+  {
+    "name": "Dark Mode",
+    "description": "Dark theme for low-light environments",
+    "styles": {
+      "--bg-color": "#1a1a1a",
+      "--text-color": "#ffffff",
+      "--primary-color": "#60a5fa",
+      "--secondary-color": "#34d399",
+      "--card-bg": "#333333"
+    }
+  },
+  {
+    "name": "High Contrast",
+    "description": "High contrast theme for accessibility",
+    "styles": {
+      "--bg-color": "#ffffff",
+      "--text-color": "#000000",
+      "--primary-color": "#0000ff",
+      "--secondary-color": "#008000",
+      "--card-bg": "#ffffff"
+    }
+  }
+]
