@@ -30,5 +30,13 @@
     "directory": "~/github/Saturn/update_manager/scripts",
     "category": "Maintenance",
     "flags": ["--pihpsdr", "--saturn", "--latest", "--list", "--dry-run", "--verbose"]
+  },
+  {
+    "filename": "monitor.html",
+    "name": "System Monitor",
+    "description": "Real-time system monitoring dashboard",
+    "directory": "~/.saturn/templates",
+    "category": "Monitoring",
+    "flags": []
   }
 ]

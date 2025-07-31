@@ -126,6 +126,17 @@ class SaturnInstaller:
         else:
             self.logger.warning(f"index.html not found in repository, skipping")
 
+        # monitor.html: overwrite
+        monitor_source = self.templates_source / "monitor.html"
+        monitor_dest = self.templates_dir / "monitor.html"
+        if monitor_source.exists():
+            shutil.copy(monitor_source, monitor_dest)
+            os.chown(monitor_dest, pwd.getpwnam("pi").pw_uid, pwd.getpwnam("pi").pw_gid)
+            os.chmod(monitor_dest, 0o644)
+            self.logger.info(f"monitor.html overwritten to {self.templates_dir / 'monitor.html'}")
+        else:
+            self.logger.warning(f"monitor.html not found in repository, skipping")
+
         # Set permissions on repo scripts (no copy)
         for file_name in ["saturn_update_manager.py", "log_cleaner.sh", "restore-backup.sh", "backup_update_manager.sh"]:
             file_path = self.scripts_dir / file_name
