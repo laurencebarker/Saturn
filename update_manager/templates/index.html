@@ -134,7 +134,7 @@
                     <button type="submit" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Run</button>
                     <button type="button" id="change-password-btn" class="btn-secondary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Change Password</button>
                     <button type="button" id="exit-btn" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Exit</button>
-                    <a href="./monitor" class="btn-secondary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Monitor</a>
+                    <button type="button" id="monitor-btn" class="btn-secondary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Monitor</button>
                     <label class="flex items-center space-x-2">
                         <input type="checkbox" id="show-versions" class="form-checkbox h-5 w-5 text-blue-600">
                         <span>Show Versions</span>
@@ -279,7 +279,7 @@
                                 option.textContent = script.name;
                                 option.title = script.description;
                                 optgroup.appendChild(option);
-                           });
+                            });
                             scriptSelect.appendChild(optgroup);
                         });
                     }
@@ -677,13 +677,18 @@
         });
 
         document.getElementById('show-versions').addEventListener('change', function() {
-            document.getElementById('versions-container').style.display = this.checked ? 'block' : 'none';
+            document.getElementById('versions').style.display = this.checked ? 'block' : 'none';
         });
 
         console.log('Loading initial scripts, versions, and themes');
         loadScripts();
         loadVersions();
         loadThemes();
+
+        // Add pop-up for monitor button
+        document.getElementById('monitor-btn').addEventListener('click', function() {
+            window.open('./monitor', 'SaturnMonitor', 'width=800,height=600,resizable=yes,scrollbars=yes,status=yes');
+        });
     </script>
 </body>
 </html>
