@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 # update-G2.py - G2 Update Script
 # Automates updating the Saturn G2
-# Version: 2.11
+# Version: 2.12
 # Written by: Jerry DeLong KD4YAL
-# Changes: Added PYTHONPYCACHEPREFIX to redirect __pycache__ outside repo/runtime (prevents cache in tree),
+# Changes: Excluded config.json and themes.json from staging (they are user configs, not scripts; prevents duplication),
+#          added PYTHONPYCACHEPREFIX to redirect __pycache__ outside repo/runtime (prevents cache in tree),
 #          changed runtime staging to ~/.saturn/runtime/scripts/ for consistency with existing user dir,
 #          added chmod for .py/.sh files after staging to make them executable (fixes runtime execution),
 #          added runtime staging to ~/saturn-runtime for isolation (Phase 1 of separation),
 #          added white output for build script processes with --verbose,
 #          added listing of all conflicting files when local changes detected,
 #          modified to automatically stash changes and show stash reference,
-#          updated version to 2.11
+#          updated version to 2.12
 # Dependencies: pyfiglet (version 1.0.3) installed in ~/venv
 # Usage: source ~/venv/bin/activate; python3 ~/github/Saturn/update_manager/scripts/update-G2.py; deactivate
 
@@ -45,7 +46,7 @@ class Colors:
 
 # Script metadata
 SCRIPT_NAME = "SATURN UPDATE"
-SCRIPT_VERSION = "2.11"
+SCRIPT_VERSION = "2.12"
 SATURN_DIR = os.path.expanduser("~/github/Saturn")
 LOG_DIR = os.path.expanduser("~/saturn-logs")
 LOG_FILE = os.path.join(LOG_DIR, f"saturn-update-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
