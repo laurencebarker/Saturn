@@ -30,5 +30,21 @@
     "directory": "~/github/Saturn/update_manager/scripts",
     "category": "Maintenance",
     "flags": ["--pihpsdr", "--saturn", "--latest", "--list", "--dry-run", "--verbose"]
+  },
+  {
+    "filename": "p2app_service.py",
+    "name": "P2app",
+    "description": "Stop, Start, check status of P2app",
+    "directory": "~/github/Saturn/update_manager/scripts",
+    "category": "System",
+    "flags": ["--start", "--stop", "--status"]
+  },
+  {
+    "filename": "saturn_update_manager_service.py",
+    "name": "Update_Manager",
+    "description": "Stop, Start, check status of saturn_update_manager",
+    "directory": "~/github/Saturn/update_manager/scripts",
+    "category": "System",
+    "flags": ["--start", "--stop", "--status"]
   }
 ]
