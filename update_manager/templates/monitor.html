@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saturn System Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heroicons@2.0.13/24/outline/esm/index.js"></script> <!-- For icons -->
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #e5e7eb;
+            --primary-color: #3b82f6;
+            --secondary-color: #10b981;
+            --card-bg: #2d2d2d;
+            --accent-color: #ff69b4;
+            --shadow-color: rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            position: relative; /* For absolute loader */
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px var(--shadow-color);
+        }
+
+        .btn {
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .table-row:hover {
+            background-color: #3d3d3d;
+            transition: background-color 0.2s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 250px; /* Fixed height */
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .table-wrapper {
+            max-height: 400px; /* Fixed max-height with scroll */
+            overflow-y: auto;
+        }
+
+        [data-tooltip] {
+            position: relative;
+        }
+
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        [data-tooltip]:hover::after {
+            opacity: 1;
+        }
+
+        @media (max-width: 1024px) {
+            .chart-container {
+                height: 220px;
+            }
+            .table-wrapper {
+                max-height: 350px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 200px;
+            }
+            .table-wrapper {
+                max-height: 300px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem;
+            }
+            .chart-container {
+                height: 180px;
+            }
+            .table-wrapper {
+                max-height: 250px;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-6">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl sm:text-4xl font-bold text-red-500 text-center mb-6 fade-in">Saturn System Monitor</h1>
+        <div class="flex flex-wrap justify-center space-x-4 mb-8 fade-in">
+            <a href="/saturn/" class="btn bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg shadow-md hover:bg-green-600 flex items-center mb-2 sm:mb-0" data-tooltip="Return to main dashboard">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Back to Update Manager
+            </a>
+            <button id="refresh-btn" class="btn bg-pink-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg shadow-md hover:bg-pink-600 flex items-center" data-tooltip="Manually refresh data">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Refresh
+            </button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card p-4 sm:p-6 fade-in">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-4">CPU Usage (Per Core)</h2>
+                <div class="chart-container">
+                    <canvas id="cpuChart"></canvas>
+                </div>
+                <p id="cpuInfo" class="text-sm text-gray-400 mt-2 text-center"></p>
+            </div>
+            <div class="card p-4 sm:p-6 fade-in">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-4">Memory Usage</h2>
+                <div class="chart-container">
+                    <canvas id="memoryChart"></canvas>
+                </div>
+                <p id="memoryInfo" class="text-sm text-gray-400 mt-2 text-center"></p>
+            </div>
+            <div class="card p-4 sm:p-6 fade-in">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-4">Disk Usage</h2>
+                <div class="chart-container">
+                    <canvas id="diskChart"></canvas>
+                </div>
+                <p id="diskInfo" class="text-sm text-gray-400 mt-2 text-center"></p>
+            </div>
+            <div class="card p-4 sm:p-6 fade-in">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-4">Network Traffic</h2>
+                <div class="chart-container">
+                    <canvas id="networkChart"></canvas>
+                </div>
+                <p id="networkInfo" class="text-sm text-gray-400 mt-2 text-center"></p>
+            </div>
+        </div>
+        <div class="card p-4 sm:p-6 fade-in">
+            <h2 class="text-xl sm:text-2xl font-semibold mb-4">Processes</h2>
+            <div class="table-wrapper">
+                <table class="min-w-full text-sm divide-y divide-gray-600">
+                    <thead class="bg-gray-700 sticky top-0">
+                        <tr>
+                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(0)">PID</th>
+                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(1)">User</th>
+                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(2)">CPU %</th>
+                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(3)">Memory %</th>
+                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(4)">Command</th>
+                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="processBody" class="divide-y divide-gray-600">
+                        <!-- Rows added by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cpuChart, memoryChart, diskChart, networkChart;
+        let cpuData = [];
+        let memoryData = [];
+        let diskData = [];
+        let sentData = [];
+        let recvData = [];
+        let labels = [];
+        let lastNet = { sent: 0, recv: 0 };
+        let lastTime = Date.now();
+        let sortCol = 2; // CPU
+        let sortDir = -1; // Desc
+
+        const shadowPlugin = {
+            id: 'shadowPlugin',
+            beforeDraw: (chart) => {
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+                chart.getDatasetMeta(0).dataset.draw(ctx); // Draw shadow for first dataset; adjust for multi
+                ctx.restore();
+            }
+        };
+
+        function initCharts(numCores) {
+            labels = Array(60).fill('');
+            cpuData = Array(numCores).fill().map(() => Array(60).fill(0));
+            memoryData = Array(60).fill(0);
+            diskData = Array(60).fill(0);
+            sentData = Array(60).fill(0);
+            recvData = Array(60).fill(0);
+
+            const coreColors = ['#00ff00', '#ff00ff', '#ffa500', '#800080']; // Green, Magenta, Orange, Purple
+
+            cpuChart = new Chart('cpuChart', {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: coreColors.slice(0, numCores).map((color, i) => ({
+                        label: `Core ${i}`,
+                        data: cpuData[i],
+                        borderColor: color,
+                        fill: true,
+                        backgroundColor: color.replace(')', ', 0.1)').replace('rgb', 'rgba'), // Low opacity fill for contrast
+                        tension: 0.3,
+                        pointRadius: 0
+                    }))
+                },
+                options: {
+                    scales: { y: { beginAtZero: true, max: 100, grid: { color: '#444' } } },
+                    plugins: { legend: { display: true, position: 'top' } },
+                    interaction: { mode: 'index', intersect: false },
+                    animation: false,
+                    responsive: true,
+                    maintainAspectRatio: false
+                },
+                plugins: [shadowPlugin]
+            });
+
+            memoryChart = new Chart('memoryChart', {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{ label: 'Memory Usage (%)', data: memoryData, borderColor: '#ff00ff', fill: true, backgroundColor: 'rgba(255,0,255,0.1)', tension: 0.3, pointRadius: 0 }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true, max: 100, grid: { color: '#444' } } },
+                    plugins: { legend: { display: true, position: 'top' } },
+                    interaction: { mode: 'index', intersect: false },
+                    animation: false,
+                    responsive: true,
+                    maintainAspectRatio: false
+                },
+                plugins: [shadowPlugin]
+            });
+
+            diskChart = new Chart('diskChart', {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{ label: 'Disk Usage (%)', data: diskData, borderColor: '#ffa500', fill: true, backgroundColor: 'rgba(255,165,0,0.1)', tension: 0.3, pointRadius: 0 }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true, max: 100, grid: { color: '#444' } } },
+                    plugins: { legend: { display: true, position: 'top' } },
+                    interaction: { mode: 'index', intersect: false },
+                    animation: false,
+                    responsive: true,
+                    maintainAspectRatio: false
+                },
+                plugins: [shadowPlugin]
+            });
+
+            networkChart = new Chart('networkChart', {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Sent (MB/s)', data: sentData, borderColor: '#ff0000', fill: true, backgroundColor: 'rgba(255,0,0,0.1)', tension: 0.3, pointRadius: 0 },
+                        { label: 'Received (MB/s)', data: recvData, borderColor: '#800080', fill: true, backgroundColor: 'rgba(128,0,128,0.1)', tension: 0.3, pointRadius: 0 }
+                    ]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true, grid: { color: '#444' } } },
+                    plugins: { legend: { display: true, position: 'top' } },
+                    interaction: { mode: 'index', intersect: false },
+                    animation: false,
+                    responsive: true,
+                    maintainAspectRatio: false
+                },
+                plugins: [shadowPlugin]
+            });
+        }
+
+        function updateCharts(data) {
+            const numCores = data.cpu.length;
+            if (!cpuChart) initCharts(numCores);
+
+            const currentTime = Date.now();
+            const deltaT = (currentTime - lastTime) / 1000 || 1;
+            lastTime = currentTime;
+
+            labels.shift();
+            labels.push(new Date().toLocaleTimeString('en-US', { hour12: false }));
+
+            for (let i = 0; i < numCores; i++) {
+                cpuData[i].shift();
+                cpuData[i].push(data.cpu[i]);
+                cpuChart.data.datasets[i].data = cpuData[i];
+            }
+            const totalCpu = data.cpu.reduce((sum, perc) => sum + perc, 0) / numCores;
+            document.getElementById('cpuInfo').textContent = `Cores: ${numCores}, Total Usage: ${totalCpu.toFixed(1)}%`;
+            cpuChart.data.labels = labels;
+            cpuChart.update('none');
+
+            memoryData.shift();
+            memoryData.push(data.memory.percent);
+            memoryChart.data.datasets[0].data = memoryData;
+            document.getElementById('memoryInfo').textContent = `Used: ${data.memory.used.toFixed(1)} GB / ${data.memory.total.toFixed(1)} GB`;
+            memoryChart.data.labels = labels;
+            memoryChart.update('none');
+
+            diskData.shift();
+            diskData.push(data.disk.percent);
+            diskChart.data.datasets[0].data = diskData;
+            document.getElementById('diskInfo').textContent = `Used: ${data.disk.used.toFixed(1)} GB / ${data.disk.total.toFixed(1)} GB`;
+            diskChart.data.labels = labels;
+            diskChart.update('none');
+
+            const sentRate = (data.network.sent - lastNet.sent) / deltaT / 1048576;
+            const recvRate = (data.network.recv - lastNet.recv) / deltaT / 1048576;
+            sentData.shift();
+            sentData.push(sentRate);
+            recvData.shift();
+            recvData.push(recvRate);
+            networkChart.data.datasets[0].data = sentData;
+            networkChart.data.datasets[1].data = recvData;
+            document.getElementById('networkInfo').textContent = `Sent: ${(data.network.sent / 1073741824).toFixed(1)} GB, Received: ${(data.network.recv / 1073741824).toFixed(1)} GB`;
+            networkChart.data.labels = labels;
+            networkChart.update('none');
+            lastNet = data.network;
+        }
+
+        function updateProcessTable(processes) {
+            processes.sort((a, b) => {
+                const keys = ['pid', 'user', 'cpu', 'memory', 'command'];
+                let valA = a[keys[sortCol]];
+                let valB = b[keys[sortCol]];
+                if (typeof valA === 'number') return sortDir * (valA - valB);
+                valA = valA.toLowerCase();
+                valB = valB.toLowerCase();
+                return sortDir * (valA > valB ? 1 : (valA < valB ? -1 : 0));
+            });
+            const tbody = document.getElementById('processBody');
+            tbody.innerHTML = '';
+            processes.forEach((proc, index) => {
+                const tr = document.createElement('tr');
+                tr.classList.add('table-row', index % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700');
+                tr.innerHTML = `
+                    <td class="px-3 sm:px-6 py-3">${proc.pid}</td>
+                    <td class="px-3 sm:px-6 py-3">${proc.user}</td>
+                    <td class="px-3 sm:px-6 py-3">${proc.cpu.toFixed(1)}</td>
+                    <td class="px-3 sm:px-6 py-3">${proc.memory.toFixed(1)}</td>
+                    <td class="px-3 sm:px-6 py-3 truncate max-w-[150px] sm:max-w-xs">${proc.command}</td>
+                    <td class="px-3 sm:px-6 py-3">
+                        <button class="btn bg-red-500 text-white px-3 py-1 sm:px-4 sm:py-1 rounded-lg shadow hover:bg-red-600 flex items-center" onclick="killProcess(${proc.pid})">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            Kill
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function sortTable(col) {
+            sortDir = (sortCol === col) ? -sortDir : -1;
+            sortCol = col;
+            fetchMetrics();
+        }
+
+        async function killProcess(pid) {
+            if (confirm(`Are you sure you want to kill process ${pid}? This action cannot be undone.`)) {
+                try {
+                    const res = await fetch(`./kill_process/${pid}`, { method: 'POST' });
+                    if (!res.ok) throw new Error(`Error: ${res.status}`);
+                    const result = await res.json();
+                    alert(result.message);
+                    fetchMetrics();
+                } catch (err) {
+                    alert(`Failed to kill process: ${err.message}`);
+                }
+            }
+        }
+
+        async function fetchMetrics() {
+            try {
+                const res = await fetch('./get_system_data');
+                if (!res.ok) throw new Error(`Network response was not ok: ${res.status}`);
+                const data = await res.json();
+                updateCharts(data);
+                updateProcessTable(data.processes);
+            } catch (err) {
+                console.error('Error fetching metrics:', err);
+                document.getElementById('processBody').innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Error loading data: ${err.message}. Please try refreshing.</td></tr>`;
+            }
+        }
+
+        document.getElementById('refresh-btn').addEventListener('click', fetchMetrics);
+        setInterval(fetchMetrics, 5000); // Increased to 5 seconds to reduce blink frequency
+        fetchMetrics();
+    </script>
+</body>
+</html>

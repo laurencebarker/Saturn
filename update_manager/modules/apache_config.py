@@ -6,7 +6,7 @@ import textwrap
 from pathlib import Path
 import ipaddress
 
-def configure_apache(logger, htpasswd_file, apache_conf, port, user_home, dry_run):
+def configure_apache(logger, htpasswd_file, apache_conf, port, user_home, dry_run, username='admin', password='password123'):
     if dry_run:
         logger.info("[Dry Run] Skipping Apache configuration")
         return
@@ -21,12 +21,10 @@ def configure_apache(logger, htpasswd_file, apache_conf, port, user_home, dry_ru
             subnet = str(network)
             break
     logger.info(f"Using subnet: {subnet}")
-    user = "admin"
-    passwd = "password123"
     if htpasswd_file.exists():
         htpasswd_file.unlink()
     logger.info("Creating .htpasswd...")
-    subprocess.run(["htpasswd", "-cb", str(htpasswd_file), user, passwd], check=True)
+    subprocess.run(["htpasswd", "-cb", str(htpasswd_file), username, password], check=True)
     os.chmod(htpasswd_file, 0o640)
     subprocess.run(["chown", "root:www-data", str(htpasswd_file)], check=True)
     conf_content = textwrap.dedent(f"""
@@ -79,3 +77,41 @@ def configure_apache(logger, htpasswd_file, apache_conf, port, user_home, dry_ru
         logger.error(f"Apache config test output: {result.stdout}\n{result.stderr}")
     subprocess.run(["systemctl", "restart", "apache2"], check=True)
     logger.info("Apache configured")
+
+def configure_monitor_vhost(logger, htpasswd_file, monitor_conf, monitor_dir, monitor_html_source, dry_run, username, password, port, ip):
+    if dry_run:
+        logger.info("[Dry Run] Skipping monitor vhost configuration")
+        return
+    monitor_dir.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["chown", "root:www-data", str(monitor_dir)], check=True)
+    os.chmod(monitor_dir, 0o755)
+    monitor_dest = monitor_dir / "monitor.html"
+    shutil.copy(monitor_html_source, monitor_dest)
+    os.chmod(monitor_dest, 0o644)
+    logger.info(f"Copied monitor.html to {monitor_dest}")
+    conf_content = textwrap.dedent(f"""
+    <VirtualHost *:80>
+        ServerName monitor.local
+        ServerAlias {ip}
+        DocumentRoot {monitor_dir}
+
+        <Directory {monitor_dir}>
+            Options Indexes FollowSymLinks
+            AllowOverride None
+            Require all granted
+        </Directory>
+
+        ProxyPass /monitor http://127.0.0.1:{port}/monitor
+        ProxyPassReverse /monitor http://127.0.0.1:{port}/monitor
+        ProxyPass /kill_process http://127.0.0.1:{port}/kill_process
+        ProxyPassReverse /kill_process http://127.0.0.1:{port}/kill_process
+
+        ErrorLog ${{APACHE_LOG_DIR}}/monitor_error.log
+        CustomLog ${{APACHE_LOG_DIR}}/monitor_access.log combined
+    </VirtualHost>
+    """)
+    with open(monitor_conf, "w") as f:
+        f.write(conf_content)
+    subprocess.run(["a2ensite", "monitor"], check=True)
+    subprocess.run(["systemctl", "reload", "apache2"], check=True)
+    logger.info("Monitor vhost configured")

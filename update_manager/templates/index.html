@@ -5,24 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Saturn Update Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root {
-            --bg-color: #f3f4f6;
-            --text-color: #333333;
-            --primary-color: #3b82f6;
-            --secondary-color: #10b981;
-            --card-bg: #ffffff;
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#10b981',
+                    }
+                }
+            }
         }
+    </script>
+    <style>
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color, #f3f4f6);
+            color: var(--text-color, #333333);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .card {
+            background-color: var(--card-bg, #ffffff);
         }
         .btn-primary {
-            background-color: var(--primary-color);
+            background-color: var(--primary-color, #3b82f6);
         }
         .btn-secondary {
-            background-color: var(--secondary-color);
+            background-color: var(--secondary-color, #10b981);
         }
         pre {
             white-space: pre-wrap;
@@ -98,7 +106,7 @@
     <div class="container mx-auto p-4 sm:p-6">
         <h1 class="text-3xl font-bold text-red-600 text-center mb-2">Saturn Update Manager</h1>
 
-        <div id="versions-container" class="rounded-lg shadow-md p-4 mb-4" style="display: none; background-color: var(--card-bg);">
+        <div id="versions" class="rounded-lg shadow-md p-4 mb-4" style="display: none; background-color: var(--card-bg);">
             <h2 class="text-xl font-semibold text-gray-700 mb-2">Script Versions</h2>
             <ul id="version-list" class="list-disc pl-5 text-gray-600"></ul>
         </div>
@@ -126,6 +134,7 @@
                     <button type="submit" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Run</button>
                     <button type="button" id="change-password-btn" class="btn-secondary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Change Password</button>
                     <button type="button" id="exit-btn" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Exit</button>
+                    <button type="button" id="monitor-btn" class="btn-secondary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Monitor</button>
                     <label class="flex items-center space-x-2">
                         <input type="checkbox" id="show-versions" class="form-checkbox h-5 w-5 text-blue-600">
                         <span>Show Versions</span>
@@ -183,6 +192,11 @@
     </div>
 
     <script>
+        let selectedScript = '';
+        let selectedFlags = [];
+        let selectedBackup = '';
+        let stream;
+
         function showLoader(show) {
             document.getElementById('loader').classList.toggle('hidden', !show);
         }
@@ -521,7 +535,7 @@
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
                             const data = line.substring(6);
-                            console.log(`Received data: ${data}`);
+                            console.log(`Received data: {data}`);
                             if (data === 'BACKUP_PROMPT') {
                                 console.log('Received BACKUP_PROMPT');
                                 document.getElementById('backup-modal').classList.remove('hidden');
@@ -539,7 +553,7 @@
                         }
                     }
                 }
-            } catch(error) {
+            } catch (error) {
                 console.error('Run error:', error);
                 document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error: ${error.message}</span><br>`;
                 progress.classList.add('hidden');
@@ -663,13 +677,18 @@
         });
 
         document.getElementById('show-versions').addEventListener('change', function() {
-            document.getElementById('versions-container').style.display = this.checked ? 'block' : 'none';
+            document.getElementById('versions').style.display = this.checked ? 'block' : 'none';
         });
 
         console.log('Loading initial scripts, versions, and themes');
         loadScripts();
         loadVersions();
         loadThemes();
+
+        // Add pop-up for monitor button
+        document.getElementById('monitor-btn').addEventListener('click', function() {
+            window.open('./monitor', 'SaturnMonitor', 'width=800,height=600,resizable=yes,scrollbars=yes,status=yes');
+        });
     </script>
 </body>
 </html>

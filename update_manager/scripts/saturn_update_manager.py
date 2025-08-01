@@ -24,6 +24,8 @@ import urllib.error
 import json
 from flask import Flask, render_template, request, Response, jsonify
 from ansi2html import Ansi2HTMLConverter
+import psutil  # Added for monitoring
+import signal  # For kill
 
 # Initialize logging
 log_dir = Path.home() / "saturn-logs"
@@ -88,26 +90,31 @@ class SaturnUpdateManager:
                 directory = os.path.expanduser(entry.get("directory", ""))
                 filename = entry.get("filename", "")
                 path = os.path.join(directory, filename)
-                if os.path.isfile(path) and os.access(path, os.X_OK):
-                    if any(path.startswith(d) for d in trusted_dirs):
-                        entry["category"] = entry.get("category", "Uncategorized")
-                        self.config.append(entry)
-                        # Extract version if present
-                        with open(path, 'r') as script_file:
-                            for line in script_file:
-                                if line.startswith("# Version:"):
-                                    self.versions[filename] = line.split(":", 1)[-1].strip()
-                                    break
+                if os.path.isfile(path):
+                    if filename.endswith('.html') or os.access(path, os.X_OK):  # Allow .html without exec check
+                        if any(path.startswith(d) for d in trusted_dirs):
+                            entry["category"] = entry.get("category", "Uncategorized")
+                            entry["type"] = "view" if filename.endswith('.html') else "script"  # Add type for JS handling
+                            self.config.append(entry)
+                            # Extract version if present (for scripts)
+                            if not filename.endswith('.html'):
+                                with open(path, 'r') as script_file:
+                                    for line in script_file:
+                                        if line.startswith("# Version:"):
+                                            self.versions[filename] = line.split(":", 1)[-1].strip()
+                                            break
+                        else:
+                            self.script_warnings.append(f"Skipped {filename}: outside trusted directories")
                     else:
-                        self.script_warnings.append(f"Skipped {filename}: outside trusted directories")
+                        self.script_warnings.append(f"Skipped {filename}: not executable (for non-HTML)")
                 else:
-                    self.script_warnings.append(f"Skipped {filename}: missing or not executable")
+                    self.script_warnings.append(f"Skipped {filename}: not a file")
             for script in self.config:
                 cat = script["category"]
                 if cat not in self.grouped_scripts:
                     self.grouped_scripts[cat] = []
                 self.grouped_scripts[cat].append(script)
-            logging.info(f"Loaded {len(self.config)} valid scripts from config")
+            logging.info(f"Loaded {len(self.config)} valid items from config")
         except (json.JSONDecodeError, ValueError) as e:
             logging.error(f"Config error: {str(e)}")
             self.script_warnings.append(f"Invalid config.json: {str(e)} - using empty config")
@@ -442,6 +449,63 @@ Categories=System;Utility;
         logging.info(f"Returning versions: {versions}")
         return versions
 
+    def get_system_data(self):
+        try:
+            cpu = psutil.cpu_percent(percpu=True)
+            mem = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            net = psutil.net_io_counters()
+            processes = []
+            for proc in psutil.process_iter(['pid', 'username', 'cpu_percent', 'memory_percent', 'cmdline']):
+                try:
+                    cmd = ' '.join(proc.info['cmdline']) or '[no command]'
+                    processes.append({
+                        'pid': proc.info['pid'],
+                        'user': proc.info['username'],
+                        'cpu': proc.info['cpu_percent'],
+                        'memory': proc.info['memory_percent'],
+                        'command': cmd
+                    })
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass
+            processes = sorted(processes, key=lambda p: p['cpu'], reverse=True)[:50]
+            return {
+                'cpu': cpu,
+                'memory': {
+                    'used': round(mem.used / (1024 ** 3), 2),  # GB
+                    'total': round(mem.total / (1024 ** 3), 2),  # GB
+                    'percent': mem.percent
+                },
+                'disk': {
+                    'used': round(disk.used / (1024 ** 3), 2),  # GB
+                    'total': round(disk.total / (1024 ** 3), 2),  # GB
+                    'percent': disk.percent
+                },
+                'network': {
+                    'sent': net.bytes_sent,
+                    'recv': net.bytes_recv
+                },
+                'processes': processes
+            }
+        except Exception as e:
+            logging.error(f"Error fetching system data: {str(e)}")
+            return {'error': str(e)}
+
+    def kill_process(self, pid):
+        try:
+            p = psutil.Process(pid)
+            p.terminate()
+            p.wait(timeout=3)
+            return {'status': 'success', 'message': f'Process {pid} terminated'}
+        except psutil.TimeoutExpired:
+            p.kill()
+            return {'status': 'success', 'message': f'Process {pid} killed'}
+        except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+            return {'status': 'error', 'message': str(e)}
+        except Exception as e:
+            logging.error(f"Error killing process {pid}: {str(e)}")
+            return {'status': 'error', 'message': str(e)}
+
 @app.route('/ping')
 def ping():
     logging.debug(f"Ping request received, client: {request.remote_addr}, headers: {request.headers}")
@@ -563,7 +627,7 @@ def run():
             error_msg = f"Error: {str(e)}\n"
             if isinstance(e, urllib.error.URLError):
                 error_msg = f"Error: Network failure: {str(e)}. Please check your internet connection and try again.\n"
-            converted_error = self.converter.convert(error_msg, full=False)
+            converted_error = app.saturn.converter.convert(error_msg, full=False)
             yield f"data: {converted_error}\n\n"
             sys.stdout.flush()
 
@@ -632,6 +696,28 @@ def exit_app():
             sys.exit(1)
     threading.Thread(target=shutdown, daemon=True).start()
     return response, 401
+
+@app.route('/monitor')
+def monitor():
+    logging.debug(f"Serving monitor page, client: {request.remote_addr}, headers: {request.headers}")
+    try:
+        return render_template('monitor.html')
+    except Exception as e:
+        logging.error(f"Error rendering monitor.html: {str(e)}")
+        return f"Error rendering monitor.html: {str(e)}", 500
+
+@app.route('/get_system_data', methods=['GET'])
+def get_system_data_route():
+    data = app.saturn.get_system_data()
+    if 'error' in data:
+        return jsonify(data), 500
+    return jsonify(data)
+
+@app.route('/kill_process/<int:pid>', methods=['POST'])
+def kill_process_route(pid):
+    result = app.saturn.kill_process(pid)
+    status = 200 if result['status'] == 'success' else 400
+    return jsonify(result), status
 
 try:
     logging.debug("Creating SaturnUpdateManager instance")
