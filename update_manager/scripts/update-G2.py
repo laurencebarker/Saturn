@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 # update-G2.py - G2 Update Script
 # Automates updating the Saturn G2
-# Version: 2.7
+# Version: 2.10
 # Written by: Jerry DeLong KD4YAL
-# Changes: Added white output for build script processes with --verbose,
+# Changes: Changed runtime staging to ~/.saturn/runtime/scripts/ for consistency with existing user dir,
+#          added chmod for .py/.sh files after staging to make them executable (fixes runtime execution),
+#          added runtime staging to ~/saturn-runtime for isolation (Phase 1 of separation),
+#          added white output for build script processes with --verbose,
 #          added listing of all conflicting files when local changes detected,
 #          modified to automatically stash changes and show stash reference,
-#          updated version to 2.7
+#          updated version to 2.10
 # Dependencies: pyfiglet (version 1.0.3) installed in ~/venv
-# Usage: source ~/venv/bin/activate; python3 ~/github/Saturn/scripts/update-G2.py; deactivate
+# Usage: source ~/venv/bin/activate; python3 ~/github/Saturn/update_manager/scripts/update-G2.py; deactivate
 
 import os
 import sys
@@ -37,7 +40,7 @@ class Colors:
 
 # Script metadata
 SCRIPT_NAME = "SATURN UPDATE"
-SCRIPT_VERSION = "2.7"
+SCRIPT_VERSION = "2.10"
 SATURN_DIR = os.path.expanduser("~/github/Saturn")
 LOG_DIR = os.path.expanduser("~/saturn-logs")
 LOG_FILE = os.path.join(LOG_DIR, f"saturn-update-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
@@ -156,7 +159,7 @@ def init_logging():
         g2_saturn_ascii = "G2 Saturn\n"
     banner = f"""
 {Colors.RED}{g2_saturn_ascii.rstrip()}{Colors.END}
-{Colors.BLUE}{'Update Manager v2.7'.center(cols-2)}{Colors.END}\n\n"""
+{Colors.BLUE}{'Update Manager v2.10'.center(cols-2)}{Colors.END}\n\n"""
     logging.debug(f"Banner raw output: {repr(banner)}")
     print(banner)
     print_info(f"Started: {datetime.now()}")
@@ -321,6 +324,24 @@ def update_git():
         print_error(f"Git update failed: {e.stderr.strip()}")
     except Exception as e:
         print_error(f"Unexpected Git error: {str(e)}")
+
+# NEW: Stage runtime copy (Phase 1 addition)
+def stage_runtime():
+    runtime_dir = os.path.expanduser("~/.saturn/runtime/scripts")
+    if not os.path.exists(runtime_dir):
+        os.makedirs(runtime_dir)
+    source_scripts = os.path.join(SATURN_DIR, "update_manager/scripts")
+    print_info("Staging runtime scripts...")
+    if not args.dry_run:
+        # Rsync excludes .git and __pycache__ to keep clean
+        subprocess.run(["rsync", "-a", "--delete", "--exclude=.git", "--exclude=__pycache__", f"{source_scripts}/", runtime_dir], check=True)
+        # Make .py and .sh files executable in runtime
+        for file in glob.glob(os.path.join(runtime_dir, "*.py")) + glob.glob(os.path.join(runtime_dir, "*.sh")):
+            os.chmod(file, 0o755)
+            print_info(f"Made executable: {os.path.basename(file)}")
+    else:
+        print_info("[Dry Run] Skipping actual rsync and chmod")
+    print_success("Runtime scripts staged at ~/.saturn/runtime/scripts")
 
 # Create backup
 def create_backup():
@@ -704,6 +725,8 @@ def main():
         BACKUP_CREATED = True
 
     update_git()
+    stage_runtime()  # Phase 1: Staging call added here
+
     install_libraries()
     build_p2app()
     build_desktop_apps()
