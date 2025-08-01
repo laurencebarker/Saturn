@@ -40,11 +40,11 @@
     "flags": ["--start", "--stop", "--status"]
   },
   {
-    "filename": "saturn_update_manager_service.py",
+    "filename": "",
     "name": "Update_Manager",
     "description": "Stop, Start, check status of saturn_update_manager",
     "directory": "~/.saturn/runtime/scripts/",
     "category": "System",
-    "flags": ["--start", "--stop", "--status"]
+    "flags": ["--restart", "--status"]
   }
 ]
