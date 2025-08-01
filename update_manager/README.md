@@ -11,6 +11,7 @@ The **Saturn Update Manager** is a web-based application designed to manage and 
 - **Authentication**: Secured with Apache's basic auth (`admin:password123` by default).
 - **Logging**: Detailed logs for installation, script execution, and errors in `~/saturn-logs/`.
 - **Modular Design**: Separates concerns into Python modules for installation, logging, and service setup.
+- **Runtime Isolation**: Scripts are staged to `~/.saturn/runtime/scripts/` for execution, preventing modifications to the source repository and keeping Git clean (introduced in version 3.02).
 
 ## End-to-End System Workflow
 
@@ -25,9 +26,18 @@ sudo python3 ~/github/Saturn/update_manager/install_update_manager.py
 - **System Dependencies**: Installs required Debian packages (e.g., `python3`, `apache2`, `libapache2-mod-proxy-uwsgi`) via `dependencies.py`.
 - **Virtual Environment**: Creates a Python virtual environment (`~/venv/`) and installs Python packages (`flask`, `ansi2html==1.9.2`, `psutil==7.0.0`, `pyfiglet`, `gunicorn`, `gevent`) via `venv_setup.py`.
 - **Apache Configuration**: Sets up a virtual host (`/etc/apache2/sites-available/saturn.conf`) with proxy to Gunicorn (`127.0.0.1:5000`) and basic auth (`/etc/apache2/.htpasswd`) via `apache_config.py`.
-- **File Copying**: Copies configuration files (`config.json`, `themes.json`), templates (`index.html`), and the desktop shortcut (`SaturnUpdateManager.desktop`) to `~/.saturn/` and `~/Desktop/`, overwriting existing files and backing up JSON files with timestamps (e.g., `20250728-193511-config.json`) via `copy_files()` in `install_update_manager.py`.
+- **File Copying**: Copies configuration files (`config.json`, `themes.json`), templates (`index.html`), and the desktop shortcut (`SaturnUpdateManager.desktop`) to `~/.saturn/` and `~/Desktop/`, overwriting existing files and backing up JSON files with timestamps (e.g., `20250801-102845-config.json`) via `copy_files()` in `install_update_manager.py`.
 - **Systemd Service**: Sets up a systemd service (`saturn-update-manager.service`) to run the Flask app with Gunicorn via `service_setup.py`.
 - **Validation**: Checks Apache status, Gunicorn processes, and tests the endpoint (`http://localhost/saturn/`) with curl.
+
+#### Runtime Staging
+After installation, run `update-G2.py` to stage scripts to the runtime directory (`~/.saturn/runtime/scripts/`):
+```bash
+source ~/venv/bin/activate
+python3 ~/github/Saturn/update_manager/scripts/update-G2.py --verbose
+deactivate
+```
+- This copies `update_manager/scripts/` to `~/.saturn/runtime/scripts/`, makes .py/.sh files executable, and ensures isolation from the source repo.
 
 #### Output
 - Logs are written to `~/saturn-logs/setup_saturn_webserver-<timestamp>.log`.
@@ -37,8 +47,8 @@ sudo python3 ~/github/Saturn/update_manager/install_update_manager.py
 The webapp is served by `saturn_update_manager.py` running under Gunicorn, proxied by Apache.
 
 #### Components
-- **Flask App**: Defined in `saturn_update_manager.py`, it handles routes (`/`, `/get_scripts`, `/run`, etc.) and serves `index.html` from `~/.saturn/templates/`.
-- **Gunicorn**: Runs the Flask app with 5 gevent workers on `0.0.0.0:5000`.
+- **Flask App**: Defined in `saturn_update_manager.py`, it handles routes (`/`, `/get_scripts`, etc.) and serves `index.html` from `~/.saturn/templates/`.
+- **Gunicorn**: Runs the Flask app with 5 gevent workers on `0.0.0.0:5000` from the runtime dir (`~/.saturn/runtime/scripts/`).
 - **Apache Proxy**: Forwards requests from `/saturn/` to Gunicorn, enforcing basic auth and IP restrictions (local subnet, 127.0.0.1, ::1).
 - **index.html**: Provides the UI with JavaScript to fetch scripts, themes, and execute scripts via AJAX (fetch to `./get_scripts`, `./run`, etc.).
 - **config.json**: Lists scripts with metadata (filename, name, description, directory, category, flags).
@@ -46,7 +56,7 @@ The webapp is served by `saturn_update_manager.py` running under Gunicorn, proxi
 
 #### Workflow
 1. **Startup**:
-   - Gunicorn starts `saturn_update_manager.py` as `pi` user.
+   - Gunicorn starts `saturn_update_manager.py` as `pi` user from the runtime dir.
    - The `SaturnUpdateManager` class initializes, loading `config.json` and `themes.json` from `~/.saturn/`.
    - It validates the virtual environment (`~/venv/`) and required packages (e.g., `flask`, `ansi2html==1.9.2`).
 
@@ -76,7 +86,7 @@ The webapp is served by `saturn_update_manager.py` running under Gunicorn, proxi
    - Apache logs to `/var/log/apache2/saturn_access.log` and `saturn_error.log`.
 
 ### Current Directory Structure
-Below is the directory structure as of your latest interactions:
+Below is the directory structure.
 
 ```
 ~/github/Saturn/
@@ -93,12 +103,12 @@ Below is the directory structure as of your latest interactions:
 │   │   ├── __pycache__/           # Python cache files
 │   ├── README.md                  # Project documentation
 │   ├── scripts/
-│   │   ├── saturn_update_manager.py  # Flask webapp (version 3.00)
+│   │   ├── saturn_update_manager.py  # Flask webapp (version 3.02)
 │   │   ├── log_cleaner.sh         # Maintenance script (version 3.00)
 │   │   ├── restore-backup.sh      # Restore script (version 3.00)
 │   │   ├── config.json            # Default script configurations
 │   │   ├── themes.json            # Default theme configurations
-│   │   ├── update-G2.py           # Update script for Saturn G2
+│   │   ├── update-G2.py           # Update script for Saturn G2 (version 2.10)
 │   │   ├── update-pihpsdr.py      # Update script for piHPSDR
 │   │   ├── SaturnUpdateManager.desktop  # Desktop shortcut
 │   ├── templates/
@@ -109,8 +119,18 @@ Below is the directory structure as of your latest interactions:
 │   ├── themes.json                # Active theme configurations
 │   ├── templates/
 │   │   ├── index.html               # Active webapp UI template
-│   ├── 20250728-193511-config.json  # Backup of config.json
-│   ├── 20250728-193511-themes.json  # Backup of themes.json
+│   ├── runtime/
+│   │   ├── scripts/                 # Staged executable scripts
+│   │       ├── saturn_update_manager.py
+│   │       ├── log_cleaner.sh
+│   │       ├── restore-backup.sh
+│   │       ├── config.json
+│   │       ├── themes.json
+│   │       ├── update-G2.py
+│   │       ├── update-pihpsdr.py
+│   │       ├── SaturnUpdateManager.desktop
+│   ├── 20250801-102845-config.json  # Backup of config.json
+│   ├── 20250801-102845-themes.json  # Backup of themes.json
 ~/saturn-logs/
 │   ├── setup_saturn_webserver-<timestamp>.log       # Installer logs
 │   ├── saturn-update-manager-<timestamp>.log        # Gunicorn stdout logs
@@ -156,7 +176,7 @@ The system is designed with modularity to separate concerns, making it easier to
    - **Purpose**: Orchestrates the installation process.
    - **Components**:
      - `run()`: Main installation flow (OS detection, dependencies, venv, Apache, files, systemd, validation).
-     - `copy_files()`: Copies/overwrites config files and templates, backs up JSON files.
+     - `copy_files()`: Copies/overwrites config files and templates, backs up JSON files with timestamps.
      - `get_eth0_ip()`: Detects local IP for access instructions.
      - `validate()`: Checks Apache, Gunicorn, and endpoint status.
    - **Dependencies**: Imports modules for specific tasks.
@@ -170,17 +190,18 @@ The system is designed with modularity to separate concerns, making it easier to
    - **`venv_setup.py`**: Manages virtual environment creation and package installation.
    - **`__init__.py`**: Makes `modules/` a Python package.
 
-3. **saturn_update_manager.py**:
-   - **Purpose**: Runs the Flask webapp.
+3. **saturn_update_manager.py** (version 3.02):
+   - **Purpose**: Runs the Flask webapp from runtime dir.
    - **Components**:
      - `SaturnUpdateManager` class: Manages script execution, config/themes loading, and validation.
-     - Routes: `/` (serves `index.html`), `/get_scripts`, `/get_themes`, `/run`, etc.
+     - Routes: `/` (serves `index.html`), `/get_scripts`, `/run`, etc.
      - `run_script()`: Executes scripts, streams output with `ansi2html` formatting.
      - `get_backups()`: Lists backup directories.
    - **Dependencies**: `flask`, `ansi2html`, `subprocess`, etc.
 
-4. **Scripts** (in `~/github/Saturn/update_manager/scripts/`):
-   - `update-G2.py`, `update-pihpsdr.py`: Python scripts for updating specific software.
+4. **Scripts** (in `~/github/Saturn/update_manager/scripts/` and staged to `~/.saturn/runtime/scripts/`):
+   - `update-G2.py` (version 2.10): Python script for updating Saturn G2 and staging runtime.
+   - `update-pihpsdr.py`: Python script for updating piHPSDR.
    - `log_cleaner.sh`: Shell script to manage log files.
    - `restore-backup.sh`: Shell script to restore from backups.
    - `config.json`, `themes.json`: Configuration files (copied to `~/.saturn/`).
@@ -190,7 +211,7 @@ The system is designed with modularity to separate concerns, making it easier to
    - `SaturnUpdateManager.desktop`: Desktop shortcut for browser access.
 
 ### Adding a Custom Script
-To add a custom script to the Saturn Update Manager, it must be executable, located in a trusted directory (e.g., `~/github/` or `~`), and listed in `config.json`.
+To add a custom script to the Saturn Update Manager, it must be executable, located in a trusted directory (e.g., `~/github/` or `~/.saturn/runtime/`), and listed in `config.json`.
 
 #### Steps
 1. **Create or Place the Script**:
@@ -214,21 +235,22 @@ To add a custom script to the Saturn Update Manager, it must be executable, loca
          "filename": "my-custom-script.py",
          "name": "Custom Script",
          "description": "Runs a custom update or task",
-         "directory": "~/github/Saturn/update_manager/scripts",
+         "directory": "~/.saturn/runtime/scripts",  # Use runtime dir
          "category": "Custom",
          "flags": ["--verbose", "--dry-run"]
        },
        ...
      ]
      ```
-   - Ensure the `directory` is correct and in a trusted path (`~/github/` or `~`).
+   - Ensure the `directory` is correct and in `trusted_dirs` (updated to include `~/.saturn/runtime`).
 
-3. **Re-run Installer (Optional)**:
-   - If you edited the source `config.json`, re-run:
-     ```bash
-     sudo python3 ~/github/Saturn/update_manager/install_update_manager.py
-     ```
-     This backs up the existing `~/.saturn/config.json` and overwrites it.
+3. **Re-run Staging (via update-G2.py)**:
+   ```bash
+   source ~/venv/bin/activate
+   python3 ~/github/Saturn/update_manager/scripts/update-G2.py
+   deactivate
+   ```
+   - This copies the new script to `~/.saturn/runtime/scripts/` and makes it executable.
 
 4. **Restart the Service**:
    ```bash
@@ -243,7 +265,6 @@ To add a custom script to the Saturn Update Manager, it must be executable, loca
 #### Notes
 - Scripts must be executable (`chmod +x`) and have a shebang (e.g., `#!/usr/bin/env python3` or `#!/bin/bash`).
 - The `directory` must be in `trusted_dirs` (defined in `saturn_update_manager.py`).
-- Flags should match the script’s supported options.
 
 ### Troubleshooting
 Here are common issues and steps to diagnose/fix them:
@@ -264,18 +285,19 @@ Here are common issues and steps to diagnose/fix them:
 - **Symptoms**: Script dropdown is empty or shows "Error: No scripts available".
 - **Check**:
   - Gunicorn logs: `cat ~/saturn-logs/saturn-update-manager-*.log`
-    - Look for `Loaded X valid scripts` or `Config error`.
+    - Look for `Loaded X valid items from config` or `Config error`.
   - Validate `~/.saturn/config.json`:
     ```bash
     cat ~/.saturn/config.json
     python3 -m json.tool ~/.saturn/config.json
     ```
-  - Check script permissions: `ls -l ~/github/Saturn/update_manager/scripts/`
+  - Check script permissions: `ls -l ~/.saturn/runtime/scripts/`
     - Scripts must be executable (`-rwxr-xr-x`).
 - **Fix**:
   - Remove comments from `config.json` (e.g., `//`).
-  - Ensure `directory` paths are correct and in `trusted_dirs`.
-  - Re-run installer or restart service: `sudo systemctl restart saturn-update-manager`.
+  - Ensure `directory` paths are correct and in `trusted_dirs` (e.g., `~/.saturn/runtime/scripts/`).
+  - Re-run staging: `python3 ~/github/Saturn/update_manager/scripts/update-G2.py`
+  - Restart service: `sudo systemctl restart saturn-update-manager`.
 
 #### 3. Literal `\n` in Output
 - **Symptoms**: Output shows `\n` (e.g., `No *.log files found in /home/pi.\nCompleted...`).
@@ -286,7 +308,7 @@ Here are common issues and steps to diagnose/fix them:
     ```
   - Check `saturn_update_manager.py` for correct output handling:
     ```bash
-    grep "join.*br" ~/github/Saturn/update_manager/scripts/saturn_update_manager.py
+    grep "join.*br" ~/.saturn/runtime/scripts/saturn_update_manager.py
     ```
 - **Fix**:
   - Update `index.html` to use `output.innerHTML += data + '<br>'`.
@@ -307,25 +329,29 @@ Here are common issues and steps to diagnose/fix them:
     sudo systemctl restart apache2
     ```
 
-#### 5. Gunicorn Service Failing
-- **Symptoms**: `sudo systemctl status saturn-update-manager` shows `Failed with result 'exit-code'`.
+#### 5. Gunicorn Service Failing or "chdir" Error
+- **Symptoms**: `sudo systemctl status saturn-update-manager` shows `Failed with result 'exit-code'`, or Gunicorn errors like "can't chdir to '/home/pi/.saturn/runtime/scripts'".
 - **Check**:
   - Logs: `cat ~/saturn-logs/saturn-update-manager-error-*.log`
   - Journal: `sudo journalctl -u saturn-update-manager -e`
+  - Runtime dir: `ls -l ~/.saturn/runtime/scripts/`
   - Test manually:
     ```bash
     . ~/venv/bin/activate
-    python3 ~/github/Saturn/update_manager/scripts/saturn_update_manager.py
+    python3 ~/.saturn/runtime/scripts/saturn_update_manager.py
     ```
 - **Fix**:
   - Check for import errors or missing dependencies.
   - Ensure `~/venv/` is owned by `pi`: `sudo chown -R pi:pi ~/venv`
-  - Verify `saturn_update_manager.py` syntax: `python3 -m py_compile ~/github/Saturn/update_manager/scripts/saturn_update_manager.py`
+  - Verify `saturn_update_manager.py` syntax: `python3 -m py_compile ~/.saturn/runtime/scripts/saturn_update_manager.py`
+  - Re-run staging if dir missing: `python3 ~/github/Saturn/update_manager/scripts/update-G2.py`
+  - Permissions: `chmod -R 755 ~/.saturn/runtime/scripts/`
+  - Restart: `sudo systemctl restart saturn-update-manager`
 
 #### 6. Duplicated Output
 - **Symptoms**: Script output appears multiple times (e.g., `No *.log files found...` twice).
 - **Check**:
-  - Script content: `cat ~/github/Saturn/update_manager/scripts/log_cleaner.sh`
+  - Script content: `cat ~/.saturn/runtime/scripts/log_cleaner.sh`
   - Gunicorn logs: `cat ~/saturn-logs/saturn-update-manager-*.log`
 - **Fix**:
   - Update `index.html` to clear output before each run (`output.innerHTML = ''`).
@@ -340,6 +366,15 @@ Here are common issues and steps to diagnose/fix them:
   - Clear cache (Ctrl+Shift+R) or use incognito mode.
   - Ensure `index.html` uses relative fetches (`./get_scripts`).
   - Verify Apache proxy settings in `saturn.conf`.
+
+#### 8. Git Repository Clutter (e.g., Modified Files or __pycache__)
+- **Symptoms**: `git status` shows modified .py/.sh files (mode changes) or untracked `__pycache__`.
+- **Check**:
+  - `cd ~/github/Saturn && git status`
+- **Fix**:
+  - Reset modes: `git checkout -- .`
+  - Remove cache: `rm -rf update_manager/scripts/__pycache__`
+  - Ensure runtime is used: Run from `~/.saturn/runtime/scripts/` to avoid source cache.
 
 ### Additional Considerations
 - **Portability**: The system uses dynamic subnet detection (`ip a show`) to allow access from the local network, making it portable across different IP configurations. The `localhost` fix ensures the desktop shortcut works universally.
@@ -380,7 +415,7 @@ To add a new theme:
   ```
 - **Clean Logs**:
   ```bash
-  bash ~/github/Saturn/update_manager/scripts/log_cleaner.sh --dry-run
+  bash ~/.saturn/runtime/scripts/log_cleaner.sh --dry-run
   ```
 - **Backup System**:
   - Use `restore-backup.sh` to restore from backups.
@@ -389,4 +424,5 @@ To add a new theme:
 This documentation covers the system’s operation, configuration, and troubleshooting, ensuring other users can maintain and extend the Saturn Update Manager effectively. 
 If you encounter specific issues or need further clarification, provide relevant logs or error messages for targeted assistance.
 
-Author: Jerry DeLong KD4YAL Last Updated: July 28, 2025
+Author: Jerry DeLong KD4YAL  
+Last Updated: August 01, 2025
