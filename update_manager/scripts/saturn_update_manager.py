@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 # saturn_update_manager.py - Web-based Update Manager for various scripts via config.json and themes via themes.json
-# Version: 3.00
+# Version: 3.02
 # Written by: Jerry DeLong KD4YAL
-# Date: July 28, 2025
+# Date: August 01, 2025
+# Changes: Updated paths to use ~/.saturn/runtime/scripts/ for runtime (consistent with user dir),
+#          updated to use runtime dir if exists, else fallback to source (Phase 2 of separation),
+#          original changes: Version 3.00 with Flask GUI, script running, themes, etc.
 # Dependencies: flask, ansi2html (1.9.2), subprocess, os, threading, logging, re, shutil, select, urllib.error, json
-# Usage: . ~/venv/bin/activate; gunicorn -w 5 --worker-class gevent -b 0.0.0.0:5000 -t 600 saturn_update_manager:app
+# Usage: . ~/venv/bin/activate; gunicorn --chdir ~/.saturn/runtime/scripts -w 5 --worker-class gevent -b 0.0.0.0:5000 -t 600 saturn_update_manager:app
 
 import logging
 import os
@@ -46,21 +49,28 @@ class SaturnUpdateManager:
     def __init__(self):
         logging.debug("Starting SaturnUpdateManager initialization")
         self.venv_path = Path.home() / "venv" / "bin" / "activate"
-        self.scripts_dir = Path.home() / "github/Saturn/update_manager/scripts"
+        # Use runtime dir if exists, else fallback to source
+        runtime_scripts = Path.home() / ".saturn/runtime/scripts"
+        if runtime_scripts.exists():
+            self.scripts_dir = runtime_scripts
+            logging.info(f"Using runtime dir: {self.scripts_dir}")
+        else:
+            self.scripts_dir = Path.home() / "github/Saturn/update_manager/scripts"
+            logging.warning(f"Runtime dir not found—falling back to source: {self.scripts_dir}")
         self.log_dir = Path.home() / "saturn-logs"
         self.config_path = Path(os.path.expanduser("~/.saturn/config.json"))
         self.themes_path = Path(os.path.expanduser("~/.saturn/themes.json"))
         self.config = []
         self.themes = []
         self.versions = {
-            "saturn_update_manager.py": "3.00"
+            "saturn_update_manager.py": "3.02"
         }
         self.process = None
         self.backup_response = None
         self.running = False
         self.output_lock = threading.Lock()
         self.converter = Ansi2HTMLConverter(inline=True)
-        logging.info(f"Starting Saturn Update Manager v3.00")
+        logging.info(f"Starting Saturn Update Manager v3.02")
 
         error_message = self.validate_setup()
         if error_message:
@@ -85,7 +95,7 @@ class SaturnUpdateManager:
             if not isinstance(data, list):
                 raise ValueError("config.json must be a list of script entries")
             home = os.path.expanduser("~")
-            trusted_dirs = [os.path.join(home, "github"), home]  # Expandable
+            trusted_dirs = [os.path.join(home, "github"), os.path.join(home, ".saturn/runtime"), home]  # Add runtime to trusted
             for entry in data:
                 directory = os.path.expanduser(entry.get("directory", ""))
                 filename = entry.get("filename", "")
