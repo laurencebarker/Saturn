@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # install_update_manager.py - Main installer for Saturn Update Manager
-# Version: 3.00
+# Version: 3.01
 # Written by: Jerry DeLong KD4YAL
-# Date: July 28, 2025
+# Date: August 01, 2025
+# Changes: Updated copied config.json to point directories to runtime (~/.saturn/runtime/scripts) for isolation,
+#          original version 3.00 with OS detection, deps, venv, etc.
 # Usage: sudo python3 install_update_manager.py
 
 import os
@@ -15,6 +17,7 @@ import re
 import pwd
 from datetime import datetime
 import time  # Added to fix NameError in validate()
+import json  # Added for config.json updates
 
 from modules.logger import setup_logging
 from modules.os_detector import detect_os
@@ -50,7 +53,7 @@ class SaturnInstaller:
             sys.exit(1)
 
     def run(self):
-        self.logger.info("Starting Saturn Update Manager Installer v3.00")
+        self.logger.info("Starting Saturn Update Manager Installer v3.01")
         self.log_dir.mkdir(parents=True, exist_ok=True)
         subprocess.run(["chown", "-R", "pi:pi", str(self.log_dir)], check=True)
         self.config_dir.mkdir(parents=True, exist_ok=True)
@@ -112,6 +115,17 @@ class SaturnInstaller:
                 os.chown(dest, pwd.getpwnam("pi").pw_uid, pwd.getpwnam("pi").pw_gid)
                 os.chmod(dest, 0o644)
                 self.logger.info(f"{file_name} overwritten to {dest}")
+
+                # If config.json, update directories to point to runtime
+                if file_name == "config.json":
+                    with open(dest, 'r+') as f:
+                        data = json.load(f)
+                        for entry in data:
+                            entry["directory"] = "~/.saturn/runtime/scripts"  # Update to runtime
+                        f.seek(0)
+                        json.dump(data, f, indent=2)
+                        f.truncate()
+                    self.logger.info("Updated config.json directories to runtime path")
             else:
                 self.logger.warning(f"{file_name} not found in repository, skipping")
 
