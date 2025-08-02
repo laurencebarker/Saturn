@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # saturn_update_manager.py - Web-based Update Manager for various scripts via config.json and themes via themes.json
-# Version: 3.02
+# Version: 3.03
 # Written by: Jerry DeLong KD4YAL
 # Date: August 01, 2025
-# Changes: Updated paths to use ~/.saturn/runtime/scripts/ for runtime (consistent with user dir),
+# Changes: Added PYTHONPYCACHEPREFIX to redirect __pycache__ outside repo/runtime (prevents cache in tree),
+#          updated paths to use ~/.saturn/runtime/scripts/ for runtime (consistent with user dir),
 #          updated to use runtime dir if exists, else fallback to source (Phase 2 of separation),
 #          original changes: Version 3.00 with Flask GUI, script running, themes, etc.
 # Dependencies: flask, ansi2html (1.9.2), subprocess, os, threading, logging, re, shutil, select, urllib.error, json
@@ -29,6 +30,10 @@ from flask import Flask, render_template, request, Response, jsonify
 from ansi2html import Ansi2HTMLConverter
 import psutil  # Added for monitoring
 import signal  # For kill
+
+# Redirect __pycache__ outside repo/runtime to ~/.cache/saturn-pycache
+os.environ['PYTHONPYCACHEPREFIX'] = os.path.expanduser('~/.cache/saturn-pycache')
+os.makedirs(os.environ['PYTHONPYCACHEPREFIX'], exist_ok=True)
 
 # Initialize logging
 log_dir = Path.home() / "saturn-logs"
@@ -63,14 +68,14 @@ class SaturnUpdateManager:
         self.config = []
         self.themes = []
         self.versions = {
-            "saturn_update_manager.py": "3.02"
+            "saturn_update_manager.py": "3.03"
         }
         self.process = None
         self.backup_response = None
         self.running = False
         self.output_lock = threading.Lock()
         self.converter = Ansi2HTMLConverter(inline=True)
-        logging.info(f"Starting Saturn Update Manager v3.02")
+        logging.info(f"Starting Saturn Update Manager v3.03")
 
         error_message = self.validate_setup()
         if error_message:
