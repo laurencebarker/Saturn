@@ -1,8 +1,12 @@
 # saturn_update_manager_service.py
-# Version: 1.0
+# Version: 1.2
 # Written by: Jerry DeLong, kd4yal
 # Date: Aug 1, 2025
-# Usage: Start: ./saturn_update_manager_service.py --start Stop: ./saturn_update_manager_service.py --stop Status: ./saturn_update_manager_service.py --status
+# Changes: Improved handling for negative return codes (signals like -15/SIGTERM) as success for --restart (fixes webapp self-interrupt),
+#          added debug print for return codes,
+#          original version 1.0 with start/stop/status/restart.
+
+# Usage: Start: ./saturn_update_manager_service.py --start Stop: ./saturn_update_manager_service.py --stop Status: ./saturn_update_manager_service.py --status Restart: ./saturn_update_manager_service.py --restart
 
 import argparse
 import subprocess
@@ -57,7 +61,17 @@ def main():
 
         result = subprocess.run(['sudo', 'systemctl', action, service_name],
 
-                                capture_output=True, text=True, check=True)
+                                capture_output=True, text=True)
+
+        # For restart, treat negative return codes (signals) as success since service self-terminates
+
+        if args.restart and result.returncode < 0:
+
+            print(f"Debug: Return code {result.returncode} (signal) detected - treating as success for restart.")
+
+            result.check_returncode = lambda: None  # Override to skip raise
+
+        result.check_returncode()  # Raise if non-zero (except handled cases)
 
         # Print output if any (useful for status)
 
