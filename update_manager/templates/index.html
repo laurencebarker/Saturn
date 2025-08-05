@@ -5,32 +5,309 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Saturn Update Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3b82f6',
-                        secondary: '#10b981',
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
-            background-color: var(--bg-color, #f3f4f6);
-            color: var(--text-color, #333333);
-            transition: background-color 0.3s, color 0.3s;
+        :root {
+            --primary-50: #eff6ff;
+            --primary-100: #dbeafe;
+            --primary-500: #3b82f6;
+            --primary-600: #2563eb;
+            --primary-700: #1d4ed8;
+            --primary-900: #1e3a8a;
+          
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+          
+            --success-500: #10b981;
+            --warning-500: #f59e0b;
+            --danger-500: #ef4444;
+            --teal-500: #14b8a6;
+            --indigo-500: #6366f1;
         }
-        .card {
-            background-color: var(--card-bg, #ffffff);
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            min-height: 100vh;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+        }
+        body.light {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            color: var(--gray-900);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                0 2px 16px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body.light .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.05),
+                0 2px 16px rgba(0, 0, 0, 0.03),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.15),
+                0 4px 20px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        body.light .glass-card:hover {
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.08),
+                0 4px 20px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+        .card-header {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(29, 78, 216, 0.1));
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px 20px 0 0;
+            padding: 1.5rem 2rem;
+        }
+        body.light .card-header {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(29, 78, 216, 0.05));
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
         .btn-primary {
-            background-color: var(--primary-color, #3b82f6);
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
         }
         .btn-secondary {
-            background-color: var(--secondary-color, #10b981);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+        body.light .btn-secondary {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: var(--gray-700);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        body.light .btn-secondary:hover {
+            background: rgba(0, 0, 0, 0.08);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-500), #dc2626);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        }
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+        .search-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            padding: 0.75rem 1rem;
+            font-weight: 400;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+        body.light .search-input {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: var(--gray-700);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        body.light .search-input::placeholder {
+            color: var(--gray-400);
+        }
+        .table-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        body.light .table-container {
+            background: rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .table-header {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.75rem;
+        }
+        body.light .table-header {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .table-row {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+        body.light .table-row {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .table-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        body.light .table-row:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--primary-400), var(--teal-500));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        body.light .metric-value {
+            background: linear-gradient(135deg, var(--primary-600), var(--teal-500));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .metric-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        body.light .metric-label {
+            color: var(--gray-600);
+        }
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        .status-good { background-color: var(--success-500); }
+        .status-warning { background-color: var(--warning-500); }
+        .status-critical { background-color: var(--danger-500); }
+        .chart-container {
+            position: relative;
+            height: 280px;
+            padding: 1rem;
+        }
+        .loader {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .loader.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .loader-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: var(--primary-500);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        .text-white {
+            color: white;
+        }
+        body.light .text-white {
+            color: var(--gray-900);
+        }
+        .text-white-80 {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        body.light .text-white-80 {
+            color: var(--gray-700);
+        }
+        .text-white-60 {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        body.light .text-white-60 {
+            color: var(--gray-500);
+        }
+        @media (max-width: 768px) {
+            .glass-card {
+                border-radius: 16px;
+            }
+            .card-header {
+                padding: 1rem 1.5rem;
+                border-radius: 16px 16px 0 0;
+            }
+            .chart-container {
+                height: 240px;
+                padding: 0.75rem;
+            }
+            .metric-value {
+                font-size: 2rem;
+            }
         }
         pre {
             white-space: pre-wrap;
@@ -47,6 +324,11 @@
             border: 1px solid #444;
             box-sizing: border-box;
         }
+        body.light pre {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
         .output-container {
             width: 100%;
             min-height: 420px;
@@ -55,7 +337,10 @@
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .container { max-width: 800px; }
+        body.light .output-container {
+            background-color: #f3f4f6;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
         .ansi_31 { color: #ff5555 !important; }
         .ansi_32 { color: #55ff55 !important; }
         .ansi_33 { color: #ffff55 !important; }
@@ -64,11 +349,15 @@
         /* Spinner for loading */
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: var(--primary-color);
+            border-left-color: var(--primary-500);
             border-radius: 50%;
             width: 24px;
             height: 24px;
             animation: spin 1s linear infinite;
+        }
+        body.light .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary-600);
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
@@ -87,12 +376,24 @@
             border-radius: 0.25rem;
         }
         progress::-webkit-progress-value {
-            background-color: var(--primary-color);
+            background-color: var(--primary-500);
             border-radius: 0.25rem;
         }
         progress::-moz-progress-bar {
-            background-color: var(--primary-color);
+            background-color: var(--primary-500);
             border-radius: 0.25rem;
+        }
+        body.light progress {
+            background-color: #d1d5db;
+        }
+        body.light progress::-webkit-progress-bar {
+            background-color: #d1d5db;
+        }
+        body.light progress::-webkit-progress-value {
+            background-color: var(--primary-600);
+        }
+        body.light progress::-moz-progress-bar {
+            background-color: var(--primary-600);
         }
         /* Mobile adjustments */
         @media (max-width: 640px) {
@@ -100,54 +401,100 @@
             button { padding: 0.75rem 1.5rem; font-size: 1.125rem; }
             select, input { font-size: 1rem; padding: 0.5rem; }
         }
+        select, input[type="password"] {
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border-color: var(--glass-border);
+        }
+        body.light select, body.light input[type="password"] {
+            border-color: var(--glass-border);
+        }
+        label {
+            color: var(--text-color);
+        }
+        body.light label {
+            color: var(--text-color);
+        }
+        .form-checkbox {
+            accent-color: var(--primary-500);
+        }
+        body.light .form-checkbox {
+            accent-color: var(--primary-600);
+        }
+        .title {
+            color: white;
+        }
+        body.light .title {
+            color: var(--gray-900);
+        }
+        /* Versions section */
+        #versions {
+            background-color: rgba(31, 41, 55, 0.8);
+            color: white;
+        }
+        body.light #versions {
+            background-color: rgba(243, 244, 246, 0.9);
+            color: var(--gray-700);
+        }
+        #version-list {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        body.light #version-list {
+            color: var(--gray-600);
+        }
+        /* Modal text colors */
+        .modal-text {
+            color: white;
+        }
+        body.light .modal-text {
+            color: var(--gray-700);
+        }
     </style>
 </head>
 <body>
     <div class="container mx-auto p-4 sm:p-6">
-        <h1 class="text-3xl font-bold text-red-600 text-center mb-2">Saturn Update Manager</h1>
+        <h1 class="text-3xl font-bold title text-center mb-2">Saturn Update Manager</h1>
 
-        <div id="versions" class="rounded-lg shadow-md p-4 mb-4" style="display: none; background-color: var(--card-bg);">
-            <h2 class="text-xl font-semibold text-gray-700 mb-2">Script Versions</h2>
-            <ul id="version-list" class="list-disc pl-5 text-gray-600"></ul>
+        <div id="versions" class="rounded-lg shadow-md p-4 mb-4" style="display: none;">
+            <h2 class="text-xl font-semibold modal-text mb-2">Script Versions</h2>
+            <ul id="version-list" class="list-disc pl-5"></ul>
         </div>
 
-        <div class="rounded-lg shadow-md p-4 mb-4 relative" style="background-color: var(--card-bg);">
+        <div class="rounded-lg shadow-md p-4 mb-4 relative glass-card">
             <!-- Loading Spinner -->
-            <div id="loader" class="absolute inset-0 flex items-center justify-center bg-opacity-75 hidden" style="background-color: var(--card-bg);">
+            <div id="loader" class="absolute inset-0 flex items-center justify-center bg-opacity-75 hidden">
                 <div class="spinner"></div>
             </div>
             <form id="script-form" class="flex flex-col space-y-4">
                 <div class="flex items-center space-x-4">
-                    <label for="script" class="text-lg font-medium text-gray-700">Select Script:</label>
-                    <select id="script" name="script" class="border rounded px-2 py-1 bg-blue-100 text-blue-800 w-full">
+                    <label for="script" class="text-lg font-medium modal-text">Select Script:</label>
+                    <select id="script" name="script" class="border rounded px-2 py-1 w-full">
                         <option value="">Select a script</option>
                     </select>
                 </div>
                 <div id="flags" class="flex flex-wrap gap-4"></div>
                 <div id="restore-dir-div" class="flex flex-col space-y-2 hidden">
-                    <label for="restore-dir-select" class="text-lg font-medium text-gray-700">Select Backup Directory:</label>
-                    <select id="restore-dir-select" class="border rounded px-2 py-1 bg-blue-100 text-blue-800 w-full">
+                    <label for="restore-dir-select" class="text-lg font-medium modal-text">Select Backup Directory:</label>
+                    <select id="restore-dir-select" class="border rounded px-2 py-1 w-full">
                         <option value="">Select...</option>
                     </select>
                 </div>
                 <div class="flex justify-center space-x-4">
                     <button type="submit" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Run</button>
-                    <button type="button" id="change-password-btn" class="btn-secondary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Change Password</button>
+                    <button type="button" id="change-password-btn" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Change Password</button>
                     <button type="button" id="exit-btn" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Exit</button>
-                    <button type="button" id="monitor-btn" class="btn-secondary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Monitor</button>
+                    <button type="button" id="monitor-btn" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Monitor</button>
                     <label class="flex items-center space-x-2">
                         <input type="checkbox" id="show-versions" class="form-checkbox h-5 w-5 text-blue-600">
-                        <span>Show Versions</span>
+                        <span class="modal-text">Show Versions</span>
                     </label>
+                    <button id="theme-toggle" class="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors" aria-label="Toggle theme">
+                        <svg id="theme-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                    </button>
                 </div>
             </form>
-        </div>
-
-        <div class="flex flex-col space-y-2 mb-4">
-            <label for="theme" class="text-lg font-medium text-gray-700">Select Theme:</label>
-            <select id="theme" class="border rounded px-2 py-1 bg-blue-100 text-blue-800 w-full">
-                <option value="">Select a theme</option>
-            </select>
         </div>
 
         <div class="output-container">
@@ -159,11 +506,11 @@
         <!-- Backup Prompt Modal -->
         <div id="backup-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
             <div class="rounded-lg p-6 max-w-sm w-full" style="background-color: var(--card-bg);">
-                <h2 class="text-xl font-bold mb-4">Backup Prompt</h2>
-                <p class="mb-4">Create a backup? (Y/n)</p>
+                <h2 class="text-xl font-bold modal-text mb-4">Backup Prompt</h2>
+                <p class="modal-text mb-4">Create a backup? (Y/n)</p>
                 <div class="flex justify-end space-x-4">
                     <button id="backup-yes" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90">Yes</button>
-                    <button id="backup-no" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">No</button>
+                    <button id="backup-no" class="btn-secondary text-white px-4 py-2 rounded hover:brightness-90">No</button>
                 </div>
             </div>
         </div>
@@ -171,26 +518,25 @@
         <!-- Change Password Modal -->
         <div id="password-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
             <div class="rounded-lg p-6 max-w-sm w-full" style="background-color: var(--card-bg);">
-                <h2 class="text-xl font-bold mb-4">Change Password</h2>
+                <h2 class="text-xl font-bold modal-text mb-4">Change Password</h2>
                 <form id="password-form" class="flex flex-col space-y-4">
                     <div>
-                        <label for="new-password" class="text-lg font-medium text-gray-700">New Password:</label>
+                        <label for="new-password" class="text-lg font-medium modal-text">New Password:</label>
                         <input type="password" id="new-password" name="new-password" class="border rounded px-2 py-1 w-full" required minlength="8">
                     </div>
                     <div>
-                        <label for="confirm-password" class="text-lg font-medium text-gray-700">Confirm Password:</label>
+                        <label for="confirm-password" class="text-lg font-medium modal-text">Confirm Password:</label>
                         <input type="password" id="confirm-password" name="confirm-password" class="border rounded px-2 py-1 w-full" required minlength="8">
                     </div>
                     <p id="password-error" class="text-red-500 hidden">Passwords do not match or are too short.</p>
                     <div class="flex justify-end space-x-4">
                         <button type="submit" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90">Submit</button>
-                        <button type="button" id="password-cancel" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+                        <button type="button" id="password-cancel" class="btn-secondary text-white px-4 py-2 rounded hover:brightness-90">Cancel</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-
     <script>
         let selectedScript = '';
         let selectedFlags = [];
@@ -324,7 +670,7 @@
                 data.flags.forEach(flag => {
                     const label = document.createElement('label');
                     label.className = 'flex items-center space-x-2';
-                    label.innerHTML = `<input type="checkbox" name="flags" value="${flag}" class="form-checkbox h-5 w-5 text-blue-600" ${flag === '--verbose' ? 'checked' : ''}> <span>${flag}</span>`;
+                    label.innerHTML = `<input type="checkbox" name="flags" value="${flag}" class="form-checkbox h-5 w-5 text-blue-600" ${flag === '--verbose' ? 'checked' : ''}> <span class="text-white-80">${flag}</span>`;
                     flagsDiv.appendChild(label);
                 });
                 console.log(`Loaded flags for ${filename}:`, data.flags);
@@ -340,120 +686,6 @@
                 showLoader(false);
             }
         }
-
-        async function loadThemes() {
-            try {
-                const response = await fetch('./get_themes', {
-                    headers: {
-                        'Cache-Control': 'no-cache'
-                    }
-                });
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Fetch themes failed:', response.status, errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-                const data = await response.json();
-                console.log('Themes response:', data);
-                const themeSelect = document.getElementById('theme');
-                themeSelect.innerHTML = '<option value="">Select a theme</option>';
-                data.themes.forEach(theme => {
-                    const option = document.createElement('option');
-                    option.value = theme.name;
-                    option.textContent = theme.name;
-                    option.title = theme.description;
-                    themeSelect.appendChild(option);
-                });
-                if (data.warnings && data.warnings.length > 0) {
-                    document.getElementById('output').innerHTML += data.warnings.map(w => `<span style="color:#FFFF00">Warning: ${w}</span>`).join('<br>') + '<br>';
-                }
-            } catch (error) {
-                console.error('Error loading themes:', error);
-                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading themes: ${error.message}</span><br>`;
-            }
-        }
-
-        async function applyTheme(name) {
-            try {
-                const response = await fetch(`./get_theme?name=${encodeURIComponent(name)}`, {
-                    headers: {
-                        'Cache-Control': 'no-cache'
-                    }
-                });
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Fetch theme failed:', response.status, errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-                const data = await response.json();
-                console.log('Theme data:', data);
-                if (data.styles) {
-                    Object.entries(data.styles).forEach(([key, value]) => {
-                        document.documentElement.style.setProperty(key, value);
-                    });
-                    localStorage.setItem('selectedTheme', name);
-                }
-            } catch (error) {
-                console.error('Error applying theme:', error);
-                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error applying theme: ${error.message}</span><br>`;
-            }
-        }
-
-        document.getElementById('theme').addEventListener('change', function() {
-            const selectedTheme = this.value;
-            if (selectedTheme) {
-                applyTheme(selectedTheme);
-            }
-        });
-
-        const savedTheme = localStorage.getItem('selectedTheme');
-        if (savedTheme) {
-            document.getElementById('theme').value = savedTheme;
-            applyTheme(savedTheme);
-        }
-
-        document.getElementById('flags').addEventListener('change', async function(e) {
-            if (e.target.name === 'flags' && (e.target.value === '--pihpsdr' || e.target.value === '--saturn')) {
-                let type = null;
-                const pihpsdrChecked = Array.from(document.querySelectorAll('input[name="flags"]')).find(cb => cb.value === '--pihpsdr').checked;
-                const saturnChecked = Array.from(document.querySelectorAll('input[name="flags"]')).find(cb => cb.value === '--saturn').checked;
-                if (pihpsdrChecked && saturnChecked) {
-                    document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error: Cannot select both --pihpsdr and --saturn</span><br>`;
-                    return;
-                }
-                if (pihpsdrChecked) type = 'pihpsdr';
-                if (saturnChecked) type = 'saturn';
-                if (type) {
-                    try {
-                        const response = await fetch(`./get_backups?type=${type}`, {
-                            headers: {
-                                'Cache-Control': 'no-cache'
-                            }
-                        });
-                        if (!response.ok) {
-                            const errorText = await response.text();
-                            console.error('Fetch backups failed:', response.status, errorText);
-                            throw new Error(`HTTP ${response.status}: ${errorText}`);
-                        }
-                        const data = await response.json();
-                        const select = document.getElementById('restore-dir-select');
-                        select.innerHTML = '<option value="">Select...</option>';
-                        data.backups.forEach(dir => {
-                            const option = document.createElement('option');
-                            option.value = dir;
-                            option.textContent = dir;
-                            select.appendChild(option);
-                        });
-                    } catch (error) {
-                        console.error('Error loading backups:', error);
-                        document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading backups: ${error.message}</span><br>`;
-                    }
-                } else {
-                    const select = document.getElementById('restore-dir-select');
-                    select.innerHTML = '<option value="">Select...</option>';
-                }
-            }
-        });
 
         document.getElementById('script-form').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -683,12 +915,31 @@
         console.log('Loading initial scripts, versions, and themes');
         loadScripts();
         loadVersions();
-        loadThemes();
 
         // Add pop-up for monitor button
         document.getElementById('monitor-btn').addEventListener('click', function() {
             window.open('./monitor', 'SaturnMonitor', 'width=800,height=600,resizable=yes,scrollbars=yes,status=yes');
         });
+
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        themeToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            const isLight = document.body.classList.toggle('light');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+           
+            if (isLight) {
+                themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+            } else {
+                themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+            }
+        });
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light');
+            themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+        }
     </script>
 </body>
 </html>
