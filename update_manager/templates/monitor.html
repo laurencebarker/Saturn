@@ -6,196 +6,490 @@
     <title>Saturn System Monitor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/heroicons@2.0.13/24/outline/esm/index.js"></script> <!-- For icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #1a1a1a;
-            --text-color: #e5e7eb;
-            --primary-color: #3b82f6;
-            --secondary-color: #10b981;
-            --card-bg: #2d2d2d;
-            --accent-color: #ff69b4;
-            --shadow-color: rgba(0, 0, 0, 0.5);
-        }
+            --primary-50: #eff6ff;
+            --primary-100: #dbeafe;
+            --primary-400: #60a5fa;
+            --primary-500: #3b82f6;
+            --primary-600: #2563eb;
+            --primary-700: #1d4ed8;
+            --primary-900: #1e3a8a;
 
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+
+            --success-500: #10b981;
+            --warning-500: #f59e0b;
+            --danger-500: #ef4444;
+            --teal-500: #14b8a6;
+            --indigo-500: #6366f1;
+        }
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
-            position: relative; /* For absolute loader */
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            min-height: 100vh;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        .card {
-            background-color: var(--card-bg);
+        body.light {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                0 2px 16px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body.light .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.05),
+                0 2px 16px rgba(0, 0, 0, 0.03),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.15),
+                0 4px 20px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        body.light .glass-card:hover {
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.08),
+                0 4px 20px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+        .card-header {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(29, 78, 216, 0.1));
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px 20px 0 0;
+            padding: 1.5rem 2rem;
+        }
+        body.light .card-header {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(29, 78, 216, 0.05));
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+            border: none;
             border-radius: 12px;
-            box-shadow: 0 4px 6px var(--shadow-color);
-            transition: transform 0.2s, box-shadow 0.2s;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
         }
-
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 12px var(--shadow-color);
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
         }
-
-        .btn {
-            transition: background-color 0.3s, transform 0.2s;
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
         }
-
-        .btn:hover {
-            transform: scale(1.05);
+        body.light .btn-secondary {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: var(--gray-700);
         }
-
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        body.light .btn-secondary:hover {
+            background: rgba(0, 0, 0, 0.08);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-500), #dc2626);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        }
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+        .search-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            padding: 0.75rem 1rem;
+            font-weight: 400;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+        body.light .search-input {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: var(--gray-700);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        body.light .search-input::placeholder {
+            color: var(--gray-400);
+        }
+        .table-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        body.light .table-container {
+            background: rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .table-header {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.75rem;
+        }
+        body.light .table-header {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .table-row {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+        body.light .table-row {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
         .table-row:hover {
-            background-color: #3d3d3d;
-            transition: background-color 0.2s;
+            background: rgba(255, 255, 255, 0.05);
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        body.light .table-row:hover {
+            background: rgba(0, 0, 0, 0.02);
         }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--primary-400), var(--teal-500));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-
+        body.light .metric-value {
+            background: linear-gradient(135deg, var(--primary-600), var(--teal-500));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .metric-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        body.light .metric-label {
+            color: var(--gray-600);
+        }
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        .status-good { background-color: var(--success-500); }
+        .status-warning { background-color: var(--warning-500); }
+        .status-critical { background-color: var(--danger-500); }
         .chart-container {
             position: relative;
-            width: 100%;
-            height: 250px; /* Fixed height */
+            height: 280px;
+            padding: 1rem;
         }
-
-        canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        .table-wrapper {
-            max-height: 400px; /* Fixed max-height with scroll */
-            overflow-y: auto;
-        }
-
-        [data-tooltip] {
-            position: relative;
-        }
-
-        [data-tooltip]::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #333;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            white-space: nowrap;
+        .loader {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
             opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
+            visibility: hidden;
+            transition: all 0.3s ease;
         }
-
-        [data-tooltip]:hover::after {
+        .loader.show {
             opacity: 1;
+            visibility: visible;
         }
-
-        @media (max-width: 1024px) {
-            .chart-container {
-                height: 220px;
+        .loader-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: var(--primary-500);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
             }
-            .table-wrapper {
-                max-height: 350px;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
-
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        .text-white {
+            color: white;
+        }
+        body.light .text-white {
+            color: var(--gray-900);
+        }
+        .text-white-80 {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        body.light .text-white-80 {
+            color: var(--gray-700);
+        }
+        .text-white-60 {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        body.light .text-white-60 {
+            color: var(--gray-500);
+        }
         @media (max-width: 768px) {
-            .chart-container {
-                height: 200px;
+            .glass-card {
+                border-radius: 16px;
             }
-            .table-wrapper {
-                max-height: 300px;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .container {
-                padding: 1rem;
+            .card-header {
+                padding: 1rem 1.5rem;
+                border-radius: 16px 16px 0 0;
             }
             .chart-container {
-                height: 180px;
+                height: 240px;
+                padding: 0.75rem;
             }
-            .table-wrapper {
-                max-height: 250px;
+            .metric-value {
+                font-size: 2rem;
             }
         }
     </style>
 </head>
-<body class="min-h-screen p-4 sm:p-6">
+<body class="min-h-screen p-4 lg:p-6">
+    <!-- Loader -->
+    <div id="loader" class="loader">
+        <div class="loader-spinner"></div>
+    </div>
     <div class="max-w-7xl mx-auto">
-        <h1 class="text-3xl sm:text-4xl font-bold text-red-500 text-center mb-6 fade-in">Saturn System Monitor</h1>
-        <div class="flex flex-wrap justify-center space-x-4 mb-8 fade-in">
-            <a href="/saturn/" class="btn bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg shadow-md hover:bg-green-600 flex items-center mb-2 sm:mb-0" data-tooltip="Return to main dashboard">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        <!-- Header -->
+        <div class="text-center mb-8 fade-in-up">
+            <h1 class="text-4xl lg:text-5xl font-bold text-white mb-2">
+                Saturn System Monitor
+            </h1>
+            <p class="text-white-60 text-lg">Real-time system performance monitoring</p>
+        </div>
+        <!-- Controls -->
+        <div class="flex flex-wrap justify-center gap-4 mb-8 fade-in-up">
+            <a href="/saturn/" class="btn-primary px-6 py-3 rounded-lg flex items-center font-medium">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
                 Back to Update Manager
             </a>
-            <button id="refresh-btn" class="btn bg-pink-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg shadow-md hover:bg-pink-600 flex items-center" data-tooltip="Manually refresh data">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                Refresh
+            <button id="refresh-btn" class="btn-secondary px-6 py-3 rounded-lg flex items-center font-medium">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Refresh Data
+            </button>
+            <button id="theme-toggle" class="btn-secondary p-3 rounded-lg">
+                <svg id="theme-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
             </button>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
-            <div class="card p-4 sm:p-6 fade-in">
-                <h2 class="text-xl sm:text-2xl font-semibold mb-4">CPU Usage (Per Core)</h2>
+        <!-- System Overview Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+            <div class="glass-card fade-in-up">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white">CPU Usage</h3>
+                        <span id="cpu-status" class="status-indicator status-good"></span>
+                    </div>
+                    <div class="metric-value" id="cpu-average">0%</div>
+                    <p class="metric-label mt-2" id="cpu-cores-info">Loading...</p>
+                </div>
+            </div>
+            <div class="glass-card fade-in-up" style="animation-delay: 0.1s">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white">Memory</h3>
+                        <span id="memory-status" class="status-indicator status-good"></span>
+                    </div>
+                    <div class="metric-value" id="memory-percentage">0%</div>
+                    <p class="metric-label mt-2" id="memory-usage-info">Loading...</p>
+                    <p class="metric-label mt-1" id="memory-used-free">Used: 0 GB Free: 0 GB</p>
+                </div>
+            </div>
+            <div class="glass-card fade-in-up" style="animation-delay: 0.2s">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white">Disk Space</h3>
+                        <span id="disk-status" class="status-indicator status-good"></span>
+                    </div>
+                    <div class="metric-value" id="disk-percentage">0%</div>
+                    <p class="metric-label mt-2" id="disk-usage-info">Loading...</p>
+                    <p class="metric-label mt-1" id="disk-used-free">Used: 0 GB Free: 0 GB</p>
+                </div>
+            </div>
+            <div class="glass-card fade-in-up" style="animation-delay: 0.3s">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white">Network</h3>
+                        <span class="status-indicator status-good"></span>
+                    </div>
+                    <div class="text-sm">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-white-80">↑ Sent:</span>
+                            <span class="text-white font-medium" id="network-sent">0 MB/s</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-white-80">↓ Received:</span>
+                            <span class="text-white font-medium" id="network-received">0 MB/s</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="glass-card fade-in-up">
+                <div class="card-header">
+                    <h2 class="text-xl font-semibold text-white">CPU Usage (Per Core)</h2>
+                </div>
                 <div class="chart-container">
                     <canvas id="cpuChart"></canvas>
                 </div>
-                <p id="cpuInfo" class="text-sm text-gray-400 mt-2 text-center"></p>
             </div>
-            <div class="card p-4 sm:p-6 fade-in">
-                <h2 class="text-xl sm:text-2xl font-semibold mb-4">Memory Usage</h2>
+            <div class="glass-card fade-in-up">
+                <div class="card-header">
+                    <h2 class="text-xl font-semibold text-white">Memory Usage</h2>
+                </div>
                 <div class="chart-container">
                     <canvas id="memoryChart"></canvas>
                 </div>
-                <p id="memoryInfo" class="text-sm text-gray-400 mt-2 text-center"></p>
             </div>
-            <div class="card p-4 sm:p-6 fade-in">
-                <h2 class="text-xl sm:text-2xl font-semibold mb-4">Disk Usage</h2>
+            <div class="glass-card fade-in-up">
+                <div class="card-header">
+                    <h2 class="text-xl font-semibold text-white">Disk Usage</h2>
+                </div>
                 <div class="chart-container">
                     <canvas id="diskChart"></canvas>
                 </div>
-                <p id="diskInfo" class="text-sm text-gray-400 mt-2 text-center"></p>
             </div>
-            <div class="card p-4 sm:p-6 fade-in">
-                <h2 class="text-xl sm:text-2xl font-semibold mb-4">Network Traffic</h2>
+            <div class="glass-card fade-in-up">
+                <div class="card-header">
+                    <h2 class="text-xl font-semibold text-white">Network Traffic</h2>
+                </div>
                 <div class="chart-container">
                     <canvas id="networkChart"></canvas>
                 </div>
-                <p id="networkInfo" class="text-sm text-gray-400 mt-2 text-center"></p>
             </div>
         </div>
-        <div class="card p-4 sm:p-6 fade-in">
-            <h2 class="text-xl sm:text-2xl font-semibold mb-4">Processes</h2>
-            <div class="table-wrapper">
-                <table class="min-w-full text-sm divide-y divide-gray-600">
-                    <thead class="bg-gray-700 sticky top-0">
-                        <tr>
-                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(0)">PID</th>
-                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(1)">User</th>
-                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(2)">CPU %</th>
-                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(3)">Memory %</th>
-                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(4)">Command</th>
-                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="processBody" class="divide-y divide-gray-600">
-                        <!-- Rows added by JS -->
-                    </tbody>
-                </table>
+        <!-- Processes Table -->
+        <div class="glass-card fade-in-up">
+            <div class="card-header">
+                <h2 class="text-xl font-semibold text-white">Running Processes</h2>
+            </div>
+            <div class="p-6">
+                <input type="text" id="process-search" class="search-input w-full mb-6" placeholder="Search processes by name, user, or PID...">
+
+                <div class="table-container">
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        <table class="w-full">
+                            <thead class="table-header sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-4 text-left cursor-pointer select-none" onclick="sortTable(0)">
+                                        PID
+                                        <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                        </svg>
+                                    </th>
+                                    <th class="px-6 py-4 text-left cursor-pointer select-none" onclick="sortTable(1)">
+                                        User
+                                        <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                        </svg>
+                                    </th>
+                                    <th class="px-6 py-4 text-left cursor-pointer select-none" onclick="sortTable(2)">
+                                        CPU %
+                                        <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                        </svg>
+                                    </th>
+                                    <th class="px-6 py-4 text-left cursor-pointer select-none" onclick="sortTable(3)">
+                                        Memory %
+                                        <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                        </svg>
+                                    </th>
+                                    <th class="px-6 py-4 text-left cursor-pointer select-none" onclick="sortTable(4)">
+                                        Command
+                                        <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                        </svg>
+                                    </th>
+                                    <th class="px-6 py-4 text-left">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="processBody" class="text-white-80">
+                                <tr>
+                                    <td colspan="6" class="px-6 py-8 text-center text-white-60">
+                                        Loading processes...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
     <script>
         let cpuChart, memoryChart, diskChart, networkChart;
         let cpuData = [];
@@ -208,184 +502,299 @@
         let lastTime = Date.now();
         let sortCol = 2; // CPU
         let sortDir = -1; // Desc
-
-        const shadowPlugin = {
-            id: 'shadowPlugin',
-            beforeDraw: (chart) => {
-                const ctx = chart.ctx;
-                ctx.save();
-                ctx.shadowColor = 'rgba(0,0,0,0.3)';
-                ctx.shadowBlur = 8;
-                ctx.shadowOffsetX = 2;
-                ctx.shadowOffsetY = 2;
-                chart.getDatasetMeta(0).dataset.draw(ctx); // Draw shadow for first dataset; adjust for multi
-                ctx.restore();
-            }
+        let csrfToken = 'your-csrf-token-here';
+        let allProcesses = [];
+        // Professional color scheme
+        const colors = {
+            primary: '#3b82f6',
+            success: '#10b981',
+            warning: '#f59e0b',
+            danger: '#ef4444',
+            teal: '#14b8a6',
+            indigo: '#6366f1'
         };
-
+        function createGradient(ctx, color1, color2, vertical = true) {
+            const gradient = vertical
+                ? ctx.createLinearGradient(0, 0, 0, ctx.canvas.height)
+                : ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
+            gradient.addColorStop(0, color1);
+            gradient.addColorStop(1, color2);
+            return gradient;
+        }
         function initCharts(numCores) {
-            labels = Array(60).fill('');
+            labels = Array(60).fill('').map((_, i) => '');
             cpuData = Array(numCores).fill().map(() => Array(60).fill(0));
             memoryData = Array(60).fill(0);
             diskData = Array(60).fill(0);
             sentData = Array(60).fill(0);
             recvData = Array(60).fill(0);
-
-            const coreColors = ['#00ff00', '#ff00ff', '#ffa500', '#800080']; // Green, Magenta, Orange, Purple
-
+            const coreColors = [colors.primary, colors.success, colors.warning, colors.teal, colors.indigo, colors.danger];
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                animation: { duration: 0 },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.9)',
+                            font: { family: 'Inter', size: 12, weight: '500' },
+                            boxWidth: 12,
+                            boxHeight: 12,
+                            borderRadius: 6,
+                            padding: 20
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        padding: 12
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.6)',
+                            font: { family: 'Inter', size: 11 }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            borderDash: [2, 4]
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.6)',
+                            font: { family: 'Inter', size: 11 }
+                        }
+                    }
+                }
+            };
+            // CPU Chart
             cpuChart = new Chart('cpuChart', {
                 type: 'line',
                 data: {
                     labels,
                     datasets: coreColors.slice(0, numCores).map((color, i) => ({
-                        label: `Core ${i}`,
+                        label: `Core ${i + 1}`,
                         data: cpuData[i],
                         borderColor: color,
+                        backgroundColor: color + '20',
+                        borderWidth: 2,
                         fill: true,
-                        backgroundColor: color.replace(')', ', 0.1)').replace('rgb', 'rgba'), // Low opacity fill for contrast
-                        tension: 0.3,
-                        pointRadius: 0
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 4
                     }))
                 },
                 options: {
-                    scales: { y: { beginAtZero: true, max: 100, grid: { color: '#444' } } },
-                    plugins: { legend: { display: true, position: 'top' } },
-                    interaction: { mode: 'index', intersect: false },
-                    animation: false,
-                    responsive: true,
-                    maintainAspectRatio: false
-                },
-                plugins: [shadowPlugin]
+                    ...commonOptions,
+                    scales: {
+                        ...commonOptions.scales,
+                        y: { ...commonOptions.scales.y, max: 100 }
+                    }
+                }
             });
-
+            // Memory Chart
             memoryChart = new Chart('memoryChart', {
                 type: 'line',
                 data: {
                     labels,
-                    datasets: [{ label: 'Memory Usage (%)', data: memoryData, borderColor: '#ff00ff', fill: true, backgroundColor: 'rgba(255,0,255,0.1)', tension: 0.3, pointRadius: 0 }]
+                    datasets: [{
+                        label: 'Memory Usage (%)',
+                        data: memoryData,
+                        borderColor: colors.primary,
+                        backgroundColor: colors.primary + '20',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    }]
                 },
                 options: {
-                    scales: { y: { beginAtZero: true, max: 100, grid: { color: '#444' } } },
-                    plugins: { legend: { display: true, position: 'top' } },
-                    interaction: { mode: 'index', intersect: false },
-                    animation: false,
-                    responsive: true,
-                    maintainAspectRatio: false
-                },
-                plugins: [shadowPlugin]
+                    ...commonOptions,
+                    scales: {
+                        ...commonOptions.scales,
+                        y: { ...commonOptions.scales.y, max: 100 }
+                    }
+                }
             });
-
+            // Disk Chart
             diskChart = new Chart('diskChart', {
                 type: 'line',
                 data: {
                     labels,
-                    datasets: [{ label: 'Disk Usage (%)', data: diskData, borderColor: '#ffa500', fill: true, backgroundColor: 'rgba(255,165,0,0.1)', tension: 0.3, pointRadius: 0 }]
+                    datasets: [{
+                        label: 'Disk Usage (%)',
+                        data: diskData,
+                        borderColor: colors.success,
+                        backgroundColor: colors.success + '20',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    }]
                 },
                 options: {
-                    scales: { y: { beginAtZero: true, max: 100, grid: { color: '#444' } } },
-                    plugins: { legend: { display: true, position: 'top' } },
-                    interaction: { mode: 'index', intersect: false },
-                    animation: false,
-                    responsive: true,
-                    maintainAspectRatio: false
-                },
-                plugins: [shadowPlugin]
+                    ...commonOptions,
+                    scales: {
+                        ...commonOptions.scales,
+                        y: { ...commonOptions.scales.y, max: 100 }
+                    }
+                }
             });
-
+            // Network Chart
             networkChart = new Chart('networkChart', {
                 type: 'line',
                 data: {
                     labels,
                     datasets: [
-                        { label: 'Sent (MB/s)', data: sentData, borderColor: '#ff0000', fill: true, backgroundColor: 'rgba(255,0,0,0.1)', tension: 0.3, pointRadius: 0 },
-                        { label: 'Received (MB/s)', data: recvData, borderColor: '#800080', fill: true, backgroundColor: 'rgba(128,0,128,0.1)', tension: 0.3, pointRadius: 0 }
+                        {
+                            label: 'Sent (MB/s)',
+                            data: sentData,
+                            borderColor: colors.warning,
+                            backgroundColor: colors.warning + '20',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 4
+                        },
+                        {
+                            label: 'Received (MB/s)',
+                            data: recvData,
+                            borderColor: colors.teal,
+                            backgroundColor: colors.teal + '20',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 4
+                        }
                     ]
                 },
-                options: {
-                    scales: { y: { beginAtZero: true, grid: { color: '#444' } } },
-                    plugins: { legend: { display: true, position: 'top' } },
-                    interaction: { mode: 'index', intersect: false },
-                    animation: false,
-                    responsive: true,
-                    maintainAspectRatio: false
-                },
-                plugins: [shadowPlugin]
+                options: commonOptions
             });
         }
-
+        function updateStatusIndicator(elementId, percentage) {
+            const indicator = document.getElementById(elementId);
+            if (percentage < 60) {
+                indicator.className = 'status-indicator status-good';
+            } else if (percentage < 80) {
+                indicator.className = 'status-indicator status-warning';
+            } else {
+                indicator.className = 'status-indicator status-critical';
+            }
+        }
         function updateCharts(data) {
-            const numCores = data.cpu.length;
+            const numCores = data.cpu.length || 1;
             if (!cpuChart) initCharts(numCores);
-
             const currentTime = Date.now();
             const deltaT = (currentTime - lastTime) / 1000 || 1;
             lastTime = currentTime;
-
+            // Update labels
             labels.shift();
-            labels.push(new Date().toLocaleTimeString('en-US', { hour12: false }));
-
+            labels.push('');
+            // Update CPU data
             for (let i = 0; i < numCores; i++) {
                 cpuData[i].shift();
-                cpuData[i].push(data.cpu[i]);
+                cpuData[i].push(data.cpu[i] || 0);
                 cpuChart.data.datasets[i].data = cpuData[i];
             }
-            const totalCpu = data.cpu.reduce((sum, perc) => sum + perc, 0) / numCores;
-            document.getElementById('cpuInfo').textContent = `Cores: ${numCores}, Total Usage: ${totalCpu.toFixed(1)}%`;
+            const totalCpu = numCores > 0 ? data.cpu.reduce((sum, perc) => sum + (perc || 0), 0) / numCores : 0;
+            document.getElementById('cpu-average').textContent = `${totalCpu.toFixed(1)}%`;
+            document.getElementById('cpu-cores-info').textContent = `${numCores} cores • Average usage`;
+            updateStatusIndicator('cpu-status', totalCpu);
             cpuChart.data.labels = labels;
             cpuChart.update('none');
-
+            // Update Memory data
             memoryData.shift();
-            memoryData.push(data.memory.percent);
+            memoryData.push(data.memory.percent || 0);
             memoryChart.data.datasets[0].data = memoryData;
-            document.getElementById('memoryInfo').textContent = `Used: ${data.memory.used.toFixed(1)} GB / ${data.memory.total.toFixed(1)} GB`;
+
+            document.getElementById('memory-percentage').textContent = `${(data.memory.percent || 0).toFixed(1)}%`;
+            document.getElementById('memory-usage-info').textContent = `${(data.memory.used || 0).toFixed(1)} GB of ${(data.memory.total || 0).toFixed(1)} GB`;
+            document.getElementById('memory-used-free').textContent = `Used: ${(data.memory.used || 0).toFixed(1)} GB Free: ${(data.memory.total - data.memory.used || 0).toFixed(1)} GB`;
+            updateStatusIndicator('memory-status', data.memory.percent || 0);
             memoryChart.data.labels = labels;
             memoryChart.update('none');
-
+            // Update Disk data
             diskData.shift();
-            diskData.push(data.disk.percent);
+            diskData.push(data.disk.percent || 0);
             diskChart.data.datasets[0].data = diskData;
-            document.getElementById('diskInfo').textContent = `Used: ${data.disk.used.toFixed(1)} GB / ${data.disk.total.toFixed(1)} GB`;
+
+            document.getElementById('disk-percentage').textContent = `${(data.disk.percent || 0).toFixed(1)}%`;
+            document.getElementById('disk-usage-info').textContent = `${(data.disk.used || 0).toFixed(1)} GB of ${(data.disk.total || 0).toFixed(1)} GB`;
+            document.getElementById('disk-used-free').textContent = `Used: ${(data.disk.used || 0).toFixed(1)} GB Free: ${(data.disk.total - data.disk.used || 0).toFixed(1)} GB`;
+            updateStatusIndicator('disk-status', data.disk.percent || 0);
             diskChart.data.labels = labels;
             diskChart.update('none');
-
+            // Update Network data
             const sentRate = (data.network.sent - lastNet.sent) / deltaT / 1048576;
             const recvRate = (data.network.recv - lastNet.recv) / deltaT / 1048576;
+
             sentData.shift();
-            sentData.push(sentRate);
+            sentData.push(Math.max(0, sentRate));
             recvData.shift();
-            recvData.push(recvRate);
+            recvData.push(Math.max(0, recvRate));
+
             networkChart.data.datasets[0].data = sentData;
             networkChart.data.datasets[1].data = recvData;
-            document.getElementById('networkInfo').textContent = `Sent: ${(data.network.sent / 1073741824).toFixed(1)} GB, Received: ${(data.network.recv / 1073741824).toFixed(1)} GB`;
+
+            document.getElementById('network-sent').textContent = `${sentRate.toFixed(2)} MB/s`;
+            document.getElementById('network-received').textContent = `${recvRate.toFixed(2)} MB/s`;
             networkChart.data.labels = labels;
             networkChart.update('none');
             lastNet = data.network;
         }
-
         function updateProcessTable(processes) {
-            processes.sort((a, b) => {
+            allProcesses = processes;
+            filterProcesses();
+        }
+        function filterProcesses() {
+            const searchValue = document.getElementById('process-search').value.toLowerCase();
+            const filteredProcesses = allProcesses.filter(proc =>
+                proc.command.toLowerCase().includes(searchValue) ||
+                proc.user.toLowerCase().includes(searchValue) ||
+                proc.pid.toString().includes(searchValue)
+            );
+            filteredProcesses.sort((a, b) => {
                 const keys = ['pid', 'user', 'cpu', 'memory', 'command'];
                 let valA = a[keys[sortCol]];
                 let valB = b[keys[sortCol]];
                 if (typeof valA === 'number') return sortDir * (valA - valB);
-                valA = valA.toLowerCase();
-                valB = valB.toLowerCase();
+                valA = valA.toString().toLowerCase();
+                valB = valB.toString().toLowerCase();
                 return sortDir * (valA > valB ? 1 : (valA < valB ? -1 : 0));
             });
             const tbody = document.getElementById('processBody');
             tbody.innerHTML = '';
-            processes.forEach((proc, index) => {
+            if (filteredProcesses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-white-60">No processes found</td></tr>';
+                return;
+            }
+            filteredProcesses.forEach(proc => {
                 const tr = document.createElement('tr');
-                tr.classList.add('table-row', index % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700');
+                tr.className = 'table-row';
                 tr.innerHTML = `
-                    <td class="px-3 sm:px-6 py-3">${proc.pid}</td>
-                    <td class="px-3 sm:px-6 py-3">${proc.user}</td>
-                    <td class="px-3 sm:px-6 py-3">${proc.cpu.toFixed(1)}</td>
-                    <td class="px-3 sm:px-6 py-3">${proc.memory.toFixed(1)}</td>
-                    <td class="px-3 sm:px-6 py-3 truncate max-w-[150px] sm:max-w-xs">${proc.command}</td>
-                    <td class="px-3 sm:px-6 py-3">
-                        <button class="btn bg-red-500 text-white px-3 py-1 sm:px-4 sm:py-1 rounded-lg shadow hover:bg-red-600 flex items-center" onclick="killProcess(${proc.pid})">
-                            <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <td class="px-6 py-4 font-mono text-sm">${proc.pid}</td>
+                    <td class="px-6 py-4">${proc.user}</td>
+                    <td class="px-6 py-4 font-medium">${proc.cpu.toFixed(1)}%</td>
+                    <td class="px-6 py-4 font-medium">${proc.memory.toFixed(1)}%</td>
+                    <td class="px-6 py-4 font-mono text-sm max-w-xs truncate" title="${proc.command}">${proc.command}</td>
+                    <td class="px-6 py-4">
+                        <button class="btn-danger px-3 py-1 text-sm flex items-center" onclick="killProcess(${proc.pid})">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
                             Kill
                         </button>
                     </td>
@@ -393,29 +802,39 @@
                 tbody.appendChild(tr);
             });
         }
-
         function sortTable(col) {
             sortDir = (sortCol === col) ? -sortDir : -1;
             sortCol = col;
-            fetchMetrics();
+            filterProcesses();
         }
-
         async function killProcess(pid) {
             if (confirm(`Are you sure you want to kill process ${pid}? This action cannot be undone.`)) {
                 try {
-                    const res = await fetch(`./kill_process/${pid}`, { method: 'POST' });
+                    showLoader();
+                    const res = await fetch(`./kill_process/${pid}`, {
+                        method: 'POST',
+                        headers: { 'X-CSRF-Token': csrfToken }
+                    });
                     if (!res.ok) throw new Error(`Error: ${res.status}`);
                     const result = await res.json();
                     alert(result.message);
                     fetchMetrics();
                 } catch (err) {
                     alert(`Failed to kill process: ${err.message}`);
+                } finally {
+                    hideLoader();
                 }
             }
         }
-
+        function showLoader() {
+            document.getElementById('loader').classList.add('show');
+        }
+        function hideLoader() {
+            document.getElementById('loader').classList.remove('show');
+        }
         async function fetchMetrics() {
             try {
+                showLoader();
                 const res = await fetch('./get_system_data');
                 if (!res.ok) throw new Error(`Network response was not ok: ${res.status}`);
                 const data = await res.json();
@@ -423,13 +842,91 @@
                 updateProcessTable(data.processes);
             } catch (err) {
                 console.error('Error fetching metrics:', err);
-                document.getElementById('processBody').innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Error loading data: ${err.message}. Please try refreshing.</td></tr>`;
+                document.getElementById('processBody').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-8 text-center text-red-400">
+                            <div class="flex items-center justify-center mb-2">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Error loading data
+                            </div>
+                            <p class="text-sm text-white-60">${err.message}</p>
+                        </td>
+                    </tr>
+                `;
+            } finally {
+                hideLoader();
             }
         }
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        themeToggle.addEventListener('click', () => {
+            const isLight = document.body.classList.toggle('light');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
 
+            if (isLight) {
+                themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+            } else {
+                themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+            }
+            // Update chart colors for theme
+            if (cpuChart) {
+                const textColor = isLight ? '#374151' : 'rgba(255, 255, 255, 0.9)';
+                const gridColor = isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
+
+                [cpuChart, memoryChart, diskChart, networkChart].forEach(chart => {
+                    if (chart) {
+                        chart.options.plugins.legend.labels.color = textColor;
+                        chart.options.scales.x.ticks.color = isLight ? '#6b7280' : 'rgba(255, 255, 255, 0.6)';
+                        chart.options.scales.y.ticks.color = isLight ? '#6b7280' : 'rgba(255, 255, 255, 0.6)';
+                        chart.options.scales.y.grid.color = gridColor;
+                        chart.update('none');
+                    }
+                });
+            }
+        });
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light');
+            themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+        }
+        // Event listeners
+        document.getElementById('process-search').addEventListener('input', filterProcesses);
         document.getElementById('refresh-btn').addEventListener('click', fetchMetrics);
-        setInterval(fetchMetrics, 5000); // Increased to 5 seconds to reduce blink frequency
+        // Debounced refresh to prevent spam
+        const debouncedRefresh = (() => {
+            let timeout;
+            return () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(fetchMetrics, 300);
+            };
+        })();
+        document.getElementById('refresh-btn').addEventListener('click', debouncedRefresh);
+        // Initialize
+        setInterval(fetchMetrics, 5000);
         fetchMetrics();
+        // Add some demo data for preview purposes
+        setTimeout(() => {
+            if (!cpuChart) {
+                const demoData = {
+                    cpu: [45.2, 32.1, 67.8, 23.4],
+                    memory: { percent: 68.5, used: 5.5, total: 8.0 },
+                    disk: { percent: 42.3, used: 84.6, total: 200.0 },
+                    network: { sent: 1048576000, recv: 2097152000 },
+                    processes: [
+                        { pid: 1234, user: 'system', cpu: 25.4, memory: 12.3, command: 'chrome --type=renderer' },
+                        { pid: 5678, user: 'admin', cpu: 15.2, memory: 8.7, command: 'node server.js' },
+                        { pid: 9012, user: 'root', cpu: 8.9, memory: 5.2, command: '/usr/bin/python3 script.py' },
+                        { pid: 3456, user: 'user', cpu: 3.1, memory: 2.8, command: 'code --no-sandbox' },
+                        { pid: 7890, user: 'system', cpu: 1.5, memory: 1.2, command: 'systemd --user' }
+                    ]
+                };
+                updateCharts(demoData);
+                updateProcessTable(demoData.processes);
+            }
+        }, 1000);
     </script>
 </body>
 </html>
