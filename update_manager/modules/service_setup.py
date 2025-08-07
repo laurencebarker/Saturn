@@ -8,14 +8,37 @@ def setup_systemd(logger, systemd_service, scripts_dir, venv_path, port, log_dir
     if dry_run:
         logger.info("[Dry Run] Skipping systemd setup")
         return
-    # Use runtime dir if exists, else fallback to provided scripts_dir
+
+    # Always use runtime dir - create if not exists
     runtime_scripts = Path.home() / ".saturn/runtime/scripts"
-    if runtime_scripts.exists():
+    try:
+        runtime_scripts.mkdir(parents=True, exist_ok=True)
+        os.chmod(runtime_scripts, 0o755)  # Ensure proper permissions
         effective_scripts_dir = runtime_scripts
-        logger.info(f"Using runtime dir for service: {effective_scripts_dir}")
-    else:
-        effective_scripts_dir = scripts_dir
-        logger.warning(f"Runtime dir not found—using source for service: {effective_scripts_dir}")
+        logger.info(f"Using/created runtime dir for service: {effective_scripts_dir}")
+    except OSError as e:
+        logger.error(f"Failed to create runtime dir {runtime_scripts}: {str(e)}")
+        return  # Exit early on failure
+
+    # Check if existing service uses old repo path - remove and replace if so
+    if os.path.exists(systemd_service):
+        with open(systemd_service, 'r') as f:
+            content = f.read()
+            if '/github/Saturn/update_manager/scripts' in content:
+                logger.warning("Old service detected with repo path - removing and replacing")
+                if not dry_run:
+                    try:
+                        subprocess.run(["systemctl", "stop", "saturn-update-manager"], check=True)
+                        subprocess.run(["systemctl", "disable", "saturn-update-manager"], check=True)
+                        os.remove(systemd_service)
+                        logger.info("Old service removed")
+                    except subprocess.CalledProcessError as e:
+                        logger.error(f"Failed to remove old service: {str(e)}")
+                        return
+                    except OSError as e:
+                        logger.error(f"Failed to delete old service file: {str(e)}")
+                        return
+
     service_content = textwrap.dedent(f"""\
 [Unit]
 Description=Saturn Update Manager Gunicorn Server
@@ -35,10 +58,20 @@ StandardError=append:{log_dir / 'saturn-update-manager-error.log'}
 [Install]
 WantedBy=multi-user.target
 """)
-    with open(systemd_service, "w") as f:
-        f.write(service_content)
-    os.chmod(systemd_service, 0o644)
-    subprocess.run(["systemctl", "daemon-reload"], check=True)
-    subprocess.run(["systemctl", "enable", "saturn-update-manager"], check=True)
-    subprocess.run(["systemctl", "start", "saturn-update-manager"], check=True)
-    logger.info("Systemd service set up")
+
+    if dry_run:
+        logger.info(f"[Dry Run] Would write service file:\n{service_content}")
+        return
+
+    try:
+        with open(systemd_service, "w") as f:
+            f.write(service_content)
+        os.chmod(systemd_service, 0o644)
+        subprocess.run(["systemctl", "daemon-reload"], check=True)
+        subprocess.run(["systemctl", "enable", "saturn-update-manager"], check=True)
+        subprocess.run(["systemctl", "start", "saturn-update-manager"], check=True)
+        logger.info("Systemd service set up successfully")
+    except (OSError, subprocess.CalledProcessError) as e:
+        logger.error(f"Failed to set up service: {str(e)}")
+    except Exception as e:
+        logger.error(f"Unexpected error during service setup: {str(e)}")
