@@ -3,17 +3,19 @@ import subprocess
 import textwrap
 import os
 from pathlib import Path
+import pwd  # Added for getpwnam
 
 def setup_systemd(logger, systemd_service, scripts_dir, venv_path, port, log_dir, dry_run):
     if dry_run:
         logger.info("[Dry Run] Skipping systemd setup")
         return
 
-    # Always use runtime dir - create if not exists
-    runtime_scripts = Path.home() / ".saturn/runtime/scripts"
+    # Always use pi user's runtime dir - create if not exists
+    runtime_scripts = Path('/home/pi/.saturn/runtime/scripts')
     try:
         runtime_scripts.mkdir(parents=True, exist_ok=True)
-        os.chmod(runtime_scripts, 0o755)  # Ensure proper permissions
+        os.chown(str(runtime_scripts), pwd.getpwnam('pi').pw_uid, pwd.getpwnam('pi').pw_gid)
+        os.chmod(str(runtime_scripts), 0o755)
         effective_scripts_dir = runtime_scripts
         logger.info(f"Using/created runtime dir for service: {effective_scripts_dir}")
     except OSError as e:
