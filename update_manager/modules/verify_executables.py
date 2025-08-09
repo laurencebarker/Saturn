@@ -2,6 +2,7 @@
 import os
 import shutil
 from pathlib import Path
+import itertools  # Added for chain
 
 def verify_executables(logger, directories, dry_run):
     """
@@ -12,7 +13,7 @@ def verify_executables(logger, directories, dry_run):
         directories: List of Path objects to scan.
         dry_run: Boolean, if True, simulates the action without changing permissions.
     """
-    runtime_dir = Path.home() / ".saturn/runtime/scripts"  # Define runtime dir
+    runtime_dir = Path('/home/pi') / ".saturn/runtime/scripts"  # Fixed to pi user path
 
     # Copy to runtime before verifying
     runtime_dir.mkdir(parents=True, exist_ok=True)
@@ -21,7 +22,7 @@ def verify_executables(logger, directories, dry_run):
             logger.warning(f"Directory not found: {dir_path}")
             continue
         logger.info(f"Copying files from {dir_path} to runtime {runtime_dir}")
-        for file in dir_path.glob('**/*.py') + dir_path.glob('**/*.sh'):
+        for file in itertools.chain(dir_path.glob('**/*.py'), dir_path.glob('**/*.sh')):  # Use chain for generators
             relative_path = file.relative_to(dir_path)
             dest_file = runtime_dir / relative_path
             dest_file.parent.mkdir(parents=True, exist_ok=True)
@@ -33,15 +34,7 @@ def verify_executables(logger, directories, dry_run):
 
     # Verify in runtime dir only
     logger.info(f"Verifying executables in {runtime_dir}")
-    for file in runtime_dir.glob('**/*.py'):
-        if not os.access(file, os.X_OK):
-            if dry_run:
-                logger.info(f"[Dry Run] Would set executable on {file}")
-            else:
-                os.chmod(file, 0o755)
-                logger.info(f"Set executable on {file}")
-
-    for file in runtime_dir.glob('**/*.sh'):
+    for file in itertools.chain(runtime_dir.glob('**/*.py'), runtime_dir.glob('**/*.sh')):  # Use chain again
         if not os.access(file, os.X_OK):
             if dry_run:
                 logger.info(f"[Dry Run] Would set executable on {file}")
