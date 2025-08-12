@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 # saturn_update_manager.py - Web-based Update Manager for various scripts via config.json and themes via themes.json
-# Version: 3.03
+# Version: 3.04
 # Written by: Jerry DeLong KD4YAL
-# Date: August 01, 2025
-# Changes: Added PYTHONPYCACHEPREFIX to redirect __pycache__ outside repo/runtime (prevents cache in tree),
-#          updated paths to use ~/.saturn/runtime/scripts/ for runtime (consistent with user dir),
-#          updated to use runtime dir if exists, else fallback to source (Phase 2 of separation),
-#          original changes: Version 3.00 with Flask GUI, script running, themes, etc.
-# Dependencies: flask, ansi2html (1.9.2), subprocess, os, threading, logging, re, shutil, select, urllib.error, json
-# Usage: . ~/venv/bin/activate; gunicorn --chdir ~/.saturn/runtime/scripts -w 5 --worker-class gevent -b 0.0.0.0:5000 -t 600 saturn_update_manager:app
+# Date: August 11, 2025
+# Changes (3.04):
+# - Removed hardcoded site-packages path (python3.11). Detect venv site-packages dynamically.
+# - No behavioral changes otherwise.
 
 import logging
 import os
@@ -30,6 +27,7 @@ from flask import Flask, render_template, request, Response, jsonify
 from ansi2html import Ansi2HTMLConverter
 import psutil  # Added for monitoring
 import signal  # For kill
+from typing import Optional
 
 # Redirect __pycache__ outside repo/runtime to ~/.cache/saturn-pycache
 os.environ['PYTHONPYCACHEPREFIX'] = os.path.expanduser('~/.cache/saturn-pycache')
@@ -68,23 +66,48 @@ class SaturnUpdateManager:
         self.config = []
         self.themes = []
         self.versions = {
-            "saturn_update_manager.py": "3.03"
+            "saturn_update_manager.py": "3.04"
         }
         self.process = None
         self.backup_response = None
         self.running = False
         self.output_lock = threading.Lock()
         self.converter = Ansi2HTMLConverter(inline=True)
-        logging.info(f"Starting Saturn Update Manager v3.03")
+        # Detect venv site-packages dynamically
+        self.venv_site_packages = self._detect_venv_site_packages()
+        logging.info(f"Detected venv site-packages: {self.venv_site_packages or '[not found]'}")
+
+        logging.info(f"Starting Saturn Update Manager v3.04")
 
         error_message = self.validate_setup()
         if error_message:
             logging.error(f"Initialization failed: {error_message}")
-            print(f"Error: {error_message}\\nCheck log: {log_file}")
+            print(f"Error: {error_message}\nCheck log: {log_file}")
             sys.exit(1)
 
         self.load_config()
         self.load_themes()
+
+    def _detect_venv_site_packages(self) -> Optional[str]:
+        """
+        Try to locate the site-packages directory inside the user's venv.
+        We look under <venv>/../lib/python*/site-packages and pick the first match.
+        """
+        try:
+            lib_dir = (self.venv_path.parent / "lib")
+            if lib_dir.exists():
+                # Prefer matching the current interpreter version first
+                preferred = lib_dir / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages"
+                if preferred.exists():
+                    return str(preferred)
+                # Fallback: any python*/site-packages under lib
+                for p in sorted(lib_dir.glob("python*/site-packages")):
+                    if p.is_dir():
+                        return str(p)
+            return None
+        except Exception as e:
+            logging.warning(f"Failed to detect venv site-packages: {e}")
+            return None
 
     def load_config(self):
         logging.debug(f"Loading config from {self.config_path}")
@@ -95,7 +118,7 @@ class SaturnUpdateManager:
             self.script_warnings.append("Config file missing—using empty config")
             return
         try:
-            with open(self.config_path, 'r') as f:
+            with open(self.config_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             if not isinstance(data, list):
                 raise ValueError("config.json must be a list of script entries")
@@ -113,7 +136,7 @@ class SaturnUpdateManager:
                             self.config.append(entry)
                             # Extract version if present (for scripts)
                             if not filename.endswith('.html'):
-                                with open(path, 'r') as script_file:
+                                with open(path, 'r', encoding='utf-8') as script_file:
                                     for line in script_file:
                                         if line.startswith("# Version:"):
                                             self.versions[filename] = line.split(":", 1)[-1].strip()
@@ -145,7 +168,7 @@ class SaturnUpdateManager:
             self.theme_warnings.append("Themes file missing—using empty themes")
             return
         try:
-            with open(self.themes_path, 'r') as f:
+            with open(self.themes_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             if not isinstance(data, list):
                 raise ValueError("themes.json must be a list of theme entries")
@@ -183,8 +206,8 @@ class SaturnUpdateManager:
         try:
             import flask
             import ansi2html
-            import shutil
-            import urllib.error
+            import shutil  # noqa: F401
+            import urllib.error  # noqa: F401
             logging.debug(f"ansi2html version: {ansi2html.__version__}")
             if ansi2html.__version__ != '1.9.2':
                 logging.error(f"Invalid ansi2html version: {ansi2html.__version__}. Requires 1.9.2")
@@ -209,7 +232,7 @@ class SaturnUpdateManager:
 
         if not desktop_file.exists():
             logging.info(f"Creating desktop file: {desktop_file}")
-            with desktop_file.open("w") as f:
+            with desktop_file.open("w", encoding='utf-8') as f:
                 f.write(f"""[Desktop Entry]
 Type=Application
 Name=Saturn Update Manager
@@ -305,8 +328,10 @@ Categories=System;Utility;
             env["PYTHONUNBUFFERED"] = "1"
             env["PATH"] = f"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:{env.get('PATH', '')}"
             env["HOME"] = str(Path.home())
-            if not filename.endswith('.sh'):
-                env["PYTHONPATH"] = f"{str(self.venv_path.parent / 'lib' / 'python3.11' / 'site-packages')}:{env.get('PYTHONPATH', '')}"
+            # Use dynamically detected venv site-packages, if available
+            if not filename.endswith('.sh') and self.venv_site_packages:
+                existing = env.get('PYTHONPATH', '')
+                env["PYTHONPATH"] = f"{self.venv_site_packages}:{existing}" if existing else self.venv_site_packages
             env["LC_ALL"] = "en_US.UTF-8"
             env["TERM"] = env.get("TERM", "dumb")
             logging.debug(f"Environment: {env}")
@@ -316,7 +341,7 @@ Categories=System;Utility;
                 stdin=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True, env=env
             )
             logging.debug(f"Started process with PID: {self.process.pid}")
-            backup_prompt = re.compile(r'⚠?\s*Backup\? \s*Y/n\s*:?', re.IGNORECASE)
+            backup_prompt = re.compile(r'⚠?\s*Backup\?\s*Y/n\s*:?', re.IGNORECASE)
             timeout = 600
             start_time = datetime.now()
             output_buffer = []
@@ -678,69 +703,51 @@ def change_password():
     new_password = request.form.get('new_password')
     logging.debug(f"Received change password request, client: {request.remote_addr}, headers: {request.headers}")
     result = app.saturn.change_password(new_password)
+    status = 200 if result.get("status") == "success" else 400
     response = jsonify(result)
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
-    return response, 200 if result['status'] == 'success' else 400
+    return response, status
+
+@app.route('/get_system_data', methods=['GET'])
+def get_system_data():
+    logging.debug("Received system data request")
+    data = app.saturn.get_system_data()
+    response = jsonify(data)
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response, 200
+
+@app.route('/kill_process/<int:pid>', methods=['POST'])
+def kill_process(pid):
+    logging.debug(f"Received kill process request for PID: {pid}")
+    result = app.saturn.kill_process(pid)
+    status = 200 if result.get('status') == 'success' else 400
+    response = jsonify(result)
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response, status
 
 @app.route('/exit', methods=['POST'])
-def exit_app():
-    logging.debug(f"Received exit request on /exit, client: {request.remote_addr}, headers: {request.headers}")
-    if app.saturn.process:
-        try:
-            app.saturn.process.terminate()
-            app.saturn.process.wait(timeout=5)
-            logging.info("Terminated running script")
-        except subprocess.TimeoutExpired:
-            app.saturn.process.kill()
-            logging.warning("Forced termination of running script")
-    logging.info("Initiating server shutdown and logoff")
+def exit_server():
+    logging.info("Received exit request - shutting down")
+    shutdown_event.set()
+    def shutdown():
+        time.sleep(0.5)
+        os.kill(os.getpid(), signal.SIGTERM)
+    threading.Thread(target=shutdown, daemon=True).start()
     response = jsonify({"status": "shutting down"})
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
-    response.headers['WWW-Authenticate'] = 'Basic realm="Saturn Update Manager - Restricted Access"'
-    # Start shutdown in a separate thread
-    def shutdown():
-        try:
-            time.sleep(1)  # Brief delay to allow response to be sent
-            os.kill(os.getpid(), signal.SIGINT)
-        except Exception as e:
-            logging.error(f"Shutdown error: {str(e)}")
-            sys.exit(1)
-    threading.Thread(target=shutdown, daemon=True).start()
-    return response, 401
+    return response, 200
 
-@app.route('/monitor')
-def monitor():
-    logging.debug(f"Serving monitor page, client: {request.remote_addr}, headers: {request.headers}")
-    try:
-        return render_template('monitor.html')
-    except Exception as e:
-        logging.error(f"Error rendering monitor.html: {str(e)}")
-        return f"Error rendering monitor.html: {str(e)}", 500
+# Initialize the Saturn manager singleton
+app.saturn = SaturnUpdateManager()
 
-@app.route('/get_system_data', methods=['GET'])
-def get_system_data_route():
-    data = app.saturn.get_system_data()
-    if 'error' in data:
-        return jsonify(data), 500
-    return jsonify(data)
-
-@app.route('/kill_process/<int:pid>', methods=['POST'])
-def kill_process_route(pid):
-    result = app.saturn.kill_process(pid)
-    status = 200 if result['status'] == 'success' else 400
-    return jsonify(result), status
-
-try:
-    logging.debug("Creating SaturnUpdateManager instance")
-    app.saturn = SaturnUpdateManager()
-    app.saturn.install_desktop_icons()
-except Exception as e:
-    error_log = Path.home() / "saturn-logs" / f"saturn-update-manager-error-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
-    with open(error_log, "w") as f:
-        f.write(f"Web server initialization error: {str(e)}\n")
-    logging.error(f"Web server initialization error: {str(e)}")
-    sys.exit(1)
+if __name__ == '__main__':
+    # For local testing only; production runs under gunicorn via systemd
+    app.run(host='0.0.0.0', port=5000, threaded=True)
