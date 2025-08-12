@@ -564,6 +564,15 @@ def index():
         logging.error(f"Error rendering index.html: {str(e)}")
         return f"Error rendering index.html: {str(e)}", 500
 
+@app.route('/monitor')
+def monitor():
+    logging.debug(f"Serving monitor page, client: {request.remote_addr}, headers: {request.headers}")
+    try:
+        return render_template('monitor.html')
+    except Exception as e:
+        logging.error(f"Error rendering monitor.html: {str(e)}")
+        return f"Error rendering monitor.html: {str(e)}", 500
+
 @app.route('/get_scripts', methods=['GET'])
 def get_scripts():
     logging.debug(f"Fetching available scripts for /get_scripts, client: {request.remote_addr}, headers: {request.headers}")
