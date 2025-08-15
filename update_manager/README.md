@@ -1,6 +1,6 @@
-# Saturn-Go
+# Saturn Go
 
-**Saturn-Go** is the Go-powered successor to the original **Saturn Update Manager**.  
+**Saturn Go** is the Go-powered successor to the original **Saturn Update Manager**.  
 It provides a **web-based management interface** for running maintenance scripts, monitoring system resources, and handling backups.  
 This version replaces the Python/Flask backend with a **lightweight Go HTTP API server** for better performance and resource usage while keeping the same web UI design.
 
