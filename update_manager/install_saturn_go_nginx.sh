@@ -35,11 +35,22 @@ fi
 # =========================
 info "Installing system dependencies..."
 export DEBIAN_FRONTEND=noninteractive
+
+# Detect Buster
+DIST_CODENAME="$(. /etc/os-release && echo "${VERSION_CODENAME:-}")"
 apt-get update -qq
-apt-get install -y -qq \
-  nginx apache2-utils golang-go build-essential pkg-config \
-  libgtk-3-dev libcurl4-openssl-dev libasound2-dev libusb-1.0-0-dev \
-  curl git python3 python3-venv
+
+# Base packages we actually need
+APT_PKGS="nginx apache2-utils build-essential pkg-config \
+          libgtk-3-dev libcurl4-openssl-dev libasound2-dev libusb-1.0-0-dev \
+          curl git python3 python3-venv"
+
+# Only add golang from apt on non-Buster systems
+if [[ "$DIST_CODENAME" != "buster" ]]; then
+  APT_PKGS="$APT_PKGS golang-go"
+fi
+
+apt-get install -y -qq $APT_PKGS
 ok "Dependencies installed"
 
 # =========================
@@ -50,13 +61,22 @@ VENV_DIR="/home/${SUDO_USER:-$USER}/venv"
 if [[ -d "$VENV_DIR" ]]; then
   warn "Venv already exists at $VENV_DIR; skipping creation."
 else
-  su - "${SUDO_USER:-$USER}" -c "python3 -m venv ~/venv"
+  su - "${SUDO_USER:-$USER}" -c 'python3 -m venv ~/venv'
   ok "Venv created at $VENV_DIR"
 fi
-# pin pyfiglet like last night
-su - "${SUDO_USER:-$USER}" -c "source ~/venv/bin/activate && pip install --no-input pyfiglet==1.0.3 && deactivate"
-ok "Python dependencies installed"
 
+# Install pyfiglet with Buster fallback (1.0.3 not on Buster)
+# Use single quotes so nothing like $3 is expanded under set -u
+su - "${SUDO_USER:-$USER}" -c '
+  set -e
+  . ~/venv/bin/activate
+  if ! pip install --no-input "pyfiglet==1.0.3"; then
+    echo "[INFO] Falling back to pyfiglet==1.0.0 for Buster"
+    pip install --no-input "pyfiglet==1.0.0"
+  fi
+  deactivate
+'
+ok "Python dependencies installed"
 # =========================
 # Directories
 # =========================
@@ -190,7 +210,23 @@ ok "Script permissions set (exec on .sh/.py)"
 # =========================
 info "Writing embedded Go server source..."
 mkdir -p "$SRC_DIR"
-
+# =========================
+# Go toolchain (upgrade on old distros)
+# =========================
+ARCH="$(dpkg --print-architecture)"
+if [[ "$ARCH" == "armhf" ]]; then
+  info "Installing modern Go toolchain (1.20.x) for armhf…"
+  TMPGO="$(mktemp -d)"
+  trap 'rm -rf "$TMPGO"' EXIT
+  curl -fsSL https://go.dev/dl/go1.20.14.linux-armv6l.tar.gz -o "$TMPGO/go.tgz"
+  rm -rf /usr/local/go
+  tar -C /usr/local -xzf "$TMPGO/go.tgz"
+  echo 'export PATH=/usr/local/go/bin:$PATH' >/etc/profile.d/go.sh
+  chmod 644 /etc/profile.d/go.sh
+  export PATH=/usr/local/go/bin:$PATH
+  hash -r
+  ok "Go $(go version) installed"
+fi
 # go.mod (match installed Go major.minor to avoid tidy/version errors)
 cat >"$SATURN_ROOT/go.mod" <<EOF
 module saturn.local/saturn-go
@@ -708,14 +744,28 @@ ok "Go sources written"
 # =========================
 info "Building Go binary..."
 pushd "$SATURN_ROOT" >/dev/null
-# Avoid tidy explosions on older Go: try, but don't fail hard
-if command -v go >/dev/null 2>&1; then
-  go mod tidy || warn "go mod tidy warning (ignored)"
-fi
+
+GO_BIN="/usr/local/go/bin/go"
+command -v "$GO_BIN" >/dev/null 2>&1 || GO_BIN="go"  # fallback if not armhf
+
+# keep the go directive current
+$GO_BIN mod tidy || warn "go mod tidy warning (ignored)"
+
 mkdir -p "$BIN_DIR"
-GOOS=linux GOARCH=$(dpkg --print-architecture | sed 's/armhf/arm/') go build -o "$BIN_DIR/saturn-go" "$SRC_DIR"
+
+# Map Debian arch to Go arch
+DEB_ARCH="$(dpkg --print-architecture)"
+case "$DEB_ARCH" in
+  armhf) GOARCH="arm" ;;
+  arm64) GOARCH="arm64" ;;
+  amd64) GOARCH="amd64" ;;
+  *)     GOARCH="" ;; # let Go pick
+esac
+
+env GOOS=linux ${GOARCH:+GOARCH=$GOARCH} "$GO_BIN" build -o "$BIN_DIR/saturn-go" "$SRC_DIR"
 popd >/dev/null
 ok "Go binary built -> $BIN_DIR/saturn-go"
+
 # =========================
 # NGINX (SSE + static + API)
 # =========================
