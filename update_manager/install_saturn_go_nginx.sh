@@ -716,7 +716,6 @@ mkdir -p "$BIN_DIR"
 GOOS=linux GOARCH=$(dpkg --print-architecture | sed 's/armhf/arm/') go build -o "$BIN_DIR/saturn-go" "$SRC_DIR"
 popd >/dev/null
 ok "Go binary built -> $BIN_DIR/saturn-go"
-
 # =========================
 # NGINX (SSE + static + API)
 # =========================
@@ -732,7 +731,7 @@ NGINX
 
 cat >"$NGINX_SITE" <<'NGINX'
 server {
-  listen 80;
+  listen 80 default_server;
   server_name _;
 
   # Exact API routes
@@ -795,11 +794,26 @@ if [[ ! -s "$BASIC_AUTH_FILE" ]]; then
   chown www-data:www-data "$BASIC_AUTH_FILE"
 fi
 
+# Ensure only our site is enabled; disable Debian default if present
+rm -f /etc/nginx/sites-enabled/default || true
 ln -sf "$NGINX_SITE" "$NGINX_SITE_LINK" || true
-nginx -t
-systemctl reload nginx
-ok "NGINX configured"
 
+# If Apache is holding port 80, stop/disable it
+if ss -ltnp | grep -q ':80 ' && ss -ltnp | grep -qi apache2; then
+  systemctl stop apache2 || true
+  systemctl disable apache2 || true
+fi
+
+nginx -t
+
+# Start or reload nginx intelligently
+if systemctl is-active --quiet nginx; then
+  systemctl reload nginx || true
+else
+  systemctl enable --now nginx || true
+fi
+
+ok "NGINX configured"
 # =========================
 # systemd
 # =========================
