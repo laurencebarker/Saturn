@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Add ansi_up library for ANSI color support -->
+    <script src="https://cdn.jsdelivr.net/npm/ansi_up@5.2.1/ansi_up.min.js"></script>
     <style>
         :root {
             --primary-50: #eff6ff;
@@ -15,7 +17,6 @@
             --primary-600: #2563eb;
             --primary-700: #1d4ed8;
             --primary-900: #1e3a8a;
-
             --gray-50: #f9fafb;
             --gray-100: #f3f4f6;
             --gray-200: #e5e7eb;
@@ -26,7 +27,6 @@
             --gray-700: #374151;
             --gray-800: #1f2937;
             --gray-900: #111827;
-
             --success-500: #10b981;
             --warning-500: #f59e0b;
             --danger-500: #ef4444;
@@ -150,12 +150,43 @@
             color: #374151;
             border: 1px solid #d1d5db;
         }
-        .ansi_31 { color: #ff5555 !important; }
-        .ansi_32 { color: #55ff55 !important; }
-        .ansi_33 { color: #ffff55 !important; }
-        .ansi_34 { color: #5555ff !important; }
-        .ansi_36 { color: #55ffff !important; }
-        /* Spinner for loading */
+        /* ANSI color classes from ansi_up */
+        .ansi-black-fg { color: #000; }
+        .ansi-red-fg { color: #A00; }
+        .ansi-green-fg { color: #0A0; }
+        .ansi-yellow-fg { color: #A50; }
+        .ansi-blue-fg { color: #00A; }
+        .ansi-magenta-fg { color: #A0A; }
+        .ansi-cyan-fg { color: #0AA; }
+        .ansi-white-fg { color: #AAA; }
+        .ansi-bright-black-fg { color: #555; }
+        .ansi-bright-red-fg { color: #F55; }
+        .ansi-bright-green-fg { color: #5F5; }
+        .ansi-bright-yellow-fg { color: #FF5; }
+        .ansi-bright-blue-fg { color: #55F; }
+        .ansi-bright-magenta-fg { color: #F5F; }
+        .ansi-bright-cyan-fg { color: #5FF; }
+        .ansi-bright-white-fg { color: #FFF; }
+        .ansi-black-bg { background-color: #000; }
+        .ansi-red-bg { background-color: #A00; }
+        .ansi-green-bg { background-color: #0A0; }
+        .ansi-yellow-bg { background-color: #A50; }
+        .ansi-blue-bg { background-color: #00A; }
+        .ansi-magenta-bg { background-color: #A0A; }
+        .ansi-cyan-bg { background-color: #0AA; }
+        .ansi-white-bg { background-color: #AAA; }
+        .ansi-bright-black-bg { background-color: #555; }
+        .ansi-bright-red-bg { background-color: #F55; }
+        .ansi-bright-green-bg { background-color: #5F5; }
+        .ansi-bright-yellow-bg { background-color: #FF5; }
+        .ansi-bright-blue-bg { background-color: #55F; }
+        .ansi-bright-magenta-bg { background-color: #F5F; }
+        .ansi-bright-cyan-bg { background-color: #5FF; }
+        .ansi-bright-white-bg { background-color: #FFF; }
+        /* Additional styles for bold, underline, etc. (optional) */
+        .ansi-bold { font-weight: bold; }
+        .ansi-underline { text-decoration: underline; }
+        .ansi-italic { font-style: italic; }
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
             border-left-color: var(--primary-500);
@@ -245,7 +276,6 @@
         .checkbox-span {
             color: var(--text-color);
         }
-        /* Flags spans */
         .flag-span {
             color: var(--text-color);
         }
@@ -258,12 +288,10 @@
 <body>
     <div class="container mx-auto p-4 sm:p-6">
         <h1 class="text-3xl font-bold title text-center mb-2">Saturn Update Manager</h1>
-
         <div id="versions" class="rounded-lg shadow-md p-4 mb-4" style="display: none;">
             <h2 class="text-xl font-semibold modal-text mb-2">Script Versions</h2>
             <ul id="version-list" class="list-disc pl-5"></ul>
         </div>
-
         <div class="rounded-lg shadow-md p-4 mb-4 relative glass-card">
             <!-- Loading Spinner -->
             <div id="loader" class="absolute inset-0 flex items-center justify-center bg-opacity-75 hidden">
@@ -300,13 +328,11 @@
                 </div>
             </form>
         </div>
-
         <div class="output-container">
             <!-- Progress Bar -->
             <progress id="progress" value="0" max="100" class="mb-2 hidden"></progress>
             <pre id="output" class="text-sm"></pre>
         </div>
-
         <!-- Backup Prompt Modal -->
         <div id="backup-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
             <div class="rounded-lg p-6 max-w-sm w-full" style="background-color: var(--card-bg);">
@@ -318,7 +344,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Change Password Modal -->
         <div id="password-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
             <div class="rounded-lg p-6 max-w-sm w-full" style="background-color: var(--card-bg);">
@@ -346,11 +371,12 @@
         let selectedFlags = [];
         let selectedBackup = '';
         let stream;
-
+        // Initialize ansi_up for color support
+        const ansi_up = new AnsiUp();
+        ansi_up.use_classes = true; // Use classes for styling
         function showLoader(show) {
             document.getElementById('loader').classList.toggle('hidden', !show);
         }
-
         async function loadVersions() {
             showLoader(true);
             try {
@@ -385,7 +411,6 @@
                 showLoader(false);
             }
         }
-
         async function loadScripts() {
             showLoader(true);
             try {
@@ -448,7 +473,6 @@
                 showLoader(false);
             }
         }
-
         async function loadFlags(filename) {
             showLoader(true);
             try {
@@ -490,7 +514,6 @@
                 showLoader(false);
             }
         }
-
         document.getElementById('script-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             const filename = document.getElementById('script').value;
@@ -501,7 +524,6 @@
             progress.classList.remove('hidden');
             progress.value = 0;
             console.log(`Submitting run request for ${filename}, flags:`, flags);
-
             const restoreDirDiv = document.getElementById('restore-dir-div');
             if (filename === 'restore-backup.sh' && !restoreDirDiv.classList.contains('hidden')) {
                 const restoreDir = document.getElementById('restore-dir-select').value;
@@ -510,7 +532,6 @@
                     flags.push(restoreDir);
                 }
             }
-
             try {
                 const formData = new FormData();
                 formData.append('script', filename);
@@ -546,8 +567,10 @@
                                         console.log('Received BACKUP_PROMPT');
                                         document.getElementById('backup-modal').classList.remove('hidden');
                                     } else {
-                                        output.innerHTML += data + '<br>';
-                                        console.log(`Appended HTML: ${data}`);
+                                        // Convert ANSI to HTML and append
+                                        const htmlData = ansi_up.ansi_to_html(data);
+                                        output.innerHTML += htmlData + '<br>';
+                                        console.log(`Appended HTML: ${htmlData}`);
                                         output.scrollTop = output.scrollHeight;
                                         output.style.height = output.scrollHeight + 'px';
                                         // Parse for progress (example: look for "Progress: 50%")
@@ -571,13 +594,15 @@
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
                             const data = line.substring(6);
-                            console.log(`Received data: {data}`);
+                            console.log(`Received data: ${data}`);
                             if (data === 'BACKUP_PROMPT') {
                                 console.log('Received BACKUP_PROMPT');
                                 document.getElementById('backup-modal').classList.remove('hidden');
                             } else {
-                                output.innerHTML += data + '<br>';
-                                console.log(`Appended HTML: ${data}`);
+                                // Convert ANSI to HTML and append
+                                const htmlData = ansi_up.ansi_to_html(data);
+                                output.innerHTML += htmlData + '<br>';
+                                console.log(`Appended HTML: ${htmlData}`);
                                 output.scrollTop = output.scrollHeight;
                                 output.style.height = output.scrollHeight + 'px';
                                 // Parse for progress (example: look for "Progress: 50%")
@@ -595,14 +620,12 @@
                 progress.classList.add('hidden');
             }
         });
-
         document.getElementById('script').addEventListener('change', function() {
             console.log('Script changed:', this.value);
             if (this.value) {
                 loadFlags(this.value);
             }
         });
-
         document.getElementById('backup-yes').addEventListener('click', function() {
             console.log('Sending backup response: y');
             fetch('./backup_response', {
@@ -617,7 +640,6 @@
                 document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error sending backup response: ${error.message}</span><br>`;
             });
         });
-
         document.getElementById('backup-no').addEventListener('click', function() {
             console.log('Sending backup response: n');
             fetch('./backup_response', {
@@ -632,7 +654,6 @@
                 document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error sending backup response: ${error.message}</span><br>`;
             });
         });
-
         document.getElementById('change-password-btn').addEventListener('click', function() {
             console.log('Opening password change modal');
             document.getElementById('password-modal').classList.remove('hidden');
@@ -640,12 +661,10 @@
             document.getElementById('confirm-password').value = '';
             document.getElementById('password-error').classList.add('hidden');
         });
-
         document.getElementById('password-cancel').addEventListener('click', function() {
             console.log('Closing password change modal');
             document.getElementById('password-modal').classList.add('hidden');
         });
-
         document.getElementById('password-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             const newPassword = document.getElementById('new-password').value;
@@ -657,6 +676,8 @@
                 errorDiv.classList.remove('hidden');
                 return;
             }
+            // Close modal immediately if validation passes
+            document.getElementById('password-modal').classList.add('hidden');
             try {
                 const response = await fetch('./change_password', {
                     method: 'POST',
@@ -667,7 +688,6 @@
                 if (response.ok && data.status === 'success') {
                     console.log('Password changed successfully');
                     document.getElementById('output').innerHTML += `<span style="color:#00FF00">Password changed successfully</span><br>`;
-                    document.getElementById('password-modal').classList.add('hidden');
                 } else {
                     throw new Error(data.message || `HTTP ${response.status}`);
                 }
@@ -676,7 +696,6 @@
                 document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error changing password: ${error.message}</span><br>`;
             }
         });
-
         document.getElementById('exit-btn').addEventListener('click', async function(e) {
             console.log('Initiating exit and logoff');
             try {
@@ -711,20 +730,16 @@
                 document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error during exit: ${error.message}</span><br>`;
             }
         });
-
         document.getElementById('show-versions').addEventListener('change', function() {
             document.getElementById('versions').style.display = this.checked ? 'block' : 'none';
         });
-
         console.log('Loading initial scripts, versions, and themes');
         loadScripts();
         loadVersions();
-
         // Add pop-up for monitor button
         document.getElementById('monitor-btn').addEventListener('click', function() {
             window.open('./monitor', 'SaturnMonitor', 'width=800,height=600,resizable=yes,scrollbars=yes,status=yes');
         });
-
         // Theme toggle
         const themeToggle = document.getElementById('theme-toggle');
         const themeIcon = document.getElementById('theme-icon');
@@ -732,7 +747,6 @@
             e.preventDefault();
             const isLight = document.body.classList.toggle('light');
             localStorage.setItem('theme', isLight ? 'light' : 'dark');
-
             if (isLight) {
                 themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
             } else {
