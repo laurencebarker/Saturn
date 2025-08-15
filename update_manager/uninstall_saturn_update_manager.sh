@@ -11,15 +11,14 @@
 #   --keep-logs          : keep ~/saturn-logs (default is remove)
 #   --keep-runtime       : keep ~/.saturn (default is remove)
 
+#!/usr/bin/env bash
 set -euo pipefail
-
 YES=0
 DRY=0
 PURGE_BACKUPS=0
 REMOVE_VENV=0
 KEEP_LOGS=0
 KEEP_RUNTIME=0
-
 for arg in "$@"; do
   case "$arg" in
     --yes|-y) YES=1 ;;
@@ -31,7 +30,6 @@ for arg in "$@"; do
     *) echo "Unknown flag: $arg" >&2; exit 2 ;;
   esac
 done
-
 # ----- Safety rails -----
 REPO_DIR="$HOME/github/Saturn"
 if [[ -d "$REPO_DIR" ]]; then
@@ -39,11 +37,9 @@ if [[ -d "$REPO_DIR" ]]; then
 else
   echo "ℹ️ Repo directory not found at $REPO_DIR (that's fine)."
 fi
-
 timestamp="$(date +%Y%m%d-%H%M%S)"
 BACKUP_DIR="$HOME/saturn-uninstall-backup-$timestamp"
 mkdir -p "$BACKUP_DIR"
-
 say() { printf "%s\n" "$*"; }
 act() { if [[ $DRY -eq 1 ]]; then printf "[DRY] %s\n" "$*"; else eval "$@"; fi; }
 backup_path() {
@@ -55,34 +51,30 @@ backup_path() {
     act "cp -a \"$p\" \"$dest\""
   fi
 }
-
 confirm() {
   [[ $YES -eq 1 ]] && return 0
   read -r -p "$1 [y/N]: " ans
   [[ "$ans" =~ ^[Yy]$ ]]
 }
-
 need_sudo() {
   if [[ $(id -u) -ne 0 ]]; then echo "sudo"; fi
 }
-
 # ----- Detect managers -----
 SUDO="$(need_sudo || true)"
-
 has_systemd() { command -v systemctl >/dev/null 2>&1; }
-has_nginx()   { command -v nginx >/dev/null 2>&1; }
-has_apache()  { command -v apache2ctl >/dev/null 2>&1 || command -v a2ensite >/dev/null 2>&1; }
-
+has_nginx() { command -v nginx >/dev/null 2>&1; }
+has_apache() { command -v apache2ctl >/dev/null 2>&1 || command -v a2ensite >/dev/null 2>&1; }
+# ----- Port 80 check -----
+say "==> Checking port 80 usage…"
+$SUDO ss -ltnp 'sport = :80' || $SUDO lsof -i :80
 # ----- Stop services/processes -----
 say "==> Stopping services/processes…"
-
 # Potential unit names (keep flexible)
 CANDIDATE_UNITS=(
   "saturn-update-manager.service"
   "saturn_update_manager.service"
   "saturn-update-manager"
 )
-
 if has_systemd; then
   for u in "${CANDIDATE_UNITS[@]}"; do
     if $SUDO systemctl is-enabled "$u" >/dev/null 2>&1 || $SUDO systemctl is-active "$u" >/dev/null 2>&1; then
@@ -92,7 +84,6 @@ if has_systemd; then
     fi
   done
 fi
-
 # Kill any stray gunicorn/flask serving Saturn
 say " • Killing likely gunicorn/flask instances (safe best-effort)"
 if [[ $DRY -eq 1 ]]; then
@@ -100,14 +91,13 @@ if [[ $DRY -eq 1 ]]; then
 else
   # shellcheck disable=SC2009
   ps -ef | grep -E 'gunicorn|saturn_update_manager|flask' | grep -v grep || true
-  pids="$(pgrep -f 'gunicorn.*saturn|saturn_update_manager|flask.*saturn' || true)"
+  pids="$(pgrep -f 'gunicorn.*saturn|saturn_update_manager|flask' || true)"
   if [[ -n "${pids:-}" ]]; then
     echo "$pids" | xargs -r $SUDO kill -TERM || true
     sleep 1
     echo "$pids" | xargs -r $SUDO kill -KILL || true
   fi
 fi
-
 # ----- Remove systemd unit file(s) -----
 say "==> Removing systemd units (if present)…"
 SYSTEMD_DIRS=(/etc/systemd/system /lib/systemd/system)
@@ -124,10 +114,8 @@ done
 if has_systemd; then
   act "$SUDO systemctl daemon-reload"
 fi
-
 # ----- Web server cleanup -----
 say "==> Web server cleanup…"
-
 # NGINX site
 if has_nginx; then
   NGINX_AVAIL="/etc/nginx/sites-available/saturn"
@@ -145,13 +133,11 @@ if has_nginx; then
   # try reload if nginx present
   act "$SUDO nginx -t >/dev/null 2>&1 && $SUDO systemctl reload nginx || true"
 fi
-
 # Apache site + htpasswd (back up the htpasswd; user may reuse elsewhere)
 if has_apache; then
   APACHE_SITE_AVAIL="/etc/apache2/sites-available/saturn.conf"
   APACHE_SITE_ENABLED="/etc/apache2/sites-enabled/saturn.conf"
   HTPASSWD="/etc/apache2/.htpasswd"
-
   if [[ -f "$APACHE_SITE_ENABLED" || -L "$APACHE_SITE_ENABLED" ]]; then
     say " • Apache: remove sites-enabled/saturn.conf"
     backup_path "$APACHE_SITE_ENABLED"
@@ -170,14 +156,12 @@ if has_apache; then
   fi
   act "$SUDO apache2ctl configtest >/dev/null 2>&1 && $SUDO systemctl reload apache2 || true"
 fi
-
 # ----- Static UI paths that might have been installed -----
 say "==> Removing installed static UI (if present)…"
 STATIC_PATHS=(
   "/var/lib/saturn-web"
   "/var/www/html/saturn"
 )
-
 for p in "${STATIC_PATHS[@]}"; do
   if [[ -e "$p" ]]; then
     say " • Removing $p"
@@ -185,7 +169,6 @@ for p in "${STATIC_PATHS[@]}"; do
     act "$SUDO rm -rf \"$p\""
   fi
 done
-
 # ----- User-space runtime, logs, desktop shortcut -----
 # Runtime
 RUNTIME_DIR="$HOME/.saturn"
@@ -198,7 +181,6 @@ else
     act "rm -rf \"$RUNTIME_DIR\""
   fi
 fi
-
 # Logs
 LOG_DIR="$HOME/saturn-logs"
 if [[ $KEEP_LOGS -eq 1 ]]; then
@@ -210,7 +192,6 @@ else
     act "rm -rf \"$LOG_DIR\""
   fi
 fi
-
 # __pycache__ redirect folder used by the app
 CACHE_DIR="$HOME/.cache/saturn-pycache"
 if [[ -d "$CACHE_DIR" ]]; then
@@ -218,7 +199,6 @@ if [[ -d "$CACHE_DIR" ]]; then
   backup_path "$CACHE_DIR"
   act "rm -rf \"$CACHE_DIR\""
 fi
-
 # Desktop shortcut
 DESKTOP_FILE="$HOME/Desktop/SaturnUpdateManager.desktop"
 if [[ -f "$DESKTOP_FILE" ]]; then
@@ -226,7 +206,6 @@ if [[ -f "$DESKTOP_FILE" ]]; then
   backup_path "$DESKTOP_FILE"
   act "rm -f \"$DESKTOP_FILE\""
 fi
-
 # ----- Optional: backups purge -----
 if [[ $PURGE_BACKUPS -eq 1 ]]; then
   say "==> Purging user backup archives (saturn & pihpsdr) in ~/"
@@ -241,7 +220,6 @@ if [[ $PURGE_BACKUPS -eq 1 ]]; then
 else
   say "==> Leaving your backup archives in place (use --purge-backups to remove)"
 fi
-
 # ----- Optional: remove venv -----
 if [[ $REMOVE_VENV -eq 1 ]]; then
   VENV="$HOME/venv"
@@ -253,7 +231,19 @@ if [[ $REMOVE_VENV -eq 1 ]]; then
 else
   say "==> Leaving your virtualenv in place (use --remove-venv to delete ~/venv)"
 fi
-
+# ----- Apache uninstall (as requested) -----
+say "==> Uninstalling Apache (stop/disable/remove package)…"
+if has_apache; then
+  say " • Stopping Apache"
+  act "$SUDO systemctl stop apache2 || true"
+  say " • Disabling Apache"
+  act "$SUDO systemctl disable apache2 || true"
+  say " • Removing Apache package"
+  act "$SUDO apt remove -y apache2 || true"
+  act "$SUDO apt autoremove -y || true"
+else
+  say " • Apache not found; skipping uninstall"
+fi
 # ----- Final confirmation -----
 say ""
 say "Backup of removed items stored in: $BACKUP_DIR"
