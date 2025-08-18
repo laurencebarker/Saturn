@@ -1,435 +1,344 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saturn System Monitor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/heroicons@2.0.13/24/outline/esm/index.js"></script> <!-- For icons -->
-    <style>
-        :root {
-            --bg-color: #1a1a1a;
-            --text-color: #e5e7eb;
-            --primary-color: #3b82f6;
-            --secondary-color: #10b981;
-            --card-bg: #2d2d2d;
-            --accent-color: #ff69b4;
-            --shadow-color: rgba(0, 0, 0, 0.5);
-        }
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Saturn Go System Monitor</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1f2937; --fg:#ffffff; --glass:rgba(255,255,255,0.08); --line:rgba(255,255,255,0.2);
+    --chart-h: 220px;
+  }
+  body.light{ --bg:#f3f4f6; --fg:#111827; --glass:rgba(0,0,0,0.04); --line:rgba(0,0,0,0.08) }
+  body{
+    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background: radial-gradient(900px 600px at 0% 0%, rgba(59,130,246,.22), transparent 60%),
+                radial-gradient(800px 500px at 100% 0%, rgba(16,185,129,.16), transparent 55%),
+                var(--bg);
+    color:var(--fg); min-height:100vh;
+  }
+  .glass{ background:var(--glass); border:1px solid var(--line); border-radius:16px; }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
-            position: relative; /* For absolute loader */
-        }
+  /* Responsive chart containers that actually shrink */
+  .chart-box{ position:relative; height:var(--chart-h); }
+  .chart-box canvas{ position:absolute; inset:0; width:100% !important; height:100% !important; }
+  @media (max-width: 1024px){ :root{ --chart-h: 180px; } }
+  @media (max-width: 768px){  :root{ --chart-h: 150px; } }
+  @media (max-width: 420px){  :root{ --chart-h: 130px; } }
 
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px var(--shadow-color);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 12px var(--shadow-color);
-        }
-
-        .btn {
-            transition: background-color 0.3s, transform 0.2s;
-        }
-
-        .btn:hover {
-            transform: scale(1.05);
-        }
-
-        .table-row:hover {
-            background-color: #3d3d3d;
-            transition: background-color 0.2s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        .chart-container {
-            position: relative;
-            width: 100%;
-            height: 250px; /* Fixed height */
-        }
-
-        canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        .table-wrapper {
-            max-height: 400px; /* Fixed max-height with scroll */
-            overflow-y: auto;
-        }
-
-        [data-tooltip] {
-            position: relative;
-        }
-
-        [data-tooltip]::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #333;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            white-space: nowrap;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
-
-        [data-tooltip]:hover::after {
-            opacity: 1;
-        }
-
-        @media (max-width: 1024px) {
-            .chart-container {
-                height: 220px;
-            }
-            .table-wrapper {
-                max-height: 350px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .chart-container {
-                height: 200px;
-            }
-            .table-wrapper {
-                max-height: 300px;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .container {
-                padding: 1rem;
-            }
-            .chart-container {
-                height: 180px;
-            }
-            .table-wrapper {
-                max-height: 250px;
-            }
-        }
-    </style>
+  /* Compact table on small screens */
+  @media (max-width:640px){
+    th, td { padding-left:.5rem !important; padding-right:.5rem !important; }
+    #proc-search{ width:100% !important; }
+  }
+</style>
 </head>
-<body class="min-h-screen p-4 sm:p-6">
-    <div class="max-w-7xl mx-auto">
-        <h1 class="text-3xl sm:text-4xl font-bold text-red-500 text-center mb-6 fade-in">Saturn System Monitor</h1>
-        <div class="flex flex-wrap justify-center space-x-4 mb-8 fade-in">
-            <a href="/saturn/" class="btn bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg shadow-md hover:bg-green-600 flex items-center mb-2 sm:mb-0" data-tooltip="Return to main dashboard">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                Back to Update Manager
-            </a>
-            <button id="refresh-btn" class="btn bg-pink-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg shadow-md hover:bg-pink-600 flex items-center" data-tooltip="Manually refresh data">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                Refresh
-            </button>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
-            <div class="card p-4 sm:p-6 fade-in">
-                <h2 class="text-xl sm:text-2xl font-semibold mb-4">CPU Usage (Per Core)</h2>
-                <div class="chart-container">
-                    <canvas id="cpuChart"></canvas>
-                </div>
-                <p id="cpuInfo" class="text-sm text-gray-400 mt-2 text-center"></p>
-            </div>
-            <div class="card p-4 sm:p-6 fade-in">
-                <h2 class="text-xl sm:text-2xl font-semibold mb-4">Memory Usage</h2>
-                <div class="chart-container">
-                    <canvas id="memoryChart"></canvas>
-                </div>
-                <p id="memoryInfo" class="text-sm text-gray-400 mt-2 text-center"></p>
-            </div>
-            <div class="card p-4 sm:p-6 fade-in">
-                <h2 class="text-xl sm:text-2xl font-semibold mb-4">Disk Usage</h2>
-                <div class="chart-container">
-                    <canvas id="diskChart"></canvas>
-                </div>
-                <p id="diskInfo" class="text-sm text-gray-400 mt-2 text-center"></p>
-            </div>
-            <div class="card p-4 sm:p-6 fade-in">
-                <h2 class="text-xl sm:text-2xl font-semibold mb-4">Network Traffic</h2>
-                <div class="chart-container">
-                    <canvas id="networkChart"></canvas>
-                </div>
-                <p id="networkInfo" class="text-sm text-gray-400 mt-2 text-center"></p>
-            </div>
-        </div>
-        <div class="card p-4 sm:p-6 fade-in">
-            <h2 class="text-xl sm:text-2xl font-semibold mb-4">Processes</h2>
-            <div class="table-wrapper">
-                <table class="min-w-full text-sm divide-y divide-gray-600">
-                    <thead class="bg-gray-700 sticky top-0">
-                        <tr>
-                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(0)">PID</th>
-                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(1)">User</th>
-                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(2)">CPU %</th>
-                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(3)">Memory %</th>
-                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider" onclick="sortTable(4)">Command</th>
-                            <th class="px-3 sm:px-6 py-3 text-left font-medium uppercase tracking-wider">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="processBody" class="divide-y divide-gray-600">
-                        <!-- Rows added by JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<body class="min-h-screen p-4 lg:p-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-extrabold">Saturn Go System Monitor</h1>
+        <p class="opacity-80">Realtime system performance</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="/saturn/" class="px-4 py-2 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20">Back</a>
+        <button id="theme-toggle" class="px-3 py-2 rounded-lg bg-white/10 border border-white/20" title="Toggle theme">
+          <svg id="theme-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+             d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
-    <script>
-        let cpuChart, memoryChart, diskChart, networkChart;
-        let cpuData = [];
-        let memoryData = [];
-        let diskData = [];
-        let sentData = [];
-        let recvData = [];
-        let labels = [];
-        let lastNet = { sent: 0, recv: 0 };
-        let lastTime = Date.now();
-        let sortCol = 2; // CPU
-        let sortDir = -1; // Desc
+    <!-- Top stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      <div class="glass p-4">
+        <div class="text-sm opacity-80 mb-1">CPU Avg</div>
+        <div id="cpu-avg" class="text-3xl font-extrabold">0%</div>
+        <div id="cpu-cores" class="opacity-80 text-sm">-</div>
+      </div>
+      <div class="glass p-4">
+        <div class="text-sm opacity-80 mb-1">Memory</div>
+        <div id="mem-pct" class="text-3xl font-extrabold">0%</div>
+        <div id="mem-info" class="opacity-80 text-sm">-</div>
+      </div>
+      <div class="glass p-4">
+        <div class="text-sm opacity-80 mb-1">Disk</div>
+        <div id="disk-pct" class="text-3xl font-extrabold">0%</div>
+        <div id="disk-info" class="opacity-80 text-sm">-</div>
+      </div>
+      <div class="glass p-4">
+        <div class="text-sm opacity-80 mb-1">Network</div>
+        <div id="net-sent" class="font-bold">↑ 0 B/s</div>
+        <div id="net-recv" class="font-bold">↓ 0 B/s</div>
+      </div>
+    </div>
 
-        const shadowPlugin = {
-            id: 'shadowPlugin',
-            beforeDraw: (chart) => {
-                const ctx = chart.ctx;
-                ctx.save();
-                ctx.shadowColor = 'rgba(0,0,0,0.3)';
-                ctx.shadowBlur = 8;
-                ctx.shadowOffsetX = 2;
-                ctx.shadowOffsetY = 2;
-                chart.getDatasetMeta(0).dataset.draw(ctx); // Draw shadow for first dataset; adjust for multi
-                ctx.restore();
-            }
-        };
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+      <div class="glass p-4">
+        <h3 class="font-bold mb-2">CPU (per core)</h3>
+        <div class="chart-box"><canvas id="cpuChart"></canvas></div>
+      </div>
+      <div class="glass p-4">
+        <h3 class="font-bold mb-2">Memory (%)</h3>
+        <div class="chart-box"><canvas id="memChart"></canvas></div>
+      </div>
+      <div class="glass p-4">
+        <h3 class="font-bold mb-2">Disk (%)</h3>
+        <div class="chart-box"><canvas id="diskChart"></canvas></div>
+      </div>
+      <div class="glass p-4">
+        <h3 class="font-bold mb-2">Network (MB/s)</h3>
+        <div class="chart-box"><canvas id="netChart"></canvas></div>
+      </div>
+    </div>
 
-        function initCharts(numCores) {
-            labels = Array(60).fill('');
-            cpuData = Array(numCores).fill().map(() => Array(60).fill(0));
-            memoryData = Array(60).fill(0);
-            diskData = Array(60).fill(0);
-            sentData = Array(60).fill(0);
-            recvData = Array(60).fill(0);
+    <!-- Processes -->
+    <div class="glass p-4">
+      <div class="flex items-center justify-between mb-3 gap-3">
+        <h3 class="font-bold">Processes</h3>
+        <input id="proc-search" class="px-3 py-2 rounded border border-white/20 bg-white/10 w-64" placeholder="Search…" />
+      </div>
+      <div style="max-height:420px; overflow:auto">
+        <table class="w-full text-sm">
+          <thead class="sticky top-0 bg-black/10">
+            <tr>
+              <th class="text-left px-3 py-2">PID</th>
+              <th class="text-left px-3 py-2">User</th>
+              <th class="text-left px-3 py-2">CPU %</th>
+              <th class="text-left px-3 py-2">Mem %</th>
+              <th class="text-left px-3 py-2">Command</th>
+              <th class="text-left px-3 py-2">Action</th>
+            </tr>
+          </thead>
+          <tbody id="proc-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-            const coreColors = ['#00ff00', '#ff00ff', '#ffa500', '#800080']; // Green, Magenta, Orange, Purple
+<script>
+/* Theme button */
+(function(){
+  const btn = document.getElementById('theme-toggle');
+  const icon = document.getElementById('theme-icon');
+  const stored = localStorage.getItem('theme');
+  const light = stored==='light';
+  document.body.classList.toggle('light', light);
+  icon.innerHTML = light
+    ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>'
+    : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+  btn.addEventListener('click', ()=>{
+    const isLight = document.body.classList.toggle('light');
+    localStorage.setItem('theme', isLight ? 'light':'dark');
+    icon.innerHTML = isLight
+      ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>'
+      : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+  });
+})();
 
-            cpuChart = new Chart('cpuChart', {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: coreColors.slice(0, numCores).map((color, i) => ({
-                        label: `Core ${i}`,
-                        data: cpuData[i],
-                        borderColor: color,
-                        fill: true,
-                        backgroundColor: color.replace(')', ', 0.1)').replace('rgb', 'rgba'), // Low opacity fill for contrast
-                        tension: 0.3,
-                        pointRadius: 0
-                    }))
-                },
-                options: {
-                    scales: { y: { beginAtZero: true, max: 100, grid: { color: '#444' } } },
-                    plugins: { legend: { display: true, position: 'top' } },
-                    interaction: { mode: 'index', intersect: false },
-                    animation: false,
-                    responsive: true,
-                    maintainAspectRatio: false
-                },
-                plugins: [shadowPlugin]
-            });
+/* Monitor logic */
+const GET_SYSTEM_DATA = './get_system_data';
+const $ = (id)=>document.getElementById(id);
 
-            memoryChart = new Chart('memoryChart', {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{ label: 'Memory Usage (%)', data: memoryData, borderColor: '#ff00ff', fill: true, backgroundColor: 'rgba(255,0,255,0.1)', tension: 0.3, pointRadius: 0 }]
-                },
-                options: {
-                    scales: { y: { beginAtZero: true, max: 100, grid: { color: '#444' } } },
-                    plugins: { legend: { display: true, position: 'top' } },
-                    interaction: { mode: 'index', intersect: false },
-                    animation: false,
-                    responsive: true,
-                    maintainAspectRatio: false
-                },
-                plugins: [shadowPlugin]
-            });
+let cpuChart, memChart, diskChart, netChart;
+let labels = Array(60).fill('');
+let memSeries = Array(60).fill(0);
+let diskSeries = Array(60).fill(0);
+let txSeries = Array(60).fill(0);
+let rxSeries = Array(60).fill(0);
+let lastNet = {sent:0, recv:0};
+let lastTime = 0;
 
-            diskChart = new Chart('diskChart', {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{ label: 'Disk Usage (%)', data: diskData, borderColor: '#ffa500', fill: true, backgroundColor: 'rgba(255,165,0,0.1)', tension: 0.3, pointRadius: 0 }]
-                },
-                options: {
-                    scales: { y: { beginAtZero: true, max: 100, grid: { color: '#444' } } },
-                    plugins: { legend: { display: true, position: 'top' } },
-                    interaction: { mode: 'index', intersect: false },
-                    animation: false,
-                    responsive: true,
-                    maintainAspectRatio: false
-                },
-                plugins: [shadowPlugin]
-            });
+function fmtRate(bps){
+  if (!Number.isFinite(bps) || bps < 0) bps = 0;
+  if (bps < 1024) return `${bps.toFixed(0)} B/s`;
+  if (bps < 1024*1024) return `${(bps/1024).toFixed(2)} KB/s`;
+  return `${(bps/1024/1024).toFixed(2)} MB/s`;
+}
 
-            networkChart = new Chart('networkChart', {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [
-                        { label: 'Sent (MB/s)', data: sentData, borderColor: '#ff0000', fill: true, backgroundColor: 'rgba(255,0,0,0.1)', tension: 0.3, pointRadius: 0 },
-                        { label: 'Received (MB/s)', data: recvData, borderColor: '#800080', fill: true, backgroundColor: 'rgba(128,0,128,0.1)', tension: 0.3, pointRadius: 0 }
-                    ]
-                },
-                options: {
-                    scales: { y: { beginAtZero: true, grid: { color: '#444' } } },
-                    plugins: { legend: { display: true, position: 'top' } },
-                    interaction: { mode: 'index', intersect: false },
-                    animation: false,
-                    responsive: true,
-                    maintainAspectRatio: false
-                },
-                plugins: [shadowPlugin]
-            });
-        }
+function makeLineChart(canvasId, label, color, series, max100=true){
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[{
+      label, data:series, borderColor:color, backgroundColor:color+'22',
+      borderWidth:2, fill:true, tension:.35, pointRadius:0
+    }]},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,  // <— key for shrinking
+      animation:false,
+      interaction:{mode:'index', intersect:false},
+      scales:{ y:{ beginAtZero:true, ...(max100?{max:100}:{}) } },
+      plugins:{ legend:{ display:true } }
+    }
+  });
+}
 
-        function updateCharts(data) {
-            const numCores = data.cpu.length;
-            if (!cpuChart) initCharts(numCores);
+function makeCpuChart(n){
+  const ctx = document.getElementById('cpuChart').getContext('2d');
+  const colors = ['#3b82f6','#10b981','#f59e0b','#ef4444','#14b8a6','#6366f1'];
+  const datasets = Array.from({length:n}, (_,i)=>({
+    label:`Core ${i+1}`,
+    data:Array(60).fill(0),
+    borderColor:colors[i%colors.length],
+    backgroundColor:colors[i%colors.length]+'22',
+    borderWidth:2, fill:true, tension:.35, pointRadius:0
+  }));
+  return new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,  // <— key
+      animation:false,
+      interaction:{mode:'index', intersect:false},
+      scales:{ y:{ beginAtZero:true, max:100 } },
+      plugins:{ legend:{ display:true } }
+    }
+  });
+}
 
-            const currentTime = Date.now();
-            const deltaT = (currentTime - lastTime) / 1000 || 1;
-            lastTime = currentTime;
+function ensureCpuChart(n){
+  if (!cpuChart){ cpuChart = makeCpuChart(n); return; }
+  if (cpuChart.data.datasets.length !== n){
+    cpuChart.destroy(); cpuChart = makeCpuChart(n);
+  }
+}
 
-            labels.shift();
-            labels.push(new Date().toLocaleTimeString('en-US', { hour12: false }));
+function shiftPush(arr, v){ arr.shift(); arr.push(v); }
 
-            for (let i = 0; i < numCores; i++) {
-                cpuData[i].shift();
-                cpuData[i].push(data.cpu[i]);
-                cpuChart.data.datasets[i].data = cpuData[i];
-            }
-            const totalCpu = data.cpu.reduce((sum, perc) => sum + perc, 0) / numCores;
-            document.getElementById('cpuInfo').textContent = `Cores: ${numCores}, Total Usage: ${totalCpu.toFixed(1)}%`;
-            cpuChart.data.labels = labels;
-            cpuChart.update('none');
+function renderProcesses(list){
+  const body = $('proc-body');
+  body.innerHTML = '';
+  (list||[]).forEach(p=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="px-3 py-2">${p.pid}</td>
+      <td class="px-3 py-2">${p.user}</td>
+      <td class="px-3 py-2">${Number(p.cpu||0).toFixed(1)}</td>
+      <td class="px-3 py-2">${Number(p.memory||0).toFixed(1)}</td>
+      <td class="px-3 py-2">${p.command||''}</td>
+      <td class="px-3 py-2">
+        <button class="px-3 py-1 rounded bg-red-500/80 hover:bg-red-600 text-white"
+                onclick="killProcess(${p.pid})">Kill</button>
+      </td>`;
+    body.appendChild(tr);
+  });
+}
 
-            memoryData.shift();
-            memoryData.push(data.memory.percent);
-            memoryChart.data.datasets[0].data = memoryData;
-            document.getElementById('memoryInfo').textContent = `Used: ${data.memory.used.toFixed(1)} GB / ${data.memory.total.toFixed(1)} GB`;
-            memoryChart.data.labels = labels;
-            memoryChart.update('none');
+async function killProcess(pid){
+  if (!confirm(`Kill process ${pid}?`)) return;
+  try{
+    const r = await fetch(`./kill_process/${pid}`, { method:'POST' });
+    const data = await r.json().catch(()=>({}));
+    alert(data.message || (r.ok ? 'Killed' : `HTTP ${r.status}`));
+  }catch(e){
+    alert(`Failed: ${e.message}`);
+  }finally{
+    try{ update(await fetchOnce()); }catch(_e){}
+  }
+}
+window.killProcess = killProcess;
 
-            diskData.shift();
-            diskData.push(data.disk.percent);
-            diskChart.data.datasets[0].data = diskData;
-            document.getElementById('diskInfo').textContent = `Used: ${data.disk.used.toFixed(1)} GB / ${data.disk.total.toFixed(1)} GB`;
-            diskChart.data.labels = labels;
-            diskChart.update('none');
+function update(data){
+  const cores = Array.isArray(data.cpu) ? data.cpu.length : 1;
+  ensureCpuChart(cores);
 
-            const sentRate = (data.network.sent - lastNet.sent) / deltaT / 1048576;
-            const recvRate = (data.network.recv - lastNet.recv) / deltaT / 1048576;
-            sentData.shift();
-            sentData.push(sentRate);
-            recvData.shift();
-            recvData.push(recvRate);
-            networkChart.data.datasets[0].data = sentData;
-            networkChart.data.datasets[1].data = recvData;
-            document.getElementById('networkInfo').textContent = `Sent: ${(data.network.sent / 1073741824).toFixed(1)} GB, Received: ${(data.network.recv / 1073741824).toFixed(1)} GB`;
-            networkChart.data.labels = labels;
-            networkChart.update('none');
-            lastNet = data.network;
-        }
+  shiftPush(labels, '');
 
-        function updateProcessTable(processes) {
-            processes.sort((a, b) => {
-                const keys = ['pid', 'user', 'cpu', 'memory', 'command'];
-                let valA = a[keys[sortCol]];
-                let valB = b[keys[sortCol]];
-                if (typeof valA === 'number') return sortDir * (valA - valB);
-                valA = valA.toLowerCase();
-                valB = valB.toLowerCase();
-                return sortDir * (valA > valB ? 1 : (valA < valB ? -1 : 0));
-            });
-            const tbody = document.getElementById('processBody');
-            tbody.innerHTML = '';
-            processes.forEach((proc, index) => {
-                const tr = document.createElement('tr');
-                tr.classList.add('table-row', index % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700');
-                tr.innerHTML = `
-                    <td class="px-3 sm:px-6 py-3">${proc.pid}</td>
-                    <td class="px-3 sm:px-6 py-3">${proc.user}</td>
-                    <td class="px-3 sm:px-6 py-3">${proc.cpu.toFixed(1)}</td>
-                    <td class="px-3 sm:px-6 py-3">${proc.memory.toFixed(1)}</td>
-                    <td class="px-3 sm:px-6 py-3 truncate max-w-[150px] sm:max-w-xs">${proc.command}</td>
-                    <td class="px-3 sm:px-6 py-3">
-                        <button class="btn bg-red-500 text-white px-3 py-1 sm:px-4 sm:py-1 rounded-lg shadow hover:bg-red-600 flex items-center" onclick="killProcess(${proc.pid})">
-                            <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                            Kill
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+  for (let i=0;i<cores;i++){
+    const ds = cpuChart.data.datasets[i].data;
+    shiftPush(ds, Number(data.cpu[i]||0));
+  }
+  const avg = (data.cpu||[]).reduce((a,b)=>a+Number(b||0),0)/(cores||1);
+  $('cpu-avg').textContent = `${avg.toFixed(1)}%`;
+  $('cpu-cores').textContent = `${cores} cores`;
 
-        function sortTable(col) {
-            sortDir = (sortCol === col) ? -sortDir : -1;
-            sortCol = col;
-            fetchMetrics();
-        }
+  const mp = Number(data.memory?.percent || 0);
+  shiftPush(memSeries, mp);
+  $('mem-pct').textContent = `${mp.toFixed(1)}%`;
+  $('mem-info').textContent = `${(data.memory?.used||0).toFixed(1)} GB / ${(data.memory?.total||0).toFixed(1)} GB`;
 
-        async function killProcess(pid) {
-            if (confirm(`Are you sure you want to kill process ${pid}? This action cannot be undone.`)) {
-                try {
-                    const res = await fetch(`./kill_process/${pid}`, { method: 'POST' });
-                    if (!res.ok) throw new Error(`Error: ${res.status}`);
-                    const result = await res.json();
-                    alert(result.message);
-                    fetchMetrics();
-                } catch (err) {
-                    alert(`Failed to kill process: ${err.message}`);
-                }
-            }
-        }
+  const dp = Number(data.disk?.percent || 0);
+  shiftPush(diskSeries, dp);
+  $('disk-pct').textContent = `${dp.toFixed(1)}%`;
+  $('disk-info').textContent = `${(data.disk?.used||0).toFixed(1)} GB / ${(data.disk?.total||0).toFixed(1)} GB`;
 
-        async function fetchMetrics() {
-            try {
-                const res = await fetch('./get_system_data');
-                if (!res.ok) throw new Error(`Network response was not ok: ${res.status}`);
-                const data = await res.json();
-                updateCharts(data);
-                updateProcessTable(data.processes);
-            } catch (err) {
-                console.error('Error fetching metrics:', err);
-                document.getElementById('processBody').innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Error loading data: ${err.message}. Please try refreshing.</td></tr>`;
-            }
-        }
+  const now = Date.now();
+  const dt = lastTime ? Math.max(0.001, (now - lastTime)/1000) : 1;
+  lastTime = now;
+  let tx=0, rx=0;
+  if (typeof data.network?.tx_bps === 'number' || typeof data.network?.rx_bps === 'number') {
+    tx = Number(data.network?.tx_bps||0);
+    rx = Number(data.network?.rx_bps||0);
+  } else if (typeof data.network?.sent === 'number' && typeof data.network?.recv === 'number') {
+    if (lastNet.sent===0 && lastNet.recv===0){ lastNet = {sent:data.network.sent, recv:data.network.recv}; }
+    tx = (data.network.sent - lastNet.sent)/dt;
+    rx = (data.network.recv - lastNet.recv)/dt;
+    lastNet = {sent:data.network.sent, recv:data.network.recv};
+  }
+  shiftPush(txSeries, Math.max(0, tx/(1024*1024)));
+  shiftPush(rxSeries, Math.max(0, rx/(1024*1024)));
+  $('net-sent').textContent = `↑ ${fmtRate(tx)}`;
+  $('net-recv').textContent = `↓ ${fmtRate(rx)}`;
 
-        document.getElementById('refresh-btn').addEventListener('click', fetchMetrics);
-        setInterval(fetchMetrics, 5000); // Increased to 5 seconds to reduce blink frequency
-        fetchMetrics();
-    </script>
+  cpuChart.update('none');
+  memChart.data.labels = labels; memChart.data.datasets[0].data = memSeries; memChart.update('none');
+  diskChart.data.labels = labels; diskChart.data.datasets[0].data = diskSeries; diskChart.update('none');
+  netChart.data.labels  = labels; netChart.update('none');
+
+  renderProcesses(data.processes || []);
+}
+
+async function fetchOnce(){
+  const r = await fetch(GET_SYSTEM_DATA, { cache:'no-store' });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+(async function init(){
+  memChart  = makeLineChart('memChart',  'Memory %', '#3b82f6', memSeries, true);
+  diskChart = makeLineChart('diskChart', 'Disk %',   '#10b981', diskSeries, true);
+  // Network chart (no max 100)
+  const ctxNet = document.getElementById('netChart').getContext('2d');
+  netChart  = new Chart(ctxNet, {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'Sent (MB/s)', data:txSeries, borderColor:'#f59e0b', backgroundColor:'#f59e0b22', borderWidth:2, fill:true, tension:.35, pointRadius:0 },
+      { label:'Recv (MB/s)', data:rxSeries, borderColor:'#14b8a6', backgroundColor:'#14b8a622', borderWidth:2, fill:true, tension:.35, pointRadius:0 },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, animation:false, interaction:{mode:'index',intersect:false},
+              scales:{ y:{ beginAtZero:true } } }
+  });
+
+  // Seed network counters so first point is 0 MB/s and draw first frame
+  try{
+    const d = await fetchOnce();
+    if (typeof d.network?.sent === 'number' && typeof d.network?.recv === 'number'){
+      lastNet = {sent:d.network.sent, recv:d.network.recv};
+      lastTime = Date.now();
+    }
+    update(d);
+  }catch(e){ /* ignore once */ }
+
+  setInterval(async ()=>{
+    try{ update(await fetchOnce()); }catch(_e){}
+  }, 3000);
+
+  $('proc-search').addEventListener('input', (e)=>{
+    const q = e.target.value.toLowerCase();
+    Array.from($('proc-body').children).forEach(tr=>{
+      tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+})();
+</script>
 </body>
 </html>

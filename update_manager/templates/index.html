@@ -1,694 +1,520 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saturn Update Manager</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3b82f6',
-                        secondary: '#10b981',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            background-color: var(--bg-color, #f3f4f6);
-            color: var(--text-color, #333333);
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .card {
-            background-color: var(--card-bg, #ffffff);
-        }
-        .btn-primary {
-            background-color: var(--primary-color, #3b82f6);
-        }
-        .btn-secondary {
-            background-color: var(--secondary-color, #10b981);
-        }
-        pre {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            font-family: 'Courier New', monospace;
-            background-color: #1a1a1a;
-            color: #ffffff;
-            padding: 1rem;
-            overflow-y: auto;
-            min-height: 400px;
-            max-height: 500px;
-            line-height: 1.4;
-            margin: 0;
-            border: 1px solid #444;
-            box-sizing: border-box;
-        }
-        .output-container {
-            width: 100%;
-            min-height: 420px;
-            background-color: #1a1a1a;
-            padding: 0;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .container { max-width: 800px; }
-        .ansi_31 { color: #ff5555 !important; }
-        .ansi_32 { color: #55ff55 !important; }
-        .ansi_33 { color: #ffff55 !important; }
-        .ansi_34 { color: #5555ff !important; }
-        .ansi_36 { color: #55ffff !important; }
-        /* Spinner for loading */
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: var(--primary-color);
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        /* Progress bar styling */
-        progress {
-            width: 100%;
-            height: 20px;
-            appearance: none;
-            border: none;
-            background-color: #e5e7eb;
-            border-radius: 0.25rem;
-        }
-        progress::-webkit-progress-bar {
-            background-color: #e5e7eb;
-            border-radius: 0.25rem;
-        }
-        progress::-webkit-progress-value {
-            background-color: var(--primary-color);
-            border-radius: 0.25rem;
-        }
-        progress::-moz-progress-bar {
-            background-color: var(--primary-color);
-            border-radius: 0.25rem;
-        }
-        /* Mobile adjustments */
-        @media (max-width: 640px) {
-            .container { padding: 1rem; }
-            button { padding: 0.75rem 1.5rem; font-size: 1.125rem; }
-            select, input { font-size: 1rem; padding: 0.5rem; }
-        }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Saturn Go Update Manager</title>
+
+<!-- Tailwind (utilities only) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/ansi_up@5.2.1/ansi_up.min.js"></script>
+
+<style>
+  :root{
+    /* Classic dark */
+    --bg-color:#1f2937;        /* slate-800 */
+    --text-color:#ffffff;
+    --card-bg:rgba(31,41,55,0.85);
+    --border:rgba(255,255,255,0.18);
+    --shadow:rgba(0,0,0,0.35);
+    --primary:#3b82f6;         /* blue-500 */
+    --primary-600:#2563eb;     /* blue-600 */
+    --danger:#ef4444;
+    --ok:#10b981;
+    --input-bg:#111827;        /* slate-900 */
+    --input-text:#ffffff;
+  }
+  body.light{
+    /* Classic light */
+    --bg-color:#f9fafb;        /* gray-50 */
+    --text-color:#374151;      /* gray-700 */
+    --card-bg:rgba(255,255,255,0.92);
+    --border:rgba(0,0,0,0.08);
+    --shadow:rgba(0,0,0,0.12);
+    --primary:#2563eb;         /* blue-600 */
+    --primary-600:#1d4ed8;     /* blue-700 */
+    --danger:#dc2626;
+    --ok:#059669;
+    --input-bg:#ffffff;
+    --input-text:#374151;
+  }
+  html,body{height:100%}
+  body{
+    font-family:'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: radial-gradient(1000px 600px at 20% -10%, rgba(59,130,246,.25) 0%, transparent 60%),
+                radial-gradient(800px 500px at 100% 0%, rgba(16,185,129,.18) 0%, transparent 55%),
+                var(--bg-color);
+    color:var(--text-color);
+    transition:background .25s ease, color .25s ease;
+  }
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    box-shadow:0 10px 30px var(--shadow);
+    border-radius:16px;
+  }
+  .btn{
+    border-radius:12px; font-weight:600;
+    transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg, var(--primary), var(--primary-600));
+    color:#fff; box-shadow:0 6px 18px rgba(59,130,246,.35);
+  }
+  .btn-primary:hover{ transform:translateY(-1px); filter:brightness(1.05) }
+  .btn-danger{
+    background:linear-gradient(135deg, var(--danger), #b91c1c);
+    color:#fff; box-shadow:0 6px 18px rgba(239,68,68,.35);
+  }
+  .btn-ghost{
+    background:rgba(255,255,255,.08);
+    border:1px solid var(--border);
+    color:var(--text-color);
+  }
+  .field{
+    background:var(--input-bg);
+    color:var(--input-text);
+    border:1px solid var(--border);
+    border-radius:10px;
+  }
+  pre{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    background:#0a0a0a;
+    color:#fff;
+    min-height:340px; max-height:520px; overflow:auto;
+    border-radius:10px; border:1px solid #333; padding:1rem;
+  }
+  body.light pre{ background:#f3f4f6; color:#111; border-color:#d1d5db }
+  .title{ font-weight:800; letter-spacing:.2px }
+</style>
 </head>
-<body>
-    <div class="container mx-auto p-4 sm:p-6">
-        <h1 class="text-3xl font-bold text-red-600 text-center mb-2">Saturn Update Manager</h1>
-
-        <div id="versions" class="rounded-lg shadow-md p-4 mb-4" style="display: none; background-color: var(--card-bg);">
-            <h2 class="text-xl font-semibold text-gray-700 mb-2">Script Versions</h2>
-            <ul id="version-list" class="list-disc pl-5 text-gray-600"></ul>
-        </div>
-
-        <div class="rounded-lg shadow-md p-4 mb-4 relative" style="background-color: var(--card-bg);">
-            <!-- Loading Spinner -->
-            <div id="loader" class="absolute inset-0 flex items-center justify-center bg-opacity-75 hidden" style="background-color: var(--card-bg);">
-                <div class="spinner"></div>
-            </div>
-            <form id="script-form" class="flex flex-col space-y-4">
-                <div class="flex items-center space-x-4">
-                    <label for="script" class="text-lg font-medium text-gray-700">Select Script:</label>
-                    <select id="script" name="script" class="border rounded px-2 py-1 bg-blue-100 text-blue-800 w-full">
-                        <option value="">Select a script</option>
-                    </select>
-                </div>
-                <div id="flags" class="flex flex-wrap gap-4"></div>
-                <div id="restore-dir-div" class="flex flex-col space-y-2 hidden">
-                    <label for="restore-dir-select" class="text-lg font-medium text-gray-700">Select Backup Directory:</label>
-                    <select id="restore-dir-select" class="border rounded px-2 py-1 bg-blue-100 text-blue-800 w-full">
-                        <option value="">Select...</option>
-                    </select>
-                </div>
-                <div class="flex justify-center space-x-4">
-                    <button type="submit" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Run</button>
-                    <button type="button" id="change-password-btn" class="btn-secondary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Change Password</button>
-                    <button type="button" id="exit-btn" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Exit</button>
-                    <button type="button" id="monitor-btn" class="btn-secondary text-white px-4 py-2 rounded hover:brightness-90 sm:px-6 sm:py-3">Monitor</button>
-                    <label class="flex items-center space-x-2">
-                        <input type="checkbox" id="show-versions" class="form-checkbox h-5 w-5 text-blue-600">
-                        <span>Show Versions</span>
-                    </label>
-                </div>
-            </form>
-        </div>
-
-        <div class="flex flex-col space-y-2 mb-4">
-            <label for="theme" class="text-lg font-medium text-gray-700">Select Theme:</label>
-            <select id="theme" class="border rounded px-2 py-1 bg-blue-100 text-blue-800 w-full">
-                <option value="">Select a theme</option>
-            </select>
-        </div>
-
-        <div class="output-container">
-            <!-- Progress Bar -->
-            <progress id="progress" value="0" max="100" class="mb-2 hidden"></progress>
-            <pre id="output" class="text-sm"></pre>
-        </div>
-
-        <!-- Backup Prompt Modal -->
-        <div id="backup-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
-            <div class="rounded-lg p-6 max-w-sm w-full" style="background-color: var(--card-bg);">
-                <h2 class="text-xl font-bold mb-4">Backup Prompt</h2>
-                <p class="mb-4">Create a backup? (Y/n)</p>
-                <div class="flex justify-end space-x-4">
-                    <button id="backup-yes" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90">Yes</button>
-                    <button id="backup-no" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">No</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Change Password Modal -->
-        <div id="password-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
-            <div class="rounded-lg p-6 max-w-sm w-full" style="background-color: var(--card-bg);">
-                <h2 class="text-xl font-bold mb-4">Change Password</h2>
-                <form id="password-form" class="flex flex-col space-y-4">
-                    <div>
-                        <label for="new-password" class="text-lg font-medium text-gray-700">New Password:</label>
-                        <input type="password" id="new-password" name="new-password" class="border rounded px-2 py-1 w-full" required minlength="8">
-                    </div>
-                    <div>
-                        <label for="confirm-password" class="text-lg font-medium text-gray-700">Confirm Password:</label>
-                        <input type="password" id="confirm-password" name="confirm-password" class="border rounded px-2 py-1 w-full" required minlength="8">
-                    </div>
-                    <p id="password-error" class="text-red-500 hidden">Passwords do not match or are too short.</p>
-                    <div class="flex justify-end space-x-4">
-                        <button type="submit" class="btn-primary text-white px-4 py-2 rounded hover:brightness-90">Submit</button>
-                        <button type="button" id="password-cancel" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+<body class="min-h-screen">
+  <div class="max-w-5xl mx-auto px-4 py-6 sm:py-10">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="title text-3xl sm:text-4xl">Saturn Go Update Manager</h1>
+      <!-- Single theme toggle button (classic) -->
+      <button id="theme-toggle" class="btn btn-ghost p-2" title="Toggle theme">
+        <svg id="theme-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+           d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
+      </button>
     </div>
 
-    <script>
-        let selectedScript = '';
-        let selectedFlags = [];
-        let selectedBackup = '';
-        let stream;
+    <!-- Versions (collapsible) -->
+    <div class="card p-4 mb-6 hidden" id="versions">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold">Script Versions</h2>
+        <label class="text-sm flex items-center gap-2">
+          <input id="show-versions" type="checkbox" class="h-4 w-4">
+          Show
+        </label>
+      </div>
+      <ul id="version-list" class="mt-3 list-disc pl-6"></ul>
+    </div>
 
-        function showLoader(show) {
-            document.getElementById('loader').classList.toggle('hidden', !show);
+    <!-- Runner card -->
+    <div class="card p-5 mb-6">
+      <form id="script-form" class="space-y-4">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm mb-1">Select Script</label>
+            <select id="script" name="script" class="field w-full px-3 py-2">
+              <option value="">Select a script…</option>
+            </select>
+          </div>
+          <div class="flex items-end gap-3">
+            <button type="submit" class="btn btn-primary px-5 py-2">Run</button>
+            <button type="button" id="monitor-btn" class="btn btn-ghost px-4 py-2">Open Monitor</button>
+            <button type="button" id="exit-btn" class="btn btn-danger px-4 py-2">Exit</button>
+          </div>
+        </div>
+
+        <!-- Flags -->
+        <div>
+          <label class="block text-sm mb-1">Flags</label>
+          <div id="flags" class="flex flex-wrap gap-4"></div>
+        </div>
+
+        <!-- Restore directory (only for restore script) -->
+        <div id="restore-wrap" class="hidden">
+          <div class="flex items-center gap-3">
+            <div class="grow">
+              <label for="restore-dir-select" class="block text-sm mb-1">Select Backup Directory</label>
+              <select id="restore-dir-select" class="field w-full px-3 py-2">
+                <option value="">Select…</option>
+              </select>
+            </div>
+            <!-- Refresh removed by request -->
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Output -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-3">
+          <button id="change-password-btn" class="btn btn-ghost px-4 py-2">Change Password</button>
+          <label class="text-sm flex items-center gap-2">
+            <input id="toggle-versions" type="checkbox" class="h-4 w-4" />
+            Show versions above
+          </label>
+        </div>
+        <progress id="progress" max="100" value="0" class="hidden w-48"></progress>
+      </div>
+      <pre id="output"></pre>
+    </div>
+  </div>
+
+  <!-- Backup modal -->
+  <div id="backup-modal" class="fixed inset-0 hidden items-center justify-center bg-black/50 p-4">
+    <div class="card p-6 max-w-md w-full">
+      <h3 class="text-xl font-semibold mb-2">Backup Prompt</h3>
+      <p class="mb-4">Create a backup? (Y/n)</p>
+      <div class="flex gap-3 justify-end">
+        <button id="backup-yes" class="btn btn-primary px-4 py-2">Yes</button>
+        <button id="backup-no" class="btn btn-ghost px-4 py-2">No</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password modal -->
+  <div id="password-modal" class="fixed inset-0 hidden items-center justify-center bg-black/50 p-4">
+    <div class="card p-6 max-w-sm w-full">
+      <h3 class="text-xl font-semibold mb-4">Change Password</h3>
+      <form id="password-form" class="space-y-3">
+        <div>
+          <label class="block text-sm mb-1" for="new-password">New Password</label>
+          <input id="new-password" type="password" minlength="8" required class="field w-full px-3 py-2"/>
+        </div>
+        <div>
+          <label class="block text-sm mb-1" for="confirm-password">Confirm Password</label>
+          <input id="confirm-password" type="password" minlength="8" required class="field w-full px-3 py-2"/>
+        </div>
+        <p id="password-error" class="text-red-400 text-sm hidden">Passwords do not match or are too short.</p>
+        <div class="flex justify-end gap-3 pt-2">
+          <button class="btn btn-primary px-4 py-2" type="submit">Submit</button>
+          <button class="btn btn-ghost px-4 py-2" type="button" id="password-cancel">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+/* ===== Theme toggle (classic single button) ===== */
+(function themeInit(){
+  const toggle = document.getElementById('theme-toggle');
+  const icon   = document.getElementById('theme-icon');
+  function setIcon(light){
+    icon.innerHTML = light
+      ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>'
+      : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+  }
+  const stored = localStorage.getItem('theme');
+  const light  = stored === 'light';
+  document.body.classList.toggle('light', light);
+  setIcon(light);
+  toggle.addEventListener('click', ()=>{
+    const isLight = document.body.classList.toggle('light');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    setIcon(isLight);
+  });
+})();
+
+/* ===== Data wiring (classic layout) ===== */
+const ansi_up = new AnsiUp();
+// Use inline styles so we don't depend on ansi CSS classes
+ansi_up.use_classes = false;
+
+const $ = (id) => document.getElementById(id);
+const output = $('output');
+const progress = $('progress');
+
+function show(el, on){ el.classList.toggle('hidden', !on); }
+function append(line){
+  output.innerHTML += ansi_up.ansi_to_html(line) + '<br>';
+  output.scrollTop = output.scrollHeight;
+}
+
+/* Helpers to detect restore mode/type */
+function isRestoreScript(name){
+  return /restore-?backup\.sh$/i.test(name);
+}
+function getRestoreTypeFromFlags(flags){
+  // returns 'saturn' | 'pihpsdr' | null
+  if (flags.some(f => f === '--saturn')) return 'saturn';
+  if (flags.some(f => f === '--pihpsdr')) return 'pihpsdr';
+  return null;
+}
+function isListOnly(flags){
+  return flags.some(f => f === '--list');
+}
+
+/* Live parse of backup names from script output */
+let collecting = false;
+let collectType = null;         // 'saturn' | 'pihpsdr'
+let collectedNames = [];
+
+function resetBackupCollection(){
+  collecting = false;
+  collectType = null;
+  collectedNames = [];
+  // also clear dropdown to avoid stale names when switching types/flags
+  const sel = $('restore-dir-select');
+  if (sel){
+    sel.innerHTML = '<option value="">Select…</option>';
+  }
+}
+
+function tryStartCollection(line){
+  // The script prints e.g.:
+  // "Available saturn backups:" or "Available pihpsdr backups:"
+  const m = line.match(/Available\s+(saturn|pihpsdr)\s+backups:/i);
+  if (m){
+    collecting = true;
+    collectType = m[1].toLowerCase();
+    collectedNames = [];
+    return true;
+  }
+  return false;
+}
+
+function maybeCollectName(line){
+  // backup lines look like: "  saturn-backup-YYYYMMDD-HHMMSS"
+  const m = line.match(/^\s{2,}([A-Za-z0-9._-]+backup[-\w\.]*)\s*$/);
+  if (collecting && m){
+    collectedNames.push(m[1]);
+    return true;
+  }
+  return false;
+}
+
+function stopCollectionIfDone(line){
+  if (/^\s*Done\s*$/i.test(line)){
+    collecting = false;
+    // push names into dropdown
+    const sel = $('restore-dir-select');
+    if (sel){
+      sel.innerHTML = '';
+      if (collectedNames.length){
+        for (const n of collectedNames){
+          const opt = document.createElement('option');
+          // we keep the "name" as the value; your restore script expects --backup-name <name>
+          opt.value = n;
+          opt.textContent = n;
+          sel.appendChild(opt);
+        }
+      }else{
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'No backups found';
+        sel.appendChild(opt);
+      }
+    }
+  }
+}
+
+/* Loaders */
+async function loadScripts(){
+  try{
+    const r = await fetch('./get_scripts', { headers:{'Cache-Control':'no-cache'} });
+    const data = await r.json();
+    const sel = $('script');
+    sel.innerHTML = '<option value="">Select a script…</option>';
+
+    if (Array.isArray(data.scripts)) {
+      data.scripts.forEach(s=>{
+        const opt = document.createElement('option');
+        opt.value = s; opt.textContent = s;
+        sel.appendChild(opt);
+      });
+    } else {
+      Object.keys(data.scripts||{}).sort().forEach(cat=>{
+        const og = document.createElement('optgroup');
+        og.label = cat;
+        (data.scripts[cat]||[]).forEach(s=>{
+          const opt = document.createElement('option');
+          opt.value = s.filename;
+          opt.textContent = s.name || s.filename;
+          opt.title = s.description || '';
+          og.appendChild(opt);
+        });
+        sel.appendChild(og);
+      });
+    }
+  }catch(e){ append(`\x1b[31mError loading scripts: ${e.message}\x1b[0m`); }
+}
+
+async function loadVersions(){
+  try{
+    const r = await fetch('./get_versions', { headers:{'Cache-Control':'no-cache'} });
+    const data = await r.json();
+    const ul = $('version-list'); ul.innerHTML = '';
+    Object.entries(data.versions||{}).forEach(([k,v])=>{
+      const li = document.createElement('li'); li.textContent = `${k}: ${v}`;
+      ul.appendChild(li);
+    });
+  }catch(e){ append(`\x1b[31mError loading versions: ${e.message}\x1b[0m`); }
+}
+
+/* Flags & state */
+async function loadFlags(filename){
+  try{
+    const r = await fetch(`./get_flags?script=${encodeURIComponent(filename)}`);
+    const data = await r.json();
+    const host = $('flags'); host.innerHTML = '';
+    (data.flags||[]).forEach(flag=>{
+      const lbl = document.createElement('label');
+      lbl.className = 'inline-flex items-center gap-2';
+      lbl.innerHTML = `<input type="checkbox" value="${flag}" class="h-5 w-5"> <span>${flag}</span>`;
+      host.appendChild(lbl);
+    });
+
+    // restore UI visibility
+    const isRestore = isRestoreScript(filename);
+    show($('restore-wrap'), isRestore);
+
+    // new flags => clear any previously collected names
+    resetBackupCollection();
+  }catch(e){ append(`\x1b[31mError loading flags: ${e.message}\x1b[0m`); }
+}
+
+/* UI events */
+$('script').addEventListener('change', (e)=>{
+  if (e.target.value) loadFlags(e.target.value);
+  resetBackupCollection();
+});
+
+$('toggle-versions').addEventListener('change', (e)=>{
+  show($('versions'), e.target.checked);
+  if (e.target.checked) loadVersions();
+});
+
+$('monitor-btn').addEventListener('click', ()=> window.open('./monitor', 'SaturnMonitor',
+  'width=900,height=650,resizable=yes,scrollbars=yes,status=yes'));
+
+$('exit-btn').addEventListener('click', async ()=>{
+  try{
+    const r = await fetch('./exit', { method:'POST' });
+    if (r.ok) append('\x1b[32mServer exiting…\x1b[0m');
+  }catch(e){ append(`\x1b[31mExit failed: ${e.message}\x1b[0m`); }
+});
+
+$('change-password-btn').addEventListener('click', ()=>{
+  $('password-modal').classList.remove('hidden'); document.body.style.overflow='hidden';
+});
+$('password-cancel').addEventListener('click', ()=>{
+  $('password-modal').classList.add('hidden'); document.body.style.overflow='';
+});
+$('password-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const a = $('new-password').value, b = $('confirm-password').value;
+  if (a.length<8 || a!==b){ $('password-error').classList.remove('hidden'); return; }
+  $('password-error').classList.add('hidden');
+  $('password-modal').classList.add('hidden'); document.body.style.overflow='';
+  try{
+    const r = await fetch('./change_password', {
+      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:`new_password=${encodeURIComponent(a)}`
+    });
+    const data = await r.json();
+    if (data.status==='success') append('\x1b[32mPassword changed successfully\x1b[0m');
+    else throw new Error(data.message||'Unknown error');
+  }catch(e){ append(`\x1b[31mChange password failed: ${e.message}\x1b[0m`); }
+});
+
+/* Backup prompt wires */
+$('backup-yes').addEventListener('click', ()=> sendBackupResponse('y'));
+$('backup-no').addEventListener('click',  ()=> sendBackupResponse('n'));
+async function sendBackupResponse(letter){
+  try{
+    await fetch('./backup_response', {
+      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:`response=${encodeURIComponent(letter)}`
+    });
+  }catch(_e){}
+  $('backup-modal').classList.add('hidden');
+  document.body.style.overflow='';
+}
+
+/* Run handler (SSE) */
+$('script-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  output.innerHTML=''; progress.value=0; show(progress,true);
+
+  const filename = $('script').value;
+  const flags = Array.from(document.querySelectorAll('#flags input[type=checkbox]:checked')).map(i=>i.value);
+
+  const restoreMode = isRestoreScript(filename);
+  const restoreType = getRestoreTypeFromFlags(flags);
+  const listing = isListOnly(flags);
+
+  // If the user is listing, DO NOT send --backup-name.
+  // Only send --backup-name when restoring (not listing) and a selection exists.
+  const selectedName = $('restore-dir-select').value;
+
+  try{
+    const fd = new FormData(); fd.append('script', filename);
+    flags.forEach(f=>fd.append('flags', f));
+
+    if (restoreMode && !listing && selectedName){
+      // restoring a specific backup
+      fd.append('flags', '--backup-name');
+      fd.append('flags', selectedName);
+    }
+
+    // every new run: reset collection buffer
+    resetBackupCollection();
+
+    const res = await fetch('./run', { method:'POST', body:fd, headers:{'Accept':'text/event-stream'} });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const reader = res.body.getReader();
+    const dec = new TextDecoder(); let buf='';
+
+    while(true){
+      const {done, value} = await reader.read();
+      if (done) break;
+
+      buf += dec.decode(value, {stream:true});
+      const chunks = buf.split('\n\n'); buf = chunks.pop() || '';
+
+      for (const c of chunks){
+        if (!c.startsWith('data: ')) continue;
+        const line = c.slice(6); // after "data: "
+
+        // Backup prompt passthrough
+        if (line === 'BACKUP_PROMPT'){
+          $('backup-modal').classList.remove('hidden'); document.body.style.overflow='hidden';
+          continue;
         }
 
-        async function loadVersions() {
-            showLoader(true);
-            try {
-                const response = await fetch('./get_versions', {
-                    headers: {
-                        'Cache-Control': 'no-cache'
-                    }
-                });
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Fetch versions failed:', response.status, errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-                const data = await response.json();
-                console.log('Versions response:', data);
-                const versionList = document.getElementById('version-list');
-                versionList.innerHTML = '';
-                if (data.versions) {
-                    Object.entries(data.versions).forEach(([script, version]) => {
-                        const li = document.createElement('li');
-                        li.textContent = `${script}: ${version}`;
-                        versionList.appendChild(li);
-                    });
-                } else {
-                    console.warn('No versions returned from get_versions');
-                    document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error: No versions available</span><br>`;
-                }
-            } catch (error) {
-                console.error('Error loading versions:', error);
-                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading versions: ${error.message}</span><br>`;
-            } finally {
-                showLoader(false);
-            }
+        // When running list, parse and populate
+        if (restoreMode && listing){
+          // start/end and item lines
+          if (tryStartCollection(line)) { /* started collecting */ }
+          else if (maybeCollectName(line)) { /* collected */ }
+          else { stopCollectionIfDone(line); }
         }
 
-        async function loadScripts() {
-            showLoader(true);
-            try {
-                const response = await fetch('./get_scripts', {
-                    headers: {
-                        'Cache-Control': 'no-cache'
-                    }
-                });
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Fetch scripts failed:', response.status, errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-                const data = await response.json();
-                console.log('Scripts response:', data);
-                const scriptSelect = document.getElementById('script');
-                scriptSelect.innerHTML = '<option value="">Select a script</option>';
-                const output = document.getElementById('output');
-                if (data.warnings && data.warnings.length > 0) {
-                    output.innerHTML += data.warnings.map(w => `<span style="color:#FFFF00">Warning: ${w}</span>`).join('<br>') + '<br>';
-                }
-                if (data.scripts) {
-                    if (Array.isArray(data.scripts)) {
-                        const optgroup = document.createElement('optgroup');
-                        optgroup.label = 'Scripts';
-                        data.scripts.forEach(script => {
-                            const option = document.createElement('option');
-                            option.value = script;
-                            option.textContent = script;
-                            optgroup.appendChild(option);
-                        });
-                        scriptSelect.appendChild(optgroup);
-                    } else {
-                        const categories = Object.keys(data.scripts).sort();
-                        categories.forEach(category => {
-                            const optgroup = document.createElement('optgroup');
-                            optgroup.label = category;
-                            data.scripts[category].forEach(script => {
-                                const option = document.createElement('option');
-                                option.value = script.filename;
-                                option.textContent = script.name;
-                                option.title = script.description;
-                                optgroup.appendChild(option);
-                            });
-                            scriptSelect.appendChild(optgroup);
-                        });
-                    }
-                    if (scriptSelect.options.length > 1) {
-                        scriptSelect.value = scriptSelect.options[1].value;
-                        loadFlags(scriptSelect.value);
-                    }
-                } else {
-                    console.warn('No scripts returned from get_scripts');
-                    output.innerHTML += `<span style="color:#FF0000">Error: No scripts available</span><br>`;
-                }
-            } catch (error) {
-                console.error('Error loading scripts:', error);
-                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading scripts: ${error.message}</span><br>`;
-            } finally {
-                showLoader(false);
-            }
-        }
+        // Always output with ANSI colors
+        append(line);
 
-        async function loadFlags(filename) {
-            showLoader(true);
-            try {
-                const response = await fetch(`./get_flags?script=${encodeURIComponent(filename)}`, {
-                    headers: {
-                        'Cache-Control': 'no-cache'
-                    }
-                });
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Fetch flags failed:', response.status, errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-                const data = await response.json();
-                console.log('Flags response:', data);
-                const flagsDiv = document.getElementById('flags');
-                flagsDiv.innerHTML = '';
-                if (data.error) {
-                    console.error('Error from get_flags:', data.error);
-                    document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error: ${data.error}</span><br>`;
-                    return;
-                }
-                data.flags.forEach(flag => {
-                    const label = document.createElement('label');
-                    label.className = 'flex items-center space-x-2';
-                    label.innerHTML = `<input type="checkbox" name="flags" value="${flag}" class="form-checkbox h-5 w-5 text-blue-600" ${flag === '--verbose' ? 'checked' : ''}> <span>${flag}</span>`;
-                    flagsDiv.appendChild(label);
-                });
-                console.log(`Loaded flags for ${filename}:`, data.flags);
-                if (filename === 'restore-backup.sh') {
-                    document.getElementById('restore-dir-div').classList.remove('hidden');
-                } else {
-                    document.getElementById('restore-dir-div').classList.add('hidden');
-                }
-            } catch (error) {
-                console.error('Error loading flags:', error);
-                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading flags: ${error.message}</span><br>`;
-            } finally {
-                showLoader(false);
-            }
-        }
+        // progress
+        const m = line.match(/Progress:\s*(\d+)%/i);
+        if (m) progress.value = parseInt(m[1],10);
+      }
+    }
+  }catch(err){
+    append(`\x1b[31mRun error: ${err.message}\x1b[0m`);
+  }
+  show(progress,false);
+});
 
-        async function loadThemes() {
-            try {
-                const response = await fetch('./get_themes', {
-                    headers: {
-                        'Cache-Control': 'no-cache'
-                    }
-                });
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Fetch themes failed:', response.status, errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-                const data = await response.json();
-                console.log('Themes response:', data);
-                const themeSelect = document.getElementById('theme');
-                themeSelect.innerHTML = '<option value="">Select a theme</option>';
-                data.themes.forEach(theme => {
-                    const option = document.createElement('option');
-                    option.value = theme.name;
-                    option.textContent = theme.name;
-                    option.title = theme.description;
-                    themeSelect.appendChild(option);
-                });
-                if (data.warnings && data.warnings.length > 0) {
-                    document.getElementById('output').innerHTML += data.warnings.map(w => `<span style="color:#FFFF00">Warning: ${w}</span>`).join('<br>') + '<br>';
-                }
-            } catch (error) {
-                console.error('Error loading themes:', error);
-                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading themes: ${error.message}</span><br>`;
-            }
-        }
-
-        async function applyTheme(name) {
-            try {
-                const response = await fetch(`./get_theme?name=${encodeURIComponent(name)}`, {
-                    headers: {
-                        'Cache-Control': 'no-cache'
-                    }
-                });
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Fetch theme failed:', response.status, errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-                const data = await response.json();
-                console.log('Theme data:', data);
-                if (data.styles) {
-                    Object.entries(data.styles).forEach(([key, value]) => {
-                        document.documentElement.style.setProperty(key, value);
-                    });
-                    localStorage.setItem('selectedTheme', name);
-                }
-            } catch (error) {
-                console.error('Error applying theme:', error);
-                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error applying theme: ${error.message}</span><br>`;
-            }
-        }
-
-        document.getElementById('theme').addEventListener('change', function() {
-            const selectedTheme = this.value;
-            if (selectedTheme) {
-                applyTheme(selectedTheme);
-            }
-        });
-
-        const savedTheme = localStorage.getItem('selectedTheme');
-        if (savedTheme) {
-            document.getElementById('theme').value = savedTheme;
-            applyTheme(savedTheme);
-        }
-
-        document.getElementById('flags').addEventListener('change', async function(e) {
-            if (e.target.name === 'flags' && (e.target.value === '--pihpsdr' || e.target.value === '--saturn')) {
-                let type = null;
-                const pihpsdrChecked = Array.from(document.querySelectorAll('input[name="flags"]')).find(cb => cb.value === '--pihpsdr').checked;
-                const saturnChecked = Array.from(document.querySelectorAll('input[name="flags"]')).find(cb => cb.value === '--saturn').checked;
-                if (pihpsdrChecked && saturnChecked) {
-                    document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error: Cannot select both --pihpsdr and --saturn</span><br>`;
-                    return;
-                }
-                if (pihpsdrChecked) type = 'pihpsdr';
-                if (saturnChecked) type = 'saturn';
-                if (type) {
-                    try {
-                        const response = await fetch(`./get_backups?type=${type}`, {
-                            headers: {
-                                'Cache-Control': 'no-cache'
-                            }
-                        });
-                        if (!response.ok) {
-                            const errorText = await response.text();
-                            console.error('Fetch backups failed:', response.status, errorText);
-                            throw new Error(`HTTP ${response.status}: ${errorText}`);
-                        }
-                        const data = await response.json();
-                        const select = document.getElementById('restore-dir-select');
-                        select.innerHTML = '<option value="">Select...</option>';
-                        data.backups.forEach(dir => {
-                            const option = document.createElement('option');
-                            option.value = dir;
-                            option.textContent = dir;
-                            select.appendChild(option);
-                        });
-                    } catch (error) {
-                        console.error('Error loading backups:', error);
-                        document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error loading backups: ${error.message}</span><br>`;
-                    }
-                } else {
-                    const select = document.getElementById('restore-dir-select');
-                    select.innerHTML = '<option value="">Select...</option>';
-                }
-            }
-        });
-
-        document.getElementById('script-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const filename = document.getElementById('script').value;
-            let flags = Array.from(document.querySelectorAll('input[name="flags"]:checked')).map(cb => cb.value);
-            const output = document.getElementById('output');
-            const progress = document.getElementById('progress');
-            output.innerHTML = ''; // Clear output to prevent duplication
-            progress.classList.remove('hidden');
-            progress.value = 0;
-            console.log(`Submitting run request for ${filename}, flags:`, flags);
-
-            const restoreDirDiv = document.getElementById('restore-dir-div');
-            if (filename === 'restore-backup.sh' && !restoreDirDiv.classList.contains('hidden')) {
-                const restoreDir = document.getElementById('restore-dir-select').value;
-                if (restoreDir) {
-                    flags.push('--backup-dir');
-                    flags.push(restoreDir);
-                }
-            }
-
-            try {
-                const formData = new FormData();
-                formData.append('script', filename);
-                flags.forEach(flag => formData.append('flags', flag));
-                const response = await fetch('./run', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Accept': 'text/event-stream'
-                    }
-                });
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Run request failed:', response.status, errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-                console.log('Run request sent successfully');
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) {
-                        console.log('Stream complete');
-                        if (buffer) {
-                            console.log('Processing buffered data:', buffer);
-                            const lines = buffer.split('\n\n');
-                            for (const line of lines) {
-                                if (line.startsWith('data: ')) {
-                                    const data = line.substring(6);
-                                    console.log(`Received data: ${data}`);
-                                    if (data === 'BACKUP_PROMPT') {
-                                        console.log('Received BACKUP_PROMPT');
-                                        document.getElementById('backup-modal').classList.remove('hidden');
-                                    } else {
-                                        output.innerHTML += data + '<br>';
-                                        console.log(`Appended HTML: ${data}`);
-                                        output.scrollTop = output.scrollHeight;
-                                        output.style.height = output.scrollHeight + 'px';
-                                        // Parse for progress (example: look for "Progress: 50%")
-                                        const match = data.match(/Progress:\s*(\d+)%/i);
-                                        if (match) {
-                                            progress.value = parseInt(match[1], 10);
-                                        }
-                                    }
-                                }
-                            }
-                            buffer = '';
-                        }
-                        progress.classList.add('hidden');
-                        break;
-                    }
-                    const chunk = decoder.decode(value, { stream: true });
-                    console.log('Received chunk:', chunk);
-                    buffer += chunk;
-                    const lines = buffer.split('\n\n');
-                    buffer = lines.pop() || '';
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            const data = line.substring(6);
-                            console.log(`Received data: {data}`);
-                            if (data === 'BACKUP_PROMPT') {
-                                console.log('Received BACKUP_PROMPT');
-                                document.getElementById('backup-modal').classList.remove('hidden');
-                            } else {
-                                output.innerHTML += data + '<br>';
-                                console.log(`Appended HTML: ${data}`);
-                                output.scrollTop = output.scrollHeight;
-                                output.style.height = output.scrollHeight + 'px';
-                                // Parse for progress (example: look for "Progress: 50%")
-                                const match = data.match(/Progress:\s*(\d+)%/i);
-                                if (match) {
-                                    progress.value = parseInt(match[1], 10);
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Run error:', error);
-                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error: ${error.message}</span><br>`;
-                progress.classList.add('hidden');
-            }
-        });
-
-        document.getElementById('script').addEventListener('change', function() {
-            console.log('Script changed:', this.value);
-            if (this.value) {
-                loadFlags(this.value);
-            }
-        });
-
-        document.getElementById('backup-yes').addEventListener('click', function() {
-            console.log('Sending backup response: y');
-            fetch('./backup_response', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'response=y'
-            }).then(() => {
-                console.log('Backup response sent: y');
-                document.getElementById('backup-modal').classList.add('hidden');
-            }).catch(error => {
-                console.error('Backup yes error:', error);
-                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error sending backup response: ${error.message}</span><br>`;
-            });
-        });
-
-        document.getElementById('backup-no').addEventListener('click', function() {
-            console.log('Sending backup response: n');
-            fetch('./backup_response', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'response=n'
-            }).then(() => {
-                console.log('Backup response sent: n');
-                document.getElementById('backup-modal').classList.add('hidden');
-            }).catch(error => {
-                console.error('Backup no error:', error);
-                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error sending backup response: ${error.message}</span><br>`;
-            });
-        });
-
-        document.getElementById('change-password-btn').addEventListener('click', function() {
-            console.log('Opening password change modal');
-            document.getElementById('password-modal').classList.remove('hidden');
-            document.getElementById('new-password').value = '';
-            document.getElementById('confirm-password').value = '';
-            document.getElementById('password-error').classList.add('hidden');
-        });
-
-        document.getElementById('password-cancel').addEventListener('click', function() {
-            console.log('Closing password change modal');
-            document.getElementById('password-modal').classList.add('hidden');
-        });
-
-        document.getElementById('password-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const newPassword = document.getElementById('new-password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
-            const errorDiv = document.getElementById('password-error');
-            if (newPassword !== confirmPassword || newPassword.length < 8) {
-                console.error('Password validation failed');
-                errorDiv.textContent = 'Passwords do not match or are too short (minimum 8 characters).';
-                errorDiv.classList.remove('hidden');
-                return;
-            }
-            try {
-                const response = await fetch('./change_password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `new_password=${encodeURIComponent(newPassword)}`
-                });
-                const data = await response.json();
-                if (response.ok && data.status === 'success') {
-                    console.log('Password changed successfully');
-                    document.getElementById('output').innerHTML += `<span style="color:#00FF00">Password changed successfully</span><br>`;
-                    document.getElementById('password-modal').classList.add('hidden');
-                } else {
-                    throw new Error(data.message || `HTTP ${response.status}`);
-                }
-            } catch (error) {
-                console.error('Error changing password:', error);
-                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error changing password: ${error.message}</span><br>`;
-            }
-        });
-
-        document.getElementById('exit-btn').addEventListener('click', async function(e) {
-            console.log('Initiating exit and logoff');
-            try {
-                const response = await fetch('./exit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Exit request failed:', response.status, errorText);
-                    document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error during exit: ${errorText}</span><br>`;
-                    return;
-                }
-                const data = await response.json();
-                console.log('Exit response:', data);
-                if (data.status === 'shutting down') {
-                    console.log('Server shutting down, forcing re-authentication');
-                    try {
-                        await fetch('./', {
-                            headers: {
-                                'Authorization': 'Basic invalid_credentials',
-                                'Cache-Control': 'no-cache'
-                            }
-                        });
-                    } catch (error) {
-                        console.log('Re-authentication triggered:', error);
-                        window.location.href = '/saturn/';
-                    }
-                }
-            } catch (error) {
-                console.error('Exit error:', error);
-                document.getElementById('output').innerHTML += `<span style="color:#FF0000">Error during exit: ${error.message}</span><br>`;
-            }
-        });
-
-        document.getElementById('show-versions').addEventListener('change', function() {
-            document.getElementById('versions').style.display = this.checked ? 'block' : 'none';
-        });
-
-        console.log('Loading initial scripts, versions, and themes');
-        loadScripts();
-        loadVersions();
-        loadThemes();
-
-        // Add pop-up for monitor button
-        document.getElementById('monitor-btn').addEventListener('click', function() {
-            window.open('./monitor', 'SaturnMonitor', 'width=800,height=600,resizable=yes,scrollbars=yes,status=yes');
-        });
-    </script>
+/* Init */
+loadScripts();
+</script>
 </body>
 </html>

@@ -6,3 +6,8 @@
 sw_tools/spiadcread/spiadcread
 /sw_projects/audiotest/*~
 /linuxdriver/xdma/.cdev_sgdma.o.d
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
