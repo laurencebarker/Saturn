@@ -5,6 +5,8 @@
 # Date: July 26, 2025
 # Usage: ./log_cleaner.sh [--delete-all] [--recursive] [--dry-run]
 
+echo Current User is: "$USER"
+
 # Flags
 DELETE_ALL=false
 RECURSIVE=true  # Default to recursive search
