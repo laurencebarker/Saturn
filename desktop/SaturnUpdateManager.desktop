@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Saturn Go Update Manager
+Comment=Web-based GUI to manage updates for various scripts
+Exec=xdg-open http://localhost/saturn/
+Icon=system-software-update
+Terminal=false
+Categories=System;Utility;
+Name[en_GB]=Saturn Go Update Manager
