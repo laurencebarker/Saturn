@@ -380,7 +380,7 @@ void *OutgoingDDCIQ(void *arg)
             datagram[DDC].msg_iov = &iovecinst[DDC];
             datagram[DDC].msg_iovlen = 1;
             datagram[DDC].msg_name = &DestAddr[DDC];                   // MAC addr & port to send to
-            datagram[DDC].msg_namelen = sizeof(DestAddr);
+            datagram[DDC].msg_namelen = sizeof(struct sockaddr_in);
         }
       //
       // enable Saturn DDC to transfer data
@@ -454,7 +454,9 @@ void *OutgoingDDCIQ(void *arg)
 
             if((StartupCount == 0) && FIFOOverThreshold)
             {
+                pthread_mutex_lock(&g_fifo_overflow_mutex);
                 GlobalFIFOOverflows |= 0b00000001;
+                pthread_mutex_unlock(&g_fifo_overflow_mutex);
                 if(UseDebug)
                     printf("RX DDC FIFO Overthreshold, depth now = %d\n", Current);
             }
@@ -469,7 +471,9 @@ void *OutgoingDDCIQ(void *arg)
                 Depth = ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);				// read the FIFO Depth register
                 if((StartupCount == 0) && FIFOOverThreshold)
                 {
+                    pthread_mutex_lock(&g_fifo_overflow_mutex);
                     GlobalFIFOOverflows |= 0b00000001;
+                    pthread_mutex_unlock(&g_fifo_overflow_mutex);
                     if(UseDebug)
                         printf("RX DDC FIFO Overthreshold, depth now = %d\n", Current);
                 }

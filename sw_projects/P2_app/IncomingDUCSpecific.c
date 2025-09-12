@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../common/saturnregisters.h"
+#include "../common/byteio.h"
 #include <pthread.h>
 #include <syscall.h>
 
@@ -88,13 +89,11 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
           SetCWSidetoneEnabled((bool)((Byte >> 4)&1));
           EnableCW((bool)((Byte >> 1)&1), (bool)((Byte >> 7)&1));   // CW enabled bit, breakin bit
           SidetoneVolume = *(uint8_t*)(UDPInBuffer+6);            // keyer speed
-          SidetoneFreq = *(uint16_t*)(UDPInBuffer+7);             // get frequency
-          SidetoneFreq = ntohs(SidetoneFreq);                     // convert from big endian
+          SidetoneFreq = rd_be_u16(UDPInBuffer+7);                // get frequency
           SetCWSidetoneVol(SidetoneVolume);
           SetCWSidetoneFrequency(SidetoneFreq);
           CWRFDelay = *(uint8_t*)(UDPInBuffer+13);                // delay before CW on
-          CWHangDelay = *(uint16_t*)(UDPInBuffer+11);             // delay before CW off
-          CWHangDelay = ntohs(CWHangDelay);                       // convert from big endian
+          CWHangDelay = rd_be_u16(UDPInBuffer+11);                // delay before CW off
           SetCWPTTDelay(CWRFDelay);
           SetCWHangTime(CWHangDelay);
           CWRampTime = *(uint8_t*)(UDPInBuffer+17);               // ramp transition time

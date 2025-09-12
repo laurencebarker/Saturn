@@ -138,7 +138,9 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
 
             if((StartupCount == 0) && FIFOUnderflow)
             {
+                pthread_mutex_lock(&g_fifo_overflow_mutex);
                 GlobalFIFOOverflows |= 0b00000100;
+                pthread_mutex_unlock(&g_fifo_overflow_mutex);
                 if(UseDebug)
                     printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
             }
@@ -151,7 +153,9 @@ void *IncomingDUCIQ(void *arg)                          // listener thread
                     printf("TX DUC FIFO Overthreshold, depth now = %d\n", Current);
                 if((StartupCount == 0) && FIFOUnderflow)
                 {
+                    pthread_mutex_lock(&g_fifo_overflow_mutex);
                     GlobalFIFOOverflows |= 0b00000100;
+                    pthread_mutex_unlock(&g_fifo_overflow_mutex);
                     if(UseDebug)
                         printf("TX DUC FIFO Underflowed, depth now = %d\n", Current);
                 }
