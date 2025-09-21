@@ -380,7 +380,7 @@ void *OutgoingDDCIQ(void *arg)
             datagram[DDC].msg_iov = &iovecinst[DDC];
             datagram[DDC].msg_iovlen = 1;
             datagram[DDC].msg_name = &DestAddr[DDC];                   // MAC addr & port to send to
-            datagram[DDC].msg_namelen = sizeof(DestAddr);
+            datagram[DDC].msg_namelen = sizeof(struct sockaddr_in);
         }
       //
       // enable Saturn DDC to transfer data
