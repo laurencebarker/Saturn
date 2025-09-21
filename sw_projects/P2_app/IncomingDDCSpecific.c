@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../common/saturnregisters.h"
+#include "../common/byteio.h"
 #include "OutDDCIQ.h"
 #include <pthread.h>
 #include <syscall.h>
@@ -96,13 +97,12 @@ void *IncomingDDCSpecific(void *arg)                    // listener thread
       // reuse "random" for DDC enabled.
       // be aware an interleaved "odd" DDC will usually be set to disabled, and we need to revert this!
       //
-      Word = *(uint16_t*)(UDPInBuffer + 7);                 // get DDC enables 15:0 (note it is already low byte 1st!)
+      Word = rd_le_u16(UDPInBuffer + 7);                   // get DDC enables 15:0 (note it is already low byte 1st!)
       for(i=0; i<VNUMDDC; i++)
       {
         Enabled = (bool)(Word & 1);                        // get enable state
         Byte1 = *(uint8_t*)(UDPInBuffer+i*6+17);          // get ADC for this DDC
-        Word2 = *(uint16_t*)(UDPInBuffer+i*6+18);         // get sample rate for this DDC
-        Word2 = ntohs(Word2);                             // swap byte order
+        Word2 = rd_be_u16(UDPInBuffer+i*6+18);            // get sample rate for this DDC
         Byte2 = *(uint8_t*)(UDPInBuffer+i*6+22);          // get sample size for this DDC
         SetDDCSampleSize(i, Byte2);
         if(Byte1 == 0)

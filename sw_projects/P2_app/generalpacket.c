@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include "generalpacket.h"
 #include "../common/saturnregisters.h"
+#include "../common/byteio.h"
 #include "Outwideband.h"
 
 
@@ -42,16 +43,16 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
   int i;
   uint8_t Byte;
 
-  SetPort(VPORTDDCSPECIFIC, ntohs(*(uint16_t*)(PacketBuffer+5)));
-  SetPort(VPORTDUCSPECIFIC, ntohs(*(uint16_t*)(PacketBuffer+7)));
-  SetPort(VPORTHIGHPRIORITYTOSDR, ntohs(*(uint16_t*)(PacketBuffer+9)));
-  SetPort(VPORTSPKRAUDIO, ntohs(*(uint16_t*)(PacketBuffer+13)));
-  SetPort(VPORTDUCIQ, ntohs(*(uint16_t*)(PacketBuffer+15)));
-  SetPort(VPORTHIGHPRIORITYFROMSDR, ntohs(*(uint16_t*)(PacketBuffer+11)));
-  SetPort(VPORTMICAUDIO, ntohs(*(uint16_t*)(PacketBuffer+19)));
+  SetPort(VPORTDDCSPECIFIC, rd_be_u16(PacketBuffer+5));
+  SetPort(VPORTDUCSPECIFIC, rd_be_u16(PacketBuffer+7));
+  SetPort(VPORTHIGHPRIORITYTOSDR, rd_be_u16(PacketBuffer+9));
+  SetPort(VPORTSPKRAUDIO, rd_be_u16(PacketBuffer+13));
+  SetPort(VPORTDUCIQ, rd_be_u16(PacketBuffer+15));
+  SetPort(VPORTHIGHPRIORITYFROMSDR, rd_be_u16(PacketBuffer+11));
+  SetPort(VPORTMICAUDIO, rd_be_u16(PacketBuffer+19));
 
 // DDC ports start at the transferred value then increment
-  Port = ntohs(*(uint16_t*)(PacketBuffer+17));            // DDC0
+  Port = rd_be_u16(PacketBuffer+17);            // DDC0
   for (i=0; i<10; i++)
   {
     if(Port==0)
@@ -61,7 +62,7 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
   }  
 
 // similarly, wideband ports start at the transferred value then increment
-  Port = ntohs(*(uint16_t*)(PacketBuffer+21));            // DDC0
+  Port = rd_be_u16(PacketBuffer+21);            // Wideband0
   for (i=0; i<2; i++)
   {
     if(Port==0)
@@ -74,18 +75,18 @@ int HandleGeneralPacket(uint8_t *PacketBuffer)
 // wideband capture data:
 //
   WidebandEnables = *(uint8_t*)(PacketBuffer+23);                // get wideband enables
-  WidebandSampleCount = ntohs(*(uint16_t*)(PacketBuffer+24));        // wideband sample count
-  WidebandSampleSize = *(uint8_t*)(PacketBuffer+26);                // wideband sample size
-  WidebandUpdateRate = *(uint8_t*)(PacketBuffer+27);                // wideband update rate
-  WidebandPacketsPerFrame = *(uint8_t*)(PacketBuffer+28);                // wideband packets per frame
+  WidebandSampleCount = rd_be_u16(PacketBuffer+24);              // wideband sample count
+  WidebandSampleSize = *(uint8_t*)(PacketBuffer+26);             // wideband sample size
+  WidebandUpdateRate = *(uint8_t*)(PacketBuffer+27);             // wideband update rate
+  WidebandPacketsPerFrame = *(uint8_t*)(PacketBuffer+28);        // wideband packets per frame
   SetWidebandParams(WidebandEnables, WidebandSampleCount, WidebandSampleSize, WidebandUpdateRate, WidebandPacketsPerFrame);
 
 //
 // envelope PWM data:
 //
-  Port = ntohs(*(uint16_t*)(PacketBuffer+33));        // PWM min
+  Port = rd_be_u16(PacketBuffer+33);        // PWM min
   SetMinPWMWidth(Port);
-  Port = ntohs(*(uint16_t*)(PacketBuffer+35));        // PWM max
+  Port = rd_be_u16(PacketBuffer+35);        // PWM max
   SetMaxPWMWidth(Port);
 //
 // various bits
