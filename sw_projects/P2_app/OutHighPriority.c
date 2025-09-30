@@ -28,6 +28,7 @@
 #include <syscall.h>
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
+#include "../common/byteio.h"
 #include "LDGATU.h"
 
 
@@ -126,18 +127,18 @@ void *OutgoingHighPriority(void *arg)
       *(uint8_t *)(UDPBuffer+5) = ADCOverflows;
       ADCOverflows = 0;                                         // and clear ready for next test
       Word = (uint16_t)GetAnalogueIn(4);
-      *(uint16_t *)(UDPBuffer+6) = htons(Word);                // exciter power
+      wr_be_u16(UDPBuffer+6, Word);                     // exciter power
       Word = (uint16_t)GetAnalogueIn(0);
-      *(uint16_t *)(UDPBuffer+14) = htons(Word);               // forward power
+      wr_be_u16(UDPBuffer+14, Word);                    // forward power
       Word = (uint16_t)GetAnalogueIn(1);
-      *(uint16_t *)(UDPBuffer+22) = htons(Word);               // reverse power
+      wr_be_u16(UDPBuffer+22, Word);                    // reverse power
       Word = (uint16_t)GetAnalogueIn(5);
-      *(uint16_t *)(UDPBuffer+49) = htons(Word);               // supply voltage
+      wr_be_u16(UDPBuffer+49, Word);                    // supply voltage
 
       Word = (uint16_t)GetAnalogueIn(2);
-      *(uint16_t *)(UDPBuffer+57) = htons(Word);               // AIN3 user_analog1
+      wr_be_u16(UDPBuffer+57, Word);                    // AIN3 user_analog1
       Word = (uint16_t)GetAnalogueIn(3);
-      *(uint16_t *)(UDPBuffer+55) = htons(Word);               // AIN4 user_analog2
+      wr_be_u16(UDPBuffer+55, Word);                    // AIN4 user_analog2
 
       Byte = (uint8_t)GetUserIOBits();                  // user I/O bits
       *(uint8_t *)(UDPBuffer+59) = Byte;
@@ -149,25 +150,26 @@ void *OutgoingHighPriority(void *arg)
 //
       FIFOOverflows = 0;
       ReadFIFOMonitorChannel(eRXDDCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &FIFOCount);				// read the DDC FIFO Depth register
-      *(uint16_t *)(UDPBuffer+31) = htons(FIFOCount);                // DDC ssmples
+      wr_be_u16(UDPBuffer+31, FIFOCount);                       // DDC samples
       if(FIFOOverThreshold)
         FIFOOverflows |= 0b00000001;
 
       ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &FIFOCount);				// read the mic FIFO Depth register
-      FIFOCount = FIFOCount*4;                                  // 4 samples per FIFO location
-      *(uint16_t *)(UDPBuffer+33) = htons(FIFOCount);                // mic samples
+
+      Word = Word*4;                                            // 4 samples per FIFO location
+      wr_be_u16(UDPBuffer+33, FIFOCount);                       // mic samples
       if(FIFOOverThreshold)
         FIFOOverflows |= 0b00000010;
 
       ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &FIFOCount);				// read the DUC FIFO Depth register
-      FIFOCount = (FIFOCount*4)/3;                              // 4/3 samples per FIFO location
-      *(uint16_t *)(UDPBuffer+35) = htons(FIFOCount);                // DUC samples
+      Word = (Word*4)/3;                                        // 4/3 samples per FIFO location
+      wr_be_u16(UDPBuffer+35, FIFOCount);                       // DUC samples
       if(FIFOUnderflow)
         FIFOOverflows |= 0b00000100;
 
       ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &FIFOCount);				// read the speaker FIFO Depth register
-      FIFOCount = FIFOCount*2;                                  // 2 samples per FIFO location
-      *(uint16_t *)(UDPBuffer+37) = htons(FIFOCount);                // speaker samples
+      Word = Word*2;                                            // 2 samples per FIFO location
+      wr_be_u16(UDPBuffer+37, FIFOCount);                       // speaker samples
       if(FIFOUnderflow)
         FIFOOverflows |= 0b00001000;
 

@@ -26,6 +26,7 @@
 #include "../common/saturnregisters.h"
 #include "../common/hwaccess.h"                   // low level access
 #include "../common/version.h"
+#include "../common/byteio.h"
 #include "cathandler.h"
 #include "AriesATU.h"
 #include <pthread.h>
@@ -88,7 +89,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
     if(size == VHIGHPRIOTIYTOSDRSIZE)
     {
       NewMessageReceived = true;
-      LongWord = ntohl(*(uint32_t *)(UDPInBuffer));
+      LongWord = rd_be_u32(UDPInBuffer);
       printf("high priority packet received\n");
       Byte = (uint8_t)(UDPInBuffer[4]);
       RunBit = (bool)(Byte&1);
@@ -122,13 +123,13 @@ void *IncomingHighPriority(void *arg)                   // listener thread
 //
       for (i=0; i<VNUMDDC; i++)
       {
-        LongWord = ntohl(*(uint32_t *)(UDPInBuffer+i*4+9));
+        LongWord = rd_be_u32(UDPInBuffer+i*4+9);
         SetDDCFrequency(i, LongWord, true);                   // temporarily set above
       }
       //
       // DUC frequency & drive level
       //
-      LongWord = ntohl(*(uint32_t *)(UDPInBuffer+329));
+      LongWord = rd_be_u32(UDPInBuffer+329);
       SetDUCFrequency(LongWord, true);
       SetAriesTXFrequency(LongWord);
       Byte = (uint8_t)(UDPInBuffer[345]);
@@ -137,7 +138,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       // create CAT port (if set)
       // shut down CAT port if not set and the CAT thread is active
       //
-      Word = ntohs(*(uint16_t *)(UDPInBuffer+1398));
+      Word = rd_be_u16(UDPInBuffer+1398);
       if(Word != 0)
         SetupCATPort(Word);
       else if (Word == 0 && CATPortAssigned)
@@ -162,19 +163,19 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       // 1st read bytes and see if a TX ant bit is set
       // Aries will only work with newer FPGA and client app support
       //
-      Word = ntohs(*(uint16_t *)(UDPInBuffer+1428));
+      Word = rd_be_u16(UDPInBuffer+1428);
       //printf("Alex 1 TX word = 0x%x\n", Word);
       Word = (Word >> 8) & 0x0007;                          // new data TX ant bits. if not set, must be legacy client app
       
       if((FPGAVersion >= 12) && (Word != 0))                // if new firmware && client app supports it
       {
         //printf("new FPGA code, new client data\n");
-        Word = ntohs(*(uint16_t *)(UDPInBuffer+1428));      // copy word with TX ant settings to filt/TXant register
+        Word = rd_be_u16(UDPInBuffer+1428);                 // copy word with TX ant settings to filt/TXant register
         SetAriesAlexTXWord(Word);
         if(AriesATUActive)                                  // if Aries active, set TX antenna to 1
           Word = (Word & 0xF8FF) | 0x0100;
         AlexManualTXFilters(Word, true);
-        Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with RX ant settings to filt/RXant register
+        Word = rd_be_u16(UDPInBuffer+1432);                 // copy word with RX ant settings to filt/RXant register
         //printf("Alex 0 TX word = 0x%x\n", Word);
         SetAriesAlexRXWord(Word);
         if(AriesATUActive)                                  // if Aries active, set RX antenna to 1
@@ -184,22 +185,22 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       else if(FPGAVersion >= 12)                            // new hardware but no client app support
       {
         //printf("new FPGA code, new client data\n");
-        Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with TX/RX ant settings to both registers
+        Word = rd_be_u16(UDPInBuffer+1432);                 // copy word with TX/RX ant settings to both registers
         AlexManualTXFilters(Word, true);
         AlexManualTXFilters(Word, false);
       }
       else                                                  // old FPGA hardware
       {
         //printf("old FPGA code\n");
-        Word = ntohs(*(uint16_t *)(UDPInBuffer+1432));      // copy word with TX/RX ant settings to original register
+        Word = rd_be_u16(UDPInBuffer+1432);                 // copy word with TX/RX ant settings to original register
         AlexManualTXFilters(Word, false);
       }
 
       // RX filters
-      Word = ntohs(*(uint16_t *)(UDPInBuffer+1430));
+      Word = rd_be_u16(UDPInBuffer+1430);
       AlexManualRXFilters(Word, 2);
       //printf("Alex 1 RX word = 0x%x\n", Word);
-      Word = ntohs(*(uint16_t *)(UDPInBuffer+1434));
+      Word = rd_be_u16(UDPInBuffer+1434);
       AlexManualRXFilters(Word, 0);
       //printf("Alex 0 RX word = 0x%x\n", Word);
       //
