@@ -135,7 +135,9 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
                 printf("Codec speaker FIFO Overthreshold, depth now = %d\n", Current);
             if((StartupCount == 0) && FIFOUnderflow)
             {
+                pthread_mutex_lock(&g_fifo_overflow_mutex);
                 GlobalFIFOOverflows |= 0b00001000;
+                pthread_mutex_unlock(&g_fifo_overflow_mutex);
                 if(UseDebug)
                     printf("Codec speaker FIFO Underflowed, depth now = %d\n", Current);
             }
@@ -148,7 +150,9 @@ void *IncomingSpkrAudio(void *arg)                      // listener thread
                     printf("Codec speaker FIFO Overthreshold, depth now = %d\n", Current);
                 if((StartupCount == 0) && FIFOUnderflow)
                 {
+                    pthread_mutex_lock(&g_fifo_overflow_mutex);
                     GlobalFIFOOverflows |= 0b00001000;
+                    pthread_mutex_unlock(&g_fifo_overflow_mutex);
                     if(UseDebug)
                         printf("Codec speaker FIFO Underflowed, depth now = %d\n", Current);
                 }

@@ -167,7 +167,9 @@ void *OutgoingMicSamples(void *arg)
             Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);			// read the FIFO Depth register. 4 mic words per 64 bit word.
             if((StartupCount == 0) && FIFOOverThreshold)
             {
+                pthread_mutex_lock(&g_fifo_overflow_mutex);
                 GlobalFIFOOverflows |= 0b00000010;
+                pthread_mutex_unlock(&g_fifo_overflow_mutex);
                 if(UseDebug)
                     printf("Codec Mic FIFO Overthreshold, depth now = %d\n", Current);
             }
@@ -182,7 +184,9 @@ void *OutgoingMicSamples(void *arg)
                 Depth = ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &Current);				// read the FIFO Depth register
                 if((StartupCount == 0) && FIFOOverThreshold)
                 {
+                    pthread_mutex_lock(&g_fifo_overflow_mutex);
                     GlobalFIFOOverflows |= 0b00000010;
+                    pthread_mutex_unlock(&g_fifo_overflow_mutex);
                     if(UseDebug)
                         printf("Codec Mic FIFO Overthreshold, depth now = %d\n", Current);
                 }
