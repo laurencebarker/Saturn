@@ -33,6 +33,7 @@
 
 
 uint8_t GlobalFIFOOverflows = 0;             // FIFO overflow words
+pthread_mutex_t g_fifo_overflow_mutex = PTHREAD_MUTEX_INITIALIZER;  // protect GlobalFIFOOverflows from race conditions
 
 
 
@@ -154,6 +155,7 @@ void *OutgoingHighPriority(void *arg)
         FIFOOverflows |= 0b00000001;
 
       ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &FIFOCount);				// read the mic FIFO Depth register
+
       Word = Word*4;                                            // 4 samples per FIFO location
       wr_be_u16(UDPBuffer+33, FIFOCount);                       // mic samples
       if(FIFOOverThreshold)
@@ -171,9 +173,11 @@ void *OutgoingHighPriority(void *arg)
       if(FIFOUnderflow)
         FIFOOverflows |= 0b00001000;
 
+      pthread_mutex_lock(&g_fifo_overflow_mutex);
       FIFOOverflows |= GlobalFIFOOverflows;                   // copy in any bits set during normal data transfer
-      *(uint8_t *)(UDPBuffer+30) = FIFOOverflows;
       GlobalFIFOOverflows = 0;                                // clear any overflows
+      pthread_mutex_unlock(&g_fifo_overflow_mutex);
+      *(uint8_t *)(UDPBuffer+30) = FIFOOverflows;
       FIFOOverflows = 0;
       Error = sendmsg(ThreadData -> Socketid, &datagram, 0);
 
