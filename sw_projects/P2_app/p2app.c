@@ -65,7 +65,7 @@
 #include "AriesATU.h"
 #include "frontpanelhandler.h"
 
-#define P2APPVERSION 40
+#define P2APPVERSION 41
 #define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
@@ -73,6 +73,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V41, 30/9/2025:   Added detection of PCB version, so CODEC can be initialised for a different type
 // V40: 29/6/2025:   Changes to accommodate a different XMDA device driver, if required in the future. No functional impact. 
 // V39: 18/02/2025:  ADC overflow now reported immediately while in RX
 // V38: 13/2/2025:   added FPGA version 18 required to run wideband code
@@ -435,7 +436,7 @@ int main(int argc, char *argv[])
 	unsigned int Version = 0;
   unsigned int MajorVersion = 0;
   bool IncompatibleFirmware = false;                                // becomes set if firmware is not compatible with this version
-
+  unsigned int PCBVersion;
 
   //
   // initialise register access semaphores
@@ -453,12 +454,13 @@ int main(int argc, char *argv[])
 
   OpenXDMADriver(false);
   PrintVersionInfo();
+  PCBVersion = GetPCBVersionNumber();
   printf("p2app client app software Version:%d Build Date:%s\n", P2APPVERSION, BuildDate);
   PrintAuxADCInfo();
   if (IsFallbackConfig())
       printf("FPGA load is a fallback - you should re-flash the primary FPGA image!\n");
   
-  CodecInitialise();
+  CodecInitialise(PCBVersion);
   InitialiseDACAttenROMs();
 //  InitialiseCWKeyerRamp(true, 5000);                                // create initial default 5 ms ramp, P2
   InitialiseCWKeyerRamp(true, 9000);                                // create initial default 9ms DL1YCF amp, P2

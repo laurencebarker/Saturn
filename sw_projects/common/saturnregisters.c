@@ -133,6 +133,10 @@ unsigned int GNumADCs;                              // count of ADCs available
 unsigned int GCodecLineGain;                        // value written in Codec left line in gain register
 unsigned int GCodecAnaloguePath;                    // value written in Codec analogue path register
 
+//
+// Saturn PCB Version, needed for codec ID
+//
+uint16_t SaturnPCBVersion;
 
 //
 // mic, bias & PTT bits in GPIO register:
@@ -2123,12 +2127,13 @@ unsigned int GetAnalogueIn(unsigned int AnalogueSelect)
 
 
 //
-// CodecInitialise(void)
+// CodecInitialise(uint16_t PCBVersion)
 // initialise the CODEC, with the register values that don't normally change
 // these are the values used by existing HPSDR FPGA firmware
 //
-void CodecInitialise(void)
+void CodecInitialise(uint16_t PCBVersion)
 {
+    SaturnPCBVersion = PCBVersion;
     GCodecLineGain = 0;                                     // Codec left line in gain register
     GCodecAnaloguePath = 0x14;                              // Codec analogue path register (mic input, no boost)
     CodecRegisterWrite(VCODECRESETREG, 0x0);          // reset register: reset deveice

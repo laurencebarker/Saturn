@@ -67,4 +67,17 @@ void PrintVersionInfo(void);
 //
 bool IsFallbackConfig(void);
 
+//
+// check that the board is a Saturn one
+// return true if SATURN
+//
+bool IsSaturnPCB(void);
+
+//
+// get PCB version number
+// 1: 1st prototype; 2: production V1; 3: production V2
+// (used to select the correct device drivers etc)
+//
+uint16_t GetPCBVersionNumber(void);
+
 #endif

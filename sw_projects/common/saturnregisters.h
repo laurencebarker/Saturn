@@ -809,10 +809,11 @@ unsigned int GetAnalogueIn(unsigned int AnalogueSelect);
 
 
 //
-// CodecInitialise(void)
+// CodecInitialise(uint16_t PCBVersion)
 // initialise the CODEC, with the register values that don't normally change
+// parameter is the PCB version number, to identify change of CODEC type
 //
-void CodecInitialise(void);
+void CodecInitialise(uint16_t PCBVersion);
 
 
 

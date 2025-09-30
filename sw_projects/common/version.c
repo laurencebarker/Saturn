@@ -210,3 +210,37 @@ unsigned int GetFirmwareMajorVersion(void)
 	MajorVersion = (SoftwareInformation >> 25) & 0x7F;			// 7 bit major fw version
 	return MajorVersion;
 }
+
+
+//
+// check that the board is a Saturn one
+// return true if SATURN
+//
+bool IsSaturnPCB(void)
+{
+	bool Result = false;
+	uint32_t ProductInformation;			// productid & version
+	uint32_t Version;
+
+	ProductInformation = RegisterRead(VADDRPRODVERSIONREG);
+	Version = (ProductInformation >> 16) & 0xFFFF;			// 16 bit product ID
+	if (Version == 1)
+		Result = true;
+	return Result;
+
+}
+
+//
+// get PCB version number
+// 1: 1st prototype; 2: production V1; 3: production V2
+// (used to select the correct device drivers etc)
+//
+uint16_t GetPCBVersionNumber(void)
+{
+	uint32_t ProductInformation;			// productid & version
+	uint16_t Version;
+
+	ProductInformation = RegisterRead(VADDRPRODVERSIONREG);
+	Version = (uint16_t)(ProductInformation  & 0xFFFF);			// 16 bit product version
+	return Version;
+}
