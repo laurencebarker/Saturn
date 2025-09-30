@@ -153,19 +153,19 @@ void *OutgoingHighPriority(void *arg)
         FIFOOverflows |= 0b00000001;
 
       ReadFIFOMonitorChannel(eMicCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &FIFOCount);				// read the mic FIFO Depth register
-      Word = Word*4;                                            // 4 samples per FIFO location
+      FIFOCount = FIFOCount*4;                                  // 4 samples per FIFO location
       *(uint16_t *)(UDPBuffer+33) = htons(FIFOCount);                // mic samples
       if(FIFOOverThreshold)
         FIFOOverflows |= 0b00000010;
 
       ReadFIFOMonitorChannel(eTXDUCDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &FIFOCount);				// read the DUC FIFO Depth register
-      Word = (Word*4)/3;                                        // 4/3 samples per FIFO location
+      FIFOCount = (FIFOCount*4)/3;                              // 4/3 samples per FIFO location
       *(uint16_t *)(UDPBuffer+35) = htons(FIFOCount);                // DUC samples
       if(FIFOUnderflow)
         FIFOOverflows |= 0b00000100;
 
       ReadFIFOMonitorChannel(eSpkCodecDMA, &FIFOOverflow, &FIFOOverThreshold, &FIFOUnderflow, &FIFOCount);				// read the speaker FIFO Depth register
-      Word = Word*2;                                            // 2 samples per FIFO location
+      FIFOCount = FIFOCount*2;                                  // 2 samples per FIFO location
       *(uint16_t *)(UDPBuffer+37) = htons(FIFOCount);                // speaker samples
       if(FIFOUnderflow)
         FIFOOverflows |= 0b00001000;
