@@ -151,6 +151,7 @@ bool UseAriesATU = false;                   // true if to use an Aries ATU
 #define VCONSTTXAMPLSCALEFACTOR_13 0x0002000  // 18 bit scale value - set to 1/32 of full scale FWV13+
 #define VCONSTTXAMPLSCALEFACTOR_17 0x0002000  // 18 bit scale value - set to 1/32 of full scale FWV17+
 //#define VCONSTTXAMPLSCALEFACTOR_17 0x0002800  // 18 bit scale value - set to 1/32 of full scale FWV17+
+#define VCONSTTXAMPLSCALEFACTOR_PCBV3 0x0002A00  // 18 bit scale value - set to 1/32 of full scale for PCB V3
 
 struct ThreadSocketData SocketData[VPORTTABLESIZE] =
 {
@@ -474,13 +475,19 @@ int main(int argc, char *argv[])
   Version = GetFirmwareVersion(&ID);                                // TX scaling changed at FW V13
   MajorVersion = GetFirmwareMajorVersion();
 
-  if(Version < 13)
-    SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR);
-  else if (Version < 17)
-    SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR_13);
+  if(PCBVersion <= 2)
+  {
+    if(Version < 13)
+      SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR);
+    else if (Version < 17)
+      SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR_13);
+    else
+      SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR_17);
+  }
   else
-    SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR_17);
-  
+  {
+    SetTXAmplitudeScaling(VCONSTTXAMPLSCALEFACTOR_PCBV3);
+  }  
 
 
   if (MajorVersion != FWREQUIREDMAJORVERSION)

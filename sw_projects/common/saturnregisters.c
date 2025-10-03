@@ -24,6 +24,12 @@
 #include "version.h"
 #include <stdio.h>
 
+typedef enum
+{
+    e23b,                               // TLV320AIC23B (now obsolete)
+    e3204                               // TLV320AIC3204 (suitable replacement)
+} ECodecType;
+
 //
 // semaphores to protect registers that are accessed from several threads
 //
@@ -135,8 +141,9 @@ unsigned int GCodecAnaloguePath;                    // value written in Codec an
 
 //
 // Saturn PCB Version, needed for codec ID
-//
+// (PCB version 3 onwards will have a TLV320AIC3204)
 uint16_t SaturnPCBVersion;
+ECodecType InstalledCodec;                          // Codec type on the Saturn board
 
 //
 // mic, bias & PTT bits in GPIO register:
@@ -289,6 +296,7 @@ uint32_t DDCRegisters[VNUMDDC] =
 #define VTXCONFIGIQDEINTERLEAVEBIT 30
 #define VTXCONFIGIQSTREAMENABLED 31
 #define VTXCONFIGWATCHDOGOVERRIDE 28
+#define VTXCONFIGHPFENABLE 27
 
 
 
@@ -751,6 +759,8 @@ void SetTestDDSFrequency(uint32_t Value, bool IsDeltaPhase)
 }
 
 
+
+#define DELTAPHIHPFCUTIN 1712674133L            // delta phi for 49MHz
 //
 // SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)
 // sets a DUC frequency. (Currently only 1 DUC, therefore DUC must be 0)
@@ -761,6 +771,8 @@ void SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)		// only accepts DUC
 {
     uint32_t DeltaPhase;                    // calculated deltaphase value
     double fDeltaPhase;
+    bool NeedsHPF = false;
+    uint32_t Register;
 
     if(!IsDeltaPhase)                       // ieif protocol 1
     {
@@ -772,6 +784,24 @@ void SetDUCFrequency(unsigned int Value, bool IsDeltaPhase)		// only accepts DUC
 
     DUCDeltaPhase = DeltaPhase;             // store this delta phase
     RegisterWrite(VADDRTXDUCREG, DeltaPhase);  // and write to it
+
+//
+// now enable high pass filter if above 49MHz, for V3+ PCBs
+//    
+    if(SaturnPCBVersion >= 3)
+    {
+    if (DeltaPhase > DELTAPHIHPFCUTIN)
+        NeedsHPF = true;
+    Register = TXConfigRegValue;                                // get current settings
+    Register &= ~(1<<VTXCONFIGHPFENABLE);                       // remove old HPF bit
+    if(NeedsHPF)
+        Register |= (1 << VTXCONFIGHPFENABLE);                  // add new bit if HPF to be enabled
+    TXConfigRegValue = Register;                                // store it back
+    RegisterWrite(VADDRTXCONFIGREG, Register);                  // and write to it
+
+    }
+
+    
 }
 
 
@@ -1177,15 +1207,22 @@ void SetMicBoost(bool EnableBoost)
 {
     unsigned int Register;
 
-    Register = GCodecAnaloguePath;                      // get current setting
-
-    Register &= 0xFFFE;                                 // remove old mic boost bit
-    if(EnableBoost)
-        Register |= 1;                                  // set new mic boost bit
-    if(Register != GCodecAnaloguePath)                  // only write back if changed
+    if(InstalledCodec == e23b)
     {
-        GCodecAnaloguePath = Register;
-        CodecRegisterWrite(VCODECANALOGUEPATHREG, Register);
+        Register = GCodecAnaloguePath;                      // get current setting
+
+        Register &= 0xFFFE;                                 // remove old mic boost bit
+        if(EnableBoost)
+            Register |= 1;                                  // set new mic boost bit
+        if(Register != GCodecAnaloguePath)                  // only write back if changed
+        {
+            GCodecAnaloguePath = Register;
+            CodecRegisterWrite(VCODECANALOGUEPATHREG, Register);
+        }
+    }
+    else
+    {
+// to be written
     }
 }
 
@@ -1199,18 +1236,24 @@ void SetMicLineInput(bool IsLineIn)
 {
     unsigned int Register;
 
-    Register = GCodecAnaloguePath;                      // get current setting
-
-    Register &= 0xFFFB;                                 // remove old mic / line select bit
-    if(!IsLineIn)
-        Register |= 4;                                  // set new select bit
-    if(Register != GCodecAnaloguePath)                  // only write back if changed
+    if(InstalledCodec == e23b)
     {
-        GCodecAnaloguePath = Register;
-        CodecRegisterWrite(VCODECANALOGUEPATHREG, Register);
+        Register = GCodecAnaloguePath;                      // get current setting
+
+        Register &= 0xFFFB;                                 // remove old mic / line select bit
+        if(!IsLineIn)
+            Register |= 4;                                  // set new select bit
+        if(Register != GCodecAnaloguePath)                  // only write back if changed
+        {
+            GCodecAnaloguePath = Register;
+            CodecRegisterWrite(VCODECANALOGUEPATHREG, Register);
+        }
+    }
+    else
+    {
+// to be written        
     }
 }
-
 
 
 //
@@ -1282,14 +1325,21 @@ void SetCodecLineInGain(unsigned int Gain)
 {
     unsigned int Register;
 
-    Register = GCodecLineGain;                          // get current setting
-
-    Register &= 0xFFE0;                                 // remove old gain
-    Register |= Gain;                                   // set new gain
-    if(Register != GCodecLineGain)                      // only write back if changed
+    if(InstalledCodec == e23b)
     {
-        GCodecLineGain = Register;
-        CodecRegisterWrite(VCODECLLINEVOLREG, Register);
+        Register = GCodecLineGain;                          // get current setting
+
+        Register &= 0xFFE0;                                 // remove old gain
+        Register |= Gain;                                   // set new gain
+        if(Register != GCodecLineGain)                      // only write back if changed
+        {
+            GCodecLineGain = Register;
+            CodecRegisterWrite(VCODECLLINEVOLREG, Register);
+        }
+    }
+    else
+    {
+// to be written        
     }
 }
 
@@ -1631,6 +1681,7 @@ void SetCWSidetoneEnabled(bool Enabled)
 //
 // SetCWSidetoneVol(uint8_t Volume)
 // sets the sidetone volume level (7 bits, unsigned)
+// note not codec type dependent!
 //
 void SetCWSidetoneVol(uint8_t Volume)
 {
@@ -2134,25 +2185,37 @@ unsigned int GetAnalogueIn(unsigned int AnalogueSelect)
 void CodecInitialise(uint16_t PCBVersion)
 {
     SaturnPCBVersion = PCBVersion;
-    GCodecLineGain = 0;                                     // Codec left line in gain register
-    GCodecAnaloguePath = 0x14;                              // Codec analogue path register (mic input, no boost)
-    CodecRegisterWrite(VCODECRESETREG, 0x0);          // reset register: reset deveice
-    usleep(100);
-    CodecRegisterWrite(VCODECACTIVATIONREG, 0x1);     // digital activation set to ACTIVE
-    usleep(100);
-    CodecRegisterWrite(VCODECANALOGUEPATHREG, GCodecAnaloguePath);        // mic input, no boost
-    usleep(100);
-    CodecRegisterWrite(VCODECPOWERDOWNREG, 0x0);      // all elements powered on
-    usleep(100);
-    CodecRegisterWrite(VCODECDIGITALFORMATREG, 0x2);  // slave; no swap; right when LRC high; 16 bit, I2S
-    usleep(100);
-    CodecRegisterWrite(VCODECSAMPLERATEREG, 0x0);     // no clock divide; rate ctrl=0; normal mode, oversample 256Fs
-    usleep(100);
-    CodecRegisterWrite(VCODECDIGITALPATHREG, 0x0);    // no soft mute; no deemphasis; ADC high pss filter enabled
-    usleep(100);
-    CodecRegisterWrite(VCODECLLINEVOLREG, GCodecLineGain);        // line in gain=0
-    CodecRegisterWrite(VCODECRLINEVOLREG, GCodecLineGain);        // line in gain=0
-    usleep(100);
+    if (PCBVersion >= 3)
+        InstalledCodec = e3204;
+    else
+        InstalledCodec = e23b;
+
+    if(InstalledCodec == e23b)                          // earlier CODEC used on ann HPSDR boards
+    {
+        GCodecLineGain = 0;                                 // Codec left line in gain register
+        GCodecAnaloguePath = 0x14;                          // Codec analogue path register (mic input, no boost)
+        CodecRegisterWrite(VCODECRESETREG, 0x0);            // reset register: reset deveice
+        usleep(100);
+        CodecRegisterWrite(VCODECACTIVATIONREG, 0x1);       // digital activation set to ACTIVE
+        usleep(100);
+        CodecRegisterWrite(VCODECANALOGUEPATHREG, GCodecAnaloguePath);        // mic input, no boost
+        usleep(100);
+        CodecRegisterWrite(VCODECPOWERDOWNREG, 0x0);        // all elements powered on
+        usleep(100);
+        CodecRegisterWrite(VCODECDIGITALFORMATREG, 0x2);    // slave; no swap; right when LRC high; 16 bit, I2S
+        usleep(100);
+        CodecRegisterWrite(VCODECSAMPLERATEREG, 0x0);       // no clock divide; rate ctrl=0; normal mode, oversample 256Fs
+        usleep(100);
+        CodecRegisterWrite(VCODECDIGITALPATHREG, 0x0);      // no soft mute; no deemphasis; ADC high pss filter enabled
+        usleep(100);
+        CodecRegisterWrite(VCODECLLINEVOLREG, GCodecLineGain);        // line in gain=0
+        CodecRegisterWrite(VCODECRLINEVOLREG, GCodecLineGain);        // line in gain=0
+        usleep(100);
+    }
+    else
+    {
+// to be written
+    }
 
 }
 
