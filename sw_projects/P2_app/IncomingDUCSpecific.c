@@ -104,9 +104,10 @@ void *IncomingDUCSpecific(void *arg)                    // listener thread
           }
 
 // mic and line in options
+// changed order, so mic/line selection is made before gain setting
           Byte = *(uint8_t*)(UDPInBuffer+50);                     // mic/line options
-          SetMicBoost((bool)((Byte >> 1)&1));
           SetMicLineInput((bool)(Byte&1));
+          SetMicBoost((bool)((Byte >> 1)&1));
           SetOrionMicOptions((bool)((Byte >> 3)&1), (bool)((Byte >> 4)&1), (bool)((~Byte >> 2)&1));          
           SetBalancedMicInput((bool)((Byte >> 5)&1));
           Byte = *(uint8_t*)(UDPInBuffer+51);                     // line in gain

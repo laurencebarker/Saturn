@@ -945,6 +945,8 @@ int main(int argc, char *argv[])
     audio.buffer_size = MEM_BUFFER_SIZE;
     pthread_t ptt_thread, mic_test_thread, speaker_test_thread;
     void *thread_args[2] = {&app, &audio};
+    unsigned int PCBVersion;
+
 
     // Initialize circular buffer
     for (int i = 0; i < CIRCULAR_BUFFER_SIZE; i++) 
@@ -1194,7 +1196,8 @@ int main(int argc, char *argv[])
     {
         printf("XDMA driver opened successfully\n");
         PrintVersionInfo();
-        CodecInitialise(); // Treat as void, no return value check
+        PCBVersion = GetPCBVersionNumber();
+        CodecInitialise(PCBVersion);            // pass Saturn PCB version so CODEC can be identified
         SetByteSwapping(false);
         SetSpkrMute(false);
         uint32_t codecReg = RegisterRead(VADDRCODECSPIREG);

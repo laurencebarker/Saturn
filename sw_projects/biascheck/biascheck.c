@@ -211,6 +211,8 @@ int main(int argc, char *argv[])
 {
     guint Context;                                  // status bar context
     int XDMAAccess = 0;
+    unsigned int PCBVersion;
+
 
     gtk_init(&argc, &argv);
 
@@ -253,7 +255,8 @@ int main(int argc, char *argv[])
         gtk_statusbar_push(StatusBar, Context, "Connected to /dev/xdma0_user");    
     }
 	PrintVersionInfo();
-	CodecInitialise();
+    PCBVersion = GetPCBVersionNumber();
+	CodecInitialise(PCBVersion);
 	SetByteSwapping(false);                                            // h/w to generate normalbyte order
 	SetSpkrMute(false);
     SetTXDriveLevel(0);                                                 // DAC current & Atten value

@@ -120,6 +120,7 @@ typedef enum
 #define VADDRBOARDID2 0xC004
 #define VADDRCONFIGSPIREG 0x10000
 #define VADDRCODECSPIREG 0x14000
+#define VADDRCODECSPIREADREG 0x14004
 #define VADDRXADCREG 0x18000                    // on-chip XADC (temp, VCC...)
 #define VADDRCWKEYERRAM 0x1C000                 // keyer RAM mapped here
 
