@@ -9,7 +9,8 @@
 #   (follows symlinks) into:
 #       ~/.local/share/applications  and  $XDG_DESKTOP_DIR/~/Desktop
 # - Auto-generates launchers for key apps if they don't exist.
-# - Adds a web launcher for Saturn Update Manager (SATURN_URL).
+# - Adds a web launcher for Saturn Update Manager (SATURN_URL),
+#   using Chromium app mode when available.
 ################################################################
 
 set -uo pipefail
@@ -24,11 +25,15 @@ APP_AUDIO_BIN="$SATURN_ROOT/sw_projects/audiotest/audiotest"
 APP_AXI_BIN="$SATURN_ROOT/sw_tools/axi_rw/axi_rw"
 APP_FLASH_BIN="$SATURN_ROOT/sw_tools/flashwriter/flashwriter"
 
-# candidate locations for P2App (we'll pick the first with a Makefile)
+# Candidate locations for P2App (pick the first with a Makefile)
 P2APP_CANDIDATES=(
-  "$SATURN_ROOT/P2_App"
+  "$SATURN_ROOT/sw_projects/P2_app"
   "$SATURN_ROOT/sw_projects/P2_App"
+  "$SATURN_ROOT/sw_projects/p2_app"
   "$SATURN_ROOT/sw_projects/p2app"
+  "$SATURN_ROOT/P2_app"
+  "$SATURN_ROOT/P2_App"
+  "$SATURN_ROOT/P2app"
   "$SATURN_ROOT/p2app"
 )
 
@@ -46,17 +51,30 @@ get_codename() {
   printf '%s\n' "$codename"
 }
 
+find_patch_script() {
+  # Prefer canonical name, otherwise anything matching *gpiod*patch*.sh under scripts/
+  local exact="$SATURN_ROOT/scripts/patch-trixie-gpiod.sh"
+  if [[ -f "$exact" ]]; then
+    printf '%s\n' "$exact"; return 0
+  fi
+  local hit
+  hit="$(find "$SATURN_ROOT/scripts" -maxdepth 2 -type f \( -iname 'patch-trixie-gpiod.sh' -o -iname '*gpiod*patch*.sh' \) -print -quit 2>/dev/null || true)"
+  [[ -n "$hit" ]] && printf '%s\n' "$hit" || return 1
+}
+
 maybe_patch_trixie_for_p2app() {
   local codename; codename="$(get_codename)"
   if [[ "${codename,,}" == "trixie" ]]; then
-    local patch="$SATURN_ROOT/scripts/patch-trixie-gpiod.sh"
-    hr; echo; log "OS codename '${codename}' detected → running gpiod v2 patch before building P2App"; echo; hr
-    if [[ -x "$patch" ]]; then
-      ( cd "$SATURN_ROOT/scripts" && "$patch" ) \
+    hr; echo; log "OS codename '${codename}' detected → applying gpiod v2 patch before building P2App"; echo; hr
+    local patch
+    if patch="$(find_patch_script)"; then
+      log "Found patch script: $patch"
+      chmod +x "$patch" 2>/dev/null || true
+      ( cd "$(dirname "$patch")" || exit 0; bash "$patch" ) \
         && log "gpiod v2 patch completed" \
         || log "WARN: patch script returned non-zero (continuing)"
     else
-      log "WARN: Expected patch not found or not executable: $patch"
+      log "WARN: No gpiod patch script found under $SATURN_ROOT/scripts"
     fi
   else
     log "OS codename '${codename:-unknown}' → skipping P2App gpiod patch"
@@ -84,17 +102,13 @@ build_dir() {
 }
 
 build_p2app() {
-  # run the trixie patch first (if applicable)
   maybe_patch_trixie_for_p2app
-
-  # find a p2app directory that has a Makefile
   local dir=""
   for cand in "${P2APP_CANDIDATES[@]}"; do
-    if [[ -d "$cand" ]] && { [[ -f "$cand/Makefile" ]] || [[ -f "$cand/makefile" ]]; }; then
+    if [[ -d "$cand" ]] && { [[ -f "$cand/Makefile" ]] || [[ -f "$cand/makefile" ]] ; }; then
       dir="$cand"; break
     fi
   done
-
   if [[ -n "$dir" ]]; then
     build_dir "$dir" "P2App"
   else
@@ -149,9 +163,7 @@ EOF
 
 install_desktop_file() {
   # $1: source path to .desktop
-  local src="$1"
-  local apps_dir="$2"
-  local desk_dir="$3"
+  local src="$1" apps_dir="$2" desk_dir="$3"
   local base; base="$(basename "$src")"
   log "Installing launcher: $base"
   install -Dm644 "$src" "$apps_dir/$base"
@@ -159,10 +171,17 @@ install_desktop_file() {
   chmod +x "$desk_dir/$base" 2>/dev/null || true
 }
 
-# ---------- build apps ----------
-# P2App (with trixie patch pre-step if needed)
-build_p2app
+browser_cmd() {
+  # Prefer Chromium app mode with an isolated profile (cookie stability)
+  if command -v chromium-browser >/dev/null 2>&1; then
+    echo "chromium-browser --app=${SATURN_URL} --user-data-dir=$HOME/.config/chromium-saturn --new-window"
+  else
+    echo "xdg-open ${SATURN_URL}"
+  fi
+}
 
+# ---------- build apps ----------
+build_p2app
 build_dir "$SATURN_ROOT/sw_projects/biascheck"    "bias check app"
 build_dir "$SATURN_ROOT/sw_projects/audiotest"     "audio test app"
 build_dir "$SATURN_ROOT/sw_tools/axi_rw"           "AXI reader/writer app"
@@ -194,8 +213,7 @@ ensure_generated() {
   local target="$USER_APPS_DIR/$base"
   local src_repo="$SHORTCUT_SRC/$base"
   if [[ ! -f "$src_repo" && ! -f "$target" ]]; then
-    local tmp
-    tmp="$(mktemp)"
+    local tmp; tmp="$(mktemp)"
     write_launcher "$tmp" "$name" "$exec" "$comment" "$(find_icon "$icon_stem")"
     install_desktop_file "$tmp" "$USER_APPS_DIR" "$USER_DESKTOP_DIR"
     mv -f "$USER_APPS_DIR/$(basename "$tmp")" "$target" 2>/dev/null || true
@@ -216,7 +234,7 @@ hr; echo; log "Ensuring Saturn Go Update Manager web launcher"; echo; hr
 SATURN_DESKTOP_NAME="SaturnUpdateManager.desktop"
 if [[ ! -f "$SHORTCUT_SRC/$SATURN_DESKTOP_NAME" && ! -f "$USER_APPS_DIR/$SATURN_DESKTOP_NAME" ]]; then
   tmp="$(mktemp)"
-  write_launcher "$tmp" "Saturn Update Manager" "xdg-open ${SATURN_URL}" "Open the Saturn Go Update Manager web UI" "$(find_icon saturn)"
+  write_launcher "$tmp" "Saturn Update Manager" "$(browser_cmd)" "Open the Saturn Go Update Manager web UI" "$(find_icon saturn)"
   install_desktop_file "$tmp" "$USER_APPS_DIR" "$USER_DESKTOP_DIR"
   mv -f "$USER_APPS_DIR/$(basename "$tmp")" "$USER_APPS_DIR/$SATURN_DESKTOP_NAME" 2>/dev/null || true
   mv -f "$USER_DESKTOP_DIR/$(basename "$tmp")" "$USER_DESKTOP_DIR/$SATURN_DESKTOP_NAME" 2>/dev/null || true
