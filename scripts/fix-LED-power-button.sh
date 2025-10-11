@@ -1,124 +1,135 @@
 #!/bin/bash
-# fix-LED-power-button.sh
+# fix-LED-power-button.sh (Trixie-safe)
+# Set the on-board Power LED via the kernel LED class (no GPIO poking).
+# Works on older images (led0/led1) and newer (ACT/PWR).
+# Logs to journalctl as 'fix-LED-power-button'.
 # Written by: Jerry DeLong KD4YAL
-# Script to automate creation of gpio15-setup.service for controlling power LED
-# Sets GPIO15 as output driven high at startup using pinctrl
-# Runs in /etc/systemd/system, logs to journalctl
 
-# The shutdown script is better as a systemd service for reliability and autonomy. 
-# The shutdown_monitor.sh and shutdown-monitor.service above address all limitations. 
-# The fix-LED-power-button.sh ensures gpio15-setup.service is correctly set up. The LED issue 
-# requires testing GPIO15 and triggers. Please share:
+set -euo pipefail
 
-# journalctl -t fix-LED-power-button output.
-# sudo systemctl status shutdown-monitor.service output.
-# GPIO15 test results (pinctrl set 15 op dh/dl).
-# LED trigger test results (led1/default-on).
+SERVICE_FILE="/etc/systemd/system/pwr-led-setup.service"
+HELPER="/usr/local/sbin/pwr-led-setup.sh"
 
+log(){ echo "$1" | systemd-cat -t fix-LED-power-button; }
 
+# Must be root
+if [ "$(id -u)" -ne 0 ]; then
+  log "Error: run with sudo."
+  echo "Run with sudo." >&2
+  exit 1
+fi
 
-SERVICE_FILE="/etc/systemd/system/gpio15-setup.service"
-CONFIG_FILE="/boot/config.txt"
-
-# Function to log messages to journalctl
-log_message() {
-    echo "$1" | systemd-cat -t fix-LED-power-button
+# Discover LED class paths (prefer new names, fall back to old)
+find_led(){
+  local wanted_alt="$1" wanted_legacy="$2"
+  if [ -d "/sys/class/leds/$wanted_alt" ]; then
+    echo "/sys/class/leds/$wanted_alt"
+  elif [ -d "/sys/devices/platform/leds/leds/$wanted_alt" ]; then
+    echo "/sys/devices/platform/leds/leds/$wanted_alt"
+  elif [ -d "/sys/class/leds/$wanted_legacy" ]; then
+    echo "/sys/class/leds/$wanted_legacy"
+  else
+    echo ""
+  fi
 }
 
-# Check if running with root privileges
-if [ "$(id -u)" -ne 0 ]; then
-    log_message "Error: This script requires root privileges. Run with sudo."
-    exit 1
+PWR_DIR="$(find_led PWR led1)"
+ACT_DIR="$(find_led ACT led0)"
+
+if [ -z "$PWR_DIR" ]; then
+  log "Warning: No PWR LED found under /sys/class/leds (this model/OS may not expose it)."
+else
+  log "Detected PWR LED at $PWR_DIR"
 fi
 
-# Check if pinctrl is installed
-if ! command -v pinctrl >/dev/null 2>&1; then
-    log_message "pinctrl not found. Attempting to install..."
-    if ! apt update && apt install -y cmake device-tree-compiler libfdt-dev; then
-        log_message "Error: Failed to install prerequisites for pinctrl."
-        exit 1
-    fi
-    if ! git clone https://github.com/raspberrypi/utils /tmp/utils; then
-        log_message "Error: Failed to clone raspberrypi/utils repository."
-        exit 1
-    fi
-    cd /tmp/utils/pinctrl
-    if ! cmake . || ! make || ! make install; then
-        log_message "Error: Failed to build and install pinctrl."
-        exit 1
-    fi
-    rm -rf /tmp/utils
-    log_message "pinctrl installed successfully at /usr/bin/pinctrl"
+if [ -n "$ACT_DIR" ]; then
+  log "Detected ACT LED at $ACT_DIR"
 fi
 
-# Verify pinctrl path
-PINCTRL_PATH=$(which pinctrl)
-if [ "$PINCTRL_PATH" != "/usr/bin/pinctrl" ]; then
-    log_message "Error: pinctrl not found at /usr/bin/pinctrl. Found at $PINCTRL_PATH"
-    exit 1
+# Write the helper that actually nudges the LEDs at boot
+cat > "$HELPER" <<'EOSH'
+#!/usr/bin/env bash
+set -eu
+
+log(){ echo "$1" | systemd-cat -t pwr-led-setup; }
+
+PWR_DIR=""
+ACT_DIR=""
+
+# Re-discover at runtime (paths may differ across boards)
+if   [ -d /sys/class/leds/PWR ]; then PWR_DIR=/sys/class/leds/PWR
+elif [ -d /sys/devices/platform/leds/leds/PWR ]; then PWR_DIR=/sys/devices/platform/leds/leds/PWR
+elif [ -d /sys/class/leds/led1 ]; then PWR_DIR=/sys/class/leds/led1
 fi
 
-# Check for conflicting gpio=15 setting in /boot/config.txt
-if grep -q "^gpio=15=op,dh" "$CONFIG_FILE"; then
-    log_message "Found conflicting gpio=15=op,dh in $CONFIG_FILE. Commenting out..."
-    if ! sed -i 's/^gpio=15=op,dh/#gpio=15=op,dh/' "$CONFIG_FILE"; then
-        log_message "Error: Failed to comment out gpio=15=op,dh in $CONFIG_FILE."
-        exit 1
-    fi
-    log_message "gpio=15=op,dh commented out. Reboot required after completion."
+if   [ -d /sys/class/leds/ACT ]; then ACT_DIR=/sys/class/leds/ACT
+elif [ -d /sys/devices/platform/leds/leds/ACT ]; then ACT_DIR=/sys/devices/platform/leds/leds/ACT
+elif [ -d /sys/class/leds/led0 ]; then ACT_DIR=/sys/class/leds/led0
 fi
 
-# Create or update gpio15-setup.service
-log_message "Creating/updating $SERVICE_FILE"
-cat > "$SERVICE_FILE" << EOF
+# ---- Power LED policy ----
+# Keep PWR on (stable) using the 'default-on' trigger.
+if [ -n "$PWR_DIR" ]; then
+  if [ -w "$PWR_DIR/trigger" ]; then
+    echo default-on > "$PWR_DIR/trigger" || true
+    log "PWR: set trigger=default-on"
+  elif [ -w "$PWR_DIR/brightness" ]; then
+    # Fallback: manual brightness (driver handles polarity)
+    echo 1 > "$PWR_DIR/brightness" || true
+    log "PWR: set brightness=1"
+  else
+    log "PWR: no writable trigger/brightness"
+  fi
+else
+  log "PWR: not present on this system"
+fi
+
+# ---- Activity LED (optional) ----
+# To force ACT steady on:
+#   [ -n "$ACT_DIR" ] && echo default-on > "$ACT_DIR/trigger" || true
+# To turn ACT fully off:
+#   [ -n "$ACT_DIR" ] && { echo none > "$ACT_DIR/trigger"; echo 0 > "$ACT_DIR/brightness"; } || true
+# To set ACT to SD activity:
+#   [ -n "$ACT_DIR" ] && echo mmc0 > "$ACT_DIR/trigger" || true
+
+exit 0
+EOSH
+chmod 755 "$HELPER"
+log "Installed helper at $HELPER"
+
+# Create the oneshot service that calls the helper at boot
+cat > "$SERVICE_FILE" <<EOF
 [Unit]
-Description=Set GPIO15 at startup
-After=sysinit.target
+Description=Configure on-board Power LED (kernel LED class)
+After=multi-user.target
+DefaultDependencies=no
 
 [Service]
-ExecStart=/usr/bin/pinctrl set 15 op dh
 Type=oneshot
+ExecStart=$HELPER
 RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
 EOF
-
-if [ $? -ne 0 ]; then
-    log_message "Error: Failed to create $SERVICE_FILE"
-    exit 1
-fi
-
-# Set permissions
 chmod 644 "$SERVICE_FILE"
-log_message "$SERVICE_FILE created successfully"
+log "Created $SERVICE_FILE"
 
-# Reload systemd, enable, and start
-log_message "Reloading systemd and enabling gpio15-setup.service"
+# Make sure old GPIO hacks aren't fighting us
+if grep -Eq '^\s*gpio=15=' /boot/config.txt; then
+  sed -i 's/^\s*gpio=15=.*/# (disabled by fix-LED-power-button) &/' /boot/config.txt
+  log "Commented out legacy gpio=15=… in /boot/config.txt to avoid conflicts"
+fi
+
+# Enable + start
 systemctl daemon-reload
-if ! systemctl enable gpio15-setup.service; then
-    log_message "Error: Failed to enable gpio15-setup.service"
-    exit 1
-fi
-if ! systemctl start gpio15-setup.service; then
-    log_message "Error: Failed to start gpio15-setup.service"
-    exit 1
+systemctl enable --now pwr-led-setup.service
+
+# Quick verification
+if [ -n "$PWR_DIR" ]; then
+  trig=$(cat "$PWR_DIR/trigger" 2>/dev/null || echo "?")
+  bright=$(cat "$PWR_DIR/brightness" 2>/dev/null || echo "?")
+  log "PWR: trigger=$trig brightness=$bright"
 fi
 
-# Verify GPIO15 state
-log_message "Verifying GPIO15 state"
-GPIO_STATE=$(pinctrl get 15)
-if [[ "$GPIO_STATE" == *"op dh"* ]]; then
-    log_message "GPIO15 set to output high: $GPIO_STATE"
-else
-    log_message "Warning: GPIO15 not set to output high. Current state: $GPIO_STATE"
-fi
-
-# Instructions for LED troubleshooting
-log_message "Setup complete. Test the power LED:"
-log_message "  sudo pinctrl set 15 op dh  # High (possible red)"
-log_message "  sudo pinctrl set 15 op dl  # Low (possible white)"
-log_message "Check /sys/class/leds/led1 or /sys/class/leds/default-on:"
-log_message "  echo actpwr | sudo tee /sys/class/leds/led1/trigger"
-log_message "If /boot/config.txt was modified, reboot with 'sudo reboot'."
-exit 0
+echo "Done. Check logs with: journalctl -u pwr-led-setup.service -b"
