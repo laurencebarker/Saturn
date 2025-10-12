@@ -1,135 +1,108 @@
-#!/bin/bash
-# fix-LED-power-button.sh (Trixie-safe)
-# Set the on-board Power LED via the kernel LED class (no GPIO poking).
-# Works on older images (led0/led1) and newer (ACT/PWR).
-# Logs to journalctl as 'fix-LED-power-button'.
-# Written by: Jerry DeLong KD4YAL
+#!/usr/bin/env bash
+# fix-LED-power-button.sh  (Bookworm & Trixie)
+# Front-panel LED is on BCM15:
+#   pinctrl set 15 op dh  -> RED
+#   pinctrl set 15 op dl  -> WHITE
+# This script:
+#   1) (optionally) pins early-boot default to RED via config.txt
+#   2) installs a systemd unit that sets RED at boot, WHITE on shutdown
+# Logs under: journalctl -t fix-LED-power-button
+#
+# Env knobs:
+#   EARLY_DEFAULT=0   # skip touching config.txt (default is 1)
+#   SERVICE_NAME=gpio15-setup.service  # keep legacy name by default
+# Written by: Jerry DeLong kd4yal
 
 set -euo pipefail
 
-SERVICE_FILE="/etc/systemd/system/pwr-led-setup.service"
-HELPER="/usr/local/sbin/pwr-led-setup.sh"
+SERVICE_NAME="${SERVICE_NAME:-gpio15-setup.service}"
+SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}"
+EARLY_DEFAULT="${EARLY_DEFAULT:-1}"
 
 log(){ echo "$1" | systemd-cat -t fix-LED-power-button; }
 
-# Must be root
-if [ "$(id -u)" -ne 0 ]; then
-  log "Error: run with sudo."
-  echo "Run with sudo." >&2
-  exit 1
+require_root() { if [ "$(id -u)" -ne 0 ]; then echo "Run with sudo." >&2; log "error: not root"; exit 1; fi; }
+require_root
+
+# ----- locate config.txt for Bookworm/Trixie -----
+CONFIG_TXT="/boot/firmware/config.txt"
+[ -f "$CONFIG_TXT" ] || CONFIG_TXT="/boot/config.txt"
+if [ ! -f "$CONFIG_TXT" ]; then
+  log "warning: no config.txt found at /boot/firmware or /boot (continuing without early default)"
+  EARLY_DEFAULT=0
 fi
 
-# Discover LED class paths (prefer new names, fall back to old)
-find_led(){
-  local wanted_alt="$1" wanted_legacy="$2"
-  if [ -d "/sys/class/leds/$wanted_alt" ]; then
-    echo "/sys/class/leds/$wanted_alt"
-  elif [ -d "/sys/devices/platform/leds/leds/$wanted_alt" ]; then
-    echo "/sys/devices/platform/leds/leds/$wanted_alt"
-  elif [ -d "/sys/class/leds/$wanted_legacy" ]; then
-    echo "/sys/class/leds/$wanted_legacy"
-  else
-    echo ""
+# ----- ensure pinctrl exists (/usr/bin/pinctrl) -----
+ensure_pinctrl() {
+  if command -v pinctrl >/dev/null 2>&1; then
+    log "pinctrl present at $(command -v pinctrl)"
+    return 0
   fi
+  log "pinctrl missing; building from raspberrypi/utils (this takes a minute)"
+  apt-get update -y
+  apt-get install -y --no-install-recommends git cmake build-essential device-tree-compiler libfdt-dev
+  tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' EXIT
+  git clone --depth=1 https://github.com/raspberrypi/utils "$tmpdir/utils"
+  ( cd "$tmpdir/utils/pinctrl" && cmake . && make -j"$(nproc)" && make install )
+  hash -r
+  if ! command -v pinctrl >/dev/null 2>&1; then
+    log "error: pinctrl install failed"
+    exit 1
+  fi
+  log "pinctrl installed to $(command -v pinctrl)"
 }
+ensure_pinctrl
 
-PWR_DIR="$(find_led PWR led1)"
-ACT_DIR="$(find_led ACT led0)"
-
-if [ -z "$PWR_DIR" ]; then
-  log "Warning: No PWR LED found under /sys/class/leds (this model/OS may not expose it)."
-else
-  log "Detected PWR LED at $PWR_DIR"
-fi
-
-if [ -n "$ACT_DIR" ]; then
-  log "Detected ACT LED at $ACT_DIR"
-fi
-
-# Write the helper that actually nudges the LEDs at boot
-cat > "$HELPER" <<'EOSH'
-#!/usr/bin/env bash
-set -eu
-
-log(){ echo "$1" | systemd-cat -t pwr-led-setup; }
-
-PWR_DIR=""
-ACT_DIR=""
-
-# Re-discover at runtime (paths may differ across boards)
-if   [ -d /sys/class/leds/PWR ]; then PWR_DIR=/sys/class/leds/PWR
-elif [ -d /sys/devices/platform/leds/leds/PWR ]; then PWR_DIR=/sys/devices/platform/leds/leds/PWR
-elif [ -d /sys/class/leds/led1 ]; then PWR_DIR=/sys/class/leds/led1
-fi
-
-if   [ -d /sys/class/leds/ACT ]; then ACT_DIR=/sys/class/leds/ACT
-elif [ -d /sys/devices/platform/leds/leds/ACT ]; then ACT_DIR=/sys/devices/platform/leds/leds/ACT
-elif [ -d /sys/class/leds/led0 ]; then ACT_DIR=/sys/class/leds/led0
-fi
-
-# ---- Power LED policy ----
-# Keep PWR on (stable) using the 'default-on' trigger.
-if [ -n "$PWR_DIR" ]; then
-  if [ -w "$PWR_DIR/trigger" ]; then
-    echo default-on > "$PWR_DIR/trigger" || true
-    log "PWR: set trigger=default-on"
-  elif [ -w "$PWR_DIR/brightness" ]; then
-    # Fallback: manual brightness (driver handles polarity)
-    echo 1 > "$PWR_DIR/brightness" || true
-    log "PWR: set brightness=1"
+# ----- optional: set early-boot default so LED is RED before userspace -----
+if [ "$EARLY_DEFAULT" = "1" ]; then
+  if grep -Eq '^\s*gpio=15=' "$CONFIG_TXT"; then
+    # normalize whatever was there to op,dh
+    sed -i 's/^\s*gpio=15=.*/gpio=15=op,dh/' "$CONFIG_TXT"
+    log "normalized existing gpio=15=… → gpio=15=op,dh in $(basename "$CONFIG_TXT")"
   else
-    log "PWR: no writable trigger/brightness"
+    echo 'gpio=15=op,dh' >> "$CONFIG_TXT"
+    log "appended gpio=15=op,dh to $(basename "$CONFIG_TXT")"
   fi
 else
-  log "PWR: not present on this system"
+  log "EARLY_DEFAULT=0: leaving $(basename "$CONFIG_TXT") unchanged"
 fi
 
-# ---- Activity LED (optional) ----
-# To force ACT steady on:
-#   [ -n "$ACT_DIR" ] && echo default-on > "$ACT_DIR/trigger" || true
-# To turn ACT fully off:
-#   [ -n "$ACT_DIR" ] && { echo none > "$ACT_DIR/trigger"; echo 0 > "$ACT_DIR/brightness"; } || true
-# To set ACT to SD activity:
-#   [ -n "$ACT_DIR" ] && echo mmc0 > "$ACT_DIR/trigger" || true
+# Don’t touch unrelated overlays (e.g., gpio-poweroff on 20/21) here.
 
-exit 0
-EOSH
-chmod 755 "$HELPER"
-log "Installed helper at $HELPER"
-
-# Create the oneshot service that calls the helper at boot
-cat > "$SERVICE_FILE" <<EOF
+# ----- install systemd unit: RED while up, WHITE on shutdown -----
+cat > "$SERVICE_FILE" <<'EOF'
 [Unit]
-Description=Configure on-board Power LED (kernel LED class)
-After=multi-user.target
-DefaultDependencies=no
+Description=Set Saturn front-panel LED on BCM15 (dh=red, dl=white)
+DefaultDependencies=yes
+After=local-fs.target
+Before=shutdown.target halt.target poweroff.target
 
 [Service]
 Type=oneshot
-ExecStart=$HELPER
 RemainAfterExit=yes
+# RED for normal operation
+ExecStart=/usr/bin/pinctrl set 15 op dh
+# WHITE when we are going down
+ExecStopPost=/usr/bin/pinctrl set 15 op dl
 
 [Install]
 WantedBy=multi-user.target
 EOF
-chmod 644 "$SERVICE_FILE"
-log "Created $SERVICE_FILE"
+chmod 0644 "$SERVICE_FILE"
+log "installed $SERVICE_FILE"
 
-# Make sure old GPIO hacks aren't fighting us
-if grep -Eq '^\s*gpio=15=' /boot/config.txt; then
-  sed -i 's/^\s*gpio=15=.*/# (disabled by fix-LED-power-button) &/' /boot/config.txt
-  log "Commented out legacy gpio=15=… in /boot/config.txt to avoid conflicts"
-fi
-
-# Enable + start
+# ----- enable & start -----
 systemctl daemon-reload
-systemctl enable --now pwr-led-setup.service
+systemctl enable --now "$SERVICE_NAME"
 
-# Quick verification
-if [ -n "$PWR_DIR" ]; then
-  trig=$(cat "$PWR_DIR/trigger" 2>/dev/null || echo "?")
-  bright=$(cat "$PWR_DIR/brightness" 2>/dev/null || echo "?")
-  log "PWR: trigger=$trig brightness=$bright"
-fi
+# ----- verify quickly -----
+state="$(pinctrl get 15 || true)"
+log "pinctrl get 15 → $state"
 
-echo "Done. Check logs with: journalctl -u pwr-led-setup.service -b"
+echo
+echo "Done."
+echo "• Early default set in: $CONFIG_TXT (gpio=15=op,dh)  [EARLY_DEFAULT=$EARLY_DEFAULT]"
+echo "• Service: $SERVICE_NAME (RED on boot; WHITE on shutdown)"
+echo "Check:  sudo systemctl status $SERVICE_NAME ; pinctrl get 15"
+echo "If you want instant early RED from firmware, reboot once."
