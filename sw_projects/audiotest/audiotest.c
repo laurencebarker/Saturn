@@ -715,18 +715,19 @@ static void on_MicSettings_Changed(GtkToggleButton *button, AudioContext *audio)
     pid_t pid = fork();
     if (pid == 0) 
     { // Child process
+        SetMicLineInput(LineInput);
         SetOrionMicOptions(!MicTip, MicBias, true);
         SetMicBoost(MicBoost);
         SetBalancedMicInput(XLR);
-        SetMicLineInput(LineInput);
-        for (int attempt = 0; attempt < 5; attempt++) 
-        {
-            SetCodecLineInGain(IntGain);
-            usleep(100000); // 100ms delay
-            uint32_t regValue = RegisterRead(VADDRCODECSPIREG);
-            printf("Child process: Attempt %d, Read codec register value: 0x%08x (IntGain expected: %u)\n", attempt + 1, regValue, IntGain);
-            if ((regValue & 0x01FF) == IntGain) break; // Check lower 9 bits
-        }
+        SetCodecLineInGain(IntGain);
+//        for (int attempt = 0; attempt < 5; attempt++) 
+//        {
+//            SetCodecLineInGain(IntGain);
+//            usleep(100000); // 100ms delay
+//            uint32_t regValue = RegisterRead(VADDRCODECSPIREG);
+//            printf("Child process: Attempt %d, Read codec register value: 0x%08x (IntGain expected: %u)\n", attempt + 1, regValue, IntGain);
+//            if ((regValue & 0x01FF) == IntGain) break; // Check lower 9 bits
+//        }
         exit(0); // Exit child after setting gain
     } 
     else if (pid > 0) 

@@ -42,7 +42,7 @@ void CodecRegisterWrite(uint32_t Address, uint32_t Data)
 	RegisterWrite(VADDRCODECSPIREG, WriteData);  	// and write to it
     usleep(5);
     sem_post(&CodecRegMutex);                       // clear protected access
-
+	printf("writing codec register 0x%x with data 0x%x\n",Address, Data);
 }
 
 
@@ -66,5 +66,7 @@ uint8_t CodecRegisterRead(uint32_t Address)
 	ReadData = RegisterRead(VADDRCODECSPIREADREG);
     usleep(5);
     sem_post(&CodecRegMutex);                       // clear protected access
+	printf("reading codec register 0x%x: read back data= 0x%x\n",Address, ReadData);
+
 	return (uint8_t) (ReadData & 0xFF);
 }

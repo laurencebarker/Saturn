@@ -139,14 +139,14 @@ unsigned int GNumADCs;                              // count of ADCs available
 //
 unsigned int GCodecLineGain;                        // value written in Codec left line in gain register
 unsigned int GCodecAnaloguePath;                    // value written in Codec analogue path register
-unsigned int GCodec2MicPGARouting;                          // codec PGA input selections
-unsigned int GCodec2PGAGain;                                // left and right input gain
+unsigned int GCodec2MicPGARouting;                  // codec PGA input selections
 
 //
 // Saturn PCB Version, needed for codec ID
 // (PCB version 3 onwards will have a TLV320AIC3204)
 uint16_t SaturnPCBVersion;
 ECodecType InstalledCodec;                          // Codec type on the Saturn board
+bool CodecLineInput;                                // true if line input is selected
 
 //
 // mic, bias & PTT bits in GPIO register:
@@ -1205,6 +1205,8 @@ void SetTXDriveLevel(unsigned int Level)
 // SetMicBoost(bool EnableBoost)
 // enables 20dB mic boost amplifier in the CODEC
 // change bits in the codec register, and only write back if changed (I2C write is slow!)
+// for codec type TLV320AIC3204: same PGA used for both, so only set if mic input is seelcted.
+// always call SetMicLineInput() first.
 //
 void SetMicBoost(bool EnableBoost)
 {
@@ -1224,20 +1226,16 @@ void SetMicBoost(bool EnableBoost)
             CodecRegisterWrite(VCODECANALOGUEPATHREG, Register);
         }
     }
-    else
+    else if(CodecLineInput == false)                        // for 3204 codec: set if line not sleected
     {
         if(EnableBoost)
-            RequiredGain = 46;                              // 23dB
+            RequiredGain = 46;                              // 33dB (should have been 23dB??)
         else
             RequiredGain = 6;                           // 3dB
-        if(RequiredGain != GCodec2PGAGain)
-        {
 // Select Page 1
-        	CodecRegisterWrite(0x00, 0x01);
-            CodecRegisterWrite(59, RequiredGain);
-            CodecRegisterWrite(60, RequiredGain);
-            GCodec2PGAGain = RequiredGain;
-        }
+        CodecRegisterWrite(0x00, 0x01);
+        CodecRegisterWrite(59, RequiredGain);
+        CodecRegisterWrite(60, RequiredGain);
     }
 }
 
@@ -1247,12 +1245,15 @@ void SetMicBoost(bool EnableBoost)
 // SetMicLineInput(bool IsLineIn)
 // chooses between microphone and Line input to Codec
 // change bits in the codec register, and only write back if changed (I2C write is slow!)
+// for 3204 codec: store setting, so that mic boost or line in gain can be selectively ignored
+// this must be called BEFORE setting mic boost or line in gain
 //
 void SetMicLineInput(bool IsLineIn)
 {
     unsigned int Register;
     unsigned int RequiredValue;
 
+    CodecLineInput = IsLineIn;                              // store selected setting
     if(InstalledCodec == e23b)
     {
         Register = GCodecAnaloguePath;                      // get current setting
@@ -1348,6 +1349,8 @@ void SetBalancedMicInput(bool Balanced)
 // SetCodecLineInGain(unsigned int Gain)
 // sets the line input level register in the Codec (4 bits)
 // change bits in the codec register, and only write back if changed (I2C write is slow!)
+// for codec type TLV320AIC3204: same PGA used for both, so only set if line input is seelcted.
+// always call SetMicLineInput() first.
 //
 void SetCodecLineInGain(unsigned int Gain)
 {
@@ -1366,17 +1369,13 @@ void SetCodecLineInGain(unsigned int Gain)
             CodecRegisterWrite(VCODECLLINEVOLREG, Register);
         }
     }
-    else
+    else if(CodecLineInput == true)                         // 3204: only set if line input selected
     {
         RequiredGain = (Gain << 1) + Gain;                  // 0.5dB resolution; 1.5dB per bit
-        if(RequiredGain != GCodec2PGAGain)
-        {
 // Select Page 1
-        	CodecRegisterWrite(0x00, 0x01);
-            CodecRegisterWrite(59, RequiredGain);
-            CodecRegisterWrite(60, RequiredGain);
-            GCodec2PGAGain = RequiredGain;
-        }
+        CodecRegisterWrite(0x00, 0x01);
+        CodecRegisterWrite(59, RequiredGain);
+        CodecRegisterWrite(60, RequiredGain);
     }
 }
 
@@ -2241,9 +2240,10 @@ void InitialiseTLV320AIC3204(void)
 // w 30 00 00
 	CodecRegisterWrite(0x00, 0x00);
 
-// Initialize the device through software reset
+    // Initialize the device through software reset
 // w 30 01 01
 	CodecRegisterWrite(0x01, 0x01);
+    usleep (2000);                                      // 2ms wait for reset to complete
 
 //
 // Clock Settings
@@ -2305,6 +2305,13 @@ void InitialiseTLV320AIC3204(void)
 	CodecRegisterWrite(0x7B, 0x00);
 
 //
+// disable weak AVDD in presence of external AVDD supply
+// w 30 01 08
+	CodecRegisterWrite(0x01, 0x08);
+
+
+
+//
 // Enable Master Analog Power Control
 //w 30 02 01
 	CodecRegisterWrite(0x02, 0x01);
@@ -2317,6 +2324,13 @@ void InitialiseTLV320AIC3204(void)
 // Set the input powerup time to 3.1ms (for ADC)
 //w 30 47 32
 	CodecRegisterWrite(0x47, 0x32);
+
+//
+// Set the REF charging time to slow (LVB)
+//w 30 7b 00
+	CodecRegisterWrite(0x7B, 0x00);
+
+
 
 //
 // Recording Setup
@@ -2410,7 +2424,8 @@ void InitialiseTLV320AIC3204(void)
 //
 // Route LDAC/RDAC to LOL/LOR
 //w 30 0e 08 08
-	CodecRegisterWrite(0x08, 0x08);
+	CodecRegisterWrite(0x0E, 0x08);
+	CodecRegisterWrite(0x0F, 0x08);
 
 //
 // common mode
@@ -2490,6 +2505,7 @@ void CodecInitialise(uint16_t PCBVersion)
 
     if(InstalledCodec == e23b)                          // earlier CODEC used on ann HPSDR boards
     {
+        printf("Initialising TLV320AIC23B codec\n");
         GCodecLineGain = 0;                                 // Codec left line in gain register
         GCodecAnaloguePath = 0x14;                          // Codec analogue path register (mic input, no boost)
         CodecRegisterWrite(VCODECRESETREG, 0x0);            // reset register: reset deveice
@@ -2512,6 +2528,7 @@ void CodecInitialise(uint16_t PCBVersion)
     }
     else
     {
+        printf("Initialising TLV320AIC3204 codec\n");
         InitialiseTLV320AIC3204();
     }
 
