@@ -139,7 +139,7 @@ unsigned int GNumADCs;                              // count of ADCs available
 //
 unsigned int GCodecLineGain;                        // value written in Codec left line in gain register
 unsigned int GCodecAnaloguePath;                    // value written in Codec analogue path register
-unsigned int GCodec2MicPGARouting;                  // codec PGA input selections
+unsigned int GCodec2PGA;                            // PGA gain for mic or line
 
 //
 // Saturn PCB Version, needed for codec ID
@@ -1232,10 +1232,15 @@ void SetMicBoost(bool EnableBoost)
             RequiredGain = 46;                              // 33dB (should have been 23dB??)
         else
             RequiredGain = 6;                           // 3dB
-// Select Page 1
-        CodecRegisterWrite(0x00, 0x01);
-        CodecRegisterWrite(59, RequiredGain);
-        CodecRegisterWrite(60, RequiredGain);
+
+        if(RequiredGain != GCodec2PGA)
+        {
+            // Select Page 1
+            CodecRegisterWrite(0x00, 0x01);
+            CodecRegisterWrite(59, RequiredGain);
+            CodecRegisterWrite(60, RequiredGain);
+            GCodec2PGA = RequiredGain;
+        }
     }
 }
 
@@ -1252,6 +1257,7 @@ void SetMicLineInput(bool IsLineIn)
 {
     unsigned int Register;
     unsigned int RequiredValue;
+    static unsigned int GCodec2MicPGARouting;                  // codec PGA input selections
 
     CodecLineInput = IsLineIn;                              // store selected setting
     if(InstalledCodec == e23b)
@@ -1372,10 +1378,14 @@ void SetCodecLineInGain(unsigned int Gain)
     else if(CodecLineInput == true)                         // 3204: only set if line input selected
     {
         RequiredGain = (Gain << 1) + Gain;                  // 0.5dB resolution; 1.5dB per bit
-// Select Page 1
-        CodecRegisterWrite(0x00, 0x01);
-        CodecRegisterWrite(59, RequiredGain);
-        CodecRegisterWrite(60, RequiredGain);
+        if(RequiredGain != GCodec2PGA)
+        {
+            // Select Page 1
+            CodecRegisterWrite(0x00, 0x01);
+            CodecRegisterWrite(59, RequiredGain);
+            CodecRegisterWrite(60, RequiredGain);
+            GCodec2PGA = RequiredGain;
+        }
     }
 }
 
