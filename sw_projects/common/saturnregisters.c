@@ -2247,11 +2247,9 @@ void InitialiseTLV320AIC3204(void)
 {
 // Software reset
 // Select Page 0
-// w 30 00 00
 	CodecRegisterWrite(0x00, 0x00);
 
-    // Initialize the device through software reset
-// w 30 01 01
+    // pg1, r1: Initialize the device through software reset; takes 1ms
 	CodecRegisterWrite(0x01, 0x01);
     usleep (2000);                                      // 2ms wait for reset to complete
 
@@ -2260,85 +2258,57 @@ void InitialiseTLV320AIC3204(void)
 // The codec receives: MCLK = 12.288 MHz,
 // WCLK = 48 kHz
 
-// Select Page 0
-// w 30 00 00
-	CodecRegisterWrite(0x00, 0x00);
 //
-// NDAC = 1, MDAC = 2
-// w 30 0b 81 82
+// pg0, r11&12: NDAC = 1, MDAC = 2
 	CodecRegisterWrite(0x0B, 0x81);
 	CodecRegisterWrite(0x0C, 0x82);
 
 //
-//set ADC clock = DAC clock
-//w 30 12 01 02
+//pg0 r18, 19: set ADC clock = DAC clock
 	CodecRegisterWrite(0x12, 0x01);
 	CodecRegisterWrite(0x13, 0x02);
 
 // Signal Processing Settings
 
-// Select Page 0
-// w 30 00 00
-	CodecRegisterWrite(0x00, 0x00);
 
 //
-// Set the DAC Mode to PRB_P1 (LVB)
-//w 30 3c 01
+// pg0 r60: set the DAC Mode to PRB_P1 (LVB)
+// pg0 r61: set the ADC Mode to PRB_P1 (LVB)
 	CodecRegisterWrite(0x3C, 0x01);
-// Set the ADC Mode to PRB_P1
-//w 30 3d 01
 	CodecRegisterWrite(0x3D, 0x01);
 
 //
 // Initialize Codec
 //
 // Select Page 1
-//w 30 00 01
 	CodecRegisterWrite(0x00, 0x01);
 //
-// Disable weak AVDD in presence of external AVDD supply
-// w 30 01 08
+// pg1 r1: Disable weak AVDD in presence of external AVDD supply
 	CodecRegisterWrite(0x01, 0x08);
 //
-// Enable Master Analog Power Control (LVB)
-//w 30 02 09
+// pg1 r2: Enable Master Analog Power Control (LVB)
 	CodecRegisterWrite(0x02, 0x09);
 
 //
-// Set the input powerup time to 3.1ms (for ADC)
-//# w 30 47 32
-// commented out so assume not needed
-
-//
-// Set the REF charging time to slow (LVB)
-//w 30 7b 00
+// pg1 r123: Set the REF charging time to slow (LVB)
 	CodecRegisterWrite(0x7B, 0x00);
 
 //
-// disable weak AVDD in presence of external AVDD supply
-// w 30 01 08
+// pg1 r1: disable weak AVDD in presence of external AVDD supply
 	CodecRegisterWrite(0x01, 0x08);
 
 
 
 //
-// Enable Master Analog Power Control
-//w 30 02 01
+// pg1 r2: Enable Master Analog Power Control
 	CodecRegisterWrite(0x02, 0x01);
 
 //
-// Select ADC PTM_R4
-//w 30 3d 00
+// pg1 r61: Select ADC PTM_R4
 	CodecRegisterWrite(0x3D, 0x00);
 
-// Set the input powerup time to 3.1ms (for ADC)
-//w 30 47 32
+// pg1 r71: Set the input powerup time to 3.1ms (for ADC)
 	CodecRegisterWrite(0x47, 0x32);
-
-//
-// Set the REF charging time to slow (LVB)
-//w 30 7b 00
-	CodecRegisterWrite(0x7B, 0x00);
 
 
 
@@ -2347,67 +2317,52 @@ void InitialiseTLV320AIC3204(void)
 //
 //
 // Select Page 1
-//w 30 00 01
 	CodecRegisterWrite(0x00, 0x01);
 
 //
-// enable analogue inputs
-//W 30 3A 30
+// pg1 r58: enable analogue inputs
 	CodecRegisterWrite(0x3A, 0x30);
 
 //
-// Route IN1L, R and IN3 L,R
-//w 30 34 C4
+// pg1 r52: Route IN1L, R and IN3 L,R
 	CodecRegisterWrite(0x34, 0xc4);
 
 //
-// Route Common Mode to LEFT_M
-//w 30 36 40
+// pg1 r54: Route Common Mode to LEFT_M
 	CodecRegisterWrite(0x36, 0x40);
 
 //
-// Route IN1R to RIGHT_P
-//w 30 37 C4
+// pg1 r55: Route IN1R to RIGHT_P
 	CodecRegisterWrite(0x37, 0xC4);
 
 //
-// Route Common Mode to RIGHT_M
-//w 30 39 40
+// pg1 r57: Route Common Mode to RIGHT_M
 	CodecRegisterWrite(0x39, 0x40);
 
 //
-// input powerup time
-//W 30 47 32
+// pg1 r71: input powerup time
 	CodecRegisterWrite(0x47, 0x32);
 
 //
-// Unmute Left MICPGA, Gain selection of 20dB 
-//w 30 3B 28
+// pg1 r59: Unmute Left MICPGA, Gain selection of 20dB 
+// pg1 r60: Unmute Right MICPGA, Gain selection of 20dB 
 	CodecRegisterWrite(0x3B, 0x28);
-
-//
-// Unmute Right MICPGA, Gain selection of 20dB 
-//w 30 3c 28
 	CodecRegisterWrite(0x3C, 0x28);
 
 //
-//mic bias
-//W 30 33 68
+// pg1 r51: mic bias
 	CodecRegisterWrite(0x33, 0x68);
 
 //
 // Select Page 0
-//w 30 00 00
 	CodecRegisterWrite(0x00, 0x00);
 
 //
-// Power up LADC/RADC
-//w 30 51 c0
+// pg0 r81: Power up LADC/RADC
 	CodecRegisterWrite(0x51, 0xC0);
 
 //
-// Unmute LADC/RADC
-//w 30 52 00
+// pg0 r82: Unmute LADC/RADC
 	CodecRegisterWrite(0x52, 0x00);
 
 
@@ -2417,85 +2372,70 @@ void InitialiseTLV320AIC3204(void)
 
 //
 // Select Page 1
-//w 30 00 01
 	CodecRegisterWrite(0x00, 0x01);
 
 //
-// De-pop
-//w 30 14 25
+// pg1 r20: De-pop
 	CodecRegisterWrite(0x14, 0x25);
 
 //
-// Route LDAC/RDAC to HPL/HPR
-//w 30 0c 08 08
+// pg1 r12, 13: Route LDAC/RDAC to HPL/HPR
 	CodecRegisterWrite(0x0C, 0x08);
 	CodecRegisterWrite(0x0D, 0x08);
 
 //
-// Route LDAC/RDAC to LOL/LOR
-//w 30 0e 08 08
+// pg1 r14, 15: Route LDAC/RDAC to LOL/LOR
 	CodecRegisterWrite(0x0E, 0x08);
 	CodecRegisterWrite(0x0F, 0x08);
 
 //
-// common mode
-//W 30 0A 3B
+// pg1 r10: common mode
 	CodecRegisterWrite(0x0A, 0x3B);
 
 //
-// Power up HPL/HPR and LOL/LOR drivers (LVB)
-//w 30 09 3F
+// pg1 r9: Power up HPL/HPR and LOL/LOR drivers (LVB)
 	CodecRegisterWrite(0x09, 0x3F);
 
 //
-// Unmute HPL/HPR driver, 0dB Gain
-//w 30 10 00 00
+// pg1 r16, 17: Unmute HPL/HPR driver, 0dB Gain
 	CodecRegisterWrite(0x10, 0x00);
 	CodecRegisterWrite(0x11, 0x00);
 
 //
-// Unmute LOL/LOR driver, 0dB Gain
-//w 30 12 00 00
+// pg1 r18, 19: Unmute LOL/LOR driver, 0dB Gain
 	CodecRegisterWrite(0x12, 0x00);
 	CodecRegisterWrite(0x13, 0x00);
 
 //
 // Select Page 0
-//w 30 00 00
 	CodecRegisterWrite(0x00, 0x00);
 
 //
-// DAC => 0dB
-//w 30 41 00 00
+// pg0 r65, 66: DAC => 0dB
 	CodecRegisterWrite(0x41, 0x00);
 	CodecRegisterWrite(0x42, 0x00);
 
 //
-// Power up LDAC/RDAC
-//w 30 3f d6
+// pg0 r63: Power up LDAC/RDAC
 	CodecRegisterWrite(0x3F, 0xD6);
 
 //
-// soft routing step (Select Page 1)
-//w 30 00 01
+// Select Page 1
 	CodecRegisterWrite(0x00, 0x01);
 
-//W 30 14 25
+// pg1 r20: soft routing step
 	CodecRegisterWrite(0x14, 0x25);
 
 //
-// in1 to headphone bypass: MUTE
-//W 30 16 72 72
+// pg1 r22, 23: in1 to headphone bypass: MUTE
 	CodecRegisterWrite(0x16, 0x72);
 	CodecRegisterWrite(0x17, 0x72);
 
 //
 // Select Page 0
-//w 30 00 00
 	CodecRegisterWrite(0x00, 0x00);
 
-// Unmute LDAC/RDAC
-//w 30 40 00
+// pg0 r64: Unmute LDAC/RDAC
 	CodecRegisterWrite(0x40, 0x00);
 }
 
