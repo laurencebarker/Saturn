@@ -461,9 +461,11 @@ int main(int argc, char *argv[])
   if (IsFallbackConfig())
       printf("FPGA load is a fallback - you should re-flash the primary FPGA image!\n");
   
+  SetSpkrMute(true);                                                // mute speaker before initialising codec
+  usleep(10000);
   CodecInitialise(PCBVersion);
   InitialiseDACAttenROMs();
-//  InitialiseCWKeyerRamp(true, 5000);                                // create initial default 5 ms ramp, P2
+//  InitialiseCWKeyerRamp(true, 5000);                              // create initial default 5 ms ramp, P2
   InitialiseCWKeyerRamp(true, 9000);                                // create initial default 9ms DL1YCF amp, P2
   SetCWSidetoneEnabled(true);
   SetTXProtocol(true);                                              // set to protocol 2

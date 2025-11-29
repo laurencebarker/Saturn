@@ -2375,31 +2375,50 @@ void InitialiseTLV320AIC3204(void)
 	CodecRegisterWrite(0x00, 0x01);
 
 //
-// pg1 r20: De-pop
-	CodecRegisterWrite(0x14, 0x25);
+// Anti-thump step 1. 
+// pg1 r20: De-pop. 6K, 5 time constants -> 300ms; add 100ms soft routing.
+	CodecRegisterWrite(0x14, 0x65);
 
 //
+// anti-thump step 2.
+// pg1 r10: common mode
+	CodecRegisterWrite(0x0A, 0x3B);
+
+//
+// anti-thump step 3.
 // pg1 r12, 13: Route LDAC/RDAC to HPL/HPR
 	CodecRegisterWrite(0x0C, 0x08);
 	CodecRegisterWrite(0x0D, 0x08);
-
 //
 // pg1 r14, 15: Route LDAC/RDAC to LOL/LOR
 	CodecRegisterWrite(0x0E, 0x08);
 	CodecRegisterWrite(0x0F, 0x08);
 
-//
-// pg1 r10: common mode
-	CodecRegisterWrite(0x0A, 0x3B);
+// before anti-thump step 4:
+// pg1 r22, 23: in1 to headphone bypass: MUTE
+	CodecRegisterWrite(0x16, 0x72);
+	CodecRegisterWrite(0x17, 0x72);
 
 //
-// pg1 r9: Power up HPL/HPR and LOL/LOR drivers (LVB)
-	CodecRegisterWrite(0x09, 0x3F);
+// anti-thump step 4:
+// pg0 r63: Power up LDAC/RDAC
+	CodecRegisterWrite(0x00, 0x00);             // select page 0
+	CodecRegisterWrite(0x3F, 0xD6);
 
 //
+// re-select Page 1
+	CodecRegisterWrite(0x00, 0x01);
+//
+// anti-thump step 5:
 // pg1 r16, 17: Unmute HPL/HPR driver, 0dB Gain
 	CodecRegisterWrite(0x10, 0x00);
 	CodecRegisterWrite(0x11, 0x00);
+
+
+//
+// anti-thump step 6:
+// pg1 r9: Power up HPL/HPR and LOL/LOR drivers (LVB)
+	CodecRegisterWrite(0x09, 0x3F);
 
 //
 // pg1 r18, 19: Unmute LOL/LOR driver, 0dB Gain
@@ -2416,25 +2435,8 @@ void InitialiseTLV320AIC3204(void)
 	CodecRegisterWrite(0x42, 0x00);
 
 //
-// pg0 r63: Power up LDAC/RDAC
-	CodecRegisterWrite(0x3F, 0xD6);
-
-//
-// Select Page 1
-	CodecRegisterWrite(0x00, 0x01);
-
-// pg1 r20: soft routing step
-	CodecRegisterWrite(0x14, 0x25);
-
-//
-// pg1 r22, 23: in1 to headphone bypass: MUTE
-	CodecRegisterWrite(0x16, 0x72);
-	CodecRegisterWrite(0x17, 0x72);
-
-//
-// Select Page 0
-	CodecRegisterWrite(0x00, 0x00);
-
+// anti-thump step 7: AFTER 300ms DELAY for ramp-up
+    usleep(300000);
 // pg0 r64: Unmute LDAC/RDAC
 	CodecRegisterWrite(0x40, 0x00);
 }
