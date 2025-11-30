@@ -25,6 +25,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <stdatomic.h>
 #include <syscall.h>
 #include "../common/saturnregisters.h"
 #include "../common/saturndrivers.h"
@@ -32,8 +33,7 @@
 #include "LDGATU.h"
 
 
-uint8_t GlobalFIFOOverflows = 0;             // FIFO overflow words
-pthread_mutex_t g_fifo_overflow_mutex = PTHREAD_MUTEX_INITIALIZER;  // protect GlobalFIFOOverflows from race conditions
+atomic_uint_fast8_t GlobalFIFOOverflows = 0; // FIFO overflow flags (atomic - updated by multiple threads)
 
 
 
@@ -173,10 +173,7 @@ void *OutgoingHighPriority(void *arg)
       if(FIFOUnderflow)
         FIFOOverflows |= 0b00001000;
 
-      pthread_mutex_lock(&g_fifo_overflow_mutex);
-      FIFOOverflows |= GlobalFIFOOverflows;                   // copy in any bits set during normal data transfer
-      GlobalFIFOOverflows = 0;                                // clear any overflows
-      pthread_mutex_unlock(&g_fifo_overflow_mutex);
+      FIFOOverflows |= atomic_exchange(&GlobalFIFOOverflows, 0);  // atomically read and clear overflow flags
       *(uint8_t *)(UDPBuffer+30) = FIFOOverflows;
       FIFOOverflows = 0;
       Error = sendmsg(ThreadData -> Socketid, &datagram, 0);
