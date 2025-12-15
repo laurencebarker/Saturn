@@ -454,6 +454,7 @@ void SetTXDriveLevel(unsigned int Level);
 //
 // SetMicBoost(bool EnableBoost)
 //  enables 20dB mic boost amplifier in the CODEC
+// always call SetMicLineInput() first.
 //
 void SetMicBoost(bool EnableBoost);
 
@@ -461,6 +462,7 @@ void SetMicBoost(bool EnableBoost);
 //
 // SetMicLineInput(bool IsLineIn)
 // chooses between microphone and Line input to Codec
+// this must be called BEFORE setting mic boost or line in gain
 //
 void SetMicLineInput(bool IsLineIn);
 
@@ -482,6 +484,7 @@ void SetBalancedMicInput(bool Balanced);
 //
 // SetCodecLineInGain(unsigned int Gain)
 // sets the line input level register in the Codec (4 bits)
+// always call SetMicLineInput() first.
 //
 void SetCodecLineInGain(unsigned int Gain);
 

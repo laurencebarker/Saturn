@@ -139,14 +139,14 @@ unsigned int GNumADCs;                              // count of ADCs available
 //
 unsigned int GCodecLineGain;                        // value written in Codec left line in gain register
 unsigned int GCodecAnaloguePath;                    // value written in Codec analogue path register
-unsigned int GCodec2MicPGARouting;                          // codec PGA input selections
-unsigned int GCodec2PGAGain;                                // left and right input gain
+unsigned int GCodec2PGA;                            // PGA gain for mic or line
 
 //
 // Saturn PCB Version, needed for codec ID
 // (PCB version 3 onwards will have a TLV320AIC3204)
 uint16_t SaturnPCBVersion;
 ECodecType InstalledCodec;                          // Codec type on the Saturn board
+bool CodecLineInput;                                // true if line input is selected
 
 //
 // mic, bias & PTT bits in GPIO register:
@@ -1205,6 +1205,8 @@ void SetTXDriveLevel(unsigned int Level)
 // SetMicBoost(bool EnableBoost)
 // enables 20dB mic boost amplifier in the CODEC
 // change bits in the codec register, and only write back if changed (I2C write is slow!)
+// for codec type TLV320AIC3204: same PGA used for both, so only set if mic input is seelcted.
+// always call SetMicLineInput() first.
 //
 void SetMicBoost(bool EnableBoost)
 {
@@ -1224,19 +1226,20 @@ void SetMicBoost(bool EnableBoost)
             CodecRegisterWrite(VCODECANALOGUEPATHREG, Register);
         }
     }
-    else
+    else if(CodecLineInput == false)                        // for 3204 codec: set if line not sleected
     {
         if(EnableBoost)
-            RequiredGain = 46;                              // 23dB
+            RequiredGain = 46;                              // 33dB (should have been 23dB??)
         else
             RequiredGain = 6;                           // 3dB
-        if(RequiredGain != GCodec2PGAGain)
+
+        if(RequiredGain != GCodec2PGA)
         {
-// Select Page 1
-        	CodecRegisterWrite(0x00, 0x01);
+            // Select Page 1
+            CodecRegisterWrite(0x00, 0x01);
             CodecRegisterWrite(59, RequiredGain);
             CodecRegisterWrite(60, RequiredGain);
-            GCodec2PGAGain = RequiredGain;
+            GCodec2PGA = RequiredGain;
         }
     }
 }
@@ -1247,12 +1250,16 @@ void SetMicBoost(bool EnableBoost)
 // SetMicLineInput(bool IsLineIn)
 // chooses between microphone and Line input to Codec
 // change bits in the codec register, and only write back if changed (I2C write is slow!)
+// for 3204 codec: store setting, so that mic boost or line in gain can be selectively ignored
+// this must be called BEFORE setting mic boost or line in gain
 //
 void SetMicLineInput(bool IsLineIn)
 {
     unsigned int Register;
     unsigned int RequiredValue;
+    static unsigned int GCodec2MicPGARouting;                  // codec PGA input selections
 
+    CodecLineInput = IsLineIn;                              // store selected setting
     if(InstalledCodec == e23b)
     {
         Register = GCodecAnaloguePath;                      // get current setting
@@ -1348,6 +1355,8 @@ void SetBalancedMicInput(bool Balanced)
 // SetCodecLineInGain(unsigned int Gain)
 // sets the line input level register in the Codec (4 bits)
 // change bits in the codec register, and only write back if changed (I2C write is slow!)
+// for codec type TLV320AIC3204: same PGA used for both, so only set if line input is seelcted.
+// always call SetMicLineInput() first.
 //
 void SetCodecLineInGain(unsigned int Gain)
 {
@@ -1366,16 +1375,16 @@ void SetCodecLineInGain(unsigned int Gain)
             CodecRegisterWrite(VCODECLLINEVOLREG, Register);
         }
     }
-    else
+    else if(CodecLineInput == true)                         // 3204: only set if line input selected
     {
         RequiredGain = (Gain << 1) + Gain;                  // 0.5dB resolution; 1.5dB per bit
-        if(RequiredGain != GCodec2PGAGain)
+        if(RequiredGain != GCodec2PGA)
         {
-// Select Page 1
-        	CodecRegisterWrite(0x00, 0x01);
+            // Select Page 1
+            CodecRegisterWrite(0x00, 0x01);
             CodecRegisterWrite(59, RequiredGain);
             CodecRegisterWrite(60, RequiredGain);
-            GCodec2PGAGain = RequiredGain;
+            GCodec2PGA = RequiredGain;
         }
     }
 }
@@ -2238,152 +2247,122 @@ void InitialiseTLV320AIC3204(void)
 {
 // Software reset
 // Select Page 0
-// w 30 00 00
 	CodecRegisterWrite(0x00, 0x00);
 
-// Initialize the device through software reset
-// w 30 01 01
+    // pg1, r1: Initialize the device through software reset; takes 1ms
 	CodecRegisterWrite(0x01, 0x01);
+    usleep (2000);                                      // 2ms wait for reset to complete
 
 //
 // Clock Settings
 // The codec receives: MCLK = 12.288 MHz,
 // WCLK = 48 kHz
 
-// Select Page 0
-// w 30 00 00
-	CodecRegisterWrite(0x00, 0x00);
 //
-// NDAC = 1, MDAC = 2
-// w 30 0b 81 82
+// pg0, r11&12: NDAC = 1, MDAC = 2
 	CodecRegisterWrite(0x0B, 0x81);
 	CodecRegisterWrite(0x0C, 0x82);
 
 //
-//set ADC clock = DAC clock
-//w 30 12 01 02
+//pg0 r18, 19: set ADC clock = DAC clock
 	CodecRegisterWrite(0x12, 0x01);
 	CodecRegisterWrite(0x13, 0x02);
 
 // Signal Processing Settings
 
-// Select Page 0
-// w 30 00 00
-	CodecRegisterWrite(0x00, 0x00);
 
 //
-// Set the DAC Mode to PRB_P1 (LVB)
-//w 30 3c 01
+// pg0 r60: set the DAC Mode to PRB_P1 (LVB)
+// pg0 r61: set the ADC Mode to PRB_P1 (LVB)
 	CodecRegisterWrite(0x3C, 0x01);
-// Set the ADC Mode to PRB_P1
-//w 30 3d 01
 	CodecRegisterWrite(0x3D, 0x01);
 
 //
 // Initialize Codec
 //
 // Select Page 1
-//w 30 00 01
 	CodecRegisterWrite(0x00, 0x01);
 //
-// Disable weak AVDD in presence of external AVDD supply
-// w 30 01 08
+// pg1 r1: Disable weak AVDD in presence of external AVDD supply
 	CodecRegisterWrite(0x01, 0x08);
 //
-// Enable Master Analog Power Control (LVB)
-//w 30 02 09
+// pg1 r2: Enable Master Analog Power Control (LVB)
 	CodecRegisterWrite(0x02, 0x09);
 
 //
-// Set the input powerup time to 3.1ms (for ADC)
-//# w 30 47 32
-// commented out so assume not needed
-
-//
-// Set the REF charging time to slow (LVB)
-//w 30 7b 00
+// pg1 r123: Set the REF charging time to slow (LVB)
 	CodecRegisterWrite(0x7B, 0x00);
 
 //
-// Enable Master Analog Power Control
-//w 30 02 01
+// pg1 r1: disable weak AVDD in presence of external AVDD supply
+	CodecRegisterWrite(0x01, 0x08);
+
+
+
+//
+// pg1 r2: Enable Master Analog Power Control
 	CodecRegisterWrite(0x02, 0x01);
 
 //
-// Select ADC PTM_R4
-//w 30 3d 00
+// pg1 r61: Select ADC PTM_R4
 	CodecRegisterWrite(0x3D, 0x00);
 
-// Set the input powerup time to 3.1ms (for ADC)
-//w 30 47 32
+// pg1 r71: Set the input powerup time to 3.1ms (for ADC)
 	CodecRegisterWrite(0x47, 0x32);
+
+
 
 //
 // Recording Setup
 //
 //
 // Select Page 1
-//w 30 00 01
 	CodecRegisterWrite(0x00, 0x01);
 
 //
-// enable analogue inputs
-//W 30 3A 30
+// pg1 r58: enable analogue inputs
 	CodecRegisterWrite(0x3A, 0x30);
 
 //
-// Route IN1L, R and IN3 L,R
-//w 30 34 C4
+// pg1 r52: Route IN1L, R and IN3 L,R
 	CodecRegisterWrite(0x34, 0xc4);
 
 //
-// Route Common Mode to LEFT_M
-//w 30 36 40
+// pg1 r54: Route Common Mode to LEFT_M
 	CodecRegisterWrite(0x36, 0x40);
 
 //
-// Route IN1R to RIGHT_P
-//w 30 37 C4
+// pg1 r55: Route IN1R to RIGHT_P
 	CodecRegisterWrite(0x37, 0xC4);
 
 //
-// Route Common Mode to RIGHT_M
-//w 30 39 40
+// pg1 r57: Route Common Mode to RIGHT_M
 	CodecRegisterWrite(0x39, 0x40);
 
 //
-// input powerup time
-//W 30 47 32
+// pg1 r71: input powerup time
 	CodecRegisterWrite(0x47, 0x32);
 
 //
-// Unmute Left MICPGA, Gain selection of 20dB 
-//w 30 3B 28
+// pg1 r59: Unmute Left MICPGA, Gain selection of 20dB 
+// pg1 r60: Unmute Right MICPGA, Gain selection of 20dB 
 	CodecRegisterWrite(0x3B, 0x28);
-
-//
-// Unmute Right MICPGA, Gain selection of 20dB 
-//w 30 3c 28
 	CodecRegisterWrite(0x3C, 0x28);
 
 //
-//mic bias
-//W 30 33 68
+// pg1 r51: mic bias
 	CodecRegisterWrite(0x33, 0x68);
 
 //
 // Select Page 0
-//w 30 00 00
 	CodecRegisterWrite(0x00, 0x00);
 
 //
-// Power up LADC/RADC
-//w 30 51 c0
+// pg0 r81: Power up LADC/RADC
 	CodecRegisterWrite(0x51, 0xC0);
 
 //
-// Unmute LADC/RADC
-//w 30 52 00
+// pg0 r82: Unmute LADC/RADC
 	CodecRegisterWrite(0x52, 0x00);
 
 
@@ -2393,84 +2372,72 @@ void InitialiseTLV320AIC3204(void)
 
 //
 // Select Page 1
-//w 30 00 01
 	CodecRegisterWrite(0x00, 0x01);
 
 //
-// De-pop
-//w 30 14 25
-	CodecRegisterWrite(0x14, 0x25);
+// Anti-thump step 1. 
+// pg1 r20: De-pop. 6K, 5 time constants -> 300ms; add 100ms soft routing.
+	CodecRegisterWrite(0x14, 0x65);
 
 //
-// Route LDAC/RDAC to HPL/HPR
-//w 30 0c 08 08
-	CodecRegisterWrite(0x0C, 0x08);
-	CodecRegisterWrite(0x0D, 0x08);
-
-//
-// Route LDAC/RDAC to LOL/LOR
-//w 30 0e 08 08
-	CodecRegisterWrite(0x08, 0x08);
-
-//
-// common mode
-//W 30 0A 3B
+// anti-thump step 2.
+// pg1 r10: common mode
 	CodecRegisterWrite(0x0A, 0x3B);
 
 //
-// Power up HPL/HPR and LOL/LOR drivers (LVB)
-//w 30 09 3F
-	CodecRegisterWrite(0x09, 0x3F);
+// anti-thump step 3.
+// pg1 r12, 13: Route LDAC/RDAC to HPL/HPR
+	CodecRegisterWrite(0x0C, 0x08);
+	CodecRegisterWrite(0x0D, 0x08);
+//
+// pg1 r14, 15: Route LDAC/RDAC to LOL/LOR
+	CodecRegisterWrite(0x0E, 0x08);
+	CodecRegisterWrite(0x0F, 0x08);
+
+// before anti-thump step 4:
+// pg1 r22, 23: in1 to headphone bypass: MUTE
+	CodecRegisterWrite(0x16, 0x72);
+	CodecRegisterWrite(0x17, 0x72);
 
 //
-// Unmute HPL/HPR driver, 0dB Gain
-//w 30 10 00 00
+// anti-thump step 4:
+// pg0 r63: Power up LDAC/RDAC
+	CodecRegisterWrite(0x00, 0x00);             // select page 0
+	CodecRegisterWrite(0x3F, 0xD6);
+
+//
+// re-select Page 1
+	CodecRegisterWrite(0x00, 0x01);
+//
+// anti-thump step 5:
+// pg1 r16, 17: Unmute HPL/HPR driver, 0dB Gain
 	CodecRegisterWrite(0x10, 0x00);
 	CodecRegisterWrite(0x11, 0x00);
 
+
 //
-// Unmute LOL/LOR driver, 0dB Gain
-//w 30 12 00 00
+// anti-thump step 6:
+// pg1 r9: Power up HPL/HPR and LOL/LOR drivers (LVB)
+	CodecRegisterWrite(0x09, 0x3F);
+
+//
+// pg1 r18, 19: Unmute LOL/LOR driver, 0dB Gain
 	CodecRegisterWrite(0x12, 0x00);
 	CodecRegisterWrite(0x13, 0x00);
 
 //
 // Select Page 0
-//w 30 00 00
 	CodecRegisterWrite(0x00, 0x00);
 
 //
-// DAC => 0dB
-//w 30 41 00 00
+// pg0 r65, 66: DAC => 0dB
 	CodecRegisterWrite(0x41, 0x00);
 	CodecRegisterWrite(0x42, 0x00);
 
 //
-// Power up LDAC/RDAC
-//w 30 3f d6
-	CodecRegisterWrite(0x3F, 0xD6);
-
-//
-// soft routing step (Select Page 1)
-//w 30 00 01
-	CodecRegisterWrite(0x00, 0x01);
-
-//W 30 14 25
-	CodecRegisterWrite(0x14, 0x25);
-
-//
-// in1 to headphone bypass: MUTE
-//W 30 16 72 72
-	CodecRegisterWrite(0x16, 0x72);
-	CodecRegisterWrite(0x17, 0x72);
-
-//
-// Select Page 0
-//w 30 00 00
-	CodecRegisterWrite(0x00, 0x00);
-
-// Unmute LDAC/RDAC
-//w 30 40 00
+// anti-thump step 7: AFTER 300ms DELAY for ramp-up
+    usleep(300000);
+// pg0 r64: Unmute LDAC/RDAC
 	CodecRegisterWrite(0x40, 0x00);
 }
 
@@ -2490,6 +2457,7 @@ void CodecInitialise(uint16_t PCBVersion)
 
     if(InstalledCodec == e23b)                          // earlier CODEC used on ann HPSDR boards
     {
+        printf("Initialising TLV320AIC23B codec\n");
         GCodecLineGain = 0;                                 // Codec left line in gain register
         GCodecAnaloguePath = 0x14;                          // Codec analogue path register (mic input, no boost)
         CodecRegisterWrite(VCODECRESETREG, 0x0);            // reset register: reset deveice
@@ -2512,6 +2480,7 @@ void CodecInitialise(uint16_t PCBVersion)
     }
     else
     {
+        printf("Initialising TLV320AIC3204 codec\n");
         InitialiseTLV320AIC3204();
     }
 
