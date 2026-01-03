@@ -1,242 +1,253 @@
 #!/usr/bin/env bash
-###################################################################################################
-# update-p2app.sh — robust P2App builder with libgpiod v1/v2 handling
 #
-# What this script does:
-#   1) Locates the P2_app source directory under your Saturn tree (or uses overrides).
-#   2) Detects installed libgpiod major version (v1 vs v2).
-#   3) If libgpiod v2 is detected, attempts to run the gpiod v2 patch script first
-#      (typically patch-trixie-gpiod.sh), because the v1 API will not compile cleanly on v2.
-#   4) Builds using the project Makefile when present; otherwise falls back to a manual gcc build.
+# update-p2app.sh
+# -------------
+# Build (and optionally restart) Saturn P2_app ("p2app") on Raspberry Pi.
 #
-# Overrides (optional):
-#   SATURN_ROOT=/path/to/Saturn          # default: $HOME/github/Saturn
-#   P2APP_DIR=/path/to/P2_app            # hard override (skips directory search)
-#   NO_GPIOD_PATCH=1                     # skip running patch script even if v2 is detected
+# Goals:
+#   - Be safe: never leave you without a working p2app binary if a build fails.
+#   - Be robust on Debian/RPi OS "Trixie" (libgpiod v2) by running the v2 patch.
+#   - Self-heal common Makefile breakage ("missing separator" = spaces instead of TABs).
 #
-# Notes:
-#   - On Debian Trixie / newer, libgpiod is usually v2.x, so the patch step is important.
-#   - The manual build path uses bash arrays for CFLAGS so embedded quotes (like GIT_DATE) are safe.
-###################################################################################################
+# Typical use:
+#   ./scripts/update-p2app.sh --restart
+#
+set -euo pipefail
 
-set -Eeuo pipefail
+# --------------------------- UI helpers ---------------------------
 
-# Pretty separators + timestamped logging
-hr(){ printf '##############################################################\n'; }
-log(){ printf '[%(%Y-%m-%d %H:%M:%S)T] %s\n' -1 "$*"; }
+ts() { date +"%Y-%m-%d %H:%M:%S"; }
+log() { printf "[%s] %s\n" "$(ts)" "$*"; }
+hr()  { printf "%s\n\n" "##############################################################"; }
 
-# Helpful error context when anything fails (line + command)
-trap 'log "ERROR: command failed (line $LINENO): $BASH_COMMAND"' ERR
-
-SATURN_ROOT="${SATURN_ROOT:-$HOME/github/Saturn}"
-
-# Likely locations for the project (only used if P2APP_DIR is not set)
-P2APP_CANDIDATES=(
-  "$SATURN_ROOT/sw_projects/P2_app"
-  "$SATURN_ROOT/sw_projects/P2_App"
-  "$SATURN_ROOT/P2_app"
-  "$SATURN_ROOT/P2_App"
-  "$SATURN_ROOT/sw_projects/p2app"
-  "$SATURN_ROOT/p2app"
-)
-
-detect_p2app_dir() {
-  # If user explicitly set P2APP_DIR, trust it (but validate)
-  if [[ -n "${P2APP_DIR:-}" ]]; then
-    [[ -d "$P2APP_DIR" ]] || { log "ERROR: P2APP_DIR is set but not a directory: $P2APP_DIR"; exit 1; }
-    printf '%s\n' "$P2APP_DIR"
-    return 0
-  fi
-
-  # Otherwise search candidates and choose the first that looks like P2App
-  local c
-  for c in "${P2APP_CANDIDATES[@]}"; do
-    if [[ -d "$c" ]] && { [[ -f "$c/p2app.c" ]] || [[ -f "$c/Makefile" ]] || [[ -f "$c/makefile" ]]; }; then
-      printf '%s\n' "$c"
-      return 0
-    fi
-  done
-
-  log "ERROR: P2App directory not found. Checked:"
-  for c in "${P2APP_CANDIDATES[@]}"; do log "  - $c"; done
-  log "Tip: set P2APP_DIR=/full/path/to/P2_app and rerun."
+die() {
+  echo
+  log "ERROR: $*"
   exit 1
 }
 
-detect_gpiod_major() {
-  # Prefer pkg-config (most reliable)
-  local ver=""
-  if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists libgpiod; then
-    ver="$(pkg-config --modversion libgpiod 2>/dev/null || true)"
-  fi
+on_err() {
+  local lineno="$1"
+  local cmd="$2"
+  echo
+  log "ERROR: command failed (line ${lineno}): ${cmd}"
+  exit 1
+}
+trap 'on_err "$LINENO" "$BASH_COMMAND"' ERR
 
-  # Fallback: gpiodetect -V prints something like: "gpiodetect (libgpiod) 2.2.1"
-  if [[ -z "$ver" ]] && command -v gpiodetect >/dev/null 2>&1; then
-    ver="$(gpiodetect -V 2>&1 | awk '{print $NF}' || true)"
-  fi
+usage() {
+  cat <<'USAGE'
+Usage: update-p2app.sh [options]
 
-  # If we couldn't detect, assume v1 to avoid blocking (but we will log it)
-  [[ -n "$ver" ]] || ver="1.0.0"
+Options:
+  --restart           Restart the systemd p2app service after a successful build (if present)
+  --no-restart        Do not restart (default)
+  --no-patch          Skip gpiod-v2 patch step (not recommended on Trixie)
+  --jobs N, -j N      Parallel build jobs (default: nproc)
+  --p2dir PATH        Override P2_app directory (default: <repo>/sw_projects/P2_app)
+  -h, --help          Show this help
 
-  # Return major version only (e.g., "2" from "2.2.1")
-  printf '%s\n' "${ver%%.*}"
+Notes:
+  - If a build fails, this script restores the previous p2app binary (if one existed).
+  - If Makefile recipes use spaces instead of TABs, it will auto-fix and retry once.
+USAGE
 }
 
-find_patch_script() {
-  # Prefer the known name/location first
-  local exact="$SATURN_ROOT/scripts/patch-trixie-gpiod.sh"
-  [[ -f "$exact" ]] && { printf '%s\n' "$exact"; return 0; }
+# --------------------------- locate repo --------------------------
 
-  # Otherwise search for something that looks like a gpiod patch script
-  local hit=""
-  hit="$(find "$SATURN_ROOT/scripts" -maxdepth 2 -type f \
-    \( -iname 'patch-trixie-gpiod.sh' -o -iname '*gpiod*patch*.sh' \) \
-    -print -quit 2>/dev/null || true)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
 
-  [[ -n "$hit" ]] && { printf '%s\n' "$hit"; return 0; }
-  return 1
-}
+# --------------------------- args ---------------------------------
 
-maybe_run_gpiod_patch() {
-  # Arguments:
-  #   $1 = libgpiod major version
-  #   $2 = P2_app directory (so we can validate patch results)
-  local major="$1"
-  local p2dir="$2"
+RESTART=0
+NO_PATCH=0
+JOBS="$(nproc 2>/dev/null || echo 1)"
+P2DIR=""
 
-  # If v1, no patch needed.
-  if (( major < 2 )); then
-    log "libgpiod v${major} detected → using v1 API path"
-    return 0
-  fi
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --restart) RESTART=1 ;;
+    --no-restart) RESTART=0 ;;
+    --no-patch) NO_PATCH=1 ;;
+    --jobs|-j)
+      [[ $# -ge 2 ]] || die "--jobs requires a value"
+      JOBS="$2"
+      shift
+      ;;
+    --p2dir)
+      [[ $# -ge 2 ]] || die "--p2dir requires a value"
+      P2DIR="$2"
+      shift
+      ;;
+    -h|--help) usage; exit 0 ;;
+    *) die "Unknown option: $1" ;;
+  esac
+  shift
+done
 
-  # Allow user to skip patch step explicitly
-  if [[ -n "${NO_GPIOD_PATCH:-}" ]]; then
-    log "libgpiod v${major} detected → NO_GPIOD_PATCH set, skipping patch step"
-    return 0
-  fi
-
-  hr; log "libgpiod v${major} detected → attempting v2 compatibility patch before build"; hr
-
-  local patch=""
-  if patch="$(find_patch_script)"; then
-    log "Found patch script: $patch"
-    chmod +x "$patch" 2>/dev/null || true
-
-    # Run patch from its own directory (some patch scripts rely on relative paths)
-    if ( cd "$(dirname "$patch")" && SATURN_ROOT="$SATURN_ROOT" bash "$patch" ); then
-      log "gpiod v2 patch completed (script returned success)"
-    else
-      log "WARN: patch script returned non-zero"
-    fi
-  else
-    log "WARN: No gpiod patch script found under $SATURN_ROOT/scripts"
-  fi
-
-  # Sanity check: on v2 systems, we strongly expect g2panel_v2.c to exist after patching.
-  # If it doesn't, your build may fail later with libgpiod API errors — so fail early with guidance.
-  if [[ ! -f "$p2dir/g2panel_v2.c" ]]; then
-    log "ERROR: libgpiod v${major} is installed, but $p2dir/g2panel_v2.c is missing."
-    log "       The project likely still uses libgpiod v1 APIs and may not compile."
-    log "       Fix: ensure patch-trixie-gpiod.sh exists under $SATURN_ROOT/scripts and run it."
-    exit 1
-  fi
-}
-
-manual_build() {
-  # Manual gcc build path for environments where Makefile is missing/unusable.
-  # Uses arrays for flags so quoting is correct (especially for GIT_DATE).
-  local dir="$1"
-  local major="$2"
-
-  hr; log "Manual build (no Makefile) for P2App"; hr
-
-  command -v gcc >/dev/null 2>&1 || { log "ERROR: gcc not found"; exit 1; }
-
-  local git_date
-  git_date="$(date +"%d %b %Y %H:%M:%S")"
-
-  # IMPORTANT: Use an array for flags so embedded spaces/quotes are preserved.
-  local -a CFLAGS=(
-    -Wall -Wextra -Wno-unused-function -g
-    -D_GNU_SOURCE
-    "-DGIT_DATE=\"${git_date}\""
-    -I. -I../common
-  )
-
-  # Libraries should appear after objects at link time
-  local -a LDLIBS=(-lm -lpthread -lgpiod -li2c)
-
-  pushd "$dir" >/dev/null
-  rm -f p2app *.o || true
-
-  # Choose the correct panel source (v2 file should exist after patch on libgpiod v2)
-  local PANEL_SRC="g2panel.c"
-  if (( major >= 2 )) && [[ -f "g2panel_v2.c" ]]; then
-    PANEL_SRC="g2panel_v2.c"
-  fi
-  log "Building with ${PANEL_SRC} (libgpiod v${major})"
-
-  # Source list is kept close to your current working set.
-  # If some files are optional in your tree, we skip missing ones gracefully.
-  local SRCS=(
-    p2app.c generalpacket.c IncomingDDCSpecific.c IncomingDUCSpecific.c
-    InHighPriority.c InDUCIQ.c InSpkrAudio.c OutMicAudio.c OutDDCIQ.c OutHighPriority.c
-    debugaids.c auxadc.c cathandler.c frontpanelhandler.c catmessages.c
-    LDGATU.c g2v2panel.c i2cdriver.c andromedacatmessages.c Outwideband.c serialport.c AriesATU.c
-    ../common/hwaccess.c ../common/saturnregisters.c ../common/codecwrite.c ../common/saturndrivers.c ../common/version.c
-  )
-
-  local src obj
-  for src in "${SRCS[@]}"; do
-    [[ -f "$src" ]] || { log "INFO: skipping missing $src"; continue; }
-    obj="$(basename "${src%.*}").o"
-    gcc -c "${CFLAGS[@]}" "$src" -o "$obj"
-  done
-
-  # Compile the selected panel source into a consistent object name
-  if [[ -f "$PANEL_SRC" ]]; then
-    gcc -c "${CFLAGS[@]}" "$PANEL_SRC" -o g2panel.o
-  else
-    log "ERROR: panel source not found: $PANEL_SRC"
-    exit 1
-  fi
-
-  gcc -o p2app ./*.o "${LDLIBS[@]}"
-  log "OK: P2App built from $dir"
-  popd >/dev/null
-}
-
-make_build() {
-  # Build using the project Makefile (preferred path).
-  local dir="$1"
-  hr; log "Using Makefile in $dir"; hr
-
-  command -v make >/dev/null 2>&1 || { log "ERROR: make not found"; exit 1; }
-
-  # Clean first to avoid stale objects from older compiler flags / libgpiod changes
-  make -C "$dir" clean || true
-  make -C "$dir" -j"$(nproc 2>/dev/null || echo 1)"
-
-  log "OK: P2App built from $dir"
-}
-
-# ---------------- main ----------------
-hr; echo
-log "Making p2app"
-log "Note: you may see many warnings; errors will stop the build."
-echo; hr
-
-P2DIR="$(detect_p2app_dir)"
-GPIOD_MAJOR="$(detect_gpiod_major)"
-
-log "P2App directory: $P2DIR"
-log "Detected libgpiod major: $GPIOD_MAJOR"
-
-maybe_run_gpiod_patch "$GPIOD_MAJOR" "$P2DIR"
-
-if [[ -f "$P2DIR/Makefile" || -f "$P2DIR/makefile" ]]; then
-  make_build "$P2DIR"
-else
-  manual_build "$P2DIR" "$GPIOD_MAJOR"
+if [[ -z "${P2DIR}" ]]; then
+  P2DIR="${REPO_ROOT}/sw_projects/P2_app"
 fi
+
+[[ -d "${P2DIR}" ]] || die "P2_app directory not found: ${P2DIR}"
+
+hr
+log "Making p2app"
+log "Repo: ${REPO_ROOT}"
+log "P2App directory: ${P2DIR}"
+log "Jobs: ${JOBS}"
+echo
+hr
+
+# ------------------------ detect libgpiod -------------------------
+
+detect_gpiod_major() {
+  local ver=""
+  if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists libgpiod 2>/dev/null; then
+    ver="$(pkg-config --modversion libgpiod 2>/dev/null || true)"
+  elif command -v gpiodetect >/dev/null 2>&1; then
+    ver="$(gpiodetect --version 2>/dev/null | awk '{print $NF}' || true)"
+  fi
+
+  if [[ -z "${ver}" ]]; then
+    echo "0"
+    return
+  fi
+
+  echo "${ver%%.*}"
+}
+
+GPIOD_MAJOR="$(detect_gpiod_major)"
+log "Detected libgpiod major: ${GPIOD_MAJOR}"
+
+# --------------------- Makefile "TAB fix" -------------------------
+
+fix_makefile_tabs() {
+  local mk="$1"
+  [[ -f "$mk" ]] || return 0
+
+  python3 - <<'PY' "$mk"
+import re, sys
+from pathlib import Path
+
+p = Path(sys.argv[1])
+s = p.read_text()
+
+# Convert 8 leading spaces on non-empty lines into a single TAB.
+s2 = re.sub(r'^( {8})(?=\S)', '\t', s, flags=re.M)
+
+if s2 != s:
+    p.write_text(s2)
+PY
+}
+
+# --------------------- patch step (gpiod v2) -----------------------
+
+run_gpiod_patch_if_needed() {
+  local patch="${REPO_ROOT}/scripts/patch-trixie-gpiod.sh"
+  if [[ "${NO_PATCH}" -eq 1 ]]; then
+    log "Skipping gpiod patch (--no-patch set)"
+    return 0
+  fi
+
+  if [[ "${GPIOD_MAJOR}" -ge 2 ]]; then
+    hr
+    log "libgpiod v2 detected → applying v2 compatibility patch before build"
+    hr
+    [[ -x "$patch" ]] || die "Patch script not found/executable: ${patch}"
+    APP_DIR="${P2DIR}" bash "$patch"
+    log "gpiod v2 patch completed"
+    hr
+  else
+    log "libgpiod v1 (or unknown) → skipping v2 patch"
+  fi
+}
+
+# --------------------- build step (safe) ---------------------------
+
+build_with_make() {
+  local dir="$1"
+  local mk="${dir}/Makefile"
+
+  [[ -f "$mk" ]] || return 1
+
+  fix_makefile_tabs "$mk"
+
+  local ts_tag
+  ts_tag="$(date +%Y%m%d-%H%M%S)"
+  local cur_bin="${dir}/p2app"
+  local bak_bin=""
+  if [[ -x "$cur_bin" ]]; then
+    bak_bin="${dir}/p2app.prev.${ts_tag}"
+    cp -a "$cur_bin" "$bak_bin"
+    log "Backed up existing p2app → ${bak_bin}"
+  fi
+
+  log "Using Makefile in ${dir}"
+  ( cd "$dir" && make clean )
+
+  local build_log
+  build_log="$(mktemp)"
+  set +e
+  ( cd "$dir" && make -j"${JOBS}" ) 2>&1 | tee "$build_log"
+  local rc="${PIPESTATUS[0]}"
+  set -e
+
+  if [[ "$rc" -ne 0 ]]; then
+    if grep -qi "missing separator" "$build_log"; then
+      log "Detected 'missing separator' → fixing Makefile TABs and retrying once"
+      fix_makefile_tabs "$mk"
+      rm -f "$build_log"
+      build_log="$(mktemp)"
+      set +e
+      ( cd "$dir" && make -j"${JOBS}" ) 2>&1 | tee "$build_log"
+      rc="${PIPESTATUS[0]}"
+      set -e
+    fi
+  fi
+
+  rm -f "$build_log"
+
+  if [[ "$rc" -ne 0 ]]; then
+    if [[ -n "$bak_bin" && -f "$bak_bin" ]]; then
+      log "Build failed → restoring previous p2app from ${bak_bin}"
+      cp -a "$bak_bin" "$cur_bin"
+    fi
+    return "$rc"
+  fi
+
+  [[ -x "$cur_bin" ]] || die "Build claimed success, but ${cur_bin} is missing or not executable"
+  log "OK: P2App built: ${cur_bin}"
+  return 0
+}
+
+# ---------------------- service restart ----------------------------
+
+restart_service_if_requested() {
+  if [[ "${RESTART}" -ne 1 ]]; then
+    return 0
+  fi
+
+  if systemctl list-unit-files --type=service 2>/dev/null | grep -q '^p2app\.service'; then
+    log "Restarting systemd service: p2app"
+    sudo systemctl restart p2app
+    sudo systemctl status p2app --no-pager || true
+  else
+    log "p2app.service not found; skipping restart"
+  fi
+}
+
+# ------------------------------- main ------------------------------
+
+run_gpiod_patch_if_needed
+
+if ! build_with_make "${P2DIR}"; then
+  die "Build failed"
+fi
+
+restart_service_if_requested
+
+log "Done."
+
+chmod +x scripts/update-p2app.sh
