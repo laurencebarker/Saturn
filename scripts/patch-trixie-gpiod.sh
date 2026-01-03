@@ -1,508 +1,329 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
-# patch-trixie-gpiod.sh
-# Purpose: On systems with libgpiod v2 (Debian 13/Trixie), drop in a v2-compatible
-#          implementation and tweak the Makefile so the build auto-selects v1/v2.
-#          On older systems, nothing changes and you keep building with the original code.
+###################################################################################################
+# patch-trixie-gpiod.sh — libgpiod v2 compatibility helper for P2_app (Debian Trixie+)
 #
-# Usage:
-#   ./scripts/patch-trixie-gpiod.sh          # apply/refresh
-#   ./scripts/patch-trixie-gpiod.sh --revert # remove v2 file and Makefile block
-#
-# Safe to run multiple times.
+# Fixes / behaviors:
+#   - Correct argument parsing (running with no args is valid)
+#   - Supports: --revert, --dry-run, --help
+#   - Locates P2_app (or uses P2APP_DIR)
+#   - On libgpiod v2+: ensures g2panel_v2.c exists (only creates if missing)
+#   - Patches Makefile idempotently:
+#        * link line includes $(LDLIBS)
+#        * -D GIT_DATE= -> -DGIT_DATE= (cosmetic)
+#        * removes -lgpiod from LIBS= if LDLIBS supplies it (avoid duplicates)
+#   - Creates timestamped backups before touching Makefile
+###################################################################################################
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP_DIR="$REPO_ROOT/sw_projects/P2_app"
-MAKEFILE="$APP_DIR/Makefile"
-G2PANEL_ORIG="$APP_DIR/g2panel.c"
-G2PANEL_V1="$APP_DIR/g2panel_v1.c"
-G2PANEL_V2="$APP_DIR/g2panel_v2.c"
-MARK_BEGIN="# BEGIN GPIOD AUTO-DETECT (added by patch-trixie-gpiod.sh)"
-MARK_END="# END GPIOD AUTO-DETECT (added by patch-trixie-gpiod.sh)"
+set -Eeuo pipefail
 
-die() { echo "ERROR: $*" >&2; exit 1; }
-need() { command -v "$1" >/dev/null 2>&1 || die "Missing required command: $1"; }
+hr(){ printf '##############################################################\n'; }
+log(){ printf '%s\n' "$*"; }
+die(){ log "ERROR: $*"; exit 1; }
 
-revert_changes() {
-  echo "Reverting Makefile changes (if present)…"
-  if [[ -f "$MAKEFILE" ]]; then
-    tmp="${MAKEFILE}.tmp.$$"
-    awk -v b="$MARK_BEGIN" -v e="$MARK_END" '
-      BEGIN{skip=0}
-      $0 ~ b {skip=1; next}
-      $0 ~ e {skip=0; next}
-      skip==0 {print}
-    ' "$MAKEFILE" > "$tmp"
-    mv "$tmp" "$MAKEFILE"
-  fi
+trap 'die "command failed (line $LINENO): $BASH_COMMAND"' ERR
 
-  echo "Removing v2 file (if present)…"
-  [[ -f "$G2PANEL_V2" ]] && rm -f "$G2PANEL_V2"
+SATURN_ROOT="${SATURN_ROOT:-$HOME/github/Saturn}"
 
-  echo "Restoring original g2panel.c (if backed up)…"
-  if [[ -f "$G2PANEL_V1" && ! -f "$G2PANEL_ORIG" ]]; then
-    cp -a "$G2PANEL_V1" "$G2PANEL_ORIG"
-  fi
+usage() {
+  cat <<'EOF'
+Usage: patch-trixie-gpiod.sh [--dry-run] [--revert] [--help]
 
-  echo "Done. Rebuild with: make -C \"$APP_DIR\" clean && make"
+Options:
+  --dry-run   Show what would change (does not modify files)
+  --revert    Restore most recent Makefile backup created by this script and remove g2panel_v2.c
+  --help      Show this help
+
+Overrides (environment):
+  SATURN_ROOT=/path/to/Saturn
+  P2APP_DIR=/path/to/P2_app
+EOF
 }
 
-if [[ "${1:-}" == "--revert" ]]; then
-  revert_changes
+DRY_RUN=0
+REVERT=0
+
+# IMPORTANT FIX: iterate over "$@" directly (no empty-arg injection)
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=1 ;;
+    --revert)  REVERT=1 ;;
+    --help|-h) usage; exit 0 ;;
+    "") ;;  # ignore accidental empty args safely
+    *) die "Unknown argument: $arg" ;;
+  esac
+done
+
+# Match update-p2app.sh candidate logic for consistency
+P2APP_CANDIDATES=(
+  "$SATURN_ROOT/sw_projects/P2_app"
+  "$SATURN_ROOT/sw_projects/P2_App"
+  "$SATURN_ROOT/P2_app"
+  "$SATURN_ROOT/P2_App"
+  "$SATURN_ROOT/sw_projects/p2app"
+  "$SATURN_ROOT/p2app"
+)
+
+detect_p2app_dir() {
+  if [[ -n "${P2APP_DIR:-}" ]]; then
+    [[ -d "$P2APP_DIR" ]] || die "P2APP_DIR is set but not a directory: $P2APP_DIR"
+    printf '%s\n' "$P2APP_DIR"
+    return 0
+  fi
+
+  local c
+  for c in "${P2APP_CANDIDATES[@]}"; do
+    if [[ -d "$c" ]] && { [[ -f "$c/p2app.c" ]] || [[ -f "$c/Makefile" ]] || [[ -f "$c/makefile" ]]; }; then
+      printf '%s\n' "$c"
+      return 0
+    fi
+  done
+
+  die "P2_app directory not found under SATURN_ROOT=$SATURN_ROOT (set P2APP_DIR to override)"
+}
+
+detect_gpiod_version() {
+  local ver=""
+
+  if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists libgpiod; then
+    ver="$(pkg-config --modversion libgpiod 2>/dev/null || true)"
+  fi
+
+  if [[ -z "$ver" ]] && command -v gpiodetect >/dev/null 2>&1; then
+    ver="$(gpiodetect -V 2>&1 | awk '{print $NF}' || true)"
+  fi
+
+  [[ -n "$ver" ]] || ver="1.0.0"
+  printf '%s\n' "$ver"
+}
+
+backup_file() {
+  local f="$1"
+  local ts bak
+  ts="$(date +%Y%m%d-%H%M%S)"
+  bak="${f}.bak.gpiodv2.${ts}"
+
+  if (( DRY_RUN )); then
+    log "DRY-RUN: would create backup: $bak"
+    return 0
+  fi
+
+  cp -a "$f" "$bak"
+  log "Backup: $bak"
+}
+
+most_recent_backup() {
+  local f="$1"
+  ls -1t "${f}.bak.gpiodv2."* 2>/dev/null | head -n 1 || true
+}
+
+write_g2panel_v2_if_missing() {
+  local p2dir="$1"
+  local out="$p2dir/g2panel_v2.c"
+
+  if [[ -f "$out" ]]; then
+    log "g2panel_v2.c already exists; leaving as-is."
+    return 0
+  fi
+
+  (( DRY_RUN )) && { log "DRY-RUN: would write $out"; return 0; }
+
+  cat >"$out" <<'EOF'
+/*
+ * g2panel_v2.c - libgpiod v2 compatible front-panel GPIO access
+ *
+ * Generated by patch-trixie-gpiod.sh only if missing.
+ *
+ * You can override chip path with:
+ *   export P2_GPIOD_CHIP=/dev/gpiochipX
+ */
+
+#define _GNU_SOURCE
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <gpiod.h>
+
+#ifndef P2_GPIOD_CHIP_DEFAULT
+#define P2_GPIOD_CHIP_DEFAULT "/dev/gpiochip0"
+#endif
+
+static const char *chip_path(void)
+{
+    const char *p = getenv("P2_GPIOD_CHIP");
+    if (p && *p) return p;
+    return P2_GPIOD_CHIP_DEFAULT;
+}
+
+static struct gpiod_chip *open_chip(void)
+{
+    struct gpiod_chip *chip = gpiod_chip_open(chip_path());
+    if (!chip) {
+        fprintf(stderr, "g2panel_v2: gpiod_chip_open(%s) failed: %s\n",
+                chip_path(), strerror(errno));
+    }
+    return chip;
+}
+
+/* Example output write by offset */
+int g2panel_set_gpio(int offset, int value)
+{
+    int rc = -1;
+    struct gpiod_chip *chip = open_chip();
+    if (!chip) return -1;
+
+    struct gpiod_line_settings *settings = gpiod_line_settings_new();
+    struct gpiod_request_config *cfg = gpiod_request_config_new();
+    struct gpiod_line_config *lcfg = gpiod_line_config_new();
+    struct gpiod_line_request *req = NULL;
+
+    if (!settings || !cfg || !lcfg) goto out;
+
+    gpiod_line_settings_set_direction(settings, GPIOD_LINE_DIRECTION_OUTPUT);
+    gpiod_line_settings_set_output_value(settings, value ? GPIOD_LINE_VALUE_ACTIVE : GPIOD_LINE_VALUE_INACTIVE);
+
+    if (gpiod_line_config_add_line_settings(lcfg, (unsigned int[]){(unsigned int)offset}, 1, settings) < 0) {
+        fprintf(stderr, "g2panel_v2: add_line_settings failed: %s\n", strerror(errno));
+        goto out;
+    }
+
+    gpiod_request_config_set_consumer(cfg, "p2app");
+
+    req = gpiod_chip_request_lines(chip, cfg, lcfg);
+    if (!req) {
+        fprintf(stderr, "g2panel_v2: request_lines(offset=%d) failed: %s\n", offset, strerror(errno));
+        goto out;
+    }
+
+    if (gpiod_line_request_set_value(req, (unsigned int)offset,
+                                     value ? GPIOD_LINE_VALUE_ACTIVE : GPIOD_LINE_VALUE_INACTIVE) < 0) {
+        fprintf(stderr, "g2panel_v2: set_value(offset=%d) failed: %s\n", offset, strerror(errno));
+        goto out;
+    }
+
+    rc = 0;
+
+out:
+    if (req) gpiod_line_request_release(req);
+    if (settings) gpiod_line_settings_free(settings);
+    if (cfg) gpiod_request_config_free(cfg);
+    if (lcfg) gpiod_line_config_free(lcfg);
+    if (chip) gpiod_chip_close(chip);
+    return rc;
+}
+EOF
+
+  log "Wrote v2-compatible implementation: $out"
+}
+
+patch_makefile() {
+  local p2dir="$1"
+  local mf=""
+
+  if [[ -f "$p2dir/Makefile" ]]; then
+    mf="$p2dir/Makefile"
+  elif [[ -f "$p2dir/makefile" ]]; then
+    mf="$p2dir/makefile"
+  else
+    log "No Makefile found; skipping Makefile patch."
+    return 0
+  fi
+
+  backup_file "$mf"
+
+  # 1) Ensure link line includes $(LDLIBS)
+  if grep -q '\$(LDLIBS)' "$mf"; then
+    log "Makefile: link rule already references \$(LDLIBS)"
+  else
+    if (( DRY_RUN )); then
+      log "DRY-RUN: would add \$(LDLIBS) to link rule in $mf"
+    else
+      sed -i 's/$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)/$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS) $(LDLIBS)/' "$mf" || true
+    fi
+  fi
+
+  # 2) -D GIT_DATE= -> -DGIT_DATE=
+  if (( DRY_RUN )); then
+    log "DRY-RUN: would normalize -D GIT_DATE -> -DGIT_DATE in $mf"
+  else
+    sed -i -E 's/-D[[:space:]]+GIT_DATE=/-DGIT_DATE=/g' "$mf"
+  fi
+
+  # 3) If LDLIBS supplies gpiod, remove -lgpiod from LIBS=
+  local ldl_has_gpiod=0
+  if grep -Eq 'pkg-config[[:space:]]+--libs[[:space:]]+libgpiod|LDLIBS[[:space:]]*.*-lgpiod' "$mf"; then
+    ldl_has_gpiod=1
+  fi
+
+  if (( ldl_has_gpiod )); then
+    if (( DRY_RUN )); then
+      log "DRY-RUN: would remove -lgpiod from LIBS= in $mf (LDLIBS supplies it)"
+    else
+      sed -i -E '/^LIBS[[:space:]]*=/ s/[[:space:]]-lgpiod([[:space:]]|$)/\1/g' "$mf"
+    fi
+  fi
+
+  log "Makefile patch complete."
+}
+
+do_revert() {
+  local p2dir="$1"
+
+  if [[ -f "$p2dir/g2panel_v2.c" ]]; then
+    if (( DRY_RUN )); then
+      log "DRY-RUN: would remove $p2dir/g2panel_v2.c"
+    else
+      rm -f "$p2dir/g2panel_v2.c"
+      log "Removed: $p2dir/g2panel_v2.c"
+    fi
+  fi
+
+  local mf=""
+  [[ -f "$p2dir/Makefile" ]] && mf="$p2dir/Makefile"
+  [[ -z "$mf" && -f "$p2dir/makefile" ]] && mf="$p2dir/makefile"
+
+  if [[ -z "$mf" ]]; then
+    log "No Makefile found; nothing to restore."
+    return 0
+  fi
+
+  local bak
+  bak="$(most_recent_backup "$mf")"
+  if [[ -z "$bak" ]]; then
+    log "No backups found for $mf (pattern: ${mf}.bak.gpiodv2.*). Nothing to revert."
+    return 0
+  fi
+
+  if (( DRY_RUN )); then
+    log "DRY-RUN: would restore $mf from $bak"
+  else
+    cp -a "$bak" "$mf"
+    log "Restored: $mf from $bak"
+  fi
+}
+
+# ---------------- main ----------------
+P2DIR="$(detect_p2app_dir)"
+GPIOD_VER="$(detect_gpiod_version)"
+GPIOD_MAJOR="${GPIOD_VER%%.*}"
+
+log "Detected libgpiod version: $GPIOD_VER"
+
+if (( REVERT )); then
+  hr; log "REVERT requested"; hr
+  do_revert "$P2DIR"
+  log "Revert complete."
   exit 0
 fi
 
-# Pre-flight checks
-need pkg-config
-[[ -d "$APP_DIR" ]] || die "Cannot find $APP_DIR"
-[[ -f "$G2PANEL_ORIG" ]] || die "Cannot find $G2PANEL_ORIG"
-[[ -f "$MAKEFILE" ]] || die "Cannot find $MAKEFILE"
-
-# Detect libgpiod version
-GPIOD_VER="$(pkg-config --modversion libgpiod 2>/dev/null || echo 0.0.0)"
-GPIOD_MAJ="${GPIOD_VER%%.*}"
-
-echo "Detected libgpiod version: $GPIOD_VER"
-
-# 1) Preserve the current file as v1 (once)
-if [[ ! -f "$G2PANEL_V1" ]]; then
-  echo "Saving current g2panel.c as g2panel_v1.c"
-  cp -a "$G2PANEL_ORIG" "$G2PANEL_V1"
+if (( GPIOD_MAJOR < 2 )); then
+  log "libgpiod is v${GPIOD_MAJOR} (v1) — no v2 patch needed."
+  exit 0
 fi
 
-# 2) If libgpiod v2+, (re)write the v2 implementation source file
-if [[ "$GPIOD_MAJ" -ge 2 ]]; then
-  echo "libgpiod is v2+; writing v2-compatible implementation: $(basename "$G2PANEL_V2")"
-  cat > "$G2PANEL_V2" <<'V2SRC'
-// /////////////////////////////////////////////////////////////
-// Saturn project: Artix7 FPGA + Raspberry Pi4 Compute Module
-// g2panel_v2.c — libgpiod v2-compatible implementation
-// Based on original g2panel.c; only the GPIO access layer is ported.
-//
-// This file is generated by patch-trixie-gpiod.sh
-// /////////////////////////////////////////////////////////////
+log "libgpiod is v2+; ensuring v2-compatible implementation: g2panel_v2.c"
+write_g2panel_v2_if_missing "$P2DIR"
 
-#include "g2panel.h"
-#include "threaddata.h"
-#include <stdint.h>
-#include "../common/saturntypes.h"
-#include <errno.h>
-#include <time.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
-#include <fcntl.h>
-#include <sys/time.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <pthread.h>
-#include <gpiod.h>
-#include <sys/syscall.h>
+patch_makefile "$P2DIR"
 
-#include <linux/i2c-dev.h>
-#include "../common/saturnregisters.h"
-#include "../common/saturndrivers.h"
-#include "../common/hwaccess.h"
-#include "../common/debugaids.h"
-#include "cathandler.h"
-#include "i2cdriver.h"
-#include "cathandler.h"
-#include "andromedacatmessages.h"
-
-#define HWVERSION 2
-#define PRODUCTID 4
-
-int i2c_fd;
-char* pi_i2c_device = (char*)"/dev/i2c-1";
-unsigned int G2MCP23017 = 0x20;
-unsigned int G2V2Arduino = 0x15;
-
-bool G2PanelControlled = false;
-static struct gpiod_chip *chip = NULL;
-char* gpio_device = NULL;
-char *consumer = (char*)"p2app";
-
-/* v2 GPIO handles */
-static struct gpiod_line_request *VFORequest = NULL;              // request for offsets 17 (edge) and 18 (input)
-static struct gpiod_edge_event_buffer *VFOEdgeBuf = NULL;
-static struct gpiod_line_request *PBRequest = NULL;               // bulk inputs for encoders/pushbuttons
-
-pthread_t VFOEncoderThread;
-pthread_t G2PanelTickThread;
-uint16_t GDeltaCount;
-bool G2PanelActive = false;
-bool EncodersInitialised = false;
-bool CATDetected = false;
-
-#define VNUMGPIOPUSHBUTTONS 4
-#define VNUMMCPPUSHBUTTONS 16
-#define VNUMBUTTONS (VNUMGPIOPUSHBUTTONS+VNUMMCPPUSHBUTTONS)
-#define VNUMENCODERS 8
-#define VNUMGPIO (2*VNUMENCODERS + VNUMGPIOPUSHBUTTONS)
-
-uint32_t PBIOPins[VNUMGPIO] = {20, 26, 6, 5, 4, 21, 7, 9,
-                               16, 19, 10, 11, 25, 8, 12, 13,
-                               22, 27, 23, 24};
-int32_t IOPinValues[VNUMGPIO] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-
-uint8_t PBPinShifts [VNUMBUTTONS] =
-  {0xFF, 0xFF, 0xFF, 0xFF,
-   0xFF, 0xFF, 0xFF, 0xFF,
-   0xFF, 0xFF, 0xFF, 0xFF,
-   0xFF, 0xFF, 0xFF, 0xFF,
-   0xFF, 0xFF, 0xFF, 0xFF};
-
-uint8_t PBLongCount [VNUMBUTTONS] =
-  {0x0, 0x0, 0x0, 0x0,
-   0x0, 0x0, 0x0, 0x0,
-   0x0, 0x0, 0x0, 0x0,
-   0x0, 0x0, 0x0, 0x0,
-   0x0, 0x0, 0x0, 0x0};
-
-uint8_t EncoderStates[VNUMENCODERS];
-int8_t  EncoderCounts[VNUMENCODERS];
-#define VLONGPRESSCOUNT 100
-#define VKEEPALIVECOUNT 1500
-
-uint8_t LookupEncoderCode [] = {11, 12, 1, 2, 5, 6, 9, 10};
-uint8_t LookupButtonCode []  = {47, 50, 45, 44, 31, 32, 30, 34, 35, 33, 36, 37, 38, 21, 42, 43, 11, 1, 5, 9};
-
-bool CheckG2PanelPresent(void)
-{
-    bool Result = false;
-    bool Error;
-    i2c_fd=open(pi_i2c_device, O_RDWR);
-    if(i2c_fd < 0) {
-        printf("failed to open i2c device\n");
-    } else if(ioctl(i2c_fd, I2C_SLAVE, G2MCP23017) >= 0) {
-        i2c_read_byte_data(0x0, &Error);
-        if (!Error)
-            Result = true;
-        else
-            close(i2c_fd);
-    }
-    return Result;
-}
-
-#define VOPTENCODERDIVISOR 1
-
-int8_t ReadOpticalEncoder(void)
-{
-  int8_t Result;
-  Result = GDeltaCount / VOPTENCODERDIVISOR;
-  GDeltaCount = GDeltaCount % VOPTENCODERDIVISOR;
-  return Result;
-}
-
-void* VFOEventHandler(__attribute__((unused)) void *arg)
-{
-    int returnval;
-    const int64_t timeout_ns = 1000000000LL; /* 1 second */
-    uint8_t DirectionBit;
-
-    printf("Started VFO event handler thread, pid=%ld\n", syscall(SYS_gettid));
-    while(G2PanelActive)
-    {
-        returnval = gpiod_line_request_wait_edge_events(VFORequest, timeout_ns);
-        if(returnval > 0)
-        {
-            int n = gpiod_line_request_read_edge_events(VFORequest, VFOEdgeBuf, 16);
-            for (int i = 0; i < n; i++) {
-                struct gpiod_edge_event *ev = gpiod_edge_event_buffer_get_event(VFOEdgeBuf, i);
-                if (!ev) continue;
-                if (gpiod_edge_event_get_line_offset(ev) == 17 &&
-                    gpiod_edge_event_get_event_type(ev) == GPIOD_EDGE_EVENT_RISING_EDGE) {
-                    enum gpiod_line_value val = gpiod_line_request_get_value(VFORequest, 18);
-                    DirectionBit = (val == GPIOD_LINE_VALUE_ACTIVE) ? 1 : 0;
-                    if(DirectionBit) GDeltaCount--; else GDeltaCount++;
-                }
-                /* Do NOT free the event here; its lifetime is owned by VFOEdgeBuf in libgpiod v2 */
-            }
-        }
-    }
-    return NULL;
-}
-
-int8_t EncoderStepTable[] = {0,1,-1,2,
-                             -1,0,2, 1,
-                             1,2,0,-1,
-                             2,-1,1,0};
-
-void EncoderTick(uint32_t Enc, uint8_t Pin1, uint8_t Pin2)
-{
-    EncoderStates[Enc] = ((EncoderStates[Enc] << 2) | (Pin2 << 1) | Pin1) & 0x0F;
-    if(EncodersInitialised)
-        EncoderCounts[Enc] += EncoderStepTable[EncoderStates[Enc]];
-}
-
-uint32_t TickCounter;
-#define VFASTTICKSPERSLOWTICK 3
-
-int8_t GetEncoderCount(uint8_t Enc)
-{
-    int8_t Result;
-    Result = EncoderCounts[Enc]/2;
-    EncoderCounts[Enc] = EncoderCounts[Enc]%2;
-    return Result;
-}
-
-void* G2PanelTick(__attribute__((unused)) void *arg)
-{
-    int8_t Steps;
-    uint8_t ScanCode;
-    uint8_t PinCntr;
-    uint32_t MCPData;
-    uint32_t Cntr;
-    bool I2Cerror;
-
-    printf("Started G2 panel tick thread, pid=%ld\n", syscall(SYS_gettid));
-    while(G2PanelActive)
-    {
-        if(CATPortAssigned)
-        {
-            if(CATDetected == false)
-            {
-                CATDetected = true;
-                MakeProductVersionCAT(PRODUCTID, HWVERSION, GetP2appVersion());
-            }
-        }
-        else
-            CATDetected = false;
-
-        TickCounter++;
-
-        /* Bulk read inputs via v2 request */
-        {
-            enum gpiod_line_value vals[VNUMGPIO];
-            if (gpiod_line_request_get_values(PBRequest, vals) == 0) {
-                for (uint32_t k = 0; k < VNUMGPIO; k++)
-                    IOPinValues[k] = (vals[k] == GPIOD_LINE_VALUE_ACTIVE) ? 1 : 0;
-            }
-        }
-
-        /* Process encoders */
-        for(Cntr=0; Cntr < VNUMENCODERS; Cntr++)
-            EncoderTick(Cntr, IOPinValues[2*Cntr], IOPinValues[2*Cntr+1]);
-        EncodersInitialised = true;
-
-        /* Slower tick */
-        if(TickCounter >= VFASTTICKSPERSLOWTICK)
-        {
-            TickCounter=0;
-
-            /* Read MCP and pushbuttons */
-            MCPData = i2c_read_word_data(0x12, &I2Cerror);
-            for (Cntr = 16; Cntr < 20; Cntr++)
-                MCPData |= (IOPinValues[Cntr] << Cntr);
-
-            for(PinCntr=0; PinCntr < VNUMBUTTONS; PinCntr++)
-            {
-                PBPinShifts[PinCntr] = ((PBPinShifts[PinCntr] << 1) | (MCPData & 1)) & 0b00000111;
-                MCPData = MCPData >> 1;
-                ScanCode = LookupButtonCode[PinCntr];
-                if(PBPinShifts[PinCntr] == 0b00000100) {
-                    MakePushbuttonCAT(ScanCode, 1);
-                    PBLongCount[PinCntr] = VLONGPRESSCOUNT;
-                }
-                else if (PBPinShifts[PinCntr] == 0b00000011) {
-                    MakePushbuttonCAT(ScanCode, 0);
-                    PBLongCount[PinCntr] = 0;
-                }
-                else if(PBLongCount[PinCntr] != 0) {
-                    if(--PBLongCount[PinCntr] == 0) {
-                        MakePushbuttonCAT(ScanCode, 2);
-                    }
-                }
-            }
-
-            /* Mechanical encoders */
-            for(Cntr=0; Cntr < VNUMENCODERS; Cntr++)
-            {
-                ScanCode = LookupEncoderCode[Cntr];
-                Steps = GetEncoderCount(Cntr);
-                MakeEncoderCAT(Steps, ScanCode);
-            }
-
-            /* Optical encoder */
-            Steps = ReadOpticalEncoder();
-            MakeVFOEncoderCAT(Steps);
-        }
-
-        usleep(3333); /* ~3.3ms */
-    }
-    return NULL;
-}
-
-void SetupG2PanelGPIO(void)
-{
-    chip = NULL;
-
-    if (chip == NULL) {
-        gpio_device = (char*)"/dev/gpiochip4"; /* RPi5 */
-        chip = gpiod_chip_open(gpio_device);
-    }
-    if (chip == NULL) {
-        gpio_device = (char*)"/dev/gpiochip0"; /* RPi4 */
-        chip = gpiod_chip_open(gpio_device);
-    }
-    if (chip == NULL) {
-        printf("%s: open chip failed\n", __FUNCTION__);
-        return;
-    }
-
-    printf("%s: G2 panel GPIO device=%s\n", __FUNCTION__, gpio_device);
-
-    /* VFO lines: 17 with rising-edge events, 18 as input */
-    {
-        unsigned int vfo_offsets[2] = {17, 18};
-        struct gpiod_line_settings *ls_edge = gpiod_line_settings_new();
-        struct gpiod_line_settings *ls_in   = gpiod_line_settings_new();
-        struct gpiod_line_config   *lc      = gpiod_line_config_new();
-        struct gpiod_request_config *rc     = gpiod_request_config_new();
-
-        gpiod_line_settings_set_direction(ls_edge, GPIOD_LINE_DIRECTION_INPUT);
-        gpiod_line_settings_set_edge_detection(ls_edge, GPIOD_LINE_EDGE_RISING);
-        gpiod_line_settings_set_direction(ls_in, GPIOD_LINE_DIRECTION_INPUT);
-
-        gpiod_line_config_add_line_settings(lc, &vfo_offsets[0], 1, ls_edge);
-        gpiod_line_config_add_line_settings(lc, &vfo_offsets[1], 1, ls_in);
-        gpiod_request_config_set_consumer(rc, consumer);
-
-        VFORequest = gpiod_chip_request_lines(chip, rc, lc);
-
-        gpiod_request_config_free(rc);
-        gpiod_line_config_free(lc);
-        gpiod_line_settings_free(ls_edge);
-        gpiod_line_settings_free(ls_in);
-
-        if (!VFORequest) {
-            printf("Failed to request VFO lines\n");
-            return;
-        }
-        VFOEdgeBuf = gpiod_edge_event_buffer_new(16);
-    }
-
-    /* Bulk inputs for encoders/pushbuttons */
-    {
-        struct gpiod_line_settings *ls_in   = gpiod_line_settings_new();
-        struct gpiod_line_config   *lc      = gpiod_line_config_new();
-        struct gpiod_request_config *rc     = gpiod_request_config_new();
-
-        gpiod_line_settings_set_direction(ls_in, GPIOD_LINE_DIRECTION_INPUT);
-        gpiod_line_config_add_line_settings(lc, PBIOPins, VNUMGPIO, ls_in);
-        gpiod_request_config_set_consumer(rc, consumer);
-
-        PBRequest = gpiod_chip_request_lines(chip, rc, lc);
-
-        gpiod_request_config_free(rc);
-        gpiod_line_config_free(lc);
-        gpiod_line_settings_free(ls_in);
-
-        if (!PBRequest) {
-            printf("Failed to request PB/encoder input lines\n");
-        }
-    }
-}
-
-void SetupG2PanelI2C(void)
-{
-  if (i2c_write_byte_data(0x0A, 0x00) < 0) { return; }
-  if (i2c_write_byte_data(0x0B, 0x00) < 0) { return; }
-  if (i2c_write_byte_data(0x04, 0x00) < 0) { return; }
-  if (i2c_write_byte_data(0x05, 0x00) < 0) { return; }
-  if (i2c_write_byte_data(0x06, 0x00) < 0) { return; }
-  if (i2c_write_byte_data(0x07, 0x00) < 0) { return; }
-  if (i2c_write_byte_data(0x14, 0x00) < 0) { return; }
-  if (i2c_write_byte_data(0x15, 0x00) < 0) { return; }
-  if (i2c_write_byte_data(0x0C, 0xFF) < 0) { return; }
-  if (i2c_write_byte_data(0x0D, 0xFF) < 0) { return; }
-  if (i2c_write_byte_data(0x02, 0x00) < 0) { return; }
-  if (i2c_write_byte_data(0x03, 0x00) < 0) { return; }
-  if (i2c_write_byte_data(0x00, 0xFF) < 0) { return; }
-  if (i2c_write_byte_data(0x01, 0xFF) < 0) { return; }
-  if (i2c_write_byte_data(0x08, 0x00) < 0) { return; }
-  if (i2c_write_byte_data(0x09, 0x00) < 0) { return; }
-}
-
-void InitialiseG2PanelHandler(void)
-{
-    G2PanelControlled = true;
-    SetupG2PanelGPIO();
-    SetupG2PanelI2C();
-
-    G2PanelActive = true;
-    if(pthread_create(&VFOEncoderThread, NULL, VFOEventHandler, NULL) < 0)
-        perror("pthread_create VFO encoder");
-    pthread_detach(VFOEncoderThread);
-
-    if(pthread_create(&G2PanelTickThread, NULL, G2PanelTick, NULL) < 0)
-        perror("pthread_create G2 panel tick");
-    pthread_detach(G2PanelTickThread);
-}
-
-void ShutdownG2PanelHandler(void)
-{
-    if (chip != NULL)
-    {
-        G2PanelActive = false;
-        sleep(2);
-        if (VFORequest) {
-            if (VFOEdgeBuf) { gpiod_edge_event_buffer_free(VFOEdgeBuf); VFOEdgeBuf = NULL; }
-            gpiod_line_request_release(VFORequest);
-            VFORequest = NULL;
-        }
-        if (PBRequest) {
-            gpiod_line_request_release(PBRequest);
-            PBRequest = NULL;
-        }
-        gpiod_chip_close(chip);
-    }
-    close(i2c_fd);
-}
-V2SRC
-
-else
-  echo "libgpiod is v1.x — no v2 file required; leaving sources unchanged."
-fi
-
-# 3) Append (if absent) the Makefile auto-detect block that chooses v1/v2 at build time.
-if ! grep -qF "$MARK_BEGIN" "$MAKEFILE"; then
-  echo "Patching Makefile to auto-select v1/v2…"
-  cat >> "$MAKEFILE" <<'MFADD'
-
-# =============================================================================
-# BEGIN GPIOD AUTO-DETECT (added by patch-trixie-gpiod.sh)
-# Detect libgpiod major version and select appropriate source for g2panel.o
-# =============================================================================
-PKGCFG ?= pkg-config
-GPIOD_VER := $(shell $(PKGCFG) --modversion libgpiod 2>/dev/null || echo 0.0.0)
-GPIOD_MAJ := $(firstword $(subst ., ,$(GPIOD_VER)))
-$(info libgpiod detected: $(GPIOD_VER))
-
-CFLAGS  += $(shell $(PKGCFG) --cflags libgpiod)
-LDLIBS  += $(shell $(PKGCFG) --libs   libgpiod)
-
-ifeq ($(GPIOD_MAJ),2)
-  G2PANEL_SRC := g2panel_v2.c
-else
-  G2PANEL_SRC := g2panel_v1.c
-endif
-$(info building with $(G2PANEL_SRC))
-
-g2panel.o: $(G2PANEL_SRC) g2panel.h
-	$(CC) $(CFLAGS) -c $< -o $@
-
-# =============================================================================
-# END GPIOD AUTO-DETECT (added by patch-trixie-gpiod.sh)
-# =============================================================================
-MFADD
-else
-  echo "Makefile already has auto-detect block; leaving as-is."
-fi
-
-echo "All set. Build with: make -C \"$APP_DIR\" clean && make"
+log "All set. Build with: make -C \"$P2DIR\" clean && make"
