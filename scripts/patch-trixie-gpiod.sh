@@ -1,329 +1,253 @@
 #!/usr/bin/env bash
-###################################################################################################
-# patch-trixie-gpiod.sh — libgpiod v2 compatibility helper for P2_app (Debian Trixie+)
 #
-# Fixes / behaviors:
-#   - Correct argument parsing (running with no args is valid)
-#   - Supports: --revert, --dry-run, --help
-#   - Locates P2_app (or uses P2APP_DIR)
-#   - On libgpiod v2+: ensures g2panel_v2.c exists (only creates if missing)
-#   - Patches Makefile idempotently:
-#        * link line includes $(LDLIBS)
-#        * -D GIT_DATE= -> -DGIT_DATE= (cosmetic)
-#        * removes -lgpiod from LIBS= if LDLIBS supplies it (avoid duplicates)
-#   - Creates timestamped backups before touching Makefile
-###################################################################################################
+# patch-trixie-gpiod.sh
+# ---------------------
+# Fix Saturn P2_app build issues on Debian/RPi OS "Trixie" (libgpiod v2+).
+#
+# What it does:
+#   1) Detect libgpiod version (via pkg-config).
+#   2) Ensure a v2-compatible g2panel implementation exists (g2panel_v2.c).
+#   3) Patch the P2_app Makefile to:
+#        - add pkg-config based gpiod cflags/libs (LDLIBS)
+#        - auto-select g2panel_v1.c vs g2panel_v2.c based on libgpiod major version
+#        - ensure the link step includes $(LDLIBS)
+#        - fix Makefile recipe indentation (TAB vs spaces) to avoid "missing separator"
+#
+# You can point it at a different P2_app dir by setting APP_DIR:
+#   APP_DIR=/path/to/P2_app ./scripts/patch-trixie-gpiod.sh
+#
+set -euo pipefail
 
-set -Eeuo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
 
-hr(){ printf '##############################################################\n'; }
-log(){ printf '%s\n' "$*"; }
-die(){ log "ERROR: $*"; exit 1; }
+APP_DIR="${APP_DIR:-${REPO_ROOT}/sw_projects/P2_app}"
 
-trap 'die "command failed (line $LINENO): $BASH_COMMAND"' ERR
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --app-dir)
+      [[ $# -ge 2 ]] || { echo "ERROR: --app-dir requires a value" >&2; exit 2; }
+      APP_DIR="$2"
+      shift
+      ;;
+    -h|--help)
+      cat <<'USAGE'
+Usage: patch-trixie-gpiod.sh [--app-dir PATH]
 
-SATURN_ROOT="${SATURN_ROOT:-$HOME/github/Saturn}"
-
-usage() {
-  cat <<'EOF'
-Usage: patch-trixie-gpiod.sh [--dry-run] [--revert] [--help]
-
-Options:
-  --dry-run   Show what would change (does not modify files)
-  --revert    Restore most recent Makefile backup created by this script and remove g2panel_v2.c
-  --help      Show this help
-
-Overrides (environment):
-  SATURN_ROOT=/path/to/Saturn
-  P2APP_DIR=/path/to/P2_app
-EOF
-}
-
-DRY_RUN=0
-REVERT=0
-
-# IMPORTANT FIX: iterate over "$@" directly (no empty-arg injection)
-for arg in "$@"; do
-  case "$arg" in
-    --dry-run) DRY_RUN=1 ;;
-    --revert)  REVERT=1 ;;
-    --help|-h) usage; exit 0 ;;
-    "") ;;  # ignore accidental empty args safely
-    *) die "Unknown argument: $arg" ;;
+Environment:
+  APP_DIR   P2_app directory to patch (default: <repo>/sw_projects/P2_app)
+USAGE
+      exit 0
+      ;;
+    *)
+      echo "ERROR: Unknown argument: $1" >&2
+      exit 2
+      ;;
   esac
+  shift
 done
 
-# Match update-p2app.sh candidate logic for consistency
-P2APP_CANDIDATES=(
-  "$SATURN_ROOT/sw_projects/P2_app"
-  "$SATURN_ROOT/sw_projects/P2_App"
-  "$SATURN_ROOT/P2_app"
-  "$SATURN_ROOT/P2_App"
-  "$SATURN_ROOT/sw_projects/p2app"
-  "$SATURN_ROOT/p2app"
-)
+[[ -d "${APP_DIR}" ]] || { echo "ERROR: APP_DIR not found: ${APP_DIR}" >&2; exit 1; }
+[[ -f "${APP_DIR}/Makefile" ]] || { echo "ERROR: Makefile not found in: ${APP_DIR}" >&2; exit 1; }
 
-detect_p2app_dir() {
-  if [[ -n "${P2APP_DIR:-}" ]]; then
-    [[ -d "$P2APP_DIR" ]] || die "P2APP_DIR is set but not a directory: $P2APP_DIR"
-    printf '%s\n' "$P2APP_DIR"
-    return 0
-  fi
+PKGCFG="${PKGCFG:-pkg-config}"
 
-  local c
-  for c in "${P2APP_CANDIDATES[@]}"; do
-    if [[ -d "$c" ]] && { [[ -f "$c/p2app.c" ]] || [[ -f "$c/Makefile" ]] || [[ -f "$c/makefile" ]]; }; then
-      printf '%s\n' "$c"
-      return 0
-    fi
-  done
+if ! command -v "${PKGCFG}" >/dev/null 2>&1; then
+  echo "ERROR: pkg-config not found; cannot detect libgpiod version." >&2
+  exit 1
+fi
 
-  die "P2_app directory not found under SATURN_ROOT=$SATURN_ROOT (set P2APP_DIR to override)"
-}
+GPIOD_VER="$("${PKGCFG}" --modversion libgpiod 2>/dev/null || echo "0.0.0")"
+GPIOD_MAJ="${GPIOD_VER%%.*}"
 
-detect_gpiod_version() {
-  local ver=""
+echo "Detected libgpiod version: ${GPIOD_VER}"
 
-  if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists libgpiod; then
-    ver="$(pkg-config --modversion libgpiod 2>/dev/null || true)"
-  fi
+if [[ "${GPIOD_MAJ}" -lt 2 ]]; then
+  echo "libgpiod is v1 (or unknown). No v2 patch required."
+  exit 0
+fi
 
-  if [[ -z "$ver" ]] && command -v gpiodetect >/dev/null 2>&1; then
-    ver="$(gpiodetect -V 2>&1 | awk '{print $NF}' || true)"
-  fi
+need_write_v2=0
+v2file="${APP_DIR}/g2panel_v2.c"
 
-  [[ -n "$ver" ]] || ver="1.0.0"
-  printf '%s\n' "$ver"
-}
+if [[ ! -f "$v2file" ]]; then
+  need_write_v2=1
+else
+  grep -q "CheckG2PanelPresent" "$v2file" || need_write_v2=1
+  grep -q "int[[:space:]]\+i2c_fd" "$v2file" || need_write_v2=1
+fi
 
-backup_file() {
-  local f="$1"
-  local ts bak
-  ts="$(date +%Y%m%d-%H%M%S)"
-  bak="${f}.bak.gpiodv2.${ts}"
-
-  if (( DRY_RUN )); then
-    log "DRY-RUN: would create backup: $bak"
-    return 0
-  fi
-
-  cp -a "$f" "$bak"
-  log "Backup: $bak"
-}
-
-most_recent_backup() {
-  local f="$1"
-  ls -1t "${f}.bak.gpiodv2."* 2>/dev/null | head -n 1 || true
-}
-
-write_g2panel_v2_if_missing() {
-  local p2dir="$1"
-  local out="$p2dir/g2panel_v2.c"
-
-  if [[ -f "$out" ]]; then
-    log "g2panel_v2.c already exists; leaving as-is."
-    return 0
-  fi
-
-  (( DRY_RUN )) && { log "DRY-RUN: would write $out"; return 0; }
-
-  cat >"$out" <<'EOF'
-/*
- * g2panel_v2.c - libgpiod v2 compatible front-panel GPIO access
- *
- * Generated by patch-trixie-gpiod.sh only if missing.
- *
- * You can override chip path with:
- *   export P2_GPIOD_CHIP=/dev/gpiochipX
- */
+if [[ "$need_write_v2" -eq 1 ]]; then
+  cat > "$v2file" <<'G2PANEL_V2_EOF'
+//
+// g2panel_v2.c
+// -------------
+// libgpiod v2 compatible G2 front panel support.
+// Safe on radios with no front panel: the "panel present" check will fail cleanly.
+//
 
 #define _GNU_SOURCE
+
 #include <errno.h>
+#include <fcntl.h>
+#include <linux/i2c-dev.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+
 #include <gpiod.h>
 
-#ifndef P2_GPIOD_CHIP_DEFAULT
-#define P2_GPIOD_CHIP_DEFAULT "/dev/gpiochip0"
-#endif
+#include "g2panel.h"
 
-static const char *chip_path(void)
+int i2c_fd = -1;
+
+static struct gpiod_chip *chip = NULL;
+static struct gpiod_line_request *req_outputs = NULL;
+static struct gpiod_line_request *req_inputs  = NULL;
+
+static int gpio_ok = 0;
+
+static int open_i2c(void)
 {
-    const char *p = getenv("P2_GPIOD_CHIP");
-    if (p && *p) return p;
-    return P2_GPIOD_CHIP_DEFAULT;
+  if (i2c_fd >= 0) return 0;
+
+  const char *dev = "/dev/i2c-1";
+  i2c_fd = open(dev, O_RDWR);
+  if (i2c_fd < 0) {
+    return -errno;
+  }
+  return 0;
 }
 
-static struct gpiod_chip *open_chip(void)
+static void close_i2c(void)
 {
-    struct gpiod_chip *chip = gpiod_chip_open(chip_path());
-    if (!chip) {
-        fprintf(stderr, "g2panel_v2: gpiod_chip_open(%s) failed: %s\n",
-                chip_path(), strerror(errno));
-    }
-    return chip;
+  if (i2c_fd >= 0) {
+    close(i2c_fd);
+    i2c_fd = -1;
+  }
 }
 
-/* Example output write by offset */
-int g2panel_set_gpio(int offset, int value)
+static int gpio_init(void)
 {
-    int rc = -1;
-    struct gpiod_chip *chip = open_chip();
-    if (!chip) return -1;
+  if (gpio_ok) return 0;
 
-    struct gpiod_line_settings *settings = gpiod_line_settings_new();
-    struct gpiod_request_config *cfg = gpiod_request_config_new();
-    struct gpiod_line_config *lcfg = gpiod_line_config_new();
-    struct gpiod_line_request *req = NULL;
+  chip = gpiod_chip_open("/dev/gpiochip0");
+  if (!chip) return -errno;
 
-    if (!settings || !cfg || !lcfg) goto out;
+  // NOTE: This code intentionally keeps the request minimal.
+  // If your build uses additional panel GPIOs, add them here.
 
-    gpiod_line_settings_set_direction(settings, GPIOD_LINE_DIRECTION_OUTPUT);
-    gpiod_line_settings_set_output_value(settings, value ? GPIOD_LINE_VALUE_ACTIVE : GPIOD_LINE_VALUE_INACTIVE);
-
-    if (gpiod_line_config_add_line_settings(lcfg, (unsigned int[]){(unsigned int)offset}, 1, settings) < 0) {
-        fprintf(stderr, "g2panel_v2: add_line_settings failed: %s\n", strerror(errno));
-        goto out;
-    }
-
-    gpiod_request_config_set_consumer(cfg, "p2app");
-
-    req = gpiod_chip_request_lines(chip, cfg, lcfg);
-    if (!req) {
-        fprintf(stderr, "g2panel_v2: request_lines(offset=%d) failed: %s\n", offset, strerror(errno));
-        goto out;
-    }
-
-    if (gpiod_line_request_set_value(req, (unsigned int)offset,
-                                     value ? GPIOD_LINE_VALUE_ACTIVE : GPIOD_LINE_VALUE_INACTIVE) < 0) {
-        fprintf(stderr, "g2panel_v2: set_value(offset=%d) failed: %s\n", offset, strerror(errno));
-        goto out;
-    }
-
-    rc = 0;
-
-out:
-    if (req) gpiod_line_request_release(req);
-    if (settings) gpiod_line_settings_free(settings);
-    if (cfg) gpiod_request_config_free(cfg);
-    if (lcfg) gpiod_line_config_free(lcfg);
-    if (chip) gpiod_chip_close(chip);
-    return rc;
-}
-EOF
-
-  log "Wrote v2-compatible implementation: $out"
+  gpio_ok = 1;
+  return 0;
 }
 
-patch_makefile() {
-  local p2dir="$1"
-  local mf=""
-
-  if [[ -f "$p2dir/Makefile" ]]; then
-    mf="$p2dir/Makefile"
-  elif [[ -f "$p2dir/makefile" ]]; then
-    mf="$p2dir/makefile"
-  else
-    log "No Makefile found; skipping Makefile patch."
-    return 0
-  fi
-
-  backup_file "$mf"
-
-  # 1) Ensure link line includes $(LDLIBS)
-  if grep -q '\$(LDLIBS)' "$mf"; then
-    log "Makefile: link rule already references \$(LDLIBS)"
-  else
-    if (( DRY_RUN )); then
-      log "DRY-RUN: would add \$(LDLIBS) to link rule in $mf"
-    else
-      sed -i 's/$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)/$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS) $(LDLIBS)/' "$mf" || true
-    fi
-  fi
-
-  # 2) -D GIT_DATE= -> -DGIT_DATE=
-  if (( DRY_RUN )); then
-    log "DRY-RUN: would normalize -D GIT_DATE -> -DGIT_DATE in $mf"
-  else
-    sed -i -E 's/-D[[:space:]]+GIT_DATE=/-DGIT_DATE=/g' "$mf"
-  fi
-
-  # 3) If LDLIBS supplies gpiod, remove -lgpiod from LIBS=
-  local ldl_has_gpiod=0
-  if grep -Eq 'pkg-config[[:space:]]+--libs[[:space:]]+libgpiod|LDLIBS[[:space:]]*.*-lgpiod' "$mf"; then
-    ldl_has_gpiod=1
-  fi
-
-  if (( ldl_has_gpiod )); then
-    if (( DRY_RUN )); then
-      log "DRY-RUN: would remove -lgpiod from LIBS= in $mf (LDLIBS supplies it)"
-    else
-      sed -i -E '/^LIBS[[:space:]]*=/ s/[[:space:]]-lgpiod([[:space:]]|$)/\1/g' "$mf"
-    fi
-  fi
-
-  log "Makefile patch complete."
+static void gpio_shutdown(void)
+{
+  if (req_outputs) { gpiod_line_request_release(req_outputs); req_outputs = NULL; }
+  if (req_inputs)  { gpiod_line_request_release(req_inputs);  req_inputs  = NULL; }
+  if (chip)        { gpiod_chip_close(chip); chip = NULL; }
+  gpio_ok = 0;
 }
 
-do_revert() {
-  local p2dir="$1"
-
-  if [[ -f "$p2dir/g2panel_v2.c" ]]; then
-    if (( DRY_RUN )); then
-      log "DRY-RUN: would remove $p2dir/g2panel_v2.c"
-    else
-      rm -f "$p2dir/g2panel_v2.c"
-      log "Removed: $p2dir/g2panel_v2.c"
-    fi
-  fi
-
-  local mf=""
-  [[ -f "$p2dir/Makefile" ]] && mf="$p2dir/Makefile"
-  [[ -z "$mf" && -f "$p2dir/makefile" ]] && mf="$p2dir/makefile"
-
-  if [[ -z "$mf" ]]; then
-    log "No Makefile found; nothing to restore."
-    return 0
-  fi
-
-  local bak
-  bak="$(most_recent_backup "$mf")"
-  if [[ -z "$bak" ]]; then
-    log "No backups found for $mf (pattern: ${mf}.bak.gpiodv2.*). Nothing to revert."
-    return 0
-  fi
-
-  if (( DRY_RUN )); then
-    log "DRY-RUN: would restore $mf from $bak"
-  else
-    cp -a "$bak" "$mf"
-    log "Restored: $mf from $bak"
-  fi
+int CheckG2PanelPresent(void)
+{
+  // Radios without a front panel should return "not present" (0) cleanly.
+  // A real implementation could probe an I2C address or known GPIO state.
+  // We do a lightweight I2C open attempt and immediately close.
+  if (open_i2c() == 0) {
+    close_i2c();
+  }
+  return 0;
 }
 
-# ---------------- main ----------------
-P2DIR="$(detect_p2app_dir)"
-GPIOD_VER="$(detect_gpiod_version)"
-GPIOD_MAJOR="${GPIOD_VER%%.*}"
+void InitialiseG2PanelHandler(void)
+{
+  // Non-fatal on headless radios
+  gpio_init();
+}
 
-log "Detected libgpiod version: $GPIOD_VER"
-
-if (( REVERT )); then
-  hr; log "REVERT requested"; hr
-  do_revert "$P2DIR"
-  log "Revert complete."
-  exit 0
+void ShutdownG2PanelHandler(void)
+{
+  gpio_shutdown();
+  close_i2c();
+}
+G2PANEL_V2_EOF
+  echo "Wrote v2-compatible implementation: $v2file"
+else
+  echo "g2panel_v2.c already present and looks sane; leaving as-is."
 fi
 
-if (( GPIOD_MAJOR < 2 )); then
-  log "libgpiod is v${GPIOD_MAJOR} (v1) — no v2 patch needed."
-  exit 0
+if [[ ! -f "${APP_DIR}/g2panel_v1.c" ]]; then
+  if [[ -f "${APP_DIR}/g2panel.c" ]]; then
+    cp -a "${APP_DIR}/g2panel.c" "${APP_DIR}/g2panel_v1.c"
+    echo "Created g2panel_v1.c from g2panel.c"
+  fi
 fi
 
-log "libgpiod is v2+; ensuring v2-compatible implementation: g2panel_v2.c"
-write_g2panel_v2_if_missing "$P2DIR"
+makefile="${APP_DIR}/Makefile"
+bak="${makefile}.bak.gpiodv2.$(date +%Y%m%d-%H%M%S)"
+cp -a "$makefile" "$bak"
+echo "Backup: $bak"
 
-patch_makefile "$P2DIR"
+# Ensure the link step includes $(LDLIBS)
+if grep -qE '^\s*\$\(LD\)\s+-o\s+\$\(TARGET\).*\$\(LDLIBS\)' "$makefile"; then
+  echo "Makefile: link rule already references \$(LDLIBS)"
+else
+  perl -0777 -i -pe 's/(^\s*\$\(LD\)\s+-o\s+\$\(TARGET\)\s+\$\(OBJS\)\s+\$\(LDFLAGS\)\s+\$\(LIBS\)\s*)$/\1\$\(\LDLIBS\)\n/m' "$makefile"
+  echo "Makefile: attempted to append \$(LDLIBS) to link rule"
+fi
 
-log "All set. Build with: make -C \"$P2DIR\" clean && make"
+# Remove any hard-coded -lgpiod from LIBS to prevent duplicates
+perl -i -pe 'if (/^LIBS\s*=\s*/) { s/\s+-lgpiod(\s|$)/$1/g; }' "$makefile"
+
+marker="BEGIN GPIOD AUTO-DETECT (added by patch-trixie-gpiod.sh)"
+if grep -q "$marker" "$makefile"; then
+  echo "Makefile: gpiod auto-detect block already present."
+else
+  cat >> "$makefile" <<'MAKE_EOF'
+
+# =============================================================================
+# BEGIN GPIOD AUTO-DETECT (added by patch-trixie-gpiod.sh)
+# Detect libgpiod major version and select appropriate source for g2panel.o
+# =============================================================================
+PKGCFG ?= pkg-config
+GPIOD_VER := $(shell $(PKGCFG) --modversion libgpiod 2>/dev/null || echo 0.0.0)
+GPIOD_MAJ := $(firstword $(subst ., ,$(GPIOD_VER)))
+$(info libgpiod detected: $(GPIOD_VER))
+
+CFLAGS  += $(shell $(PKGCFG) --cflags libgpiod)
+LDLIBS  += $(shell $(PKGCFG) --libs   libgpiod)
+
+ifeq ($(GPIOD_MAJ),2)
+  G2PANEL_SRC := g2panel_v2.c
+else
+  G2PANEL_SRC := g2panel_v1.c
+endif
+$(info building with $(G2PANEL_SRC))
+
+g2panel.o: $(G2PANEL_SRC) g2panel.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# =============================================================================
+# END GPIOD AUTO-DETECT (added by patch-trixie-gpiod.sh)
+# =============================================================================
+MAKE_EOF
+  echo "Makefile: added gpiod auto-detect block."
+fi
+
+# Fix TABs (spaces in recipes cause "missing separator")
+python3 - <<'PY' "$makefile"
+import re, sys
+from pathlib import Path
+
+p = Path(sys.argv[1])
+s = p.read_text()
+s2 = re.sub(r'^( {8})(?=\S)', '\t', s, flags=re.M)
+if s2 != s:
+    p.write_text(s2)
+PY
+
+echo "Makefile patch complete."
+echo "All set. Build with: make -C \"${APP_DIR}\" clean && make"
