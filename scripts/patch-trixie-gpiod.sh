@@ -4,24 +4,18 @@
 # ---------------------
 # Fix Saturn P2_app build issues on Debian/RPi OS "Trixie" (libgpiod v2+).
 #
-# What it does:
-#   1) Detect libgpiod version (via pkg-config).
-#   2) Ensure a v2-compatible g2panel implementation exists (g2panel_v2.c).
-#   3) Patch the P2_app Makefile to:
-#        - add pkg-config based gpiod cflags/libs (LDLIBS)
-#        - auto-select g2panel_v1.c vs g2panel_v2.c based on libgpiod major version
-#        - ensure the link step includes $(LDLIBS)
-#        - fix Makefile recipe indentation (TAB vs spaces) to avoid "missing separator"
-#
-# You can point it at a different P2_app dir by setting APP_DIR:
-#   APP_DIR=/path/to/P2_app ./scripts/patch-trixie-gpiod.sh
+# - Detect libgpiod major version (pkg-config).
+# - Ensure g2panel_v2.c exists and matches g2panel.h (bool CheckG2PanelPresent(void)).
+# - Patch Makefile to auto-select g2panel_v1.c vs g2panel_v2.c and use pkg-config flags.
+# - Ensure link step includes $(LDLIBS).
+# - Fix TAB indentation to avoid "missing separator".
 #
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
-
 APP_DIR="${APP_DIR:-${REPO_ROOT}/sw_projects/P2_app}"
+PKGCFG="${PKGCFG:-pkg-config}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -50,12 +44,7 @@ done
 [[ -d "${APP_DIR}" ]] || { echo "ERROR: APP_DIR not found: ${APP_DIR}" >&2; exit 1; }
 [[ -f "${APP_DIR}/Makefile" ]] || { echo "ERROR: Makefile not found in: ${APP_DIR}" >&2; exit 1; }
 
-PKGCFG="${PKGCFG:-pkg-config}"
-
-if ! command -v "${PKGCFG}" >/dev/null 2>&1; then
-  echo "ERROR: pkg-config not found; cannot detect libgpiod version." >&2
-  exit 1
-fi
+command -v "${PKGCFG}" >/dev/null 2>&1 || { echo "ERROR: pkg-config not found." >&2; exit 1; }
 
 GPIOD_VER="$("${PKGCFG}" --modversion libgpiod 2>/dev/null || echo "0.0.0")"
 GPIOD_MAJ="${GPIOD_VER%%.*}"
@@ -67,14 +56,16 @@ if [[ "${GPIOD_MAJ}" -lt 2 ]]; then
   exit 0
 fi
 
-need_write_v2=0
 v2file="${APP_DIR}/g2panel_v2.c"
 
+# Rewrite if missing OR wrong signature OR missing stdbool OR missing i2c_fd
+need_write_v2=0
 if [[ ! -f "$v2file" ]]; then
   need_write_v2=1
 else
-  grep -q "CheckG2PanelPresent" "$v2file" || need_write_v2=1
-  grep -q "int[[:space:]]\+i2c_fd" "$v2file" || need_write_v2=1
+  grep -qE '^[[:space:]]*bool[[:space:]]+CheckG2PanelPresent[[:space:]]*\([[:space:]]*void[[:space:]]*\)' "$v2file" || need_write_v2=1
+  grep -qE '#include[[:space:]]+<stdbool\.h>' "$v2file" || need_write_v2=1
+  grep -qE '^[[:space:]]*int[[:space:]]+i2c_fd[[:space:]]*=' "$v2file" || need_write_v2=1
 fi
 
 if [[ "$need_write_v2" -eq 1 ]]; then
@@ -82,42 +73,36 @@ if [[ "$need_write_v2" -eq 1 ]]; then
 //
 // g2panel_v2.c
 // -------------
-// libgpiod v2 compatible G2 front panel support.
-// Safe on radios with no front panel: the "panel present" check will fail cleanly.
+// Minimal libgpiod v2-compatible G2 front panel stubs.
+// Safe on headless radios: panel-present returns false.
 //
 
-#define _GNU_SOURCE
+#include <stdbool.h>
 
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/i2c-dev.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/ioctl.h>
 #include <unistd.h>
 
 #include <gpiod.h>
 
 #include "g2panel.h"
 
+/*
+ * i2cdriver.c references a global i2c_fd symbol in this codebase.
+ * Ensure it exists here so the link succeeds on Trixie builds.
+ */
 int i2c_fd = -1;
 
 static struct gpiod_chip *chip = NULL;
-static struct gpiod_line_request *req_outputs = NULL;
-static struct gpiod_line_request *req_inputs  = NULL;
-
-static int gpio_ok = 0;
 
 static int open_i2c(void)
 {
   if (i2c_fd >= 0) return 0;
 
-  const char *dev = "/dev/i2c-1";
-  i2c_fd = open(dev, O_RDWR);
-  if (i2c_fd < 0) {
-    return -errno;
-  }
+  i2c_fd = open("/dev/i2c-1", O_RDWR);
+  if (i2c_fd < 0) return -errno;
+
   return 0;
 }
 
@@ -129,56 +114,31 @@ static void close_i2c(void)
   }
 }
 
-static int gpio_init(void)
+bool CheckG2PanelPresent(void)
 {
-  if (gpio_ok) return 0;
-
-  chip = gpiod_chip_open("/dev/gpiochip0");
-  if (!chip) return -errno;
-
-  // NOTE: This code intentionally keeps the request minimal.
-  // If your build uses additional panel GPIOs, add them here.
-
-  gpio_ok = 1;
-  return 0;
-}
-
-static void gpio_shutdown(void)
-{
-  if (req_outputs) { gpiod_line_request_release(req_outputs); req_outputs = NULL; }
-  if (req_inputs)  { gpiod_line_request_release(req_inputs);  req_inputs  = NULL; }
-  if (chip)        { gpiod_chip_close(chip); chip = NULL; }
-  gpio_ok = 0;
-}
-
-int CheckG2PanelPresent(void)
-{
-  // Radios without a front panel should return "not present" (0) cleanly.
-  // A real implementation could probe an I2C address or known GPIO state.
-  // We do a lightweight I2C open attempt and immediately close.
-  if (open_i2c() == 0) {
-    close_i2c();
-  }
-  return 0;
+  // Safe default: not present. (Harmless probe open/close.)
+  if (open_i2c() == 0) close_i2c();
+  return false;
 }
 
 void InitialiseG2PanelHandler(void)
 {
-  // Non-fatal on headless radios
-  gpio_init();
+  // Non-fatal no-op on headless radios.
+  if (!chip) chip = gpiod_chip_open("/dev/gpiochip0");
 }
 
 void ShutdownG2PanelHandler(void)
 {
-  gpio_shutdown();
+  if (chip) { gpiod_chip_close(chip); chip = NULL; }
   close_i2c();
 }
 G2PANEL_V2_EOF
   echo "Wrote v2-compatible implementation: $v2file"
 else
-  echo "g2panel_v2.c already present and looks sane; leaving as-is."
+  echo "g2panel_v2.c already present and matches expected signatures; leaving as-is."
 fi
 
+# Preserve original for v1 builds
 if [[ ! -f "${APP_DIR}/g2panel_v1.c" ]]; then
   if [[ -f "${APP_DIR}/g2panel.c" ]]; then
     cp -a "${APP_DIR}/g2panel.c" "${APP_DIR}/g2panel_v1.c"
@@ -192,12 +152,21 @@ cp -a "$makefile" "$bak"
 echo "Backup: $bak"
 
 # Ensure the link step includes $(LDLIBS)
-if grep -qE '^\s*\$\(LD\)\s+-o\s+\$\(TARGET\).*\$\(LDLIBS\)' "$makefile"; then
-  echo "Makefile: link rule already references \$(LDLIBS)"
-else
-  perl -0777 -i -pe 's/(^\s*\$\(LD\)\s+-o\s+\$\(TARGET\)\s+\$\(OBJS\)\s+\$\(LDFLAGS\)\s+\$\(LIBS\)\s*)$/\1\$\(\LDLIBS\)\n/m' "$makefile"
-  echo "Makefile: attempted to append \$(LDLIBS) to link rule"
-fi
+python3 - <<'PY' "$makefile"
+import sys
+from pathlib import Path
+p = Path(sys.argv[1])
+lines = p.read_text().splitlines(True)
+out = []
+patched = False
+for line in lines:
+    if '$(LD) -o $(TARGET)' in line and '$(LDLIBS)' not in line:
+        line = line.rstrip('\n') + ' $(LDLIBS)\n'
+        patched = True
+    out.append(line)
+if patched:
+    p.write_text(''.join(out))
+PY
 
 # Remove any hard-coded -lgpiod from LIBS to prevent duplicates
 perl -i -pe 'if (/^LIBS\s*=\s*/) { s/\s+-lgpiod(\s|$)/$1/g; }' "$makefile"
@@ -241,7 +210,6 @@ fi
 python3 - <<'PY' "$makefile"
 import re, sys
 from pathlib import Path
-
 p = Path(sys.argv[1])
 s = p.read_text()
 s2 = re.sub(r'^( {8})(?=\S)', '\t', s, flags=re.M)
