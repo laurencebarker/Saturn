@@ -1,16 +1,20 @@
 # Saturn
-Saturn SDR project FPGA 
 
-BIT files to program the configuration Flash EPROM can be found here. 
+Saturn SDR project FPGA
+
+BIT files to program the configuration Flash EPROM can be found here.
 
 saturnfallback.bin: complete fallback image. DON'T program this unless you need to!
-saturnprinaryxx.bin: primary config file for FPGA version XX. This should be programmed using flashwriter" as the PRIMARY image. 
+saturnprinaryxx.bin: primary config file for FPGA version XX. This should be programmed using flashwriter" as the PRIMARY image.
 
 Version history:
 
 
-V25. 07/06/2025: Added drives to select HPF in TX path for future Saturn PCB. Does not affect behaviour with current PCB. 
-V24. 20/05/2025: Cordic removed and replaced by original DDS. Cordic had slightly worse broadband noise performance. 
+
+V26. 04/01/2026. Added debug LO DDS selection to allow a Thetis debug mode to be used. No benefit for normal operation. 
+
+V25. 07/06/2025: Added drives to select HPF in TX path for future Saturn PCB. Does not affect behaviour with current PCB.
+V24. 20/05/2025: Cordic removed and replaced by original DDS. Cordic had slightly worse broadband noise performance.
 V23. 15/05/2025: experimental replacement of TX DDS by CORDIC derived from that in Orion. fixed I/Q amplitude for debug use set to 0.9 ampl from 1.0
 V22. 18/04/2025: minor non functional change to TX DUC block design (results in the same code being generated)
 V21. 05/04/2025: replaced codec SPI interface with new IP in readiness for '3204 replacement codec device
@@ -30,21 +34,21 @@ V7, July 29 2023: Assert PTT out if CW keyer asserts PTT
 V6, July 16 2023: DAC ALC ouptut now clocked at 122.88MHz.
 V5, June 2 2023: fixed DDC6 sample rate issue
 V4, April 11 2023: Fixed DC spike in DDC passbans
-    Jan 25 2023: Added Iambic keyer.
+Jan 25 2023: Added Iambic keyer.
+
 
 
 Recommended build procedure
-the build method using create_saturn_project.tcl is not recommended with newer versions of Vivado.
-Instead, the design source tree from Vivado can now be checked into git, which is what we have done. 
+the build method using create\_saturn\_project.tcl is not recommended with newer versions of Vivado.
+Instead, the design source tree from Vivado can now be checked into git, which is what we have done.
 
 1. Install Vivado 2023.1
-2. Create a suitable folder: I recommend c:\xilinxdesigns\Saturn
+2. Create a suitable folder: I recommend c:\\xilinxdesigns\\Saturn
 3. do a git pull to copy the complete Saturn repository (https://github.com/laurencebarker/Saturn.git) into the folder (I use github desktop)
-4. Run Vivado then open project file C:\xilinxdesigns\Saturn\FPGA\saturn_project\saturn_project.xpr
+4. Run Vivado then open project file C:\\xilinxdesigns\\Saturn\\FPGA\\saturn\_project\\saturn\_project.xpr
 5. Wait patiently: it will take some time before the source files are listed in the Sources window.
-6. Find design source file listed as saturn_top_i: saturn top (saturn_top.bd)
-7. right click the file and select Create HDL wrapper. Allow Vivado to manage the file. 
+6. Find design source file listed as saturn\_top\_i: saturn top (saturn\_top.bd)
+7. right click the file and select Create HDL wrapper. Allow Vivado to manage the file.
 8. click Generate Bitstream in the project manager window.
 9. Wait patiently... this could take several hours the 1st time!
-10. After that has completed, loci Generate Memory Configuration File from the Tools menu. There are instructions in the FPGA\documentation folder: Generating Configuration PROM file.docx 
-
+10. After that has completed, loci Generate Memory Configuration File from the Tools menu. There are instructions in the FPGA\\documentation folder: Generating Configuration PROM file.docx

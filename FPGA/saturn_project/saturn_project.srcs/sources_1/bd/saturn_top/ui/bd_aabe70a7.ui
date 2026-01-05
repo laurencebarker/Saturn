@@ -1,18 +1,19 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"0.843796",
-   "Default View_TopLeft":"-607,315",
+   "Default View_TopLeft":"-799,329",
    "ExpandedHierarchyInLayout":"",
-   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
+   "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
-preplace port m_axis_0 -pg 1 -lvl 5 -x 1480 -y 760 -defaultsOSRD
-preplace port m_axis_1 -pg 1 -lvl 5 -x 1480 -y 1030 -defaultsOSRD
+preplace port m_axis_0 -pg 1 -lvl 6 -x 1500 -y 760 -defaultsOSRD
+preplace port m_axis_1 -pg 1 -lvl 6 -x 1500 -y 1030 -defaultsOSRD
 preplace port port-id_aclk -pg 1 -lvl 0 -x -220 -y 270 -defaultsOSRD
 preplace port port-id_aresetn -pg 1 -lvl 0 -x -220 -y 290 -defaultsOSRD
-preplace port port-id_DDC0_ovr -pg 1 -lvl 5 -x 1480 -y 740 -defaultsOSRD
-preplace port port-id_DDC1_ovr -pg 1 -lvl 5 -x 1480 -y 900 -defaultsOSRD
+preplace port port-id_DDC0_ovr -pg 1 -lvl 6 -x 1500 -y 740 -defaultsOSRD
+preplace port port-id_DDC1_ovr -pg 1 -lvl 6 -x 1500 -y 900 -defaultsOSRD
 preplace port port-id_InputFIFO_rstn -pg 1 -lvl 0 -x -220 -y 1000 -defaultsOSRD
 preplace port port-id_Byteswap -pg 1 -lvl 0 -x -220 -y 780 -defaultsOSRD
+preplace port port-id_LOSelDebug -pg 1 -lvl 0 -x -220 -y 1130 -defaultsOSRD
 preplace portBus ADC1 -pg 1 -lvl 0 -x -220 -y 90 -defaultsOSRD
 preplace portBus ADC2 -pg 1 -lvl 0 -x -220 -y 220 -defaultsOSRD
 preplace portBus DDCAFreq -pg 1 -lvl 0 -x -220 -y 150 -defaultsOSRD
@@ -21,57 +22,62 @@ preplace portBus RX_Test -pg 1 -lvl 0 -x -220 -y 410 -defaultsOSRD
 preplace portBus TX_samples -pg 1 -lvl 0 -x -220 -y 580 -defaultsOSRD
 preplace portBus DualDDCRate -pg 1 -lvl 0 -x -220 -y 700 -defaultsOSRD
 preplace portBus DualDDCConfig -pg 1 -lvl 0 -x -220 -y 800 -defaultsOSRD
-preplace inst DDC_Block_0 -pg 1 -lvl 3 -x 1000 -y 650 -defaultsOSRD
-preplace inst DDC_Block_1 -pg 1 -lvl 3 -x 1000 -y 1080 -defaultsOSRD
+preplace inst DDC_Block_0 -pg 1 -lvl 4 -x 1000 -y 650 -defaultsOSRD
+preplace inst DDC_Block_1 -pg 1 -lvl 4 -x 1000 -y 1080 -defaultsOSRD
 preplace inst xlslice_Arate -pg 1 -lvl 1 -x -20 -y 670 -defaultsOSRD
 preplace inst xlslice_Asource -pg 1 -lvl 1 -x -20 -y 770 -defaultsOSRD
 preplace inst xlslice_Brate -pg 1 -lvl 1 -x -20 -y 970 -defaultsOSRD
 preplace inst xlslice_Bsource -pg 1 -lvl 1 -x -20 -y 1070 -defaultsOSRD
+preplace inst util_reduced_logic_0 -pg 1 -lvl 3 -x 500 -y 290 -defaultsOSRD
+preplace inst D_register_norst_0 -pg 1 -lvl 3 -x 500 -y 960 -defaultsOSRD
+preplace inst axis_data_fifo_0 -pg 1 -lvl 5 -x 1340 -y 780 -defaultsOSRD
+preplace inst axis_data_fifo_1 -pg 1 -lvl 5 -x 1340 -y 1040 -defaultsOSRD
 preplace inst xlconstant_0 -pg 1 -lvl 1 -x -20 -y 1170 -defaultsOSRD
 preplace inst xlconstant_1 -pg 1 -lvl 1 -x -20 -y 1270 -defaultsOSRD
 preplace inst D_register_0 -pg 1 -lvl 1 -x -20 -y 60 -defaultsOSRD
 preplace inst D_register_1 -pg 1 -lvl 1 -x -20 -y 220 -defaultsOSRD
 preplace inst D_register_2 -pg 1 -lvl 1 -x -20 -y 550 -defaultsOSRD
 preplace inst D_register_3 -pg 1 -lvl 1 -x -20 -y 380 -defaultsOSRD
-preplace inst axis_data_fifo_0 -pg 1 -lvl 4 -x 1330 -y 780 -defaultsOSRD
-preplace inst axis_data_fifo_1 -pg 1 -lvl 4 -x 1330 -y 1040 -defaultsOSRD
-preplace inst util_reduced_logic_0 -pg 1 -lvl 2 -x 360 -y 290 -defaultsOSRD
-preplace inst D_register_norst_0 -pg 1 -lvl 2 -x 360 -y 960 -defaultsOSRD
-preplace inst regmux_2_1_0 -pg 1 -lvl 2 -x 360 -y 710 -defaultsOSRD
-preplace netloc Byteswap_1 1 0 3 -200J 840 NJ 840 570
-preplace netloc ChanConfig_1 1 1 2 NJ 1070 580
-preplace netloc CicInterp_1 1 2 1 540 620n
-preplace netloc DDCAFreq_1 1 0 3 -200J 140 NJ 140 620
-preplace netloc DDCBFreq_1 1 0 3 NJ 470 NJ 470 560
-preplace netloc D_register_0_dout 1 1 2 N 60 590
-preplace netloc D_register_1_dout 1 1 2 N 220 550
-preplace netloc D_register_2_dout 1 1 2 N 550 490
-preplace netloc D_register_3_dout 1 1 2 N 380 510
-preplace netloc D_register_norst_0_dout 1 2 1 520 960n
+preplace inst regmux_2_1_0 -pg 1 -lvl 3 -x 500 -y 710 -defaultsOSRD
+preplace inst util_reduced_logic_1 -pg 1 -lvl 3 -x 500 -y 1180 -defaultsOSRD
+preplace inst xlconcat_0 -pg 1 -lvl 2 -x 240 -y 1190 -defaultsOSRD
+preplace netloc Byteswap_1 1 0 4 -200J 840 NJ 840 N 840 790
+preplace netloc ChanConfig_1 1 1 3 NJ 1070 N 1070 770
+preplace netloc CicInterp_1 1 3 1 740 620n
+preplace netloc DDCAFreq_1 1 0 4 -200J 140 NJ 140 N 140 820
+preplace netloc DDCBFreq_1 1 0 4 NJ 470 NJ 470 N 470 760
+preplace netloc D_register_0_dout 1 1 3 N 60 N 60 780
+preplace netloc D_register_1_dout 1 1 3 N 220 N 220 750
+preplace netloc D_register_2_dout 1 1 3 N 550 N 550 690
+preplace netloc D_register_3_dout 1 1 3 N 380 N 380 710
+preplace netloc D_register_norst_0_dout 1 3 1 720 960n
 preplace netloc DualDDCRate_1 1 0 1 -160 670n
 preplace netloc Net 1 0 1 -150 770n
-preplace netloc Net1 1 0 4 -190 850 150 610 530 850 1200
-preplace netloc Net2 1 0 3 -170 830 140 810 600
-preplace netloc Net3 1 0 4 -140 890 N 890 N 890 1190
-preplace netloc axis_data_fifo_0_almost_full 1 4 1 1450 740n
-preplace netloc axis_data_fifo_1_almost_full 1 4 1 1460 900n
+preplace netloc Net1 1 0 5 -190 850 N 850 360 610 730 850 1210
+preplace netloc Net2 1 0 4 -170 830 N 830 340 810 800
+preplace netloc Net3 1 0 5 -200 890 N 890 N 890 N 890 1200
+preplace netloc axis_data_fifo_0_almost_full 1 5 1 1460 740n
+preplace netloc axis_data_fifo_1_almost_full 1 5 1 1470 900n
 preplace netloc din_0_1 1 0 1 -200J 80n
 preplace netloc din_1_1 1 0 1 -180J 220n
 preplace netloc din_2_1 1 0 1 -180J 570n
 preplace netloc din_3_1 1 0 1 -200J 400n
-preplace netloc util_reduced_logic_0_Res 1 1 2 160 590 500
-preplace netloc xlconstant_0_dout 1 1 2 120 600 610
-preplace netloc xlconstant_1_dout 1 1 2 110 540 N
-preplace netloc xlslice_Arate_Dout 1 1 1 130J 290n
-preplace netloc xlslice_Asource_Dout 1 1 2 100J 580 N
-preplace netloc xlslice_Brate_Dout 1 1 1 160 750n
-preplace netloc DDC_Block_0_LOIQOut 1 2 2 620 840 1180
-preplace netloc DDC_Block_0_M_AXIS_DATA 1 3 1 1190 640n
-preplace netloc DDC_Block_1_M_AXIS_DATA 1 3 1 1210 1020n
-preplace netloc axis_data_fifo_0_M_AXIS 1 4 1 1460 760n
-preplace netloc axis_data_fifo_1_M_AXIS 1 4 1 N 1030
-levelinfo -pg 1 -220 -20 360 1000 1330 1480
-pagesize -pg 1 -db -bbox -sgen -400 -140 1600 2420
+preplace netloc util_reduced_logic_0_Res 1 1 3 150 660 370 480 630
+preplace netloc xlconstant_0_dout 1 1 3 120 600 N 600 810
+preplace netloc xlconstant_1_dout 1 1 3 110 570 N 570 700
+preplace netloc xlslice_Arate_Dout 1 1 2 NJ 670 350
+preplace netloc xlslice_Asource_Dout 1 1 3 100J 580 N 580 N
+preplace netloc xlslice_Brate_Dout 1 1 2 N 970 370
+preplace netloc xlconcat_0_dout 1 2 1 360 1180n
+preplace netloc LOIQSel_1 1 3 1 820 1170n
+preplace netloc LOSelDebug_1 1 0 2 -140J 910 100
+preplace netloc DDC_Block_0_LOIQOut 1 3 2 820 840 1180
+preplace netloc DDC_Block_0_M_AXIS_DATA 1 4 1 1190 640n
+preplace netloc DDC_Block_1_M_AXIS_DATA 1 4 1 1220 1020n
+preplace netloc axis_data_fifo_0_M_AXIS 1 5 1 1470 760n
+preplace netloc axis_data_fifo_1_M_AXIS 1 5 1 N 1030
+levelinfo -pg 1 -220 -20 240 500 1000 1340 1500
+pagesize -pg 1 -db -bbox -sgen -400 -140 1620 2420
 "
 }
 0
