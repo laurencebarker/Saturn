@@ -34,7 +34,8 @@
 
 
 extern bool AriesATUActive;                             // true if Aries is operating
-
+extern uint32_t LODebugDDC1Frequency;                   // -x debug mode: LO frequency for DDC1
+extern bool InterleavedDDCDebugMode;                    // true if interleaved DDC for debug are allowed
 
 
 //
@@ -124,7 +125,10 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       for (i=0; i<VNUMDDC; i++)
       {
         LongWord = rd_be_u32(UDPInBuffer+i*4+9);
-        SetDDCFrequency(i, LongWord, true);                   // temporarily set above
+        if(InterleavedDDCDebugMode && (i==1))
+          SetDDCFrequency(1, LODebugDDC1Frequency, false);      // set debug DDC frequency - note Hz not phase
+        else
+          SetDDCFrequency(i, LongWord, true);                   // temporarily set above
       }
       //
       // DUC frequency & drive level

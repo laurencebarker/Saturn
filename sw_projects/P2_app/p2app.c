@@ -141,7 +141,8 @@ bool UseDebug = false;                      // true if to enable debugging
 bool UseControlPanel = false;               // true if to use a control panel
 bool UseLDGATU = false;                     // true if to use an LDG ATU via CAT
 bool UseAriesATU = false;                   // true if to use an Aries ATU
-bool InterleavedDDCDebugMode = false;       // trie if interleaved DDC for debug are allowed
+uint32_t LODebugDDC1Frequency;              // -x debug mode: LO frequency for DDC1
+bool InterleavedDDCDebugMode = false;       // true if interleaved DDC for debug are allowed
 
 
 #define SDRBOARDID 1                        // Hermes
@@ -432,7 +433,7 @@ int main(int argc, char *argv[])
   struct iovec iovecinst;                                           // iovcnt buffer - 1 for each outgoing buffer
   struct msghdr datagram;                                           // multiple incoming message header
 
-  uint32_t TestFrequency;                                           // test source DDS freq
+  uint32_t TestFrequency;                                           // -f test source DDS freq
   int CmdOption;                                                    // command line option
   char BuildDate[]=GIT_DATE;
 	ESoftwareID ID;
@@ -529,7 +530,7 @@ int main(int argc, char *argv[])
 // option string needs a colon after each option letter that has a parameter after it
 // and it has a leading colon to suppress error messages
 //
-  while((CmdOption = getopt(argc, argv, ":a:i:f:m:sdphx")) != -1)
+  while((CmdOption = getopt(argc, argv, ":a:i:f:x:m:sdph")) != -1)
   {
     switch(CmdOption)
     {
@@ -636,6 +637,8 @@ int main(int argc, char *argv[])
       case 'x':
         printf ("DEBUG ONLY interleaved DDC separate LO enabled\n");                  
         InterleavedDDCDebugMode = true;
+        LODebugDDC1Frequency = (atoi(optarg));
+        printf ("Fixed DDC1 selected, frequency = %dHz\n", LODebugDDC1Frequency);                  
         break;
 
     }
