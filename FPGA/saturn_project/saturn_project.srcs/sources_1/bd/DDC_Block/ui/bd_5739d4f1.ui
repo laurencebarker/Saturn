@@ -52,51 +52,51 @@ preplace inst axis_mux_2_0 -pg 1 -lvl 3 -x 120 -y 100 -defaultsOSRD
 preplace inst LFSR_Random_Number_G_0 -pg 1 -lvl 3 -x 120 -y 250 -defaultsOSRD
 preplace inst regmux_4_1_0 -pg 1 -lvl 1 -x -510 -y 130 -defaultsOSRD
 preplace inst regmux_8_1_0 -pg 1 -lvl 2 -x -210 -y 590 -defaultsOSRD
-preplace netloc Byteswap_1 1 0 10 -640J 1000 NJ 1000 NJ 1000 NJ 1000 NJ 1000 NJ 1000 NJ 1000 NJ 1000 N 1000 2420
+preplace netloc Byteswap_1 1 0 10 -640J 1000 NJ 1000 NJ 1000 NJ 1000 NJ 1000 NJ 1000 NJ 1000 NJ 1000 N 1000 2410
 preplace netloc ChanFreq_1 1 0 2 NJ 350 NJ
 preplace netloc CicInterp_1 1 0 2 NJ 370 -360J
 preplace netloc Double_D_register_0_dout 1 3 1 310 610n
 preplace netloc LOIQSel_1 1 0 3 NJ -90 N -90 -50
-preplace netloc aclk_1 1 0 10 -630 10 -350 10 -70 -150 320 300 670 300 1000 290 1390 290 1760 750 2170 900 2400
+preplace netloc aclk_1 1 0 10 -640 10 -350 10 -70 -150 320 300 670 300 1020 290 1400 290 1770 750 2180 900 2390
 preplace netloc adc1_1 1 0 1 NJ 130
 preplace netloc adc2_1 1 0 1 NJ 150
 preplace netloc regmux_4_1_0_dout 1 1 1 -340 130n
 preplace netloc regmux_8_1_0_dout 1 2 1 -80 590n
-preplace netloc rstn_1 1 0 10 -630 360 -340 290 -40 0 300J 310 640 310 1010 300 1380 300 1740 760 2160 910 2410
+preplace netloc rstn_1 1 0 10 -640 360 -340 290 -40 0 300J 310 640 310 1030 300 1390 300 1750 760 2170 910 2400
 preplace netloc sel_0_1 1 0 1 NJ 70
 preplace netloc test_source_1 1 0 1 NJ 170
 preplace netloc tx_samples_1 1 0 1 NJ 190
 preplace netloc xlconcat_1_dout 1 4 1 680 650n
 preplace netloc xlconcat_2_dout 1 2 1 -80 -80n
 preplace netloc xlconstant_10_dout 1 1 1 -340 670n
-preplace netloc xlconstant_160_dout 1 1 1 -390 540n
-preplace netloc xlconstant_16bits0_dout 1 1 1 -380J 230n
-preplace netloc xlconstant_20_dout 1 1 1 -360 650n
+preplace netloc xlconstant_160_dout 1 1 1 -380 540n
+preplace netloc xlconstant_16bits0_dout 1 1 1 -370J 230n
+preplace netloc xlconstant_20_dout 1 1 1 -350 650n
 preplace netloc xlconstant_320_dout 1 1 1 -370 440n
-preplace netloc xlconstant_40_dout 1 1 1 -380 630n
+preplace netloc xlconstant_40_dout 1 1 1 -370 630n
 preplace netloc xlconstant_7bits0_dout 1 3 1 270 720n
-preplace netloc xlconstant_80_dout 1 1 1 -390 610n
+preplace netloc xlconstant_80_dout 1 1 1 -380 610n
 preplace netloc LFSR_Random_Number_G_0_m_axis 1 3 1 270 220n
 preplace netloc LOIQIn_1 1 0 3 N -10 N -10 -60
 preplace netloc axis_broadcaster_0_M00_AXIS 1 2 3 -30 -140 N -140 630
 preplace netloc axis_broadcaster_0_M01_AXIS 1 4 7 650 150 N 150 N 150 N 150 N 150 N 150 N
 preplace netloc axis_broadcaster_1_M00_AXIS 1 5 1 980 360n
 preplace netloc axis_broadcaster_1_M01_AXIS 1 5 1 980 470n
-preplace netloc axis_combiner_0_M_AXIS 1 5 4 1040 280 N 280 N 280 2090
-preplace netloc axis_dwidth_converter_0_M_AXIS 1 6 1 1400 850n
-preplace netloc axis_dwidth_converter_1_M_AXIS 1 9 1 2390 760n
+preplace netloc axis_combiner_0_M_AXIS 1 5 4 1060 280 N 280 N 280 2080
+preplace netloc axis_dwidth_converter_0_M_AXIS 1 6 1 1410 850n
+preplace netloc axis_dwidth_converter_1_M_AXIS 1 9 1 2380 760n
 preplace netloc axis_mux_2_0_output_axis 1 3 1 310 100n
-preplace netloc axis_subset_converter_0_M_AXIS 1 8 1 2090 800n
-preplace netloc axis_subset_converter_1_M_AXIS 1 7 1 1720 360n
-preplace netloc axis_subset_converter_2_M_AXIS 1 7 1 1750 380n
-preplace netloc axis_variable_0_m_axis 1 5 1 1020 380n
-preplace netloc axis_variable_1_m_axis 1 5 1 1030 560n
+preplace netloc axis_subset_converter_0_M_AXIS 1 8 1 2080 800n
+preplace netloc axis_subset_converter_1_M_AXIS 1 7 1 1710 360n
+preplace netloc axis_subset_converter_2_M_AXIS 1 7 1 1760 380n
+preplace netloc axis_variable_0_m_axis 1 5 1 1040 380n
+preplace netloc axis_variable_1_m_axis 1 5 1 1050 560n
 preplace netloc byteswap_48_0_m_axis 1 10 1 2730 530n
-preplace netloc cic_compiler_0_M_AXIS_DATA 1 6 1 1360 530n
-preplace netloc cic_compiler_1_M_AXIS_DATA 1 6 1 1360 360n
+preplace netloc cic_compiler_0_M_AXIS_DATA 1 6 1 1340 530n
+preplace netloc cic_compiler_1_M_AXIS_DATA 1 6 1 1340 360n
 preplace netloc cmpy_0_M_AXIS_DOUT 1 4 1 660 210n
 preplace netloc dds_compiler_0_M_AXIS_DATA 1 3 1 310 370n
-preplace netloc fir_compiler_0_M_AXIS_DATA 1 7 1 1770 820n
+preplace netloc fir_compiler_0_M_AXIS_DATA 1 7 1 1780 820n
 preplace netloc reg_to_axis_0_m_axis 1 2 1 N 360
 preplace netloc reg_to_axis_1_m_axis 1 3 1 330 -70n
 levelinfo -pg 1 -660 -510 -210 120 480 830 1200 1560 1930 2280 2610 2750

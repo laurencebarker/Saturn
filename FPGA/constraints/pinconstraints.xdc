@@ -2,7 +2,7 @@
 # user access register
 # used for "version number" settig - currently a date code
 #
-set_property BITSTREAM.CONFIG.USR_ACCESS 0x07062025 [current_design]
+set_property BITSTREAM.CONFIG.USR_ACCESS 0x04012026 [current_design]
 
 #SPI_BUSWIDTH sets the read commands into bit file.
 #CONFIG_MODE SPIx4 is for Vivado tool to check DRC.
@@ -579,8 +579,8 @@ set_property PULLUP true [get_ports CODEC_MISO]
 set_property PACKAGE_PIN Y22 [get_ports {CODEC_RESETN[0]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {CODEC_RESETN[0]}]
 
-set_property IOSTANDARD LVTTL [get_ports {HPF_SEL1[0]}]
-set_property IOSTANDARD LVTTL [get_ports {HPF_SEL2[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {HPF_SEL1[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {HPF_SEL2[0]}]
 set_property PACKAGE_PIN G7 [get_ports {HPF_SEL1[0]}]
 set_property PACKAGE_PIN H7 [get_ports {HPF_SEL2[0]}]
 
