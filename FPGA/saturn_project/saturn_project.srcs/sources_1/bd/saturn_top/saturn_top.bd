@@ -231,7 +231,9 @@
           "D_register_1": "",
           "D_register_2": "",
           "D_register_3": "",
-          "regmux_2_1_0": ""
+          "regmux_2_1_0": "",
+          "util_reduced_logic_1": "",
+          "xlconcat_0": ""
         },
         "AXIL_ConfigReg_256_RX_0": "",
         "AXIL_ConfigReg_256_RX_1": "",
@@ -252,7 +254,9 @@
           "D_register_1": "",
           "D_register_2": "",
           "D_register_3": "",
-          "regmux_2_1_0": ""
+          "regmux_2_1_0": "",
+          "xlconcat_0": "",
+          "util_reduced_logic_1": ""
         },
         "dualDDC32": {
           "DDC_Block_0": "",
@@ -271,7 +275,9 @@
           "D_register_1": "",
           "D_register_2": "",
           "D_register_3": "",
-          "regmux_2_1_0": ""
+          "regmux_2_1_0": "",
+          "xlconcat_0": "",
+          "util_reduced_logic_1": ""
         },
         "dualDDC54": {
           "DDC_Block_0": "",
@@ -290,7 +296,9 @@
           "D_register_1": "",
           "D_register_2": "",
           "D_register_3": "",
-          "regmux_2_1_0": ""
+          "regmux_2_1_0": "",
+          "xlconcat_0": "",
+          "util_reduced_logic_1": ""
         },
         "dualDDC76": {
           "DDC_Block_0": "",
@@ -309,7 +317,9 @@
           "D_register_1": "",
           "D_register_2": "",
           "D_register_3": "",
-          "regmux_2_1_0": ""
+          "regmux_2_1_0": "",
+          "xlconcat_0": "",
+          "util_reduced_logic_1": ""
         },
         "xlslice_10config": "",
         "xlslice_32config": "",
@@ -326,7 +336,9 @@
         "dds_compiler_0": "",
         "xlconstant_0": "",
         "axis_constant_0": "",
-        "AXIS_DDC_Multiplexer_0": ""
+        "AXIS_DDC_Multiplexer_0": "",
+        "xlslice_lodebug": "",
+        "util_vector_logic_lodebug": ""
       },
       "Transmitter": {
         "IQ_Modulation_Select": "",
@@ -8662,7 +8674,7 @@
             "inst_hier_path": "PCIe/xlconstant_swversion",
             "parameters": {
               "CONST_VAL": {
-                "value": "25"
+                "value": "26"
               },
               "CONST_WIDTH": {
                 "value": "16"
@@ -14434,6 +14446,9 @@
               },
               "Byteswap": {
                 "direction": "I"
+              },
+              "LOSelDebug": {
+                "direction": "I"
               }
             },
             "components": {
@@ -15679,6 +15694,23 @@
                     "right": "0"
                   }
                 }
+              },
+              "util_reduced_logic_1": {
+                "vlnv": "xilinx.com:ip:util_reduced_logic:2.0",
+                "xci_name": "saturn_top_util_reduced_logic_1_1",
+                "xci_path": "ip\\saturn_top_util_reduced_logic_1_1\\saturn_top_util_reduced_logic_1_1.xci",
+                "inst_hier_path": "Receiver/dualDDC10/util_reduced_logic_1",
+                "parameters": {
+                  "C_SIZE": {
+                    "value": "2"
+                  }
+                }
+              },
+              "xlconcat_0": {
+                "vlnv": "xilinx.com:ip:xlconcat:2.1",
+                "xci_name": "saturn_top_xlconcat_0_5",
+                "xci_path": "ip\\saturn_top_xlconcat_0_5\\saturn_top_xlconcat_0_5.xci",
+                "inst_hier_path": "Receiver/dualDDC10/xlconcat_0"
               }
             },
             "interface_nets": {
@@ -15786,6 +15818,18 @@
                   "xlslice_Brate/Din"
                 ]
               },
+              "LOIQSel_1": {
+                "ports": [
+                  "util_reduced_logic_1/Res",
+                  "DDC_Block_1/LOIQSel"
+                ]
+              },
+              "LOSelDebug_1": {
+                "ports": [
+                  "LOSelDebug",
+                  "xlconcat_0/In1"
+                ]
+              },
               "Net": {
                 "ports": [
                   "DualDDCConfig",
@@ -15866,8 +15910,14 @@
               "util_reduced_logic_0_Res": {
                 "ports": [
                   "util_reduced_logic_0/Res",
-                  "DDC_Block_1/LOIQSel",
-                  "regmux_2_1_0/sel"
+                  "regmux_2_1_0/sel",
+                  "xlconcat_0/In0"
+                ]
+              },
+              "xlconcat_0_dout": {
+                "ports": [
+                  "xlconcat_0/dout",
+                  "util_reduced_logic_1/Op1"
                 ]
               },
               "xlconstant_0_dout": {
@@ -16556,6 +16606,9 @@
                 "right": "0"
               },
               "Byteswap": {
+                "direction": "I"
+              },
+              "LOSelDebug": {
                 "direction": "I"
               }
             },
@@ -17802,6 +17855,23 @@
                     "right": "0"
                   }
                 }
+              },
+              "xlconcat_0": {
+                "vlnv": "xilinx.com:ip:xlconcat:2.1",
+                "xci_name": "saturn_top_xlconcat_0_9",
+                "xci_path": "ip\\saturn_top_xlconcat_0_9\\saturn_top_xlconcat_0_9.xci",
+                "inst_hier_path": "Receiver/dualDDC98/xlconcat_0"
+              },
+              "util_reduced_logic_1": {
+                "vlnv": "xilinx.com:ip:util_reduced_logic:2.0",
+                "xci_name": "saturn_top_util_reduced_logic_1_5",
+                "xci_path": "ip\\saturn_top_util_reduced_logic_1_5\\saturn_top_util_reduced_logic_1_5.xci",
+                "inst_hier_path": "Receiver/dualDDC98/util_reduced_logic_1",
+                "parameters": {
+                  "C_SIZE": {
+                    "value": "2"
+                  }
+                }
               }
             },
             "interface_nets": {
@@ -17908,6 +17978,18 @@
                   "DDC_Block_1/CicInterp"
                 ]
               },
+              "LOIQSel_1": {
+                "ports": [
+                  "util_reduced_logic_1/Res",
+                  "DDC_Block_1/LOIQSel"
+                ]
+              },
+              "LOSelDebug_1": {
+                "ports": [
+                  "LOSelDebug",
+                  "xlconcat_0/In1"
+                ]
+              },
               "Net1": {
                 "ports": [
                   "aclk",
@@ -17983,8 +18065,14 @@
               "util_reduced_logic_0_Res": {
                 "ports": [
                   "util_reduced_logic_0/Res",
-                  "DDC_Block_1/LOIQSel",
-                  "regmux_2_1_0/sel"
+                  "regmux_2_1_0/sel",
+                  "xlconcat_0/In0"
+                ]
+              },
+              "xlconcat_0_dout": {
+                "ports": [
+                  "xlconcat_0/dout",
+                  "util_reduced_logic_1/Op1"
                 ]
               },
               "xlconstant_0_dout": {
@@ -18098,6 +18186,9 @@
                 "right": "0"
               },
               "Byteswap": {
+                "direction": "I"
+              },
+              "LOSelDebug": {
                 "direction": "I"
               }
             },
@@ -19344,6 +19435,23 @@
                     "right": "0"
                   }
                 }
+              },
+              "xlconcat_0": {
+                "vlnv": "xilinx.com:ip:xlconcat:2.1",
+                "xci_name": "saturn_top_xlconcat_0_6",
+                "xci_path": "ip\\saturn_top_xlconcat_0_6\\saturn_top_xlconcat_0_6.xci",
+                "inst_hier_path": "Receiver/dualDDC32/xlconcat_0"
+              },
+              "util_reduced_logic_1": {
+                "vlnv": "xilinx.com:ip:util_reduced_logic:2.0",
+                "xci_name": "saturn_top_util_reduced_logic_1_2",
+                "xci_path": "ip\\saturn_top_util_reduced_logic_1_2\\saturn_top_util_reduced_logic_1_2.xci",
+                "inst_hier_path": "Receiver/dualDDC32/util_reduced_logic_1",
+                "parameters": {
+                  "C_SIZE": {
+                    "value": "2"
+                  }
+                }
               }
             },
             "interface_nets": {
@@ -19382,8 +19490,8 @@
               "Byteswap_1": {
                 "ports": [
                   "Byteswap",
-                  "DDC_Block_1/Byteswap",
-                  "DDC_Block_0/Byteswap"
+                  "DDC_Block_0/Byteswap",
+                  "DDC_Block_1/Byteswap"
                 ]
               },
               "CicInterp_1": {
@@ -19436,6 +19544,12 @@
                   "DualDDCRate",
                   "xlslice_Arate/Din",
                   "xlslice_Brate/Din"
+                ]
+              },
+              "LOSelDebug_1": {
+                "ports": [
+                  "LOSelDebug",
+                  "xlconcat_0/In1"
                 ]
               },
               "Net": {
@@ -19525,8 +19639,20 @@
               "util_reduced_logic_0_Res": {
                 "ports": [
                   "util_reduced_logic_0/Res",
-                  "DDC_Block_1/LOIQSel",
-                  "regmux_2_1_0/sel"
+                  "regmux_2_1_0/sel",
+                  "xlconcat_0/In0"
+                ]
+              },
+              "util_reduced_logic_1_Res": {
+                "ports": [
+                  "util_reduced_logic_1/Res",
+                  "DDC_Block_1/LOIQSel"
+                ]
+              },
+              "xlconcat_0_dout": {
+                "ports": [
+                  "xlconcat_0/dout",
+                  "util_reduced_logic_1/Op1"
                 ]
               },
               "xlconstant_0_dout": {
@@ -19640,6 +19766,9 @@
                 "right": "0"
               },
               "Byteswap": {
+                "direction": "I"
+              },
+              "LOSelDebug": {
                 "direction": "I"
               }
             },
@@ -20886,6 +21015,23 @@
                     "right": "0"
                   }
                 }
+              },
+              "xlconcat_0": {
+                "vlnv": "xilinx.com:ip:xlconcat:2.1",
+                "xci_name": "saturn_top_xlconcat_0_7",
+                "xci_path": "ip\\saturn_top_xlconcat_0_7\\saturn_top_xlconcat_0_7.xci",
+                "inst_hier_path": "Receiver/dualDDC54/xlconcat_0"
+              },
+              "util_reduced_logic_1": {
+                "vlnv": "xilinx.com:ip:util_reduced_logic:2.0",
+                "xci_name": "saturn_top_util_reduced_logic_1_3",
+                "xci_path": "ip\\saturn_top_util_reduced_logic_1_3\\saturn_top_util_reduced_logic_1_3.xci",
+                "inst_hier_path": "Receiver/dualDDC54/util_reduced_logic_1",
+                "parameters": {
+                  "C_SIZE": {
+                    "value": "2"
+                  }
+                }
               }
             },
             "interface_nets": {
@@ -20969,6 +21115,12 @@
                 "ports": [
                   "D_register_norst_0/dout",
                   "DDC_Block_1/CicInterp"
+                ]
+              },
+              "LOSelDebug_1": {
+                "ports": [
+                  "LOSelDebug",
+                  "xlconcat_0/In1"
                 ]
               },
               "Net": {
@@ -21074,8 +21226,20 @@
               "util_reduced_logic_0_Res": {
                 "ports": [
                   "util_reduced_logic_0/Res",
-                  "DDC_Block_1/LOIQSel",
-                  "regmux_2_1_0/sel"
+                  "regmux_2_1_0/sel",
+                  "xlconcat_0/In0"
+                ]
+              },
+              "util_reduced_logic_1_Res": {
+                "ports": [
+                  "util_reduced_logic_1/Res",
+                  "DDC_Block_1/LOIQSel"
+                ]
+              },
+              "xlconcat_0_dout": {
+                "ports": [
+                  "xlconcat_0/dout",
+                  "util_reduced_logic_1/Op1"
                 ]
               },
               "xlconstant_0_dout": {
@@ -21182,6 +21346,9 @@
                 "right": "0"
               },
               "Byteswap": {
+                "direction": "I"
+              },
+              "LOSelDebug": {
                 "direction": "I"
               }
             },
@@ -22428,6 +22595,23 @@
                     "right": "0"
                   }
                 }
+              },
+              "xlconcat_0": {
+                "vlnv": "xilinx.com:ip:xlconcat:2.1",
+                "xci_name": "saturn_top_xlconcat_0_8",
+                "xci_path": "ip\\saturn_top_xlconcat_0_8\\saturn_top_xlconcat_0_8.xci",
+                "inst_hier_path": "Receiver/dualDDC76/xlconcat_0"
+              },
+              "util_reduced_logic_1": {
+                "vlnv": "xilinx.com:ip:util_reduced_logic:2.0",
+                "xci_name": "saturn_top_util_reduced_logic_1_4",
+                "xci_path": "ip\\saturn_top_util_reduced_logic_1_4\\saturn_top_util_reduced_logic_1_4.xci",
+                "inst_hier_path": "Receiver/dualDDC76/util_reduced_logic_1",
+                "parameters": {
+                  "C_SIZE": {
+                    "value": "2"
+                  }
+                }
               }
             },
             "interface_nets": {
@@ -22518,6 +22702,12 @@
                   "xlconstant_0/dout",
                   "DDC_Block_0/LOIQSel",
                   "DDC_Block_0/LOIQIn_tvalid"
+                ]
+              },
+              "LOSelDebug_1": {
+                "ports": [
+                  "LOSelDebug",
+                  "xlconcat_0/In1"
                 ]
               },
               "Net": {
@@ -22616,8 +22806,20 @@
               "util_reduced_logic_0_Res": {
                 "ports": [
                   "util_reduced_logic_0/Res",
-                  "DDC_Block_1/LOIQSel",
-                  "regmux_2_1_0/sel"
+                  "regmux_2_1_0/sel",
+                  "xlconcat_0/In0"
+                ]
+              },
+              "util_reduced_logic_1_Res": {
+                "ports": [
+                  "util_reduced_logic_1/Res",
+                  "DDC_Block_1/LOIQSel"
+                ]
+              },
+              "xlconcat_0_dout": {
+                "ports": [
+                  "xlconcat_0/dout",
+                  "util_reduced_logic_1/Op1"
                 ]
               },
               "xlconstant_1_dout": {
@@ -24108,6 +24310,34 @@
                 "direction": "O"
               }
             }
+          },
+          "xlslice_lodebug": {
+            "vlnv": "xilinx.com:ip:xlslice:1.0",
+            "xci_name": "saturn_top_xlslice_0_15",
+            "xci_path": "ip\\saturn_top_xlslice_0_15\\saturn_top_xlslice_0_15.xci",
+            "inst_hier_path": "Receiver/xlslice_lodebug",
+            "parameters": {
+              "DIN_FROM": {
+                "value": "30"
+              },
+              "DIN_TO": {
+                "value": "30"
+              }
+            }
+          },
+          "util_vector_logic_lodebug": {
+            "vlnv": "xilinx.com:ip:util_vector_logic:2.0",
+            "xci_name": "saturn_top_util_vector_logic_0_17",
+            "xci_path": "ip\\saturn_top_util_vector_logic_0_17\\saturn_top_util_vector_logic_0_17.xci",
+            "inst_hier_path": "Receiver/util_vector_logic_lodebug",
+            "parameters": {
+              "C_OPERATION": {
+                "value": "not"
+              },
+              "C_SIZE": {
+                "value": "1"
+              }
+            }
           }
         },
         "interface_nets": {
@@ -24339,7 +24569,8 @@
               "xlslice_32rate/Din",
               "xlslice_54rate/Din",
               "xlslice_76rate/Din",
-              "xlslice_98rate/Din"
+              "xlslice_98rate/Din",
+              "xlslice_lodebug/Din"
             ]
           },
           "Net2": {
@@ -24464,6 +24695,16 @@
               "AXIS_DDC_Multiplexer_0/aresetn"
             ]
           },
+          "util_vector_logic_lodebug_Res": {
+            "ports": [
+              "util_vector_logic_lodebug/Res",
+              "dualDDC54/LOSelDebug",
+              "dualDDC32/LOSelDebug",
+              "dualDDC10/LOSelDebug",
+              "dualDDC76/LOSelDebug",
+              "dualDDC98/LOSelDebug"
+            ]
+          },
           "xlslice_10rate_Dout": {
             "ports": [
               "xlslice_10rate/Dout",
@@ -24522,6 +24763,12 @@
             "ports": [
               "xlslice_enable/Dout",
               "AXIS_DDC_Multiplexer_0/enabled"
+            ]
+          },
+          "xlslice_lodebug_Dout": {
+            "ports": [
+              "xlslice_lodebug/Dout",
+              "util_vector_logic_lodebug/Op1"
             ]
           }
         }

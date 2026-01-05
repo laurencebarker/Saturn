@@ -243,6 +243,13 @@ void SetP1SampleRate(ESampleRate Rate, unsigned int Count);
 
 
 //
+// enable Debug mode to allow Interleaved DDc to have different frequencies
+// allows use of Puresignal debug display during TX on a different  frequency
+// default: NOT enabled
+//
+void EnableInterleavedDDCLODebug(bool Enabled);
+
+//
 // SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bool InterleaveWithNext)
 // sets the sample rate for a single DDC (used in protocol 2)
 // allowed rates are 48KHz to 1536KHz.

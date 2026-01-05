@@ -65,7 +65,7 @@
 #include "AriesATU.h"
 #include "frontpanelhandler.h"
 
-#define P2APPVERSION 41
+#define P2APPVERSION 42
 #define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
@@ -73,6 +73,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V42, 05/01/2026.  Support for new codec; debug mode with startup switch to enable interlinked DDC at different frequencies
 // V41, 30/9/2025:   Added detection of PCB version, so CODEC can be initialised for a different type
 // V40: 29/6/2025:   Changes to accommodate a different XMDA device driver, if required in the future. No functional impact. 
 // V39: 18/02/2025:  ADC overflow now reported immediately while in RX
@@ -140,6 +141,8 @@ bool UseDebug = false;                      // true if to enable debugging
 bool UseControlPanel = false;               // true if to use a control panel
 bool UseLDGATU = false;                     // true if to use an LDG ATU via CAT
 bool UseAriesATU = false;                   // true if to use an Aries ATU
+uint32_t LODebugDDC1Frequency;              // -x debug mode: LO frequency for DDC1
+bool InterleavedDDCDebugMode = false;       // true if interleaved DDC for debug are allowed
 
 
 #define SDRBOARDID 1                        // Hermes
@@ -430,7 +433,7 @@ int main(int argc, char *argv[])
   struct iovec iovecinst;                                           // iovcnt buffer - 1 for each outgoing buffer
   struct msghdr datagram;                                           // multiple incoming message header
 
-  uint32_t TestFrequency;                                           // test source DDS freq
+  uint32_t TestFrequency;                                           // -f test source DDS freq
   int CmdOption;                                                    // command line option
   char BuildDate[]=GIT_DATE;
 	ESoftwareID ID;
@@ -527,7 +530,7 @@ int main(int argc, char *argv[])
 // option string needs a colon after each option letter that has a parameter after it
 // and it has a leading colon to suppress error messages
 //
-  while((CmdOption = getopt(argc, argv, ":a:i:f:m:sdph")) != -1)
+  while((CmdOption = getopt(argc, argv, ":a:i:f:x:m:sdph")) != -1)
   {
     switch(CmdOption)
     {
@@ -544,6 +547,7 @@ int main(int argc, char *argv[])
         printf("-s            skip checking for exit keys, run as service\n");
         printf("-d            print additional debug\n");
         printf("-p            drive G2 control panel\n");
+        printf("-x            dubin mode to allow interleaved DDC on different frquencies\n");
         return EXIT_SUCCESS;
         break;
 
@@ -628,6 +632,15 @@ int main(int argc, char *argv[])
       case 'p':
         printf ("Control panel enabled\n");                  
         UseControlPanel = true;
+        break;
+
+      case 'x':
+        printf ("DEBUG ONLY interleaved DDC separate LO enabled\n");                  
+        InterleavedDDCDebugMode = true;
+        LODebugDDC1Frequency = (atoi(optarg));
+        printf ("Fixed DDC1 selected, frequency = %dHz\n", LODebugDDC1Frequency);                  
+        break;
+
     }
   }
   printf("\n");
@@ -650,6 +663,12 @@ int main(int argc, char *argv[])
 //
   if(UseControlPanel)
     InitialiseFrontPanelHandler();
+
+//
+// set paramter for interleaved DDC debug mode
+//
+  if(InterleavedDDCDebugMode)
+    EnableInterleavedDDCLODebug(InterleavedDDCDebugMode);
 
 //
 // start up thread for exit command checking

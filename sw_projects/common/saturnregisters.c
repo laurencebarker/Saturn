@@ -536,6 +536,22 @@ void SetP1SampleRate(ESampleRate Rate, unsigned int DDCCount)
 
 
 //
+// enable Debug mode to allow Interleaved DDc to have different frequencies
+// allows use of Puresignal debug display during TX on a different  frequency
+// default: NOT enabled
+// this is a Thetis debug function, not needed for piHPSDR
+//
+void EnableInterleavedDDCLODebug(bool Enabled)
+{
+    if(Enabled)
+    {
+        DDCRateReg |= (1<<30);                      // set bit 30 in debug mode
+        WriteP2DDCRateRegister();
+    }
+}
+
+
+//
 // SetP2SampleRate(unsigned int DDC, bool Enabled, unsigned int SampleRate, bool InterleaveWithNext)
 // sets the sample rate for a single DDC (used in protocol 2)
 // allowed rates are 48KHz to 1536KHz.
