@@ -45,6 +45,9 @@
 #include "AriesATU.h"
 
 
+#define ID_G2V2_PANEL "9f2b6c5a-4d7e-4c3b-9a21-3f8d0e6b12c4"
+
+
 bool G2V2PanelControlled = false;
 bool G2V2PanelActive = false;                       // true while panel active and threads should run
 bool G2V2CATDetected = false;                       // true if panel ID message has been sent
@@ -177,7 +180,8 @@ void* G2V2PanelTick(__attribute__((unused)) void *arg)
             if(G2V2CATDetected == false)
             {
                 G2V2CATDetected = true;
-                MakeProductVersionCAT(G2V2PanelProductID, G2V2PanelHWVersion, G2V2PanelSWID);
+                MakeProductVersionCAT(G2V2PanelProductID, G2V2PanelHWVersion, G2V2PanelSWID, DESTTCPCATPORT);
+                MakeCATMessageString(DESTTCPCATPORT, eZZGA, ID_G2V2_PANEL);
             }
         }
         else
@@ -357,7 +361,7 @@ void SetG2V2ZZZIState(uint32_t Param)
 {
     GZZZIReceived = true;
     MakeCATMessageNumeric(G2V2Data.DeviceHandle, eZZZI, Param);
-
+    printf("Received ZZZI, to turn off poll request\n");
 }
 
 #define VATUBUTTONSCANCODE 4

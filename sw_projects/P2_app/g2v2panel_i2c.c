@@ -300,7 +300,7 @@ void G2V2PanelTick(__attribute__((unused)) void *arg)
             if(G2V2CATDetected == false)
             {
                 G2V2CATDetected = true;
-                MakeProductVersionCAT(G2V2PanelProductID, G2V2PanelHWVersion, G2V2PanelSWID);
+                MakeProductVersionCAT(G2V2PanelProductID, G2V2PanelHWVersion, G2V2PanelSWID, DESTTCPCATPORT);
             }
         }
         else

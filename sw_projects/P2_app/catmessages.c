@@ -36,6 +36,7 @@
 #include "../common/debugaids.h"
 #include "g2v2panel.h"
 #include "AriesATU.h"
+#include "GanymedePAControl.h"
 #include "catmessages.h"
 #include "cathandler.h"
 
@@ -115,6 +116,8 @@ void HandleZZZS(__attribute__((unused)) int SourceDevice, __attribute__((unused)
             SetG2V2ZZZSState(ProductID, HWVersion, SWID);
         else if(ProductID == 2)
             SetAriesZZZSState(ProductID, HWVersion, SWID);
+        else if(ProductID == 3)
+            SetGanymedeZZZSState(ProductID, HWVersion, SWID);
     }
 }
 
@@ -174,6 +177,50 @@ void HandleZZTU(__attribute__((unused)) int SourceDevice, __attribute__((unused)
     SetAriesTuneState(BoolParam);
 }
 
+//
+// Ganymede PA control
+// received from Ganymede or from Thetis
+// pass onto code for those devices
+//
+void HandleZZZA(int SourceDevice, __attribute__((unused)) ERXParamType Type, __attribute__((unused)) bool BoolParam, int NumParam, __attribute__((unused)) char* StringParam)                          // pushbutton
+{
+    HandleGanymedeZZZAMessage(NumParam, SourceDevice);
+}
+
+
+//
+// makeproductversionCAT
+// create a ZZZS Message
+//
+void MakeProductVersionCAT(uint8_t ProductID, uint8_t HWVersion, uint8_t SWVersion, int DestDevice)
+{
+    uint32_t CatParam;
+    CatParam = (ProductID * 100000) + (HWVersion*1000) + SWVersion;
+    MakeCATMessageNumeric(DestDevice, eZZZS, CatParam);
+}
+
+
+//
+// handle ZZGA
+// (we don't expect to get this back - just sent it out)
+//
+void HandleZZGA(int SourceDevice, __attribute__((unused)) ERXParamType Type, __attribute__((unused)) bool BoolParam, int NumParam, __attribute__((unused)) char* StringParam)                          // pushbutton
+{
+}
+
+
+
+
+//
+// handle ZZGR
+// (we don't expect to get this back - just sent it out)
+//
+void HandleZZGR(int SourceDevice, __attribute__((unused)) ERXParamType Type, __attribute__((unused)) bool BoolParam, int NumParam, __attribute__((unused)) char* StringParam)                          // pushbutton
+{
+}
+
+
+
 
 //
 // array of records. This must exactly match the enum ECATCommands in tiger.h
@@ -184,6 +231,7 @@ void HandleZZTU(__attribute__((unused)) int SourceDevice, __attribute__((unused)
 //
 SCATCommands GCATCommands[VNUMCATCMDS] = 
 {
+  {"ZZZA", eNum, 0, 99, 2, false, HandleZZZA},                  // Amplifier control
   {"ZZZD", eNum, 0, 99, 2, false, NULL},                        // VFO down
   {"ZZZU", eNum, 0, 99, 2, false, NULL},                        // VFO up
   {"ZZZE", eNum, 0, 999, 3, false, NULL},                       // encoder
@@ -192,6 +240,9 @@ SCATCommands GCATCommands[VNUMCATCMDS] =
   {"ZZZS", eNum, 0, 9999999, 7, false, HandleZZZS},             // s/w version
   {"ZZTU", eBool, 0, 1, 1, false, HandleZZTU},                  // tune
   {"ZZFA", eStr, 0, 0, 11, false, HandleZZFA},                  // VFO A frequency
+  {"ZZGA", eStr, 0, 0, 36, false, HandleZZGA},                  // add device to list by guid
+  {"ZZGR", eStr, 0, 0, 36, false, HandleZZGR},                  // remove device from list by guid
+
   {"ZZXV", eNum, 0, 1023, 4, false, HandleZZXV},                // VFO status
   {"ZZUT", eBool, 0, 1, 1, false, HandleZZUT},                  // 2 tone test
   {"ZZYR", eBool, 0, 1, 1, false, HandleZZYR},                  // RX1/RX2 buttons

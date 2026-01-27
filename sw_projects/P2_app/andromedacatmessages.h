@@ -33,11 +33,7 @@ void MakeEncoderCAT(int8_t Steps, uint8_t Encoder);
 // Event = 0: release; 1: press; 2: longpress
 void MakePushbuttonCAT(uint8_t ScanCode, uint8_t Event);
 
-//
-// makeproductversionCAT
-// create a ZZZS Message
-//
-void MakeProductVersionCAT(uint8_t ProductID, uint8_t HWVersion, uint8_t SWVersion);
+
 
 
 #endif  //#ifndef

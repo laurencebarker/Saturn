@@ -465,6 +465,8 @@ void MakeCATMessageNumeric(int Device, ECATCommands Cmd, long Param)
     SendCATMessage(Output);
   else
     SendStringToSerial(Device, Output);
+
+  printf("outgoing CAT command: %s\n", Output);
 }
 
 
@@ -525,6 +527,9 @@ void MakeCATMessageString(int Device, ECATCommands Cmd, char* Param)
     SendCATMessage(Output);
   else
     SendStringToSerial(Device, Output);
+
+  printf("outgoing CAT command: %s\n", Output);
+
 }
 
 

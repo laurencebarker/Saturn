@@ -93,16 +93,6 @@ void MakePushbuttonCAT(uint8_t ScanCode, uint8_t Event)
 
 
 
-//
-// makeproductversionCAT
-// create a ZZZS Message
-//
-void MakeProductVersionCAT(uint8_t ProductID, uint8_t HWVersion, uint8_t SWVersion)
-{
-    uint32_t CatParam;
-    CatParam = (ProductID * 100000) + (HWVersion*1000) + SWVersion;
-    MakeCATMessageNumeric(DESTTCPCATPORT, eZZZS, CatParam);
-}
 
 
 

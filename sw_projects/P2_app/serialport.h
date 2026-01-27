@@ -39,7 +39,8 @@ typedef enum
 {
   eG2V2Panel,
   eG2V1PanelAdapter,
-  eAriesATU
+  eAriesATU,
+  eGanymedePAController
 } ESerialDeviceType;
 
 

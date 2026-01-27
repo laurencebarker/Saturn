@@ -64,8 +64,9 @@
 #include "LDGATU.h"
 #include "AriesATU.h"
 #include "frontpanelhandler.h"
+#include "GanymedePAControl.h"
 
-#define P2APPVERSION 42
+#define P2APPVERSION 43
 #define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
@@ -73,6 +74,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V43, 19/01/2026.  Initial support for Ganymede PA controller if stared with -g switch.
 // V42, 05/01/2026.  Support for new codec; debug mode with startup switch to enable interlinked DDC at different frequencies
 // V41, 30/9/2025:   Added detection of PCB version, so CODEC can be initialised for a different type
 // V40: 29/6/2025:   Changes to accommodate a different XMDA device driver, if required in the future. No functional impact. 
@@ -139,6 +141,7 @@ bool SkipExitCheck = false;                 // true to skip "exit checking", if 
 bool ThreadError = false;                   // true if a thread reports an error
 bool UseDebug = false;                      // true if to enable debugging
 bool UseControlPanel = false;               // true if to use a control panel
+bool UseGanymede = false;                   // true if to use Ganymede PA protection
 bool UseLDGATU = false;                     // true if to use an LDG ATU via CAT
 bool UseAriesATU = false;                   // true if to use an Aries ATU
 uint32_t LODebugDDC1Frequency;              // -x debug mode: LO frequency for DDC1
@@ -208,7 +211,7 @@ pthread_t CheckForNoActivityThread;           // thread looks for inactvity
 
 
 //
-// function ot get program version
+// function to get program version
 //
 uint32_t GetP2appVersion(void)
 {
@@ -530,7 +533,7 @@ int main(int argc, char *argv[])
 // option string needs a colon after each option letter that has a parameter after it
 // and it has a leading colon to suppress error messages
 //
-  while((CmdOption = getopt(argc, argv, ":a:i:f:x:m:sdph")) != -1)
+  while((CmdOption = getopt(argc, argv, ":a:i:f:x:m:sdphg")) != -1)
   {
     switch(CmdOption)
     {
@@ -540,6 +543,7 @@ int main(int argc, char *argv[])
         printf("-a LDG        control TUNE for LDG ATU\n");
         printf("-a Aries      control TUNE for Aries ATU\n");
         printf("-f <frequency in Hz> turns on test source for all DDCs\n");
+        printf("-g            enables PA protection (G2-1k only)\n");
         printf("-i saturn     board responds as board id = Saturn\n");
         printf("-i orionmk2   board responds as board id = Orion mk 2\n");
         printf("-m xlr        selects balanced XLR microphone input\n");
@@ -569,6 +573,11 @@ int main(int argc, char *argv[])
           printf("-a Aries      control TUNE for Aries ATU\n");
           return EXIT_SUCCESS;
         }
+        break;
+
+      case 'g':
+        printf ("Ganymede PA control enabled\n");                  
+        UseGanymede = true;
         break;
 
       case 'i':
@@ -657,6 +666,12 @@ int main(int argc, char *argv[])
 //
   if(UseAriesATU)
     InitialiseAriesHandler();
+
+//
+// startup Ganymede handler if needed
+//
+  if(UseGanymede)
+    InitialiseGanymedeHandler();
 
 //
 // startup G2 front panel handler if needed

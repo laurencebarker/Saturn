@@ -26,10 +26,11 @@
 // ordered as per documentation, not alphabetically!
 // this list must match exactly the table GCATCommands
 //
-#define VNUMCATCMDS 18
+#define VNUMCATCMDS 21
 
 typedef enum 
 {
+  eZZZA,                          // amplifier protection
   eZZZD,                          // VFO steps down
   eZZZU,                          // VFO steps up
   eZZZE,                          // other encoder
@@ -38,6 +39,8 @@ typedef enum
   eZZZS,                          // s/w version
   eZZTU,                          // tune
   eZZFA,                          // VFO A frequency
+  eZZGA,                          // add device to list by guid
+  eZZGR,                          // remove device from list by guid
   eZZXV,
   eZZUT,
   eZZYR,
@@ -52,7 +55,12 @@ typedef enum
 }ECATCommands;
 
 
-
+//
+// makeproductversionCAT
+// create a ZZZS Message
+// DestDevice identifies where message should go (-1 = TCP/IP, else a serial handle)
+//
+void MakeProductVersionCAT(uint8_t ProductID, uint8_t HWVersion, uint8_t SWVersion, int DestDevice);
 
 
 
