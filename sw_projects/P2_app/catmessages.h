@@ -17,6 +17,7 @@
 #define __catmessages_h
 
 #include "cattypes.h"
+#include <stdint.h>
 //#include "cathandler.h"
 
 
