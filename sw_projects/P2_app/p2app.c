@@ -66,7 +66,7 @@
 #include "frontpanelhandler.h"
 #include "GanymedePAControl.h"
 
-#define P2APPVERSION 43
+#define P2APPVERSION 44
 #define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
@@ -74,6 +74,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V44, 31/01/2026.  Support for Thetis "push" CAT commands for Ganymede, g2v2 indicators & Aries instead of polling
 // V43, 19/01/2026.  Initial support for Ganymede PA controller if stared with -g switch.
 // V42, 05/01/2026.  Support for new codec; debug mode with startup switch to enable interlinked DDC at different frequencies
 // V41, 30/9/2025:   Added detection of PCB version, so CODEC can be initialised for a different type

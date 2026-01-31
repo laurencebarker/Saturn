@@ -129,7 +129,7 @@ void HandleZZZS(__attribute__((unused)) int SourceDevice, __attribute__((unused)
 void HandleZZZI(int SourceDevice, ERXParamType Type, bool __attribute__((unused)) BoolParam, int NumParam, __attribute__((unused)) char* StringParam)                          // indicator
 {
     if((SourceDevice == DESTTCPCATPORT) && (Type == eNum))
-        SetG2V2ZZZIState((uint32_t)NumParam);
+       SetG2V2ZZZIState((uint32_t)NumParam);
 }
 
 

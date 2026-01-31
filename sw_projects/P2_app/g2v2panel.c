@@ -361,7 +361,6 @@ void SetG2V2ZZZIState(uint32_t Param)
 {
     GZZZIReceived = true;
     MakeCATMessageNumeric(G2V2Data.DeviceHandle, eZZZI, Param);
-    printf("Received ZZZI, to turn off poll request\n");
 }
 
 #define VATUBUTTONSCANCODE 4
