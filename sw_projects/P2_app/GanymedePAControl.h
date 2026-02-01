@@ -50,7 +50,7 @@ bool IsGanymedeSerial(int Handle);
 // receive a ZZZA message from Ganymede
 // source device identified where message came from; -1 for TCP/IP port, else the serial handle
 //
-void HandleGanymedeZZZAMessage(uint32_t Param, int SourceDevice);
+void HandleGanymedeZZZAMessage(uint32_t Param, int SourceDevice, bool IsRequest);
 
 
 #endif

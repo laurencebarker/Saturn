@@ -201,18 +201,20 @@ bool IsGanymedeSerial(int Handle)
 // receive a ZZZA message from Ganymede
 // SourceDevice identifies where the message came from
 // 
-void HandleGanymedeZZZAMessage(uint32_t Param, int SourceDevice)
+void HandleGanymedeZZZAMessage(uint32_t Param, int SourceDevice, bool IsRequest)
 {
     if(SourceDevice != DESTTCPCATPORT)                  // source was Ganymede itself
     {
         MostRecentAmplifierState = Param; 
         MakeCATMessageNumeric(DESTTCPCATPORT, eZZZA, Param);        // forward message to TCP/IP port
-        printf("Incoming ZZZA from Ganymede, data=%d\n",Param);
+    }
+    else if(!IsRequest)
+    {
+        MakeCATMessageNumeric(GanymedeData.DeviceHandle, eZZZA, Param);        // forward message to Ganymede
     }
     else
     {
-        MakeCATMessageNumeric(GanymedeData.DeviceHandle, eZZZA, Param);        // forward message to Ganymede
-        printf("Incoming ZZZA from TCP/IP port, data=%d\n",Param);
+        MakeCATMessageNoParam(GanymedeData.DeviceHandle, eZZZA);        // forward message to Ganymede
     }
 }
 

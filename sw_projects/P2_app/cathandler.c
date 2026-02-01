@@ -223,9 +223,10 @@ void ParseCATCmd(char* Buffer,  int Source)
   bool ValidResult = true;                  // true if we get a valid parse result
   bool ParsedBool;                          // if a bool expected, it goes here
   long ParsedInt;                           // if int expected, it goes here
+  bool IsRequestOnly = false;               // true if we get a CAT command with no parameter eg ZZZA;
   char ParsedString[100];                   // if string expected, it goes here
 
-  void (*HandlerPtr)(int SourceDevice, ERXParamType HasParam, bool BoolParam, int NumParam, char* StringParam); 
+  void (*HandlerPtr)(int SourceDevice, ERXParamType HasParam, bool BoolParam, int NumParam, char* StringParam, bool IsRequest); 
   
   CharCnt = strlen(Buffer) - 1;
 //
@@ -257,7 +258,7 @@ void ParseCATCmd(char* Buffer,  int Source)
 // any parameter starts at position 4 and ends at (charcnt-1)
 //
       if (CharCnt == 4)
-        ParsedType=eNone;
+        IsRequestOnly = true;
       else
       {
 //
@@ -299,7 +300,7 @@ void ParseCATCmd(char* Buffer,  int Source)
   }
   if (ValidResult == true)
   {
-    // debug: print the match found
+// debug: print the match found
 //    printf("match= %s ; parameter=", GCATCommands[MatchedCAT].CATString);
 //    switch(ParsedType)
 //    {
@@ -322,7 +323,7 @@ void ParseCATCmd(char* Buffer,  int Source)
 //    }
     HandlerPtr = GCATCommands[MatchedCAT].handler;
     if(HandlerPtr != NULL)
-      (*HandlerPtr)(Source, ParsedType, ParsedBool, ParsedInt, ParsedString);
+      (*HandlerPtr)(Source, ParsedType, ParsedBool, ParsedInt, ParsedString, IsRequestOnly);
   }
   else
   {

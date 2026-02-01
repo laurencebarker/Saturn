@@ -54,7 +54,7 @@
 // received from SDR client app
 // only really here for test - not used operationally
 //
-void HandleZZFA(int SourceDevice, ERXParamType Type, __attribute__((unused)) bool BoolParam, __attribute__((unused)) int NumParam, char* StringParam)
+void HandleZZFA(int SourceDevice, ERXParamType Type, __attribute__((unused)) bool BoolParam, __attribute__((unused)) int NumParam, char* StringParam, __attribute__((unused)) bool IsRequest)
 {
     if((SourceDevice == DESTTCPCATPORT) && (Type == eStr))
         printf("ZZFA: Frequency=%s\n", StringParam);
@@ -65,7 +65,7 @@ void HandleZZFA(int SourceDevice, ERXParamType Type, __attribute__((unused)) boo
 // combined VFO status 
 // received from SDR client app
 //
-void HandleZZXV(int SourceDevice, ERXParamType Type, __attribute__((unused)) bool BoolParam, int NumParam, __attribute__((unused)) char* StringParam)                          // VFO status
+void HandleZZXV(int SourceDevice, ERXParamType Type, __attribute__((unused)) bool BoolParam, int NumParam, __attribute__((unused)) char* StringParam, __attribute__((unused)) bool IsRequest)                          // VFO status
 {
     if((SourceDevice == DESTTCPCATPORT) && (Type == eNum))
         SetG2V2ZZXVState((uint32_t)NumParam);
@@ -76,7 +76,7 @@ void HandleZZXV(int SourceDevice, ERXParamType Type, __attribute__((unused)) boo
 // 2 Tone test 
 // received from SDR client app
 //
-void HandleZZUT(int SourceDevice, ERXParamType Type, bool BoolParam, __attribute__((unused)) int NumParam, __attribute__((unused)) char* StringParam)                          // 2 tone test
+void HandleZZUT(int SourceDevice, ERXParamType Type, bool BoolParam, __attribute__((unused)) int NumParam, __attribute__((unused)) char* StringParam, __attribute__((unused)) bool IsRequest)                          // 2 tone test
 {
     if((SourceDevice == DESTTCPCATPORT) && (Type == eBool))
         SetG2V2ZZUTState(BoolParam);
@@ -87,7 +87,7 @@ void HandleZZUT(int SourceDevice, ERXParamType Type, bool BoolParam, __attribute
 // RX1/RX2
 // received from SDR client app
 //
-void HandleZZYR(int SourceDevice, ERXParamType Type, bool BoolParam, __attribute__((unused)) int NumParam, __attribute__((unused)) char* StringParam)                          // RX1/2
+void HandleZZYR(int SourceDevice, ERXParamType Type, bool BoolParam, __attribute__((unused)) int NumParam, __attribute__((unused)) char* StringParam, __attribute__((unused)) bool IsRequest)                          // RX1/2
 {
     if((SourceDevice == DESTTCPCATPORT) && (Type == eBool))
         SetG2V2ZZYRState(BoolParam);
@@ -100,7 +100,7 @@ void HandleZZYR(int SourceDevice, ERXParamType Type, bool BoolParam, __attribute
 // This handles a response from a local device (front panel, ATU etc)
 // decode the message, and call appropriate handler
 //
-void HandleZZZS(__attribute__((unused)) int SourceDevice, __attribute__((unused)) ERXParamType Type, __attribute__((unused)) bool BoolParam, int NumParam, __attribute__((unused)) char* StringParam)                          // ID
+void HandleZZZS(__attribute__((unused)) int SourceDevice, __attribute__((unused)) ERXParamType Type, __attribute__((unused)) bool BoolParam, int NumParam, __attribute__((unused)) char* StringParam, __attribute__((unused)) bool IsRequest)                          // ID
 {
     uint8_t SWID;
     uint8_t HWVersion;
@@ -126,7 +126,7 @@ void HandleZZZS(__attribute__((unused)) int SourceDevice, __attribute__((unused)
 // Indicator settings
 // received from SDR client app
 //
-void HandleZZZI(int SourceDevice, ERXParamType Type, bool __attribute__((unused)) BoolParam, int NumParam, __attribute__((unused)) char* StringParam)                          // indicator
+void HandleZZZI(int SourceDevice, ERXParamType Type, bool __attribute__((unused)) BoolParam, int NumParam, __attribute__((unused)) char* StringParam, __attribute__((unused)) bool IsRequest)                          // indicator
 {
     if((SourceDevice == DESTTCPCATPORT) && (Type == eNum))
        SetG2V2ZZZIState((uint32_t)NumParam);
@@ -138,7 +138,7 @@ void HandleZZZI(int SourceDevice, ERXParamType Type, bool __attribute__((unused)
 // received from Aries or from Front Panel
 // pass onto code for those devices
 //
-void HandleZZZP(int SourceDevice, __attribute__((unused)) ERXParamType Type, __attribute__((unused)) bool BoolParam, int NumParam, __attribute__((unused)) char* StringParam)                          // pushbutton
+void HandleZZZP(int SourceDevice, __attribute__((unused)) ERXParamType Type, __attribute__((unused)) bool BoolParam, int NumParam, __attribute__((unused)) char* StringParam, __attribute__((unused)) bool IsRequest)                          // pushbutton
 {
     if(IsFrontPanelSerial(SourceDevice))
         HandleG2V2ZZZPMessage(NumParam);
@@ -151,7 +151,7 @@ void HandleZZZP(int SourceDevice, __attribute__((unused)) ERXParamType Type, __a
 // erase tuning solutions: this sends result back to radio
 // (when sent by Aries it only encodes a 0 or 1 "success" parameter, not the antenna number)
 //
-void HandleZZOZ(int SourceDevice, __attribute__((unused)) ERXParamType Type, bool BoolParam, __attribute__((unused)) int NumParam, __attribute__((unused)) char* StringParam)                          // ATU erase
+void HandleZZOZ(int SourceDevice, __attribute__((unused)) ERXParamType Type, bool BoolParam, __attribute__((unused)) int NumParam, __attribute__((unused)) char* StringParam, __attribute__((unused)) bool IsRequest)                          // ATU erase
 {
     if (IsAriesSerial(SourceDevice))
         HandleAriesZZOZMessage(BoolParam);
@@ -161,7 +161,7 @@ void HandleZZOZ(int SourceDevice, __attribute__((unused)) ERXParamType Type, boo
 //
 // ATU tune success/fail
 //
-void HandleZZOX(int SourceDevice, __attribute__((unused)) ERXParamType Type, bool BoolParam, __attribute__((unused)) int NumParam, __attribute__((unused)) char* StringParam)                          // ATU success/fail
+void HandleZZOX(int SourceDevice, __attribute__((unused)) ERXParamType Type, bool BoolParam, __attribute__((unused)) int NumParam, __attribute__((unused)) char* StringParam, __attribute__((unused)) bool IsRequest)                          // ATU success/fail
 {
     if (IsAriesSerial(SourceDevice))
         HandleAriesZZOXMessage(BoolParam);
@@ -172,7 +172,7 @@ void HandleZZOX(int SourceDevice, __attribute__((unused)) ERXParamType Type, boo
 //
 // TUNE active request
 //
-void HandleZZTU(__attribute__((unused)) int SourceDevice, __attribute__((unused)) ERXParamType Type, bool BoolParam, __attribute__((unused)) int NumParam, __attribute__((unused))char* StringParam)                          // ATU success/fail
+void HandleZZTU(__attribute__((unused)) int SourceDevice, __attribute__((unused)) ERXParamType Type, bool BoolParam, __attribute__((unused)) int NumParam, __attribute__((unused))char* StringParam, __attribute__((unused)) bool IsRequest)                          // ATU success/fail
 {
     SetAriesTuneState(BoolParam);
 }
@@ -182,9 +182,9 @@ void HandleZZTU(__attribute__((unused)) int SourceDevice, __attribute__((unused)
 // received from Ganymede or from Thetis
 // pass onto code for those devices
 //
-void HandleZZZA(int SourceDevice, __attribute__((unused)) ERXParamType Type, __attribute__((unused)) bool BoolParam, int NumParam, __attribute__((unused)) char* StringParam)                          // pushbutton
+void HandleZZZA(int SourceDevice, __attribute__((unused)) ERXParamType Type, __attribute__((unused)) bool BoolParam, int NumParam, __attribute__((unused)) char* StringParam, bool IsRequest)                          // pushbutton
 {
-    HandleGanymedeZZZAMessage(NumParam, SourceDevice);
+    HandleGanymedeZZZAMessage(NumParam, SourceDevice, IsRequest);
 }
 
 
@@ -204,7 +204,7 @@ void MakeProductVersionCAT(uint8_t ProductID, uint8_t HWVersion, uint8_t SWVersi
 // handle ZZGA
 // (we don't expect to get this back - just sent it out)
 //
-void HandleZZGA(int SourceDevice, __attribute__((unused)) ERXParamType Type, __attribute__((unused)) bool BoolParam, int NumParam, __attribute__((unused)) char* StringParam)                          // pushbutton
+void HandleZZGA(__attribute__((unused)) int SourceDevice, __attribute__((unused)) ERXParamType Type, __attribute__((unused)) bool BoolParam, __attribute__((unused)) int NumParam, __attribute__((unused)) char* StringParam, __attribute__((unused)) bool IsRequest)                          // pushbutton
 {
 }
 
@@ -215,7 +215,7 @@ void HandleZZGA(int SourceDevice, __attribute__((unused)) ERXParamType Type, __a
 // handle ZZGR
 // (we don't expect to get this back - just sent it out)
 //
-void HandleZZGR(int SourceDevice, __attribute__((unused)) ERXParamType Type, __attribute__((unused)) bool BoolParam, int NumParam, __attribute__((unused)) char* StringParam)                          // pushbutton
+void HandleZZGR(__attribute__((unused)) int SourceDevice, __attribute__((unused)) ERXParamType Type, __attribute__((unused)) bool BoolParam, __attribute__((unused)) int NumParam, __attribute__((unused)) char* StringParam, __attribute__((unused)) bool IsRequest)                          // pushbutton
 {
 }
 
