@@ -1,208 +1,205 @@
-# Saturn Go
+# Saturn Update Manager (saturn-go)
 
-**Saturn Go** is the Go-powered successor to the original **Saturn Update Manager**.  
-It provides a **web-based management interface** for running maintenance scripts, monitoring system resources, and handling backups.  
-This version replaces the Python/Flask backend with a **lightweight Go HTTP API server** for better performance and resource usage while keeping the same web UI design.
+Saturn Update Manager provides a web UI for Saturn maintenance tasks.
+The current backend is implemented in Rust (Axum), while deployment paths and
+service names still use `saturn-go` for compatibility with existing installs.
 
----
+## Features
 
-## 📋 Features
+- Web UI for script execution, monitoring, and backup/restore workflows
+- Server-Sent Events (SSE) script output streaming
+- Full repository backup download and restore with archive validation
+- Runtime repo-root switching via API/UI (`/list_repo_roots`, `/set_repo_root`)
+- Dedicated Backup / Restore page (`backup.html`)
+- Pi image creation workflow with progress, validation, cancel, and download
+- SD-to-removable-device cloning workflow with progress and cancel
+- Repair Pack download and system config verification tools
+- Built-in monitor for CPU, memory, disk, network, and process data
+- Basic auth via NGINX
+- CSRF protection for mutating API calls (`X-Saturn-CSRF` + same-host Origin/Referer validation when present)
+- Low-latency script streaming: line-buffered subprocess launch (`stdbuf` when available), `\r`/`\n` output boundary handling, and anti-buffer SSE headers
+- Appliance update workflow: transactional repo staging, pre-update snapshot, policy-driven channels (`stable`/`beta`/`custom`), and rollback endpoint
+- Health watchdog timer for self-heal restart if `/healthz` fails
+- Repo-root safety checks for manual root switching and restore operations
 
-- **Web UI** for system updates, monitoring, and backups  
-- **Live system metrics**: CPU, memory, disk usage, network I/O, and top processes  
-- **Backup & restore management** for multiple systems (`Saturn`, `piHPSDR`)  
-- **Script runner** with live output streaming (Server-Sent Events)  
-- **Theme support**: light/dark mode  
-- **Authentication** via NGINX Basic Auth  
-- **Drop-in custom scripts** in `/opt/saturn-go/scripts`  
-- **Service-based deployment** via `systemd`
+## Runtime Layout
 
----
+Typical deployed paths:
 
-## 📂 Directory Structure
+```text
+/opt/saturn-go/
+  bin/saturn-go                 # Rust server binary (legacy name retained)
+  scripts/                      # runnable shell/python scripts
 
+/var/lib/saturn-web/
+  index.html
+  monitor.html
+  backup.html
+  config.json
+  themes.json
+
+/var/lib/saturn-state/
+  repo_root.txt
+  update_policy.json
+  update_state.json
+  snapshots/
+  repo-staging/
 ```
 
-/opt/saturn-go/           # Main Saturn-Go installation
-│
-├── bin/                  # Compiled Go binary (`saturn-go`)
-├── cmd/server/           # Go source files (main.go and helpers)
-├── scripts/              # Custom shell/Python scripts (user editable)
-│   ├── hello.sh
-│   ├── sysinfo.py
-│   └── ...
-├── go.mod                # Go module definition
-├── go.sum
-│
-/var/lib/saturn-web/      # Web assets & config files served via NGINX
-│   ├── index.html        # Main Update Manager interface
-│   ├── monitor.html      # System monitor interface
-│   ├── config.json       # Script definitions & flags
-│   ├── themes.json       # Theme definitions
-│   └── ...
+Repository source paths:
 
-````
-
----
-
-## 🛠 Installation
-
-1. **Clone the Saturn repo**
-   ```bash
-   git clone https://github.com/<your-repo>/Saturn ~/github/Saturn
-````
-
-2. **Run the installer**
-
-   ```bash
-   cd ~/github/Saturn
-   sudo bash install_saturn_go_nginx.sh
-   ```
-
-3. **Default credentials**
-
-   * Username: `admin`
-   * Password: `admin` (change in NGINX Basic Auth)
-
-4. **Access the Web UI**
-
-   * Navigate to: `http://<host>/saturn/`
-
----
-
-## ⚙️ How It Works
-
-### Architecture
-
-```
-+-----------------+
-|  Browser (UI)   |
-| index.html /    |
-| monitor.html    |
-+--------+--------+
-         |
-         v
-+--------+--------+      +--------------------+
-|   NGINX Reverse | ---> |   Go API Server    |
-|     Proxy       |      | (bin/saturn-go)    |
-+--------+--------+      +--------+-----------+
-         |                        |
-         | static HTML/JS         | script exec, metrics
-         v                        v
- /var/lib/saturn-web       /opt/saturn-go/scripts
+```text
+update_manager/rust-server/     # Rust API server source
+update_manager/templates/        # HTML templates copied to web root
+update_manager/scripts/          # script and UI config assets
 ```
 
-* **NGINX** handles authentication & static file serving
-* **Go API** handles:
+## Script Metadata and Versions
 
-  * `/get_scripts`, `/get_flags` from `config.json`
-  * `/run` — executes scripts, streams output
-  * `/get_system_data` — sends system metrics
-  * `/kill_process/<pid>` — kills processes
-* **Scripts** are stored in `/opt/saturn-go/scripts`
+Script definitions come from `config.json`.
 
----
+- UI script list: `/get_scripts`
+- Flag list: `/get_flags`
+- Version list ("Show versions above"): `/get_versions`
+- Active repo root: `/get_repo_root`
+- Discover repo roots: `/list_repo_roots`
+- Switch active repo root: `POST /set_repo_root` with JSON `{ "repo_root": "/path/to/tree" }`
+- Get appliance update policy: `GET /update_policy`
+- Set appliance update policy: `POST /update_policy`
+- Start transactional update: `POST /update_start` with JSON `{ "channel":"stable|beta|custom", "custom_ref":"..." }`
+- Get update status + last state: `GET /update_status`
+- Roll back to previous repo root: `POST /update_rollback`
 
-## 🧩 Adding Custom Scripts
+For mutating API requests (`POST` routes), include header:
 
-1. **Place your script**
+- `X-Saturn-CSRF: 1`
 
-   * Location: `/opt/saturn-go/scripts/`
-   * Permissions:
+The backend also validates `Origin`/`Referer` host against request `Host` when those headers are present.
 
-     ```bash
-     sudo chmod 755 /opt/saturn-go/scripts/myscript.sh
-     sudo chown <user>:<user> /opt/saturn-go/scripts/myscript.sh
-     ```
+If a script entry does not define `version`, `/get_versions` now returns
+`unknown` instead of a hard-coded default.
 
-2. **Update config.json**
+## Privilege Behavior
 
-   * Location: `/var/lib/saturn-web/config.json`
-   * Example:
+### Script execution (`update-G2.py`)
 
-     ```json
-     [
-       {
-         "filename": "myscript.sh",
-         "name": "My Custom Script",
-         "description": "Does something useful",
-         "directory": "/opt/saturn-go/scripts",
-         "category": "Custom Tools",
-         "flags": ["--option1", "--verbose"],
-         "version": "1.0.0"
-       }
-     ]
-     ```
+`update-G2.py` is designed to run from both terminal and web service contexts:
 
-3. **Reload the Web UI**
+- In verbose mode, commands that require captured output still return output
+  (fixes `Size: ?` and `Commit: ?` in status sections).
+- APT packages are checked first; installs are only attempted for missing
+  packages.
+- Privileged steps use:
+  - direct execution when already root
+  - `sudo` when interactive TTY is available
+  - `sudo -n` for non-interactive service execution
+- If privilege escalation is required but unavailable, the script exits with a
+  clear actionable message.
 
-   * Simply refresh your browser; the script should appear in the UI.
+### Change Password
 
----
+`/change_password` updates `/etc/nginx/.htpasswd` for `admin`.
 
-## 🛡️ Backup & Restore
+- First tries `htpasswd` directly
+- Then retries with `sudo -n htpasswd` for service-mode deployments
+- Returns explicit guidance when sudo permissions are missing
 
-### Creating a Backup
+## Build and Deploy (Rust Server)
 
-Saturn-Go backups are just timestamped directories in `~/`:
-
-```
-saturn-backup-YYYYMMDD-HHMMSS/
-pihpsdr-backup-YYYYMMDD-HHMMSS/
-```
-
-### Restoring
-
-Use the built-in **Restore Backup** UI or run:
+Build from the repository:
 
 ```bash
-./restore-backup.sh --saturn --latest
-./restore-backup.sh --pihpsdr --list
-./restore-backup.sh --pihpsdr --backup-dir <dir>
+cd /home/pi/github/Saturn/update_manager/rust-server
+cargo check
+cargo build --release
 ```
 
-**Note:** If both `--pihpsdr` and `--saturn` are selected in the UI, Saturn-Go will attempt to restore both.
+Deploy binary:
 
----
-
-## 🐞 Troubleshooting
-
-| Problem                                     | Possible Cause                             | Fix                                                                   |
-| ------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------- |
-| Web UI loads, but no data in Monitor graphs | Go API not running or NGINX misconfigured  | `systemctl status saturn-go.service` and `systemctl reload nginx`     |
-| Scripts not showing in UI                   | Missing in `config.json` or incorrect path | Verify `/var/lib/saturn-web/config.json` and `/opt/saturn-go/scripts` |
-| "Script not found" when running             | File missing or permissions wrong          | Ensure `chmod 755` and correct ownership                              |
-| CPU usage >100%                             | Multi-core processes report >100% in `ps`  | Normal — values are per core                                          |
-| Light/Dark theme toggle doesn't work        | Tailwind CDN limitation in production      | Use locally built Tailwind CSS file                                   |
-| Backups not listed                          | No matching directories in `~/`            | Ensure backups follow naming pattern                                  |
-
----
-
-## 🔧 Developer Notes
-
-* **Building from source**
-
-  ```bash
-  cd /opt/saturn-go
-  go build -o bin/saturn-go cmd/server
-  ```
-
-* **Environment Variables**
-
-  * `SATURN_WEBROOT` – defaults to `/var/lib/saturn-web`
-  * `SATURN_CONFIG` – defaults to `$SATURN_WEBROOT/config.json`
-  * `SATURN_ADDR` – defaults to `127.0.0.1:8080`
-
-* **Updating**
-
-  * Pull latest repo changes
-  * Re-run `install_saturn_go_nginx.sh` or rebuild Go binary
-
----
-
-## ✨ Credits
-
-* Original Saturn Update Manager by Jerry DeLong, KD4YAL
-* Saturn-Go rewrite in Go for improved performance and maintainability
-
+```bash
+sudo cp target/release/saturn-go /opt/saturn-go/bin/saturn-go
+sudo systemctl restart saturn-go.service
 ```
+
+## Installation
+
+Installer (deploy paths, service, web assets, scripts):
+
+```bash
+cd /home/pi/github/Saturn
+sudo bash update_manager/install_saturn_go_nginx.sh
+```
+
+Auth bootstrap:
+
+- If `SATURN_ADMIN_PASSWORD` is set, installer uses it for `admin`
+- Otherwise installer prompts for a password when run interactively
+- In non-interactive mode, installer generates a random password and prints it once
+
+Installer behavior (current):
+
+- Deploys Rust backend only (no legacy Go source generation)
+- Proxies all `/saturn/*` routes through NGINX to the Rust backend
+- Creates/updates `saturn-go.service` using a non-root service user
+- Enables `saturn-go-watchdog.timer` to auto-restart service when health check fails
+- Applies systemd hardening defaults (restricted kernel/control-group access, syscall architecture/address-family restrictions)
+- Leaves `NoNewPrivileges` disabled so controlled `sudo -n` paths (for example password update) can work when sudoers permits them
+
+## Uninstall
+
+Uninstaller aligned to the current installer:
+
+```bash
+cd /home/pi/github/Saturn
+sudo bash update_manager/uninstall_saturn_go_nginx.sh [--no-purge] [--keep-auth] [--remove-packages] [--dry-run] [--yes]
+```
+
+Flags:
+
+- Default behavior purges `/opt/saturn-go`, `/var/lib/saturn-web`, and `/var/lib/saturn-state` for clean reinstall
+- `--no-purge`: keep `/opt/saturn-go`, `/var/lib/saturn-web`, and `/var/lib/saturn-state`
+- `--keep-auth`: keep `/etc/nginx/.htpasswd`
+- `--remove-packages`: best-effort removal of install-time packages
+- `--dry-run`: print actions without making changes
+- `--yes`: non-interactive confirmation
+
+Default URL:
+
+- `http://<host>/saturn/`
+
+## Environment Variables
+
+- `SATURN_ADDR` (default `127.0.0.1:8080`)
+- `SATURN_WEBROOT` (default `/var/lib/saturn-web`)
+- `SATURN_CONFIG` (default `$SATURN_WEBROOT/config.json`)
+- `SATURN_REPO_ROOT` (default `$HOME/github/Saturn`)
+- `SATURN_STATE_DIR` (installer default `/var/lib/saturn-state`)
+- `SATURN_REPO_ROOT_FILE` (default `$SATURN_STATE_DIR/repo_root.txt`)
+- `SATURN_MAX_BODY_BYTES` (default `2147483648`)
+- `SATURN_RESTORE_MAX_UPLOAD_BYTES` (default `2147483648`)
+- `SATURN_UPDATE_POLICY_FILE` (default `$SATURN_STATE_DIR/update_policy.json`)
+- `SATURN_UPDATE_STATE_FILE` (default `$SATURN_STATE_DIR/update_state.json`)
+- `SATURN_SNAPSHOT_DIR` (default `$SATURN_STATE_DIR/snapshots`)
+- `SATURN_STAGING_DIR` (default `$SATURN_STATE_DIR/repo-staging`)
+- `SATURN_NGINX_CLIENT_MAX_BODY_SIZE` (installer default `2G`)
+- `SATURN_WATCHDOG_URL` (installer default `http://$SATURN_ADDR/healthz`)
+- `SATURN_WATCHDOG_INTERVAL` (installer default `30s`)
+- `SATURN_ADMIN_PASSWORD` (optional non-interactive initial admin password)
+- `SATURN_SERVICE_USER` (installer override for service user)
+- `SATURN_SERVICE_GROUP` (installer override for service group)
+
+## Troubleshooting
+
+- UI loads but script output fails:
+  - Check `systemctl status saturn-go.service`
+  - Verify script exists and is executable in `/opt/saturn-go/scripts`
+- Change Password fails:
+  - Ensure `htpasswd` exists and service user can update
+    `/etc/nginx/.htpasswd` (directly or via allowed `sudo -n`)
+- Versions panel is blank or `unknown`:
+  - Verify `version` keys in `/var/lib/saturn-web/config.json`
+
+## Credits
+
+- Original Saturn Update Manager by Jerry DeLong, KD4YAL
+- Saturn Update Manager Rust backend and UI workflow extensions in this repo

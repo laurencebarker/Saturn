@@ -1,20 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# =========================
-# Config
-# =========================
 SATURN_ROOT="/opt/saturn-go"
-SRC_DIR="$SATURN_ROOT/cmd/server"
 BIN_DIR="$SATURN_ROOT/bin"
+SCRIPTS_DIR="$SATURN_ROOT/scripts"
 WEB_ROOT="/var/lib/saturn-web"
 NGINX_SITE="/etc/nginx/sites-available/saturn"
 NGINX_SITE_LINK="/etc/nginx/sites-enabled/saturn"
+NGINX_SSE_MAP="/etc/nginx/conf.d/saturn_sse_map.conf"
 BASIC_AUTH_FILE="/etc/nginx/.htpasswd"
 SERVICE_FILE="/etc/systemd/system/saturn-go.service"
-GO_MODULE="saturn.local/saturn-go"
-GO_ADDR="127.0.0.1:8080"
+WATCHDOG_SCRIPT_NAME="saturn-health-watchdog.sh"
+WATCHDOG_SERVICE_FILE="/etc/systemd/system/saturn-go-watchdog.service"
+WATCHDOG_TIMER_FILE="/etc/systemd/system/saturn-go-watchdog.timer"
 SOURCE_DIR="/home/${SUDO_USER:-$USER}/github/Saturn/update_manager"
+RUST_SRC_DIR="$SOURCE_DIR/rust-server"
+
+SATURN_ADDR="${SATURN_ADDR:-127.0.0.1:8080}"
+SATURN_MAX_BODY_BYTES="${SATURN_MAX_BODY_BYTES:-2147483648}"
+SATURN_RESTORE_MAX_UPLOAD_BYTES="${SATURN_RESTORE_MAX_UPLOAD_BYTES:-2147483648}"
+SATURN_NGINX_CLIENT_MAX_BODY_SIZE="${SATURN_NGINX_CLIENT_MAX_BODY_SIZE:-2G}"
+SATURN_STATE_DIR="${SATURN_STATE_DIR:-/var/lib/saturn-state}"
+SATURN_REPO_ROOT_FILE="${SATURN_REPO_ROOT_FILE:-${SATURN_STATE_DIR}/repo_root.txt}"
+SATURN_UPDATE_POLICY_FILE="${SATURN_UPDATE_POLICY_FILE:-${SATURN_STATE_DIR}/update_policy.json}"
+SATURN_UPDATE_STATE_FILE="${SATURN_UPDATE_STATE_FILE:-${SATURN_STATE_DIR}/update_state.json}"
+SATURN_SNAPSHOT_DIR="${SATURN_SNAPSHOT_DIR:-${SATURN_STATE_DIR}/snapshots}"
+SATURN_STAGING_DIR="${SATURN_STAGING_DIR:-${SATURN_STATE_DIR}/repo-staging}"
+SATURN_WATCHDOG_URL="${SATURN_WATCHDOG_URL:-http://${SATURN_ADDR}/healthz}"
+SATURN_WATCHDOG_INTERVAL="${SATURN_WATCHDOG_INTERVAL:-30s}"
 
 bold(){ printf "\e[1m%s\e[0m\n" "$*"; }
 ok(){   printf "[OK] %s\n" "$*"; }
@@ -22,73 +35,64 @@ info(){ printf "[INFO] %s\n" "$*"; }
 warn(){ printf "[WARN] %s\n" "$*"; }
 err(){  printf "[ERR] %s\n" "$*" >&2; }
 
-# =========================
-# Must be root
-# =========================
 if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
   err "Run as root (sudo)."
   exit 1
 fi
 
-# =========================
-# Deps
-# =========================
-info "Installing system dependencies..."
-export DEBIAN_FRONTEND=noninteractive
-
-# Detect Buster
-DIST_CODENAME="$(. /etc/os-release && echo "${VERSION_CODENAME:-}")"
-apt-get update -qq
-
-# Base packages we actually need
-APT_PKGS="nginx apache2-utils build-essential pkg-config \
-          libgtk-3-dev libcurl4-openssl-dev libasound2-dev libusb-1.0-0-dev \
-          curl git python3 python3-venv"
-
-# Only add golang from apt on non-Buster systems
-if [[ "$DIST_CODENAME" != "buster" ]]; then
-  APT_PKGS="$APT_PKGS golang-go"
+if [[ ! -d "$SOURCE_DIR" ]]; then
+  err "Source directory not found: $SOURCE_DIR"
+  exit 1
+fi
+if [[ ! -f "$RUST_SRC_DIR/Cargo.toml" ]]; then
+  err "Rust server source not found: $RUST_SRC_DIR"
+  exit 1
 fi
 
-apt-get install -y -qq $APT_PKGS
+# Pick a non-root service user by default.
+if [[ -n "${SATURN_SERVICE_USER:-}" ]]; then
+  SERVICE_USER="$SATURN_SERVICE_USER"
+elif [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
+  SERVICE_USER="$SUDO_USER"
+elif id -u pi >/dev/null 2>&1; then
+  SERVICE_USER="pi"
+else
+  err "Set SATURN_SERVICE_USER to a valid non-root user."
+  exit 1
+fi
+SERVICE_GROUP="${SATURN_SERVICE_GROUP:-$SERVICE_USER}"
+
+if ! id -u "$SERVICE_USER" >/dev/null 2>&1; then
+  err "Service user does not exist: $SERVICE_USER"
+  exit 1
+fi
+if ! getent group "$SERVICE_GROUP" >/dev/null 2>&1; then
+  err "Service group does not exist: $SERVICE_GROUP"
+  exit 1
+fi
+
+SERVICE_HOME="$(getent passwd "$SERVICE_USER" | cut -d: -f6)"
+if [[ -z "$SERVICE_HOME" || ! -d "$SERVICE_HOME" ]]; then
+  err "Cannot resolve home directory for $SERVICE_USER"
+  exit 1
+fi
+DEFAULT_REPO_ROOT="${SATURN_REPO_ROOT:-$SERVICE_HOME/github/Saturn}"
+
+info "Installing dependencies..."
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -qq
+apt-get install -y -qq \
+  nginx apache2-utils build-essential pkg-config \
+  curl git rsync \
+  python3 python3-venv python3-psutil \
+  rustc cargo
 ok "Dependencies installed"
 
-# =========================
-# Python venv
-# =========================
-info "Setting up Python venv and dependencies..."
-VENV_DIR="/home/${SUDO_USER:-$USER}/venv"
-if [[ -d "$VENV_DIR" ]]; then
-  warn "Venv already exists at $VENV_DIR; skipping creation."
-else
-  su - "${SUDO_USER:-$USER}" -c 'python3 -m venv ~/venv'
-  ok "Venv created at $VENV_DIR"
-fi
-
-# Install pyfiglet with Buster fallback (1.0.3 not on Buster)
-# Use single quotes so nothing like $3 is expanded under set -u
-su - "${SUDO_USER:-$USER}" -c '
-  set -e
-  . ~/venv/bin/activate
-  if ! pip install --no-input "pyfiglet==1.0.3"; then
-    echo "[INFO] Falling back to pyfiglet==1.0.0 for Buster"
-    pip install --no-input "pyfiglet==1.0.0"
-  fi
-  deactivate
-'
-ok "Python dependencies installed"
-# =========================
-# Directories
-# =========================
-info "Preparing directories..."
-mkdir -p "$SRC_DIR" "$BIN_DIR" "$WEB_ROOT" "$SATURN_ROOT/scripts"
+info "Preparing runtime directories..."
+mkdir -p "$BIN_DIR" "$SCRIPTS_DIR" "$WEB_ROOT" "$SATURN_STATE_DIR" "$SATURN_SNAPSHOT_DIR" "$SATURN_STAGING_DIR"
 ok "Directories ready"
 
-# =========================
-# Web assets
-# =========================
-info "Copying web assets (index.html + monitor.html)..."
-copy_html () {
+copy_web_asset () {
   local name="$1"
   local from_template="$SOURCE_DIR/templates/$name"
   local from_repo="$SOURCE_DIR/$name"
@@ -97,824 +101,305 @@ copy_html () {
   elif [[ -f "$from_repo" ]]; then
     cp -f "$from_repo" "$WEB_ROOT/$name"
   else
-    warn "$name not found in repo; seeding placeholder"
-    cat >"$WEB_ROOT/$name" <<'HTML'
-<!DOCTYPE html><html><head><meta charset="utf-8"><title>Saturn</title></head>
-<body style="font-family:sans-serif;padding:20px">
-<h1>Saturn</h1><p>Missing web asset <code>INDEX_PLACEHOLDER</code>. Add it to update_manager/ and reinstall.</p>
-</body></html>
-HTML
-    sed -i "s/INDEX_PLACEHOLDER/$name/" "$WEB_ROOT/$name"
+    err "Missing required web asset: $name"
+    exit 1
   fi
 }
-copy_html "index.html"
-copy_html "monitor.html"
-ok "Web assets copied"
 
-# =========================
-# config.json + themes.json
-# =========================
-info "Copying config.json from scripts dir..."
+info "Copying web assets..."
+copy_web_asset "index.html"
+copy_web_asset "monitor.html"
+copy_web_asset "backup.html"
+
 if [[ -f "$SOURCE_DIR/scripts/config.json" ]]; then
   cp -f "$SOURCE_DIR/scripts/config.json" "$WEB_ROOT/config.json"
 elif [[ -f "$SOURCE_DIR/config.json" ]]; then
   cp -f "$SOURCE_DIR/config.json" "$WEB_ROOT/config.json"
 else
-  # sane default (matches what we used last night)
-  cat >"$WEB_ROOT/config.json" <<'JSON'
-[
-  {
-    "filename": "update-G2.py",
-    "name": "Update G2",
-    "description": "Updates Saturn G2",
-    "directory": "~/github/Saturn/update_manager/scripts",
-    "category": "Update Scripts",
-    "flags": ["--skip-git","-y","-n","--dry-run","--verbose"],
-    "version": "1.0.0"
-  },
-  {
-    "filename": "update-pihpsdr.py",
-    "name": "Update piHPSDR",
-    "description": "Updates piHPSDR",
-    "directory": "~/github/Saturn/update_manager/scripts",
-    "category": "Update Scripts",
-    "flags": ["--skip-git","-y","-n","--no-gpio","--dry-run","--verbose"],
-    "version": "1.10"
-  }
-]
-JSON
+  err "Missing config.json in source tree"
+  exit 1
 fi
-ok "config.json copied"
 
-info "Copying themes.json from scripts dir..."
 if [[ -f "$SOURCE_DIR/scripts/themes.json" ]]; then
   cp -f "$SOURCE_DIR/scripts/themes.json" "$WEB_ROOT/themes.json"
 elif [[ -f "$SOURCE_DIR/themes.json" ]]; then
   cp -f "$SOURCE_DIR/themes.json" "$WEB_ROOT/themes.json"
 else
-  cat >"$WEB_ROOT/themes.json" <<'JSON'
-[
-  {
-    "name":"Default",
-    "description":"Standard light theme",
-    "styles":{"--bg-color":"#f3f4f6","--text-color":"#333333","--primary-color":"#3b82f6","--secondary-color":"#10b981","--card-bg":"#ffffff"}
-  },
-  {
-    "name":"Dark Mode",
-    "description":"Dark theme for low-light environments",
-    "styles":{"--bg-color":"#1a1a1a","--text-color":"#ffffff","--primary-color":"#60a5fa","--secondary-color":"#34d399","--card-bg":"#333333"}
-  }
-]
-JSON
+  err "Missing themes.json in source tree"
+  exit 1
 fi
-ok "themes.json copied"
+ok "Web assets copied"
 
-# =========================
-# Webroot permissions (safe)
-# =========================
-info "Setting webroot permissions..."
-chown -R root:root "$WEB_ROOT"
-# avoid "missing operand" when no files:
+info "Copying scripts..."
+find "$SCRIPTS_DIR" -mindepth 1 -maxdepth 1 -type f -delete || true
+while IFS= read -r -d '' src; do
+  cp -f "$src" "$SCRIPTS_DIR/"
+done < <(find "$SOURCE_DIR/scripts" -maxdepth 1 -type f -print0)
+
+cat >"$SCRIPTS_DIR/$WATCHDOG_SCRIPT_NAME" <<'WATCHDOG'
+#!/usr/bin/env bash
+set -euo pipefail
+
+url="${SATURN_WATCHDOG_URL:-http://127.0.0.1:8080/healthz}"
+service="${SATURN_WATCHDOG_SERVICE:-saturn-go.service}"
+timeout="${SATURN_WATCHDOG_TIMEOUT:-4}"
+
+if ! curl -fsS --max-time "$timeout" "$url" >/dev/null 2>&1; then
+  logger -t saturn-watchdog "health check failed for $url; restarting $service"
+  systemctl restart "$service" || true
+fi
+WATCHDOG
+ok "Scripts copied"
+
+info "Setting file permissions..."
+chown -R root:root "$SATURN_ROOT" "$WEB_ROOT"
 find "$WEB_ROOT" -type d -print0 | xargs -0 -r chmod 0755
 find "$WEB_ROOT" -type f -print0 | xargs -0 -r chmod 0644
-ok "Webroot permissions set (dirs 0755, files 0644)"
+find "$SCRIPTS_DIR" -type d -print0 | xargs -0 -r chmod 0755
+find "$SCRIPTS_DIR" -type f \( -name '*.sh' -o -name '*.py' \) -print0 | xargs -0 -r chmod 0755
+find "$SCRIPTS_DIR" -type f ! \( -name '*.sh' -o -name '*.py' \) -print0 | xargs -0 -r chmod 0644
+chmod 0755 "$SCRIPTS_DIR/$WATCHDOG_SCRIPT_NAME"
+chown -R "$SERVICE_USER:$SERVICE_GROUP" "$SATURN_STATE_DIR"
+find "$SATURN_STATE_DIR" -type d -print0 | xargs -0 -r chmod 0750
+find "$SATURN_STATE_DIR" -type f -print0 | xargs -0 -r chmod 0640
+ok "Permissions set"
 
-# =========================
-# Seed scripts + perms (safe)
-# =========================
-info "Seeding default config and sample scripts..."
-shopt -s nullglob
-if compgen -G "$SOURCE_DIR/scripts/*" >/dev/null; then
-  cp -f "$SOURCE_DIR/scripts/"* "$SATURN_ROOT/scripts/" 2>/dev/null || true
-fi
-# Demo if empty
-if ! compgen -G "$SATURN_ROOT/scripts/*" >/dev/null; then
-  cat >"$SATURN_ROOT/scripts/echo-hello.sh" <<'SH'
-#!/usr/bin/env bash
-echo "Hello from Saturn demo script!"
-for p in 30 60 100; do
-  echo "Progress: ${p}%"
-  sleep 1
-done
-SH
-fi
-# perms (no-op if empty lists; -r avoids error)
-chown -R "${SUDO_USER:-$USER}:${SUDO_USER:-$USER}" "$SATURN_ROOT/scripts"
-find "$SATURN_ROOT/scripts" -type d -print0 | xargs -0 -r chmod 0755
-find "$SATURN_ROOT/scripts" -type f \( -name '*.sh' -o -name '*.py' \) -print0 | xargs -0 -r chmod 0755
-find "$SATURN_ROOT/scripts" -type f ! \( -name '*.sh' -o -name '*.py' \) -print0 | xargs -0 -r chmod 0644 || true
-ok "Script permissions set (exec on .sh/.py)"
-
-# =========================
-# Go sources (embedded)
-# =========================
-info "Writing embedded Go server source..."
-mkdir -p "$SRC_DIR"
-# =========================
-# Go toolchain (upgrade on old distros)
-# =========================
-ARCH="$(dpkg --print-architecture)"
-if [[ "$ARCH" == "armhf" ]]; then
-  info "Installing modern Go toolchain (1.20.x) for armhf…"
-  TMPGO="$(mktemp -d)"
-  trap 'rm -rf "$TMPGO"' EXIT
-  curl -fsSL https://go.dev/dl/go1.20.14.linux-armv6l.tar.gz -o "$TMPGO/go.tgz"
-  rm -rf /usr/local/go
-  tar -C /usr/local -xzf "$TMPGO/go.tgz"
-  echo 'export PATH=/usr/local/go/bin:$PATH' >/etc/profile.d/go.sh
-  chmod 644 /etc/profile.d/go.sh
-  export PATH=/usr/local/go/bin:$PATH
-  hash -r
-  ok "Go $(go version) installed"
-fi
-# go.mod (match installed Go major.minor to avoid tidy/version errors)
-cat >"$SATURN_ROOT/go.mod" <<EOF
-module saturn.local/saturn-go
-
-go 1.19
-
-require github.com/shirou/gopsutil/v3 v3.24.5
-EOF
-
-if command -v go >/dev/null 2>&1; then
-  GOV_RAW="$(go version | awk '{print $3}')"
-  GOV="${GOV_RAW#go}"               # e.g. 1.21.10
-  GOMAJ="${GOV%%.*}"                # 1
-  GOMIN="${GOV#*.}"; GOMIN="${GOMIN%%.*}" # 21
-  GO_LINE="go ${GOMAJ}.${GOMIN}"
-  sed -i -E "s/^go [0-9]+\.[0-9]+/${GO_LINE}/" "$SATURN_ROOT/go.mod" || true
-fi
-
-# main.go (powers both Update Manager + Monitor)
-cat >"$SRC_DIR/main.go" <<'GO'
-package main
-
-import (
-  "bufio"
-  "context"
-  "encoding/json"
-  "fmt"
-  "log"
-  "net/http"
-  "os"
-  "os/exec"
-  "os/signal"
-  "path/filepath"
-  "strconv"
-  "strings"
-  "syscall"
-  "time"
-
-  "github.com/shirou/gopsutil/v3/disk"
-  "github.com/shirou/gopsutil/v3/mem"
-  netio "github.com/shirou/gopsutil/v3/net"
-)
-
-/*
-API shape expected by monitor.html:
-
-{
-  "cpu": [perCorePercents...],             // []float64, 0..100
-  "memory": { "percent":f, "used":GB, "total":GB },
-  "disk":   { "percent":f, "used":GB, "total":GB },
-  "network":{ "sent":bytesTotal, "recv":bytesTotal },
-  "processes": [ {pid,user,cpu,memory,command}, ... ]
-}
-
-The /kill_process/<pid> endpoint exists and returns {"message":"OK"} on success.
-*/
-
-type Server struct {
-  webroot string
-}
-
-func getEnv(k, def string) string { v := os.Getenv(k); if v == "" { return def }; return v }
-
-func main() {
-  addr := getEnv("SATURN_ADDR", "127.0.0.1:8080")
-  webroot := getEnv("SATURN_WEBROOT", "/var/lib/saturn-web")
-  s := &Server{webroot: webroot}
-
-  mux := http.NewServeMux()
-
-  // Static (fallback — NGINX serves /saturn/, but this keeps local testing easy)
-  mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-   if r.URL.Path == "/" || r.URL.Path == "/saturn/" {
-     http.ServeFile(w, r, filepath.Join(webroot, "index.html"))
-     return
-   }
-   http.NotFound(w, r)
-  })
-
-  // Update Manager APIs (used by index.html)
-  mux.HandleFunc("/get_versions", s.handleGetVersions)
-  mux.HandleFunc("/get_scripts", s.handleGetScripts)
-  mux.HandleFunc("/get_flags", s.handleGetFlags)
-  mux.HandleFunc("/run", s.handleRunSSE)
-  mux.HandleFunc("/backup_response", s.noContent)
-  mux.HandleFunc("/change_password", s.handleChangePassword)
-  mux.HandleFunc("/exit", s.handleExit)
-
-  // Monitor APIs (used by monitor.html)
-  mux.HandleFunc("/get_system_data", s.handleSystemData)
-  mux.HandleFunc("/kill_process/", s.handleKillProcess) // POST /kill_process/<pid>
-
-  srv := &http.Server{
-   Addr:         addr,
-   Handler:      logRequests(mux),
-   ReadTimeout:  30 * time.Second,
-   WriteTimeout: 0, // allow SSE
-  }
-
-  go func() {
-   stop := make(chan os.Signal, 1)
-   signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
-   <-stop
-   ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-   defer cancel()
-   _ = srv.Shutdown(ctx)
-  }()
-
-  log.Printf("Saturn server listening on %s (webroot=%s)", addr, webroot)
-  if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-   log.Fatalf("server error: %v", err)
-  }
-}
-
-/* -------------------- middleware -------------------- */
-
-func logRequests(next http.Handler) http.Handler {
-  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-   log.Printf("%s %s", r.Method, r.URL.Path)
-   next.ServeHTTP(w, r)
-  })
-}
-
-/* -------------------- Update Manager stubs -------------------- */
-/* These keep the Update UI working using the same JSON shape we used before.
-   If you already have your config.json in /var/lib/saturn-web, these will populate the UI.
-*/
-
-type cfgEntry struct {
-  Filename    string   `json:"filename"`
-  Name        string   `json:"name"`
-  Description string   `json:"description"`
-  Directory   string   `json:"directory"`
-  Category    string   `json:"category"`
-  Flags       []string `json:"flags"`
-  Version     string   `json:"version"`
-}
-
-func (s *Server) cfgPath() string {
-  if p := os.Getenv("SATURN_CONFIG"); p != "" {
-   return p
-  }
-  return filepath.Join(s.webroot, "config.json")
-}
-
-func (s *Server) readConfig() ([]cfgEntry, error) {
-  b, err := os.ReadFile(s.cfgPath())
-  if err != nil {
-   return nil, err
-  }
-  var entries []cfgEntry
-  if err := json.Unmarshal(b, &entries); err != nil {
-   return nil, err
-  }
-  return entries, nil
-}
-
-func (s *Server) handleGetVersions(w http.ResponseWriter, r *http.Request) {
-  entries, _ := s.readConfig()
-  versions := map[string]string{}
-  for _, e := range entries {
-   v := e.Version
-   if v == "" {
-     v = "1.0.0"
-   }
-   versions[e.Filename] = v
-  }
-  _ = json.NewEncoder(w).Encode(map[string]any{"versions": versions})
-}
-
-func (s *Server) handleGetScripts(w http.ResponseWriter, r *http.Request) {
-  entries, err := s.readConfig()
-  if err != nil || len(entries) == 0 {
-   _ = json.NewEncoder(w).Encode(map[string]any{
-     "scripts": map[string][]map[string]string{
-        "System": {{
-                "filename":    "echo-hello.sh",
-                "name":        "Echo Hello",
-                "description": "Demo script",
-        }},
-     },
-     "warnings": []string{"config.json missing or invalid; showing demo"},
-   })
-   return
-  }
-  grouped := map[string][]map[string]string{}
-  for _, e := range entries {
-   c := e.Category
-   if c == "" {
-     c = "Scripts"
-   }
-   grouped[c] = append(grouped[c], map[string]string{
-     "filename":    e.Filename,
-     "name":        e.Name,
-     "description": e.Description,
-   })
-  }
-  _ = json.NewEncoder(w).Encode(map[string]any{"scripts": grouped, "warnings": []string{}})
-}
-
-func (s *Server) handleGetFlags(w http.ResponseWriter, r *http.Request) {
-  _ = r.ParseForm()
-  script := r.Form.Get("script")
-  entries, err := s.readConfig()
-  if err != nil {
-   _ = json.NewEncoder(w).Encode(map[string]any{
-     "flags":   []string{},
-     "error":   "config.json not found or invalid",
-     "warning": "Using empty flags",
-   })
-   return
-  }
-  for _, e := range entries {
-   if e.Filename == script {
-     _ = json.NewEncoder(w).Encode(map[string][]string{"flags": e.Flags})
-     return
-   }
-  }
-  _ = json.NewEncoder(w).Encode(map[string][]string{"flags": {}})
-}
-
-/* -------------------- /run (SSE) -------------------- */
-
-func (s *Server) handleRunSSE(w http.ResponseWriter, r *http.Request) {
-  flusher, ok := w.(http.Flusher)
-  if !ok {
-   http.Error(w, "stream unsupported", http.StatusInternalServerError)
-   return
-  }
-  if err := r.ParseMultipartForm(32 << 20); err != nil {
-   _ = r.ParseForm()
-  }
-  script := firstForm(r, "script")
-  flags := r.Form["flags"]
-
-  scriptPath := filepath.Join("/opt/saturn-go/scripts", script)
-  if strings.Contains(script, "..") {
-   http.Error(w, "invalid script", http.StatusBadRequest)
-   return
-  }
-  if _, err := os.Stat(scriptPath); err != nil {
-   http.Error(w, "script not found", http.StatusNotFound)
-   return
-  }
-
-  // SSE headers
-  w.Header().Set("Content-Type", "text/event-stream")
-  w.Header().Set("Cache-Control", "no-cache")
-  w.Header().Set("Connection", "keep-alive")
-  w.Header().Set("X-Accel-Buffering", "no")
-
-  send := func(line string) {
-   fmt.Fprintf(w, "data: %s\n\n", line)
-   flusher.Flush()
-  }
-
-  send(fmt.Sprintf("Running %s %s", script, strings.Join(flags, " ")))
-
-  var cmd *exec.Cmd
-  if strings.HasSuffix(script, ".py") {
-   args := append([]string{"-u", scriptPath}, flags...)
-   cmd = exec.Command("python3", args...)
-   cmd.Env = append(os.Environ(),
-     "PYTHONUNBUFFERED=1",
-     "PYTHONIOENCODING=UTF-8",
-   )
-  } else {
-   cmd = exec.Command(scriptPath, flags...)
-  }
-  stdout, _ := cmd.StdoutPipe()
-  stderr, _ := cmd.StderrPipe()
-  if err := cmd.Start(); err != nil {
-   http.Error(w, err.Error(), http.StatusInternalServerError)
-   return
-  }
-
-  go func() {
-   sc := bufio.NewScanner(stderr)
-   buf := make([]byte, 0, 256*1024)
-   sc.Buffer(buf, 1024*1024)
-   for sc.Scan() {
-     send("ERR: " + sc.Text())
-   }
-  }()
-
-  sc := bufio.NewScanner(stdout)
-  buf := make([]byte, 0, 256*1024)
-  sc.Buffer(buf, 1024*1024)
-  for sc.Scan() {
-   send(sc.Text())
-  }
-  if err := cmd.Wait(); err != nil {
-   send(fmt.Sprintf("Error: %v", err))
-  } else {
-   send("Done")
-  }
-}
-
-func firstForm(r *http.Request, key string) string {
-  if v := r.FormValue(key); v != "" {
-   return v
-  }
-  if r.MultipartForm != nil {
-   if vs := r.MultipartForm.Value[key]; len(vs) > 0 {
-     return vs[0]
-   }
-  }
-  return ""
-}
-
-func (s *Server) noContent(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusNoContent) }
-
-func (s *Server) handleChangePassword(w http.ResponseWriter, r *http.Request) {
-  _ = r.ParseForm()
-  newPwd := r.Form.Get("new_password")
-  if len(newPwd) < 8 {
-   _ = json.NewEncoder(w).Encode(map[string]any{"status": "error", "message": "min length 8"})
-   return
-  }
-  hc := exec.Command("htpasswd", "-b", "/etc/nginx/.htpasswd", "admin", newPwd)
-  if err := hc.Run(); err != nil {
-   _ = json.NewEncoder(w).Encode(map[string]any{"status": "error", "message": err.Error()})
-   return
-  }
-  _ = json.NewEncoder(w).Encode(map[string]any{"status": "success"})
-}
-
-func (s *Server) handleExit(w http.ResponseWriter, r *http.Request) {
-  _ = json.NewEncoder(w).Encode(map[string]string{"status": "shutting down"})
-  go func() {
-   time.Sleep(200 * time.Millisecond)
-   p, _ := os.FindProcess(os.Getpid())
-   _ = p.Signal(syscall.SIGTERM)
-  }()
-}
-
-/* -------------------- Monitor endpoints -------------------- */
-
-var lastNetSent, lastNetRecv uint64 // not required by UI, but retained if we want rates later
-
-func (s *Server) handleSystemData(w http.ResponseWriter, r *http.Request) {
-  // CPU per-core: read /proc/stat twice quickly to compute a fresh percentage snapshot.
-  perCore := readPerCoreCPU()
-
-  // Memory
-  vm, _ := mem.VirtualMemory()
-  mTotalGB := float64(vm.Total) / (1024 * 1024 * 1024)
-  mUsedGB := float64(vm.Total-vm.Available) / (1024 * 1024 * 1024)
-  mPercent := 0.0
-  if vm.Total > 0 {
-   mPercent = (mUsedGB / mTotalGB) * 100.0
-  }
-
-  // Disk
-  du, _ := disk.Usage("/")
-  dTotalGB := float64(du.Total) / (1024 * 1024 * 1024)
-  dUsedGB := float64(du.Used) / (1024 * 1024 * 1024)
-  dPercent := du.UsedPercent
-
-  // Network totals (all interfaces)
-  var sent, recv uint64
-  if ios, err := netio.IOCounters(false); err == nil && len(ios) > 0 {
-   sent = ios[0].BytesSent
-   recv = ios[0].BytesRecv
-  }
-  lastNetSent, lastNetRecv = sent, recv
-
-  // Top processes (simple & fast)
-  procs := listProcs()
-
-  resp := map[string]any{
-   "cpu": perCore, // []float64, one entry per core
-   "memory": map[string]any{
-     "percent": mPercent,
-     "used":    mUsedGB,
-     "total":   mTotalGB,
-   },
-   "disk": map[string]any{
-     "percent": dPercent,
-     "used":    dUsedGB,
-     "total":   dTotalGB,
-   },
-   "network": map[string]any{
-     "sent": sent,
-     "recv": recv,
-   },
-   "processes": procs,
-  }
-  _ = json.NewEncoder(w).Encode(resp)
-}
-
-func (s *Server) handleKillProcess(w http.ResponseWriter, r *http.Request) {
-  if r.Method != http.MethodPost {
-   http.Error(w, "POST only", http.StatusMethodNotAllowed)
-   return
-  }
-  pidStr := strings.TrimPrefix(r.URL.Path, "/kill_process/")
-  pid, err := strconv.Atoi(strings.TrimSpace(pidStr))
-  if err != nil || pid <= 0 {
-   http.Error(w, "bad pid", http.StatusBadRequest)
-   return
-  }
-  if err := syscall.Kill(pid, syscall.SIGKILL); err != nil {
-   _ = json.NewEncoder(w).Encode(map[string]string{"message": fmt.Sprintf("Failed: %v", err)})
-   return
-  }
-  _ = json.NewEncoder(w).Encode(map[string]string{"message": "OK"})
-}
-
-/* -------------------- Helpers -------------------- */
-
-// readPerCoreCPU computes a single-shot per-core CPU percentage using /proc/stat deltas over ~120ms.
-func readPerCoreCPU() []float64 {
-  type snap struct{ idle, total uint64 }
-  read := func() []snap {
-   b, err := os.ReadFile("/proc/stat")
-   if err != nil {
-     return nil
-   }
-   var res []snap
-   sc := bufio.NewScanner(strings.NewReader(string(b)))
-   for sc.Scan() {
-     ln := sc.Text()
-     if !strings.HasPrefix(ln, "cpu") || ln == "" || strings.HasPrefix(ln, "cpu ") {
-        continue // skip aggregate "cpu "
-     }
-     fields := strings.Fields(ln)
-     // fields[0] is "cpuN"
-     var vals []uint64
-     for _, f := range fields[1:] {
-        v, _ := strconv.ParseUint(f, 10, 64)
-        vals = append(vals, v)
-     }
-     if len(vals) < 5 {
-        continue
-     }
-     idle := vals[3] + vals[4] // idle + iowait
-     var total uint64
-     for _, v := range vals {
-        total += v
-     }
-     res = append(res, snap{idle: idle, total: total})
-   }
-   return res
-  }
-
-  a := read()
-  time.Sleep(120 * time.Millisecond)
-  b := read()
-  if len(a) == 0 || len(a) != len(b) {
-   return []float64{0}
-  }
-  out := make([]float64, len(a))
-  for i := range a {
-   dIdle := float64(b[i].idle - a[i].idle)
-   dTot := float64(b[i].total - a[i].total)
-   p := 0.0
-   if dTot > 0 {
-     p = (1.0 - dIdle/dTot) * 100.0
-     if p < 0 {
-        p = 0
-     }
-     if p > 100 {
-        p = 100
-     }
-   }
-   out[i] = p
-  }
-  return out
-}
-
-func listProcs() []map[string]any {
-  out, err := exec.Command("bash", "-lc", "ps -eo pid,user,%cpu,%mem,cmd --sort=-%cpu | head -n 20").Output()
-  if err != nil {
-   return nil
-  }
-  lines := strings.Split(strings.TrimSpace(string(out)), "\n")
-  var res []map[string]any
-  for i, ln := range lines {
-   if i == 0 || strings.TrimSpace(ln) == "" {
-     continue
-   }
-   fs := fieldsN(ln, 5)
-   if len(fs) < 5 {
-     continue
-   }
-   pid, _ := strconv.Atoi(fs[0])
-   cpu, _ := strconv.ParseFloat(fs[2], 64)
-   mem, _ := strconv.ParseFloat(fs[3], 64)
-   res = append(res, map[string]any{
-     "pid":     pid,
-     "user":    fs[1],
-     "cpu":     cpu,
-     "memory":  mem,
-     "command": fs[4],
-   })
-  }
-  return res
-}
-
-func fieldsN(s string, n int) []string {
-  fs := strings.Fields(s)
-  if len(fs) <= n {
-   return fs
-  }
-  head := fs[:n-1]
-  tail := strings.Join(fs[n-1:], " ")
-  return append(head, tail)
-}
-GO
-ok "Go sources written"
-
-# =========================
-# Build Go
-# =========================
-info "Building Go binary..."
-pushd "$SATURN_ROOT" >/dev/null
-
-GO_BIN="/usr/local/go/bin/go"
-command -v "$GO_BIN" >/dev/null 2>&1 || GO_BIN="go"  # fallback if not armhf
-
-# keep the go directive current
-$GO_BIN mod tidy || warn "go mod tidy warning (ignored)"
-
-mkdir -p "$BIN_DIR"
-
-# Map Debian arch to Go arch
-DEB_ARCH="$(dpkg --print-architecture)"
-case "$DEB_ARCH" in
-  armhf) GOARCH="arm" ;;
-  arm64) GOARCH="arm64" ;;
-  amd64) GOARCH="amd64" ;;
-  *)     GOARCH="" ;; # let Go pick
-esac
-
-env GOOS=linux ${GOARCH:+GOARCH=$GOARCH} "$GO_BIN" build -o "$BIN_DIR/saturn-go" "$SRC_DIR"
+info "Building Rust server..."
+pushd "$RUST_SRC_DIR" >/dev/null
+cargo build --release
+cp -f target/release/saturn-go "$BIN_DIR/saturn-go"
 popd >/dev/null
-ok "Go binary built -> $BIN_DIR/saturn-go"
+chmod 0755 "$BIN_DIR/saturn-go"
+ok "Rust binary installed to $BIN_DIR/saturn-go"
 
-# =========================
-# NGINX (SSE + static + API)
-# =========================
-info "Configuring NGINX site..."
+if [[ ! -f "$SATURN_REPO_ROOT_FILE" ]]; then
+  printf '%s\n' "$DEFAULT_REPO_ROOT" > "$SATURN_REPO_ROOT_FILE"
+  chown "$SERVICE_USER:$SERVICE_GROUP" "$SATURN_REPO_ROOT_FILE"
+  chmod 0640 "$SATURN_REPO_ROOT_FILE"
+fi
 
-# Helper map (http{} scope). Safe to re-create.
-cat >/etc/nginx/conf.d/saturn_sse_map.conf <<'NGINX'
+info "Configuring nginx..."
+cat >"$NGINX_SSE_MAP" <<'NGINX'
 map $http_accept $is_sse {
   default               0;
   "~*text/event-stream" 1;
 }
 NGINX
 
-cat >"$NGINX_SITE" <<'NGINX'
+cat >"$NGINX_SITE" <<NGINX
 server {
   listen 80 default_server;
   server_name _;
+  client_max_body_size ${SATURN_NGINX_CLIENT_MAX_BODY_SIZE};
 
-  # Exact API routes
-  location = /saturn/get_versions    { auth_basic "Restricted"; auth_basic_user_file /etc/nginx/.htpasswd; include /etc/nginx/proxy_params; proxy_pass http://127.0.0.1:8080/get_versions; }
-  location = /saturn/get_scripts     { auth_basic "Restricted"; auth_basic_user_file /etc/nginx/.htpasswd; include /etc/nginx/proxy_params; proxy_pass http://127.0.0.1:8080/get_scripts; }
-  location = /saturn/get_flags       { auth_basic "Restricted"; auth_basic_user_file /etc/nginx/.htpasswd; include /etc/nginx/proxy_params; proxy_pass http://127.0.0.1:8080/get_flags; }
-  location = /saturn/backup_response { auth_basic "Restricted"; auth_basic_user_file /etc/nginx/.htpasswd; include /etc/nginx/proxy_params; proxy_pass http://127.0.0.1:8080/backup_response; }
-  location = /saturn/change_password { auth_basic "Restricted"; auth_basic_user_file /etc/nginx/.htpasswd; include /etc/nginx/proxy_params; proxy_pass http://127.0.0.1:8080/change_password; }
-  location = /saturn/exit            { auth_basic "Restricted"; auth_basic_user_file /etc/nginx/.htpasswd; include /etc/nginx/proxy_params; proxy_pass http://127.0.0.1:8080/exit; }
-  location = /saturn/get_system_data { auth_basic "Restricted"; auth_basic_user_file /etc/nginx/.htpasswd; include /etc/nginx/proxy_params; proxy_pass http://127.0.0.1:8080/get_system_data; }
+  location = / {
+    return 302 /saturn/;
+  }
 
-  # SSE runner
   location = /saturn/run {
     auth_basic "Restricted";
-    auth_basic_user_file /etc/nginx/.htpasswd;
+    auth_basic_user_file ${BASIC_AUTH_FILE};
 
     include /etc/nginx/proxy_params;
-    proxy_pass http://127.0.0.1:8080/run;
+    proxy_pass http://${SATURN_ADDR}/run;
 
     proxy_http_version 1.1;
     proxy_set_header Connection "";
     proxy_read_timeout 1d;
     proxy_send_timeout 1d;
     proxy_buffering off;
+    proxy_request_buffering off;
     proxy_cache off;
     gzip off;
     add_header X-Accel-Buffering no;
+    add_header Cache-Control "no-cache";
   }
 
-  # Kill process (prefix)
-  location ^~ /saturn/kill_process/ {
+  location /saturn/ {
     auth_basic "Restricted";
-    auth_basic_user_file /etc/nginx/.htpasswd;
+    auth_basic_user_file ${BASIC_AUTH_FILE};
+
     include /etc/nginx/proxy_params;
-    proxy_pass http://127.0.0.1:8080$request_uri;
-    proxy_redirect off;
+    proxy_pass http://${SATURN_ADDR}/;
     proxy_http_version 1.1;
     proxy_set_header Connection "";
+    proxy_read_timeout 300s;
   }
-
-  # Static UI
-  location /saturn/ {
-    alias /var/lib/saturn-web/;
-    index index.html;
-    try_files $uri $uri.html $uri/ =404;
-
-    auth_basic "Restricted";
-    auth_basic_user_file /etc/nginx/.htpasswd;
-  }
-
-  # Convenience
-  location = / { return 302 /saturn/; }
 }
 NGINX
 
-# Basic auth default (admin/admin) if missing
+PASSWORD_MIN_LEN=5
+generated_password=""
 if [[ ! -s "$BASIC_AUTH_FILE" ]]; then
-  htpasswd -b -c "$BASIC_AUTH_FILE" admin admin >/dev/null 2>&1 || true
-  chmod 640 "$BASIC_AUTH_FILE"
-  chown www-data:www-data "$BASIC_AUTH_FILE"
+  info "Creating HTTP basic auth credentials for admin user..."
+  admin_password="${SATURN_ADMIN_PASSWORD:-}"
+  if [[ -z "$admin_password" ]]; then
+    if [[ -t 0 ]]; then
+      while true; do
+        read -r -s -p "Enter admin password (min ${PASSWORD_MIN_LEN} chars): " admin_password; echo
+        read -r -s -p "Confirm admin password: " admin_password_confirm; echo
+        if [[ "$admin_password" != "$admin_password_confirm" ]]; then
+          warn "Passwords do not match. Try again."
+          continue
+        fi
+        if [[ ${#admin_password} -lt ${PASSWORD_MIN_LEN} ]]; then
+          warn "Password too short. Minimum ${PASSWORD_MIN_LEN} characters."
+          continue
+        fi
+        break
+      done
+    else
+      admin_password="$(tr -dc 'A-Za-z0-9@#%^+=_' </dev/urandom | head -c 24)"
+      generated_password="$admin_password"
+      warn "No TTY available; generated random admin password."
+    fi
+  fi
+  if [[ ${#admin_password} -lt ${PASSWORD_MIN_LEN} ]]; then
+    err "Provided SATURN_ADMIN_PASSWORD is too short (minimum ${PASSWORD_MIN_LEN} characters)."
+    exit 1
+  fi
+
+  printf '%s\n' "$admin_password" | htpasswd -i -c "$BASIC_AUTH_FILE" admin >/dev/null
+  chmod 0640 "$BASIC_AUTH_FILE"
+  chown root:www-data "$BASIC_AUTH_FILE"
+  ok "Basic auth configured"
+else
+  info "Reusing existing $BASIC_AUTH_FILE"
 fi
 
-# Ensure only our site is enabled; disable Debian default if present
 rm -f /etc/nginx/sites-enabled/default || true
-ln -sf "$NGINX_SITE" "$NGINX_SITE_LINK" || true
+ln -sf "$NGINX_SITE" "$NGINX_SITE_LINK"
 
-# If Apache is holding port 80, stop/disable it
 if ss -ltnp | grep -q ':80 ' && ss -ltnp | grep -qi apache2; then
+  warn "Apache detected on port 80; stopping and disabling apache2"
   systemctl stop apache2 || true
   systemctl disable apache2 || true
 fi
 
 nginx -t
-
-# Start or reload nginx intelligently
 if systemctl is-active --quiet nginx; then
-  systemctl reload nginx || true
+  systemctl reload nginx
 else
-  systemctl enable --now nginx || true
+  systemctl enable --now nginx
 fi
+ok "nginx configured"
 
-ok "NGINX configured"
-# =========================
-# systemd
-# =========================
 info "Writing systemd unit..."
 cat >"$SERVICE_FILE" <<SERVICE
 [Unit]
-Description=Saturn Go API server
+Description=Saturn Update Manager (Rust backend)
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-Environment=SATURN_WEBROOT=$WEB_ROOT
-Environment=SATURN_CONFIG=$WEB_ROOT/config.json
-Environment=SATURN_ADDR=$GO_ADDR
+Environment=SATURN_WEBROOT=${WEB_ROOT}
+Environment=SATURN_CONFIG=${WEB_ROOT}/config.json
+Environment=SATURN_ADDR=${SATURN_ADDR}
+Environment=SATURN_REPO_ROOT=${DEFAULT_REPO_ROOT}
+Environment=SATURN_REPO_ROOT_FILE=${SATURN_REPO_ROOT_FILE}
+Environment=SATURN_STATE_DIR=${SATURN_STATE_DIR}
+Environment=SATURN_UPDATE_POLICY_FILE=${SATURN_UPDATE_POLICY_FILE}
+Environment=SATURN_UPDATE_STATE_FILE=${SATURN_UPDATE_STATE_FILE}
+Environment=SATURN_SNAPSHOT_DIR=${SATURN_SNAPSHOT_DIR}
+Environment=SATURN_STAGING_DIR=${SATURN_STAGING_DIR}
+Environment=SATURN_MAX_BODY_BYTES=${SATURN_MAX_BODY_BYTES}
+Environment=SATURN_RESTORE_MAX_UPLOAD_BYTES=${SATURN_RESTORE_MAX_UPLOAD_BYTES}
 Environment=PYTHONUNBUFFERED=1
-ExecStart=$BIN_DIR/saturn-go
-WorkingDirectory=$SATURN_ROOT
+ExecStart=${BIN_DIR}/saturn-go
+WorkingDirectory=${SATURN_ROOT}
+User=${SERVICE_USER}
+Group=${SERVICE_GROUP}
 Restart=on-failure
-User=${SUDO_USER:-$USER}
-Group=${SUDO_USER:-$USER}
+RestartSec=2
+PrivateTmp=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 LimitNOFILE=65536
 
 [Install]
 WantedBy=multi-user.target
 SERVICE
 
-systemctl daemon-reload
-systemctl enable --now saturn-go.service
-ok "Service enabled and started"
+cat >"$WATCHDOG_SERVICE_FILE" <<WATCHDOG_SERVICE
+[Unit]
+Description=Saturn Update Manager Health Watchdog
+After=network-online.target saturn-go.service
+Wants=network-online.target
 
-# =========================
-# Health check
-# =========================
-info "Waiting for server to listen on $GO_ADDR..."
-for i in {1..20}; do
-  if (echo >/dev/tcp/127.0.0.1/8080) >/dev/null 2>&1; then
-    ok "Go API is listening"
+[Service]
+Type=oneshot
+Environment=SATURN_WATCHDOG_URL=${SATURN_WATCHDOG_URL}
+Environment=SATURN_WATCHDOG_SERVICE=saturn-go.service
+Environment=SATURN_WATCHDOG_TIMEOUT=4
+ExecStart=${SCRIPTS_DIR}/${WATCHDOG_SCRIPT_NAME}
+WATCHDOG_SERVICE
+
+cat >"$WATCHDOG_TIMER_FILE" <<WATCHDOG_TIMER
+[Unit]
+Description=Run Saturn health watchdog
+
+[Timer]
+OnBootSec=45s
+OnUnitActiveSec=${SATURN_WATCHDOG_INTERVAL}
+AccuracySec=1s
+Persistent=true
+Unit=saturn-go-watchdog.service
+
+[Install]
+WantedBy=timers.target
+WATCHDOG_TIMER
+
+systemctl daemon-reload
+systemctl enable saturn-go.service
+systemctl enable saturn-go-watchdog.timer
+if systemctl is-active --quiet saturn-go.service; then
+  systemctl restart saturn-go.service
+else
+  systemctl start saturn-go.service
+fi
+if systemctl is-active --quiet saturn-go-watchdog.timer; then
+  systemctl restart saturn-go-watchdog.timer
+else
+  systemctl start saturn-go-watchdog.timer
+fi
+ok "Service and watchdog enabled and restarted"
+
+info "Waiting for backend health endpoint..."
+healthy=0
+for _ in {1..40}; do
+  if curl -fsS "http://${SATURN_ADDR}/healthz" >/dev/null 2>&1; then
+    healthy=1
+    ok "Backend is healthy"
     break
   fi
   sleep 0.25
 done
+if [[ $healthy -ne 1 ]]; then
+  err "Backend health check failed at http://${SATURN_ADDR}/healthz"
+  echo "[INFO] saturn-go.service status:"
+  systemctl --no-pager --full status saturn-go.service || true
+  echo "[INFO] Recent saturn-go.service logs:"
+  journalctl -u saturn-go.service -n 40 --no-pager || true
+  exit 1
+fi
 
-# =========================
-# Summary
-# =========================
 bold "[SUMMARY]"
-echo " Web UI:  http://<your-host>/saturn/  (user: admin, pass: admin)"
-echo " API:     http://<your-host>/saturn/get_system_data"
-echo " Static:  $WEB_ROOT"
-echo " Binary:  $BIN_DIR/saturn-go"
-echo " Service: saturn-go.service"
-echo " NGINX:   $NGINX_SITE"
+echo " Web UI:   http://<host>/saturn/"
+echo " API base: http://<host>/saturn/"
+echo " Binary:   ${BIN_DIR}/saturn-go"
+echo " Service:  saturn-go.service (user=${SERVICE_USER})"
+echo " Watchdog: saturn-go-watchdog.timer (${SATURN_WATCHDOG_INTERVAL})"
+echo " Repo root default: ${DEFAULT_REPO_ROOT}"
+if [[ -n "$generated_password" ]]; then
+  echo " Admin user: admin"
+  echo " Generated password: ${generated_password}"
+  warn "Store this password now and change it after first login."
+fi
 ok "Install complete."

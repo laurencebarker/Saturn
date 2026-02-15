@@ -93,13 +93,17 @@
   <div class="max-w-5xl mx-auto px-4 py-6 sm:py-10">
     <div class="flex items-center justify-between mb-6">
       <h1 class="title text-3xl sm:text-4xl">Saturn Go Update Manager</h1>
-      <!-- Single theme toggle button (classic) -->
-      <button id="theme-toggle" class="btn btn-ghost p-2" title="Toggle theme">
-        <svg id="theme-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-           d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-        </svg>
-      </button>
+      <div class="flex items-center gap-3">
+        <button type="button" id="backup-btn" class="btn btn-ghost px-4 py-2">Backup / Restore</button>
+        <button type="button" id="monitor-btn" class="btn btn-ghost px-4 py-2">Open Monitor</button>
+        <!-- Single theme toggle button (classic) -->
+        <button id="theme-toggle" class="btn btn-ghost p-2" title="Toggle theme">
+          <svg id="theme-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+             d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Versions (collapsible) -->
@@ -126,7 +130,6 @@
           </div>
           <div class="flex items-end gap-3">
             <button type="submit" class="btn btn-primary px-5 py-2">Run</button>
-            <button type="button" id="monitor-btn" class="btn btn-ghost px-4 py-2">Open Monitor</button>
             <button type="button" id="exit-btn" class="btn btn-danger px-4 py-2">Exit</button>
           </div>
         </div>
@@ -187,11 +190,11 @@
       <form id="password-form" class="space-y-3">
         <div>
           <label class="block text-sm mb-1" for="new-password">New Password</label>
-          <input id="new-password" type="password" minlength="8" required class="field w-full px-3 py-2"/>
+          <input id="new-password" type="password" minlength="5" required class="field w-full px-3 py-2"/>
         </div>
         <div>
           <label class="block text-sm mb-1" for="confirm-password">Confirm Password</label>
-          <input id="confirm-password" type="password" minlength="8" required class="field w-full px-3 py-2"/>
+          <input id="confirm-password" type="password" minlength="5" required class="field w-full px-3 py-2"/>
         </div>
         <p id="password-error" class="text-red-400 text-sm hidden">Passwords do not match or are too short.</p>
         <div class="flex justify-end gap-3 pt-2">
@@ -231,6 +234,12 @@ ansi_up.use_classes = false;
 const $ = (id) => document.getElementById(id);
 const output = $('output');
 const progress = $('progress');
+const CSRF_HEADER_NAME = 'X-Saturn-CSRF';
+const CSRF_HEADER_VALUE = '1';
+
+function withCsrf(headers = {}){
+  return { ...headers, [CSRF_HEADER_NAME]: CSRF_HEADER_VALUE };
+}
 
 function show(el, on){ el.classList.toggle('hidden', !on); }
 function append(line){
@@ -394,10 +403,11 @@ $('toggle-versions').addEventListener('change', (e)=>{
 
 $('monitor-btn').addEventListener('click', ()=> window.open('./monitor', 'SaturnMonitor',
   'width=900,height=650,resizable=yes,scrollbars=yes,status=yes'));
+$('backup-btn').addEventListener('click', ()=> window.location.href = './backup');
 
 $('exit-btn').addEventListener('click', async ()=>{
   try{
-    const r = await fetch('./exit', { method:'POST' });
+    const r = await fetch('./exit', { method:'POST', headers: withCsrf() });
     if (r.ok) append('\x1b[32mServer exiting…\x1b[0m');
   }catch(e){ append(`\x1b[31mExit failed: ${e.message}\x1b[0m`); }
 });
@@ -411,12 +421,12 @@ $('password-cancel').addEventListener('click', ()=>{
 $('password-form').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const a = $('new-password').value, b = $('confirm-password').value;
-  if (a.length<8 || a!==b){ $('password-error').classList.remove('hidden'); return; }
+  if (a.length<5 || a!==b){ $('password-error').classList.remove('hidden'); return; }
   $('password-error').classList.add('hidden');
   $('password-modal').classList.add('hidden'); document.body.style.overflow='';
   try{
     const r = await fetch('./change_password', {
-      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      method:'POST', headers:withCsrf({'Content-Type':'application/x-www-form-urlencoded'}),
       body:`new_password=${encodeURIComponent(a)}`
     });
     const data = await r.json();
@@ -431,7 +441,7 @@ $('backup-no').addEventListener('click',  ()=> sendBackupResponse('n'));
 async function sendBackupResponse(letter){
   try{
     await fetch('./backup_response', {
-      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      method:'POST', headers:withCsrf({'Content-Type':'application/x-www-form-urlencoded'}),
       body:`response=${encodeURIComponent(letter)}`
     });
   }catch(_e){}
@@ -468,7 +478,11 @@ $('script-form').addEventListener('submit', async (e)=>{
     // every new run: reset collection buffer
     resetBackupCollection();
 
-    const res = await fetch('./run', { method:'POST', body:fd, headers:{'Accept':'text/event-stream'} });
+    const res = await fetch('./run', {
+      method:'POST',
+      body:fd,
+      headers:withCsrf({'Accept':'text/event-stream'})
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const reader = res.body.getReader();

@@ -55,7 +55,7 @@
     </div>
 
     <!-- Top stats -->
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
       <div class="glass p-4">
         <div class="text-sm opacity-80 mb-1">CPU Avg</div>
         <div id="cpu-avg" class="text-3xl font-extrabold">0%</div>
@@ -67,14 +67,26 @@
         <div id="mem-info" class="opacity-80 text-sm">-</div>
       </div>
       <div class="glass p-4">
+        <div class="text-sm opacity-80 mb-1">Swap</div>
+        <div id="swap-pct" class="text-3xl font-extrabold">0%</div>
+        <div id="swap-info" class="opacity-80 text-sm">-</div>
+      </div>
+      <div class="glass p-4">
         <div class="text-sm opacity-80 mb-1">Disk</div>
         <div id="disk-pct" class="text-3xl font-extrabold">0%</div>
         <div id="disk-info" class="opacity-80 text-sm">-</div>
+        <div id="disk-io" class="opacity-80 text-sm">R: 0 B/s | W: 0 B/s</div>
       </div>
       <div class="glass p-4">
         <div class="text-sm opacity-80 mb-1">Network</div>
         <div id="net-sent" class="font-bold">↑ 0 B/s</div>
         <div id="net-recv" class="font-bold">↓ 0 B/s</div>
+      </div>
+      <div class="glass p-4">
+        <div class="text-sm opacity-80 mb-1">System</div>
+        <div id="sys-load" class="font-bold">Load: -</div>
+        <div id="sys-uptime" class="opacity-80 text-sm">Uptime: -</div>
+        <div id="sys-temp" class="opacity-80 text-sm">CPU Temp: -</div>
       </div>
     </div>
 
@@ -145,6 +157,12 @@
 /* Monitor logic */
 const GET_SYSTEM_DATA = './get_system_data';
 const $ = (id)=>document.getElementById(id);
+const CSRF_HEADER_NAME = 'X-Saturn-CSRF';
+const CSRF_HEADER_VALUE = '1';
+
+function withCsrf(headers = {}){
+  return { ...headers, [CSRF_HEADER_NAME]: CSRF_HEADER_VALUE };
+}
 
 let cpuChart, memChart, diskChart, netChart;
 let labels = Array(60).fill('');
@@ -160,6 +178,16 @@ function fmtRate(bps){
   if (bps < 1024) return `${bps.toFixed(0)} B/s`;
   if (bps < 1024*1024) return `${(bps/1024).toFixed(2)} KB/s`;
   return `${(bps/1024/1024).toFixed(2)} MB/s`;
+}
+
+function fmtDuration(sec){
+  let s = Math.max(0, Number(sec || 0) | 0);
+  const d = Math.floor(s / 86400); s -= d * 86400;
+  const h = Math.floor(s / 3600); s -= h * 3600;
+  const m = Math.floor(s / 60);
+  if (d > 0) return `${d}d ${h}h ${m}m`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
 }
 
 function makeLineChart(canvasId, label, color, series, max100=true){
@@ -219,16 +247,40 @@ function renderProcesses(list){
   body.innerHTML = '';
   (list||[]).forEach(p=>{
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="px-3 py-2">${p.pid}</td>
-      <td class="px-3 py-2">${p.user}</td>
-      <td class="px-3 py-2">${Number(p.cpu||0).toFixed(1)}</td>
-      <td class="px-3 py-2">${Number(p.memory||0).toFixed(1)}</td>
-      <td class="px-3 py-2">${p.command||''}</td>
-      <td class="px-3 py-2">
-        <button class="px-3 py-1 rounded bg-red-500/80 hover:bg-red-600 text-white"
-                onclick="killProcess(${p.pid})">Kill</button>
-      </td>`;
+    const pidCell = document.createElement('td');
+    pidCell.className = 'px-3 py-2';
+    pidCell.textContent = String(p.pid ?? '');
+    tr.appendChild(pidCell);
+
+    const userCell = document.createElement('td');
+    userCell.className = 'px-3 py-2';
+    userCell.textContent = String(p.user ?? '');
+    tr.appendChild(userCell);
+
+    const cpuCell = document.createElement('td');
+    cpuCell.className = 'px-3 py-2';
+    cpuCell.textContent = Number(p.cpu||0).toFixed(1);
+    tr.appendChild(cpuCell);
+
+    const memCell = document.createElement('td');
+    memCell.className = 'px-3 py-2';
+    memCell.textContent = Number(p.memory||0).toFixed(1);
+    tr.appendChild(memCell);
+
+    const cmdCell = document.createElement('td');
+    cmdCell.className = 'px-3 py-2';
+    cmdCell.textContent = String(p.command ?? '');
+    tr.appendChild(cmdCell);
+
+    const actionCell = document.createElement('td');
+    actionCell.className = 'px-3 py-2';
+    const killBtn = document.createElement('button');
+    killBtn.className = 'px-3 py-1 rounded bg-red-500/80 hover:bg-red-600 text-white';
+    killBtn.textContent = 'Kill';
+    killBtn.addEventListener('click', ()=> killProcess(Number(p.pid)));
+    actionCell.appendChild(killBtn);
+    tr.appendChild(actionCell);
+
     body.appendChild(tr);
   });
 }
@@ -236,7 +288,7 @@ function renderProcesses(list){
 async function killProcess(pid){
   if (!confirm(`Kill process ${pid}?`)) return;
   try{
-    const r = await fetch(`./kill_process/${pid}`, { method:'POST' });
+    const r = await fetch(`./kill_process/${pid}`, { method:'POST', headers: withCsrf() });
     const data = await r.json().catch(()=>({}));
     alert(data.message || (r.ok ? 'Killed' : `HTTP ${r.status}`));
   }catch(e){
@@ -266,10 +318,15 @@ function update(data){
   $('mem-pct').textContent = `${mp.toFixed(1)}%`;
   $('mem-info').textContent = `${(data.memory?.used||0).toFixed(1)} GB / ${(data.memory?.total||0).toFixed(1)} GB`;
 
+  const sp = Number(data.swap?.percent || 0);
+  $('swap-pct').textContent = `${sp.toFixed(1)}%`;
+  $('swap-info').textContent = `${(data.swap?.used||0).toFixed(1)} GB / ${(data.swap?.total||0).toFixed(1)} GB`;
+
   const dp = Number(data.disk?.percent || 0);
   shiftPush(diskSeries, dp);
   $('disk-pct').textContent = `${dp.toFixed(1)}%`;
   $('disk-info').textContent = `${(data.disk?.used||0).toFixed(1)} GB / ${(data.disk?.total||0).toFixed(1)} GB`;
+  $('disk-io').textContent = `R: ${fmtRate(Number(data.disk?.read_bps||0))} | W: ${fmtRate(Number(data.disk?.write_bps||0))}`;
 
   const now = Date.now();
   const dt = lastTime ? Math.max(0.001, (now - lastTime)/1000) : 1;
@@ -288,6 +345,12 @@ function update(data){
   shiftPush(rxSeries, Math.max(0, rx/(1024*1024)));
   $('net-sent').textContent = `↑ ${fmtRate(tx)}`;
   $('net-recv').textContent = `↓ ${fmtRate(rx)}`;
+
+  const load = data.load || {};
+  $('sys-load').textContent = `Load: ${(Number(load.one)||0).toFixed(2)} / ${(Number(load.five)||0).toFixed(2)} / ${(Number(load.fifteen)||0).toFixed(2)}`;
+  $('sys-uptime').textContent = `Uptime: ${fmtDuration(data.uptime?.seconds || 0)}`;
+  const cpuTemp = data.temperature?.cpu_c;
+  $('sys-temp').textContent = Number.isFinite(cpuTemp) ? `CPU Temp: ${Number(cpuTemp).toFixed(1)} C` : 'CPU Temp: n/a';
 
   cpuChart.update('none');
   memChart.data.labels = labels; memChart.data.datasets[0].data = memSeries; memChart.update('none');
@@ -330,7 +393,7 @@ async function fetchOnce(){
 
   setInterval(async ()=>{
     try{ update(await fetchOnce()); }catch(_e){}
-  }, 3000);
+  }, 1000);
 
   $('proc-search').addEventListener('input', (e)=>{
     const q = e.target.value.toLowerCase();

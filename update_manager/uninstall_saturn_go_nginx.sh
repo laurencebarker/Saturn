@@ -1,114 +1,177 @@
 #!/usr/bin/env bash
-#
 # uninstall_saturn_go_nginx.sh
-# Removes Saturn Go + NGINX deployment and optionally its dependencies.
+# Remove Saturn Rust + NGINX deployment created by install_saturn_go_nginx.sh.
 #
 # Usage:
-# sudo bash uninstall_saturn_go_nginx.sh [--purge] [--keep-auth] [--remove-packages] [--dry-run] [--yes]
-#
+#   sudo bash uninstall_saturn_go_nginx.sh [--no-purge] [--keep-auth] [--remove-packages] [--dry-run] [--yes]
+
 set -euo pipefail
-PURGE=0
+
+PURGE=1
 KEEP_AUTH=0
 REMOVE_PACKAGES=0
 DRY_RUN=0
 ASSUME_YES=0
+
 for arg in "$@"; do
-    case "$arg" in
-        --purge) PURGE=1 ;;
-        --keep-auth) KEEP_AUTH=1 ;;
-        --remove-packages) REMOVE_PACKAGES=1 ;;
-        --dry-run) DRY_RUN=1 ;;
-        --yes) ASSUME_YES=1 ;;
-        *) echo "[ERROR] Unknown argument: $arg" && exit 1 ;;
-    esac
+  case "$arg" in
+    --purge) PURGE=1 ;;
+    --no-purge) PURGE=0 ;;
+    --keep-auth) KEEP_AUTH=1 ;;
+    --remove-packages) REMOVE_PACKAGES=1 ;;
+    --dry-run) DRY_RUN=1 ;;
+    --yes) ASSUME_YES=1 ;;
+    *) echo "[ERROR] Unknown argument: $arg" >&2; exit 1 ;;
+  esac
 done
-echo "This will uninstall the Saturn Go + NGINX deployment."
-echo "Options: purge=$PURGE keep-auth=$KEEP_AUTH remove-packages=$REMOVE_PACKAGES dry-run=$DRY_RUN"
-if [[ $ASSUME_YES -ne 1 ]]; then
-    read -rp "Proceed? [y/N] " confirm
-    [[ "$confirm" =~ ^[Yy]$ ]] || { echo "[INFO] Cancelled."; exit 0; }
+
+if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
+  echo "[ERROR] Run as root (sudo)." >&2
+  exit 1
 fi
+
 SYSTEMD_SERVICE="/etc/systemd/system/saturn-go.service"
+WATCHDOG_SERVICE="/etc/systemd/system/saturn-go-watchdog.service"
+WATCHDOG_TIMER="/etc/systemd/system/saturn-go-watchdog.timer"
 NGINX_SITE_AVAILABLE="/etc/nginx/sites-available/saturn"
 NGINX_SITE_ENABLED="/etc/nginx/sites-enabled/saturn"
+NGINX_SSE_MAP="/etc/nginx/conf.d/saturn_sse_map.conf"
 BASIC_AUTH_FILE="/etc/nginx/.htpasswd"
 SATURN_ROOT="/opt/saturn-go"
 WEB_ROOT="/var/lib/saturn-web"
-SATURN_HOME="$HOME/.saturn"
-# 1. Stop and disable service
-if systemctl list-units --full -all | grep -Fq "saturn-go.service"; then
-    echo "[INFO] Stopping and disabling systemd service (saturn-go)..."
-    [[ $DRY_RUN -eq 0 ]] && systemctl stop saturn-go && systemctl disable saturn-go
-    echo "[OK] Service stopped/disabled"
+WATCHDOG_SCRIPT="/opt/saturn-go/scripts/saturn-health-watchdog.sh"
+SATURN_STATE_DIR="/var/lib/saturn-state"
+
+run_cmd() {
+  if [[ $DRY_RUN -eq 1 ]]; then
+    echo "[DRY] $*"
+  else
+    "$@"
+  fi
+}
+
+echo "This will uninstall the Saturn Rust + NGINX deployment."
+echo "Options: purge=$PURGE keep-auth=$KEEP_AUTH remove-packages=$REMOVE_PACKAGES dry-run=$DRY_RUN"
+if [[ $ASSUME_YES -ne 1 ]]; then
+  read -rp "Proceed? [y/N] " confirm
+  [[ "$confirm" =~ ^[Yy]$ ]] || { echo "[INFO] Cancelled."; exit 0; }
 fi
-# 2. Kill leftover process
-if lsof -i:8080 -t >/dev/null 2>&1; then
-    PID=$(lsof -i:8080 -t)
-    echo "[INFO] Killing leftover process on port 8080 (PID $PID)"
-    [[ $DRY_RUN -eq 0 ]] && kill -9 "$PID"
-else
-    echo "[OK] No active listeners remain (or killed)."
+
+# 1) Stop and disable service
+if systemctl list-unit-files | grep -Fq "saturn-go.service"; then
+  echo "[INFO] Stopping and disabling saturn-go.service"
+  run_cmd systemctl stop saturn-go.service || true
+  run_cmd systemctl disable saturn-go.service || true
 fi
-# 3. Remove systemd unit
+if systemctl list-unit-files | grep -Fq "saturn-go-watchdog.timer"; then
+  echo "[INFO] Stopping and disabling saturn-go-watchdog.timer"
+  run_cmd systemctl stop saturn-go-watchdog.timer || true
+  run_cmd systemctl disable saturn-go-watchdog.timer || true
+fi
+if systemctl list-unit-files | grep -Fq "saturn-go-watchdog.service"; then
+  echo "[INFO] Stopping and disabling saturn-go-watchdog.service"
+  run_cmd systemctl stop saturn-go-watchdog.service || true
+  run_cmd systemctl disable saturn-go-watchdog.service || true
+fi
+
+# 2) Kill straggler process if present
+if pgrep -f "/opt/saturn-go/bin/saturn-go" >/dev/null 2>&1; then
+  PIDS="$(pgrep -f "/opt/saturn-go/bin/saturn-go" | tr '\n' ' ')"
+  echo "[INFO] Stopping lingering saturn-go process(es): $PIDS"
+  if [[ $DRY_RUN -eq 0 ]]; then
+    pgrep -f "/opt/saturn-go/bin/saturn-go" | xargs -r kill -TERM || true
+    sleep 1
+    pgrep -f "/opt/saturn-go/bin/saturn-go" | xargs -r kill -KILL || true
+  fi
+fi
+
+# 3) Remove systemd unit
 if [[ -f "$SYSTEMD_SERVICE" ]]; then
-    echo "[INFO] Removing systemd unit file: $SYSTEMD_SERVICE"
-    [[ $DRY_RUN -eq 0 ]] && rm -f "$SYSTEMD_SERVICE" && systemctl daemon-reload
+  echo "[INFO] Removing unit file: $SYSTEMD_SERVICE"
+  run_cmd rm -f "$SYSTEMD_SERVICE"
 fi
-# 4. Remove NGINX site config
-if [[ -e "$NGINX_SITE_ENABLED" ]] || [[ -h "$NGINX_SITE_ENABLED" ]]; then
-    echo "[INFO] Removing NGINX enabled site link: $NGINX_SITE_ENABLED"
-    [[ $DRY_RUN -eq 0 ]] && rm -f "$NGINX_SITE_ENABLED"
+if [[ -f "$WATCHDOG_SERVICE" ]]; then
+  echo "[INFO] Removing watchdog unit file: $WATCHDOG_SERVICE"
+  run_cmd rm -f "$WATCHDOG_SERVICE"
+fi
+if [[ -f "$WATCHDOG_TIMER" ]]; then
+  echo "[INFO] Removing watchdog timer file: $WATCHDOG_TIMER"
+  run_cmd rm -f "$WATCHDOG_TIMER"
+fi
+if [[ -f "$WATCHDOG_SCRIPT" ]]; then
+  echo "[INFO] Removing watchdog script: $WATCHDOG_SCRIPT"
+  run_cmd rm -f "$WATCHDOG_SCRIPT"
+fi
+run_cmd systemctl daemon-reload
+
+# 4) Remove nginx config
+if [[ -e "$NGINX_SITE_ENABLED" || -h "$NGINX_SITE_ENABLED" ]]; then
+  echo "[INFO] Removing nginx enabled link: $NGINX_SITE_ENABLED"
+  run_cmd rm -f "$NGINX_SITE_ENABLED"
 fi
 if [[ -f "$NGINX_SITE_AVAILABLE" ]]; then
-    echo "[INFO] Removing NGINX site config: $NGINX_SITE_AVAILABLE"
-    [[ $DRY_RUN -eq 0 ]] && rm -f "$NGINX_SITE_AVAILABLE"
+  echo "[INFO] Removing nginx site file: $NGINX_SITE_AVAILABLE"
+  run_cmd rm -f "$NGINX_SITE_AVAILABLE"
 fi
-# 5. Remove basic auth (unless keep-auth)
+if [[ -f "$NGINX_SSE_MAP" ]]; then
+  echo "[INFO] Removing nginx SSE map file: $NGINX_SSE_MAP"
+  run_cmd rm -f "$NGINX_SSE_MAP"
+fi
+
+# 5) Remove auth unless requested to keep
 if [[ $KEEP_AUTH -eq 0 && -f "$BASIC_AUTH_FILE" ]]; then
-    echo "[INFO] Removing basic auth file: $BASIC_AUTH_FILE"
-    [[ $DRY_RUN -eq 0 ]] && rm -f "$BASIC_AUTH_FILE"
+  echo "[INFO] Removing basic auth file: $BASIC_AUTH_FILE"
+  run_cmd rm -f "$BASIC_AUTH_FILE"
 fi
-# 6. Reload NGINX
-if command -v nginx >/dev/null; then
-    echo "[INFO] Reloading NGINX..."
-    if [[ $DRY_RUN -eq 0 ]]; then
-        if nginx -t; then
-            systemctl reload nginx
-        else
-            echo "[WARN] NGINX config test failed; skipping reload. Manual fix may be needed."
-        fi
+
+# 6) Reload nginx if available
+if command -v nginx >/dev/null 2>&1; then
+  echo "[INFO] Reloading nginx (if config is valid)"
+  if [[ $DRY_RUN -eq 0 ]]; then
+    if nginx -t; then
+      systemctl reload nginx || true
+    else
+      echo "[WARN] nginx -t failed; skipping reload."
     fi
+  fi
 fi
-# 7. Remove Saturn runtime files (purge option)
+
+# 7) Purge runtime dirs by default (clean reinstall path)
 if [[ $PURGE -eq 1 ]]; then
-    for dir in "$SATURN_ROOT" "$WEB_ROOT" "$SATURN_HOME"; do
-        if [[ -d "$dir" ]]; then
-            echo "[INFO] Purging directory: $dir"
-            [[ $DRY_RUN -eq 0 ]] && rm -rf "$dir"
-        fi
-    done
+  for dir in "$SATURN_ROOT" "$WEB_ROOT" "$SATURN_STATE_DIR"; do
+    if [[ -e "$dir" ]]; then
+      echo "[INFO] Purging: $dir"
+      run_cmd rm -rf "$dir"
+    fi
+  done
+else
+  echo "[INFO] Keeping runtime directories (--no-purge): $SATURN_ROOT, $WEB_ROOT, $SATURN_STATE_DIR"
 fi
-# 8. Remove basic packages (optional)
+
+# 8) Optional package cleanup
 if [[ $REMOVE_PACKAGES -eq 1 ]]; then
-    echo "[INFO] Removing system packages..."
-    [[ $DRY_RUN -eq 0 ]] && apt-get remove --purge -y nginx apache2-utils golang-go python3 build-essential curl
-    [[ $DRY_RUN -eq 0 ]] && apt-get autoremove -y && apt-get clean
+  echo "[INFO] Removing install-time packages (best effort)"
+  run_cmd apt-get remove --purge -y \
+    nginx apache2-utils rustc cargo build-essential pkg-config python3-venv python3-psutil || true
+  run_cmd apt-get autoremove -y || true
+  run_cmd apt-get clean || true
 fi
+
 echo
 echo "[SUMMARY]"
-echo " Service file removed: $SYSTEMD_SERVICE"
-echo " NGINX site removed: $NGINX_SITE_AVAILABLE (and enabled link)"
+echo " Service disabled/removed: saturn-go.service"
+echo " Watchdog disabled/removed: saturn-go-watchdog.service + saturn-go-watchdog.timer"
+echo " NGINX site removed: $NGINX_SITE_AVAILABLE"
+echo " NGINX SSE map removed: $NGINX_SSE_MAP"
 if [[ $KEEP_AUTH -eq 0 ]]; then
-    echo " Basic auth file: $BASIC_AUTH_FILE (removed)"
+  echo " Basic auth file removed: $BASIC_AUTH_FILE"
 else
-    echo " Basic auth file: $BASIC_AUTH_FILE (kept)"
+  echo " Basic auth file kept: $BASIC_AUTH_FILE"
 fi
 if [[ $PURGE -eq 1 ]]; then
-    echo " Saturn root: $SATURN_ROOT (removed)"
-    echo " Web root: $WEB_ROOT (removed)"
-    echo " Mirror dir: $SATURN_HOME (removed)"
+  echo " Purged runtime dirs: $SATURN_ROOT, $WEB_ROOT, $SATURN_STATE_DIR"
 fi
 if [[ $REMOVE_PACKAGES -eq 1 ]]; then
-    echo " System packages removed: nginx apache2-utils golang-go python3 build-essential curl"
+  echo " Package cleanup attempted"
 fi
 echo "[OK] Uninstall complete."

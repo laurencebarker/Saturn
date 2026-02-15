@@ -67,6 +67,38 @@ def err_out(msg, exit_code=1):
     logging.error(msg)
     sys.exit(exit_code)
 
+def has_tty():
+    try:
+        return sys.stdin.isatty() and sys.stdout.isatty()
+    except Exception:
+        return False
+
+def sudo_prefix(step_desc):
+    """
+    Return the sudo prefix for privileged commands:
+      []             when already root
+      ["sudo"]       when an interactive TTY is available
+      ["sudo", "-n"] when non-interactive but passwordless sudo works
+    """
+    if os.geteuid() == 0:
+        return []
+    if has_tty():
+        return ["sudo"]
+    try:
+        rc = subprocess.run(
+            ["sudo", "-n", "-v"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode
+    except Exception:
+        rc = 1
+    if rc == 0:
+        return ["sudo", "-n"]
+    err_out(
+        f"{step_desc} requires root privileges and no interactive sudo is available. "
+        "Run in a terminal or configure passwordless sudo for this user."
+    )
+
 def section(title):
     cols, _ = term_size()
     print(f"\n{C.CYA}{'═'*5} {trunc(title, cols-12)} {'═'*5}{C.END}\n")
@@ -77,7 +109,7 @@ def run(cmd, *, live=False, cwd=None, check=True, env=None):
     if args.dry_run:
         info(f"[Dry Run] {' '.join(cmd)}")
         return 0, ""
-    if live or args.verbose:
+    if live:
         p = subprocess.Popen(cmd, cwd=cwd, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         for line in p.stdout:
             line = line.rstrip("\n")
@@ -92,6 +124,8 @@ def run(cmd, *, live=False, cwd=None, check=True, env=None):
         out = (cp.stdout or "") + (cp.stderr or "")
         if out.strip():
             for ln in out.splitlines():
+                if args.verbose:
+                    print(ln)
                 logging.info(ln)
         if check and cp.returncode != 0:
             err_out(f"Command failed ({cp.returncode}): {' '.join(cmd)}\n{out}")
@@ -308,15 +342,36 @@ def update_git():
 
 def install_libraries():
     section("Libraries")
-    script = os.path.join(SATURN_DIR, "scripts", "install-libraries.sh")
-    if not os.path.isfile(script):
-        warn("No install script found: scripts/install-libraries.sh")
-        return
     if args.dry_run:
-        info(f"[Dry Run] Would run: {script}")
+        info("[Dry Run] Would verify/install apt and Python dependencies")
         return
-    # sudo may prompt; your original bash script used sudo here as well
-    run(["bash", script], live=True, cwd=os.path.dirname(script))
+
+    apt_packages = [
+        "libgpiod-dev",
+        "libi2c-dev",
+        "rsync",
+        "lxterminal",
+        "libglib2.0-bin",
+        "libgtk-3-dev",
+    ]
+    missing = []
+    for pkg in apt_packages:
+        rc, out = run(["dpkg-query", "-W", "-f=${Status}", pkg], check=False)
+        if rc != 0 or "install ok installed" not in out:
+            missing.append(pkg)
+
+    if missing:
+        sudo_cmd = sudo_prefix("Installing required dev libraries")
+        run(sudo_cmd + ["apt-get", "install", "-y"] + missing, live=True)
+    else:
+        info("APT packages already installed")
+
+    venv_python = os.path.join(HOME, "venv", "bin", "python3")
+    if os.path.isfile(venv_python):
+        run([venv_python, "-m", "pip", "install", "rich==13.8.1", "psutil", "pyfiglet"], live=True)
+    else:
+        warn("Virtual environment not found at ~/venv; skipping Python package install")
+
     ok("Libraries installed")
 
 def build_p2app():
@@ -353,8 +408,8 @@ def install_udev_rules():
     if args.dry_run:
         info(f"[Dry Run] Would run (sudo) {script}")
         return
-    # match bash (cd rules && sudo ./install-rules.sh)
-    run(["sudo", "./install-rules.sh"], live=True, cwd=rules_dir)
+    sudo_cmd = sudo_prefix("Installing udev rules")
+    run(sudo_cmd + [script], live=True, cwd=rules_dir)
     ok("Rules installed")
 
 def install_desktop_icons():

@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Saturn Backup / Restore</title>
+
+<!-- Tailwind (utilities only) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    /* Classic dark */
+    --bg-color:#1f2937;        /* slate-800 */
+    --text-color:#ffffff;
+    --card-bg:rgba(31,41,55,0.85);
+    --border:rgba(255,255,255,0.18);
+    --shadow:rgba(0,0,0,0.35);
+    --primary:#3b82f6;         /* blue-500 */
+    --primary-600:#2563eb;     /* blue-600 */
+    --danger:#ef4444;
+    --ok:#10b981;
+    --input-bg:#111827;        /* slate-900 */
+    --input-text:#ffffff;
+  }
+  body.light{
+    /* Classic light */
+    --bg-color:#f9fafb;        /* gray-50 */
+    --text-color:#374151;      /* gray-700 */
+    --card-bg:rgba(255,255,255,0.92);
+    --border:rgba(0,0,0,0.08);
+    --shadow:rgba(0,0,0,0.12);
+    --primary:#2563eb;         /* blue-600 */
+    --primary-600:#1d4ed8;     /* blue-700 */
+    --danger:#dc2626;
+    --ok:#059669;
+    --input-bg:#ffffff;
+    --input-text:#374151;
+  }
+  html,body{height:100%}
+  body{
+    font-family:'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: radial-gradient(1000px 600px at 20% -10%, rgba(59,130,246,.25) 0%, transparent 60%),
+                radial-gradient(800px 500px at 100% 0%, rgba(16,185,129,.18) 0%, transparent 55%),
+                var(--bg-color);
+    color:var(--text-color);
+    transition:background .25s ease, color .25s ease;
+  }
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    box-shadow:0 10px 30px var(--shadow);
+    border-radius:16px;
+  }
+  .btn{
+    border-radius:12px; font-weight:600;
+    transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg, var(--primary), var(--primary-600));
+    color:#fff; box-shadow:0 6px 18px rgba(59,130,246,.35);
+  }
+  .btn-primary:hover{ transform:translateY(-1px); filter:brightness(1.05) }
+  .btn-danger{
+    background:linear-gradient(135deg, var(--danger), #b91c1c);
+    color:#fff; box-shadow:0 6px 18px rgba(239,68,68,.35);
+  }
+  .btn-ghost{
+    background:rgba(255,255,255,.08);
+    border:1px solid var(--border);
+    color:var(--text-color);
+  }
+  .field{
+    background:var(--input-bg);
+    color:var(--input-text);
+    border:1px solid var(--border);
+    border-radius:10px;
+  }
+  .title{ font-weight:800; letter-spacing:.2px }
+</style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-5xl mx-auto px-4 py-6 sm:py-10">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="title text-3xl sm:text-4xl">Backup / Restore</h1>
+      <div class="flex items-center gap-3">
+        <a href="./" class="btn btn-ghost px-3 py-2">Back</a>
+        <button id="theme-toggle" class="btn btn-ghost p-2" title="Toggle theme">
+          <svg id="theme-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+             d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="card p-5">
+      <h2 class="text-xl font-semibold mb-3">Full Repo Backup / Restore</h2>
+      <div class="flex flex-wrap gap-3 items-end mb-4">
+        <div class="min-w-[16rem] grow">
+          <label class="block text-sm mb-1">Active Repo Root</label>
+          <div id="repo-root" class="font-mono text-sm opacity-90">loading…</div>
+        </div>
+        <div class="min-w-[16rem] grow">
+          <label class="block text-sm mb-1">Switch Repo Root</label>
+          <select id="repo-root-select" class="field w-full px-3 py-2">
+            <option value="">loading...</option>
+          </select>
+        </div>
+        <button id="repo-root-refresh" class="btn btn-ghost px-4 py-2">Refresh Repos</button>
+        <button id="repo-root-apply" class="btn btn-primary px-4 py-2">Apply Repo Root</button>
+      </div>
+      <div id="repo-root-status" class="text-sm opacity-80 mb-4"></div>
+      <div class="text-sm opacity-80 mb-4">
+        Backup and restore operations use the active repo root shown above.
+      </div>
+      <div class="flex flex-wrap gap-3 items-end">
+        <button id="backup-download" class="btn btn-primary px-4 py-2">Download Full Backup</button>
+        <div>
+          <label class="block text-sm mb-1">Upload .tar.gz</label>
+          <input id="restore-file" type="file" accept=".tar.gz" class="field px-3 py-2" />
+        </div>
+        <button id="restore-validate" class="btn btn-ghost px-4 py-2">Validate</button>
+        <div>
+          <label class="block text-sm mb-1">Type RESTORE</label>
+          <input id="restore-confirm" type="text" placeholder="RESTORE" class="field px-3 py-2" />
+        </div>
+        <button id="restore-upload" class="btn btn-danger px-4 py-2">Restore</button>
+      </div>
+      <div class="mt-3">
+        <progress id="backup-progress" class="hidden w-full"></progress>
+        <div id="backup-status" class="text-sm opacity-80 mt-2"></div>
+      </div>
+      <div class="mt-3">
+        <progress id="restore-progress" max="100" value="0" class="hidden w-full"></progress>
+        <div id="restore-status" class="text-sm opacity-80 mt-2"></div>
+      </div>
+      <p class="text-sm opacity-80 mt-3">
+        Restore overwrites the repo after extraction. Use Validate first to check the archive.
+      </p>
+    </div>
+
+    <div class="card p-5 mt-6">
+      <h2 class="text-xl font-semibold mb-3">Appliance Update</h2>
+      <div class="text-sm opacity-80 mb-4">
+        Transactional GitHub update with pre-update snapshot and auto-rollback on health check failure.
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm mb-1">GitHub Owner</label>
+          <input id="upd-owner" type="text" class="field px-3 py-2 w-full" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">GitHub Repo</label>
+          <input id="upd-repo" type="text" class="field px-3 py-2 w-full" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Channel</label>
+          <select id="upd-channel" class="field px-3 py-2 w-full">
+            <option value="stable">stable</option>
+            <option value="beta">beta</option>
+            <option value="custom">custom</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Custom Ref</label>
+          <input id="upd-custom-ref" type="text" placeholder="custom branch/tag/commit" class="field px-3 py-2 w-full" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Stable Ref</label>
+          <input id="upd-stable-ref" type="text" class="field px-3 py-2 w-full" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Beta Ref</label>
+          <input id="upd-beta-ref" type="text" class="field px-3 py-2 w-full" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Healthcheck URL</label>
+          <input id="upd-health-url" type="text" class="field px-3 py-2 w-full" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Health Timeout (sec)</label>
+          <input id="upd-health-timeout" type="number" min="2" max="30" class="field px-3 py-2 w-full" />
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-4 mt-3 items-center">
+        <label class="inline-flex items-center gap-2 text-sm">
+          <input id="upd-auto-snapshot" type="checkbox" class="h-4 w-4" checked>
+          Auto snapshot before update
+        </label>
+        <div>
+          <label class="block text-sm mb-1">Keep snapshots</label>
+          <input id="upd-keep-snapshots" type="number" min="1" max="50" class="field px-3 py-2 w-28" />
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-3 mt-4">
+        <button id="upd-policy-refresh" class="btn btn-ghost px-4 py-2">Refresh Policy</button>
+        <button id="upd-policy-save" class="btn btn-primary px-4 py-2">Save Policy</button>
+        <button id="upd-start" class="btn btn-primary px-4 py-2">Start Update</button>
+        <button id="upd-rollback" class="btn btn-danger px-4 py-2">Rollback</button>
+      </div>
+      <pre id="upd-status" class="mt-3 p-3 rounded border border-white/20 bg-black/40 text-xs overflow-auto" style="max-height:280px"></pre>
+    </div>
+
+    <div class="card p-5 mt-6">
+      <h2 class="text-xl font-semibold mb-3">Repair Pack</h2>
+      <div class="text-sm opacity-80 mb-4">
+        Downloads a tar.gz with the critical runtime, config, and service files needed to repair a broken system.
+      </div>
+      <div class="flex flex-wrap gap-3 items-end">
+        <button id="repair-download" class="btn btn-primary px-4 py-2">Download Repair Pack</button>
+        <button id="repair-verify" class="btn btn-ghost px-4 py-2">Verify System Config</button>
+      </div>
+      <div class="mt-3">
+        <pre id="repair-status" class="p-3 rounded border border-white/20 bg-black/40 text-xs overflow-auto" style="max-height:220px"></pre>
+      </div>
+    </div>
+
+    <div class="card p-5 mt-6">
+      <h2 class="text-xl font-semibold mb-3">Create Pi Image</h2>
+      <div class="text-sm opacity-80 mb-4">
+        Creates a minimized SD card image, validates it, then allows download. The file is deleted after download.
+      </div>
+      <div class="flex flex-wrap gap-3 items-end">
+        <div>
+          <label class="block text-sm mb-1">Output Directory</label>
+          <input id="pi-out-dir" type="text" class="field px-3 py-2 w-64" value="/mnt/usb" />
+        </div>
+        <label class="inline-flex items-center gap-2 text-sm">
+          <input id="pi-shrink" type="checkbox" class="h-4 w-4" checked>
+          Shrink image (PiShrink)
+        </label>
+        <label class="inline-flex items-center gap-2 text-sm">
+          <input id="pi-compress" type="checkbox" class="h-4 w-4">
+          Compress (.xz)
+        </label>
+        <button id="pi-start" class="btn btn-primary px-4 py-2">Create Image</button>
+        <button id="pi-cancel" class="btn btn-ghost px-4 py-2" disabled>Cancel</button>
+        <button id="pi-download" class="btn btn-ghost px-4 py-2" disabled>Download Image</button>
+      </div>
+      <div class="mt-3">
+        <progress id="pi-progress" max="100" value="0" class="hidden w-full"></progress>
+        <div id="pi-status" class="text-sm opacity-80 mt-2"></div>
+        <div id="pi-validate" class="text-sm opacity-80 mt-1"></div>
+        <pre id="pi-log" class="mt-3 p-3 rounded border border-white/20 bg-black/40 text-xs overflow-auto" style="max-height:220px"></pre>
+      </div>
+    </div>
+
+    <div class="card p-5 mt-6">
+      <h2 class="text-xl font-semibold mb-3">Clone SD Card to USB/SD Reader</h2>
+      <div class="text-sm opacity-80 mb-4">
+        Clones <code>/dev/mmcblk0</code> to a removable device. Target will be overwritten.
+      </div>
+      <div class="flex flex-wrap gap-3 items-end">
+        <div>
+          <label class="block text-sm mb-1">Target Device</label>
+          <select id="clone-target" class="field px-3 py-2 w-64">
+            <option value="">Select device…</option>
+          </select>
+        </div>
+        <button id="clone-refresh" class="btn btn-ghost px-4 py-2">Refresh</button>
+        <button id="clone-start" class="btn btn-primary px-4 py-2">Start Clone</button>
+        <button id="clone-cancel" class="btn btn-ghost px-4 py-2" disabled>Cancel</button>
+      </div>
+      <div class="mt-3">
+        <progress id="clone-progress" max="100" value="0" class="hidden w-full"></progress>
+        <div id="clone-status" class="text-sm opacity-80 mt-2"></div>
+        <pre id="clone-log" class="mt-3 p-3 rounded border border-white/20 bg-black/40 text-xs overflow-auto" style="max-height:220px"></pre>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* Theme toggle */
+(function themeInit(){
+  const toggle = document.getElementById('theme-toggle');
+  const icon   = document.getElementById('theme-icon');
+  function setIcon(light){
+    icon.innerHTML = light
+      ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>'
+      : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+  }
+  const stored = localStorage.getItem('theme');
+  const light  = stored === 'light';
+  document.body.classList.toggle('light', light);
+  setIcon(light);
+  toggle.addEventListener('click', ()=>{
+    const isLight = document.body.classList.toggle('light');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    setIcon(isLight);
+  });
+})();
+
+const $ = (id) => document.getElementById(id);
+function show(el, on){ el.classList.toggle('hidden', !on); }
+const CSRF_HEADER_NAME = 'X-Saturn-CSRF';
+const CSRF_HEADER_VALUE = '1';
+
+function withCsrf(headers = {}){
+  return { ...headers, [CSRF_HEADER_NAME]: CSRF_HEADER_VALUE };
+}
+function setBackupStatus(msg, isError=false){
+  const el = $('backup-status');
+  el.textContent = msg || '';
+  el.classList.toggle('text-red-400', !!isError);
+}
+
+function setRepoRootStatus(msg, isError=false){
+  const el = $('repo-root-status');
+  el.textContent = msg || '';
+  el.classList.toggle('text-red-400', !!isError);
+}
+
+async function loadRepoRoots(){
+  try{
+    const r = await fetch('./list_repo_roots', { headers:{'Cache-Control':'no-cache'} });
+    const data = await r.json();
+    const active = data.active || 'unknown';
+    $('repo-root').textContent = active;
+
+    const sel = $('repo-root-select');
+    const roots = Array.isArray(data.repo_roots) ? data.repo_roots.slice() : [];
+    if (!roots.includes(active) && active !== 'unknown') roots.unshift(active);
+    sel.innerHTML = '';
+    if (!roots.length) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No repo roots found';
+      sel.appendChild(opt);
+    } else {
+      roots.forEach((root)=>{
+        const opt = document.createElement('option');
+        opt.value = root;
+        opt.textContent = root;
+        sel.appendChild(opt);
+      });
+      sel.value = active;
+    }
+    setRepoRootStatus('');
+  }catch(e){
+    $('repo-root').textContent = 'unknown';
+    setRepoRootStatus(`Failed to load repo roots: ${e.message}`, true);
+  }
+}
+
+$('repo-root-refresh').addEventListener('click', loadRepoRoots);
+$('repo-root-apply').addEventListener('click', async ()=>{
+  const repoRoot = $('repo-root-select').value.trim();
+  if (!repoRoot) {
+    setRepoRootStatus('Select a repo root first.', true);
+    return;
+  }
+  try{
+    const r = await fetch('./set_repo_root', {
+      method:'POST',
+      headers:withCsrf({'Content-Type':'application/json'}),
+      body: JSON.stringify({ repo_root: repoRoot }),
+    });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+    setRepoRootStatus(`Active repo root set to: ${data.repo_root || repoRoot}`);
+    await loadRepoRoots();
+  }catch(e){
+    setRepoRootStatus(`Failed to set repo root: ${e.message}`, true);
+  }
+});
+
+$('backup-download').addEventListener('click', ()=>{
+  const p = $('backup-progress');
+  show(p, true);
+  setBackupStatus('Preparing download… Check your browser downloads.');
+  window.location.href = './backup_full';
+  setTimeout(()=>{ show(p, false); }, 8000);
+});
+
+function setRestoreStatus(msg, isError=false){
+  const el = $('restore-status');
+  el.textContent = msg || '';
+  el.classList.toggle('text-red-400', !!isError);
+}
+
+function uploadRestore(dryRun){
+  const file = $('restore-file').files[0];
+  if (!file) { setRestoreStatus('Select a .tar.gz file first', true); return; }
+  const confirmText = $('restore-confirm').value.trim();
+  if (!dryRun && confirmText !== 'RESTORE') {
+    setRestoreStatus('Type RESTORE to confirm restore', true);
+    return;
+  }
+  const fd = new FormData();
+  fd.append('file', file);
+  if (!dryRun) fd.append('confirm', confirmText);
+
+  const progress = $('restore-progress');
+  show(progress, true);
+  progress.value = 0;
+  setRestoreStatus(dryRun ? 'Validating archive…' : 'Uploading and restoring…');
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', dryRun ? './restore_full?dry_run=1' : './restore_full', true);
+  xhr.setRequestHeader(CSRF_HEADER_NAME, CSRF_HEADER_VALUE);
+  xhr.upload.onprogress = (e)=>{
+    if (e.lengthComputable) {
+      progress.value = Math.round((e.loaded / e.total) * 100);
+    }
+  };
+  xhr.onreadystatechange = ()=>{
+    if (xhr.readyState !== 4) return;
+    show(progress, false);
+    const ok = xhr.status >= 200 && xhr.status < 300;
+    let data = {};
+    try { data = JSON.parse(xhr.responseText || '{}'); } catch {}
+    if (!ok) {
+      const msg = data.message || `HTTP ${xhr.status}`;
+      setRestoreStatus(`Restore failed: ${msg}`, true);
+      return;
+    }
+    if (dryRun) {
+      const size = (data.bytes || 0);
+      const files = data.files || 0;
+      const dirs = data.dirs || 0;
+      setRestoreStatus(`Validation OK. ${files} files, ${dirs} dirs, ${Math.round(size/1024/1024)} MB.`);
+    } else {
+      setRestoreStatus('Restore complete.');
+    }
+  };
+  xhr.onerror = ()=>{
+    show(progress, false);
+    setRestoreStatus('Restore failed: network error', true);
+  };
+  xhr.send(fd);
+}
+
+$('restore-validate').addEventListener('click', ()=> uploadRestore(true));
+$('restore-upload').addEventListener('click', ()=> {
+  if (!confirm('This will overwrite the repo. Continue?')) return;
+  uploadRestore(false);
+});
+
+loadRepoRoots();
+
+let updPoll = null;
+function setUpdateStatusText(text){
+  $('upd-status').textContent = text || '';
+}
+
+function syncCustomRefState(){
+  const custom = $('upd-channel').value === 'custom';
+  $('upd-custom-ref').disabled = !custom;
+}
+
+function applyUpdatePolicyToForm(policy){
+  if (!policy) return;
+  $('upd-owner').value = policy.owner || '';
+  $('upd-repo').value = policy.repo || '';
+  $('upd-channel').value = policy.channel || 'stable';
+  $('upd-stable-ref').value = policy.stable_ref || 'main';
+  $('upd-beta-ref').value = policy.beta_ref || 'beta';
+  $('upd-custom-ref').value = policy.custom_ref || '';
+  $('upd-auto-snapshot').checked = !!policy.auto_snapshot;
+  $('upd-keep-snapshots').value = Number(policy.keep_snapshots || 5);
+  $('upd-health-url').value = policy.healthcheck_url || '';
+  $('upd-health-timeout').value = Number(policy.healthcheck_timeout_secs || 8);
+  syncCustomRefState();
+}
+
+function getPolicyFromForm(){
+  const customRef = $('upd-custom-ref').value.trim();
+  return {
+    owner: $('upd-owner').value.trim(),
+    repo: $('upd-repo').value.trim(),
+    remote: 'origin',
+    channel: $('upd-channel').value,
+    stable_ref: $('upd-stable-ref').value.trim(),
+    beta_ref: $('upd-beta-ref').value.trim(),
+    custom_ref: customRef ? customRef : null,
+    auto_snapshot: $('upd-auto-snapshot').checked,
+    keep_snapshots: Number($('upd-keep-snapshots').value || 5),
+    healthcheck_url: $('upd-health-url').value.trim(),
+    healthcheck_timeout_secs: Number($('upd-health-timeout').value || 8),
+  };
+}
+
+async function loadUpdatePolicy(){
+  try{
+    const r = await fetch('./update_policy', { cache:'no-store' });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+    applyUpdatePolicyToForm(data.policy || {});
+  }catch(e){
+    setUpdateStatusText(`Failed to load update policy: ${e.message}`);
+  }
+}
+
+function renderUpdateStatus(data){
+  setUpdateStatusText(JSON.stringify(data || {}, null, 2));
+  const running = data?.job?.status === 'running';
+  if (running && !updPoll){
+    updPoll = setInterval(refreshUpdateStatus, 1500);
+  } else if (!running && updPoll){
+    clearInterval(updPoll);
+    updPoll = null;
+  }
+}
+
+async function refreshUpdateStatus(){
+  try{
+    const r = await fetch('./update_status', { cache:'no-store' });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+    renderUpdateStatus(data);
+  }catch(e){
+    setUpdateStatusText(`Failed to load update status: ${e.message}`);
+  }
+}
+
+$('upd-channel').addEventListener('change', syncCustomRefState);
+$('upd-policy-refresh').addEventListener('click', async ()=>{
+  await loadUpdatePolicy();
+  await refreshUpdateStatus();
+});
+
+$('upd-policy-save').addEventListener('click', async ()=>{
+  try{
+    const r = await fetch('./update_policy', {
+      method:'POST',
+      headers: withCsrf({'Content-Type':'application/json'}),
+      body: JSON.stringify(getPolicyFromForm()),
+    });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+    applyUpdatePolicyToForm(data.policy || {});
+    setUpdateStatusText('Update policy saved.');
+    await refreshUpdateStatus();
+  }catch(e){
+    setUpdateStatusText(`Save policy failed: ${e.message}`);
+  }
+});
+
+$('upd-start').addEventListener('click', async ()=>{
+  if (!confirm('Start transactional update now?')) return;
+  try{
+    const payload = {
+      channel: $('upd-channel').value,
+      custom_ref: $('upd-custom-ref').value.trim() || null,
+    };
+    const r = await fetch('./update_start', {
+      method:'POST',
+      headers: withCsrf({'Content-Type':'application/json'}),
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+    setUpdateStatusText(`Update started. Job: ${data.job_id || 'n/a'}`);
+    await refreshUpdateStatus();
+  }catch(e){
+    setUpdateStatusText(`Update start failed: ${e.message}`);
+  }
+});
+
+$('upd-rollback').addEventListener('click', async ()=>{
+  if (!confirm('Rollback to the previous repo root now?')) return;
+  try{
+    const r = await fetch('./update_rollback', {
+      method:'POST',
+      headers: withCsrf(),
+    });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+    setUpdateStatusText(`Rollback complete. Active root: ${data.repo_root || ''}`);
+    await loadRepoRoots();
+    await refreshUpdateStatus();
+  }catch(e){
+    setUpdateStatusText(`Rollback failed: ${e.message}`);
+  }
+});
+
+loadUpdatePolicy();
+refreshUpdateStatus();
+
+/* Pi image create/download */
+let piJobId = null;
+let piPoll = null;
+
+function setPiStatus(msg, isError=false){
+  const el = $('pi-status');
+  el.textContent = msg || '';
+  el.classList.toggle('text-red-400', !!isError);
+}
+
+function setPiValidate(msg){
+  $('pi-validate').textContent = msg || '';
+}
+
+function setPiLog(lines){
+  const el = $('pi-log');
+  el.textContent = (lines || []).join('\n');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function pollPiStatus(){
+  if (!piJobId) return;
+  try{
+    const r = await fetch(`./pi_image_status?job_id=${encodeURIComponent(piJobId)}`, { cache:'no-store' });
+    const data = await r.json();
+    const p = $('pi-progress');
+    show(p, true);
+    p.value = data.progress || 0;
+    if (data.status === 'running'){
+      setPiStatus(data.message || 'Running…');
+      setPiLog(data.log || []);
+      $('pi-cancel').disabled = false;
+    } else if (data.status === 'done'){
+      setPiStatus('Image ready for download.');
+      const mb = Math.round((data.size_bytes||0)/1024/1024);
+      const sha = data.sha256 ? `SHA256: ${data.sha256}` : '';
+      setPiValidate(`Size: ${mb} MB. ${sha}`);
+      setPiLog(data.log || []);
+      $('pi-download').disabled = false;
+      $('pi-cancel').disabled = true;
+      clearInterval(piPoll); piPoll = null;
+    } else if (data.status === 'cancelled'){
+      setPiStatus('Cancelled.', true);
+      setPiLog(data.log || []);
+      $('pi-cancel').disabled = true;
+      clearInterval(piPoll); piPoll = null;
+    } else {
+      setPiStatus(data.message || 'Failed', true);
+      setPiLog(data.log || []);
+      $('pi-cancel').disabled = true;
+      clearInterval(piPoll); piPoll = null;
+    }
+  }catch(e){
+    setPiStatus(`Status error: ${e.message}`, true);
+  }
+}
+
+$('pi-start').addEventListener('click', async ()=>{
+  if (!confirm('Create a Pi image now? This may take a while.')) return;
+  $('pi-download').disabled = true;
+  $('pi-cancel').disabled = true;
+  setPiValidate('');
+  setPiLog([]);
+  const payload = {
+    shrink: $('pi-shrink').checked,
+    compress: $('pi-compress').checked,
+    out_dir: $('pi-out-dir').value.trim() || '/tmp',
+  };
+  try{
+    const r = await fetch('./pi_image_start', {
+      method:'POST',
+      headers:withCsrf({'Content-Type':'application/json'}),
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+    piJobId = data.job_id;
+    setPiStatus('Started…');
+    $('pi-cancel').disabled = false;
+    if (piPoll) clearInterval(piPoll);
+    piPoll = setInterval(pollPiStatus, 1500);
+    pollPiStatus();
+  }catch(e){
+    setPiStatus(`Start failed: ${e.message}`, true);
+  }
+});
+
+$('pi-cancel').addEventListener('click', async ()=>{
+  if (!piJobId) return;
+  if (!confirm('Cancel the image creation?')) return;
+  try{
+    const r = await fetch(`./pi_image_cancel?job_id=${encodeURIComponent(piJobId)}`, {
+      method:'POST',
+      headers: withCsrf()
+    });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+    setPiStatus('Cancelled.', true);
+    $('pi-cancel').disabled = true;
+  }catch(e){
+    setPiStatus(`Cancel failed: ${e.message}`, true);
+  }
+});
+
+$('pi-download').addEventListener('click', ()=>{
+  if (!piJobId) return;
+  window.location.href = `./pi_image_download?job_id=${encodeURIComponent(piJobId)}`;
+});
+
+/* Clone to removable device */
+let cloneJobId = null;
+let clonePoll = null;
+
+function setCloneStatus(msg, isError=false){
+  const el = $('clone-status');
+  el.textContent = msg || '';
+  el.classList.toggle('text-red-400', !!isError);
+}
+
+function setCloneLog(lines){
+  const el = $('clone-log');
+  el.textContent = (lines || []).join('\n');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function loadCloneDevices(){
+  const sel = $('clone-target');
+  sel.innerHTML = '<option value="">Select device…</option>';
+  try{
+    const r = await fetch('./pi_devices', { cache:'no-store' });
+    const data = await r.json();
+    (data.devices || []).forEach(d=>{
+      const opt = document.createElement('option');
+      const gb = (d.size_bytes || 0) / (1024*1024*1024);
+      opt.value = d.path;
+      opt.textContent = `${d.path} (${gb.toFixed(1)} GB) ${d.model || ''}`.trim();
+      sel.appendChild(opt);
+    });
+  }catch(e){
+    setCloneStatus(`Device scan failed: ${e.message}`, true);
+  }
+}
+
+async function pollCloneStatus(){
+  if (!cloneJobId) return;
+  try{
+    const r = await fetch(`./pi_clone_status?job_id=${encodeURIComponent(cloneJobId)}`, { cache:'no-store' });
+    const data = await r.json();
+    const p = $('clone-progress');
+    show(p, true);
+    p.value = data.progress || 0;
+    if (data.status === 'running'){
+      setCloneStatus(data.message || 'Running…');
+      setCloneLog(data.log || []);
+      $('clone-cancel').disabled = false;
+    } else if (data.status === 'done'){
+      setCloneStatus('Clone complete.');
+      setCloneLog(data.log || []);
+      $('clone-cancel').disabled = true;
+      clearInterval(clonePoll); clonePoll = null;
+    } else if (data.status === 'cancelled'){
+      setCloneStatus('Cancelled.', true);
+      setCloneLog(data.log || []);
+      $('clone-cancel').disabled = true;
+      clearInterval(clonePoll); clonePoll = null;
+    } else {
+      setCloneStatus(data.message || 'Failed', true);
+      setCloneLog(data.log || []);
+      $('clone-cancel').disabled = true;
+      clearInterval(clonePoll); clonePoll = null;
+    }
+  }catch(e){
+    setCloneStatus(`Status error: ${e.message}`, true);
+  }
+}
+
+$('clone-refresh').addEventListener('click', loadCloneDevices);
+$('clone-start').addEventListener('click', async ()=>{
+  const target = $('clone-target').value;
+  if (!target) { setCloneStatus('Select a target device.', true); return; }
+  if (!confirm(`This will overwrite ${target}. Continue?`)) return;
+  setCloneLog([]);
+  setCloneStatus('Starting…');
+  try{
+    const r = await fetch('./pi_clone_start', {
+      method:'POST',
+      headers:withCsrf({'Content-Type':'application/json'}),
+      body: JSON.stringify({ target }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+    cloneJobId = data.job_id;
+    if (clonePoll) clearInterval(clonePoll);
+    clonePoll = setInterval(pollCloneStatus, 1500);
+    pollCloneStatus();
+  }catch(e){
+    setCloneStatus(`Start failed: ${e.message}`, true);
+  }
+});
+
+$('clone-cancel').addEventListener('click', async ()=>{
+  if (!cloneJobId) return;
+  if (!confirm('Cancel the clone?')) return;
+  try{
+    const r = await fetch(`./pi_clone_cancel?job_id=${encodeURIComponent(cloneJobId)}`, {
+      method:'POST',
+      headers: withCsrf()
+    });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+    setCloneStatus('Cancelled.', true);
+    $('clone-cancel').disabled = true;
+  }catch(e){
+    setCloneStatus(`Cancel failed: ${e.message}`, true);
+  }
+});
+
+loadCloneDevices();
+
+/* Repair pack */
+$('repair-download').addEventListener('click', ()=>{
+  window.location.href = './repair_pack';
+});
+
+$('repair-verify').addEventListener('click', async ()=>{
+  const out = $('repair-status');
+  out.textContent = 'Checking...';
+  try{
+    const r = await fetch('./verify_system_config', { cache:'no-store' });
+    const data = await r.json();
+    out.textContent = JSON.stringify(data, null, 2);
+  }catch(e){
+    out.textContent = `Verify failed: ${e.message}`;
+  }
+});
+
+</script>
+</body>
+</html>
