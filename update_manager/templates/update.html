@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Saturn Update Center</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/ansi_up@5.2.1/ansi_up.min.js"></script>
+
+<style>
+  :root{
+    --bg-color:#1f2937;
+    --text-color:#ffffff;
+    --card-bg:rgba(31,41,55,0.85);
+    --border:rgba(255,255,255,0.18);
+    --shadow:rgba(0,0,0,0.35);
+    --primary:#3b82f6;
+    --primary-600:#2563eb;
+    --danger:#ef4444;
+    --ok:#10b981;
+    --input-bg:#111827;
+    --input-text:#ffffff;
+  }
+  body.light{
+    --bg-color:#f9fafb;
+    --text-color:#374151;
+    --card-bg:rgba(255,255,255,0.92);
+    --border:rgba(0,0,0,0.08);
+    --shadow:rgba(0,0,0,0.12);
+    --primary:#2563eb;
+    --primary-600:#1d4ed8;
+    --danger:#dc2626;
+    --ok:#059669;
+    --input-bg:#ffffff;
+    --input-text:#374151;
+  }
+  html,body{height:100%}
+  body{
+    font-family:'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: radial-gradient(1000px 600px at 20% -10%, rgba(59,130,246,.25) 0%, transparent 60%),
+                radial-gradient(800px 500px at 100% 0%, rgba(16,185,129,.18) 0%, transparent 55%),
+                var(--bg-color);
+    color:var(--text-color);
+    transition:background .25s ease, color .25s ease;
+  }
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    box-shadow:0 10px 30px var(--shadow);
+    border-radius:16px;
+  }
+  .btn{
+    border-radius:12px;
+    font-weight:600;
+    transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg, var(--primary), var(--primary-600));
+    color:#fff;
+    box-shadow:0 6px 18px rgba(59,130,246,.35);
+  }
+  .btn-primary:hover{ transform:translateY(-1px); filter:brightness(1.05) }
+  .btn-danger{
+    background:linear-gradient(135deg, var(--danger), #b91c1c);
+    color:#fff;
+    box-shadow:0 6px 18px rgba(239,68,68,.35);
+  }
+  .btn-ghost{
+    background:rgba(255,255,255,.08);
+    border:1px solid var(--border);
+    color:var(--text-color);
+  }
+  .field{
+    background:var(--input-bg);
+    color:var(--input-text);
+    border:1px solid var(--border);
+    border-radius:10px;
+  }
+  pre{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    background:#0a0a0a;
+    color:#fff;
+    border-radius:10px;
+    border:1px solid #333;
+    padding:1rem;
+  }
+  body.light pre{ background:#f3f4f6; color:#111; border-color:#d1d5db }
+  .title{ font-weight:800; letter-spacing:.2px }
+</style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 py-6 sm:py-10">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <h1 class="title text-3xl sm:text-4xl">Saturn Update Center</h1>
+      <div class="flex items-center gap-3">
+        <a href="./" class="btn btn-ghost px-4 py-2">Main</a>
+        <a href="./backup" class="btn btn-ghost px-4 py-2">Backup / Restore</a>
+        <a href="./monitor" class="btn btn-ghost px-4 py-2">Monitor</a>
+        <button id="theme-toggle" class="btn btn-ghost p-2" title="Toggle theme">
+          <svg id="theme-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+             d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div class="card p-5">
+        <h2 class="text-xl font-semibold mb-2">Update G2 (Terminal)</h2>
+        <p class="text-sm opacity-80 mb-4">Runs <code>update-G2.py</code> with live terminal output. If Appliance Update already moved git, use <code>--skip-git</code>.</p>
+
+        <div class="mb-3">
+          <label class="block text-sm mb-1">Flags</label>
+          <div id="g2-flags" class="flex flex-wrap gap-4"></div>
+        </div>
+
+        <div class="flex flex-wrap gap-3 items-center mb-3">
+          <button id="g2-run" class="btn btn-primary px-5 py-2">Run Update G2</button>
+          <button id="g2-clear" class="btn btn-ghost px-4 py-2">Clear Output</button>
+          <progress id="g2-progress" max="100" value="0" class="hidden w-48"></progress>
+        </div>
+
+        <pre id="g2-output" style="min-height:360px; max-height:520px; overflow:auto;"></pre>
+      </div>
+
+      <div class="card p-5">
+        <h2 class="text-xl font-semibold mb-2">Appliance Update</h2>
+        <p class="text-sm opacity-80 mb-4">Transactional Git update with staged repo root switch and rollback.</p>
+
+        <div class="mb-4">
+          <div class="text-sm opacity-80">Active Repo Root</div>
+          <div id="upd-repo-root" class="font-mono text-sm">loading...</div>
+          <a href="./backup" class="inline-block mt-2 text-sm underline opacity-90">Manage repo roots in Backup / Restore</a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm mb-1">GitHub Owner</label>
+            <input id="upd-owner" type="text" class="field px-3 py-2 w-full" />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">GitHub Repo</label>
+            <input id="upd-repo" type="text" class="field px-3 py-2 w-full" />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Channel</label>
+            <select id="upd-channel" class="field px-3 py-2 w-full">
+              <option value="stable">stable</option>
+              <option value="beta">beta</option>
+              <option value="custom">custom</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Custom Ref</label>
+            <input id="upd-custom-ref" type="text" placeholder="branch/tag/commit" class="field px-3 py-2 w-full" />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Stable Ref</label>
+            <input id="upd-stable-ref" type="text" class="field px-3 py-2 w-full" />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Beta Ref</label>
+            <input id="upd-beta-ref" type="text" class="field px-3 py-2 w-full" />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Healthcheck URL</label>
+            <input id="upd-health-url" type="text" class="field px-3 py-2 w-full" />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Health Timeout (sec)</label>
+            <input id="upd-health-timeout" type="number" min="2" max="30" class="field px-3 py-2 w-full" />
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-4 mt-3 items-center">
+          <label class="inline-flex items-center gap-2 text-sm">
+            <input id="upd-auto-snapshot" type="checkbox" class="h-4 w-4" checked>
+            Auto snapshot before update
+          </label>
+          <div>
+            <label class="block text-sm mb-1">Keep snapshots</label>
+            <input id="upd-keep-snapshots" type="number" min="1" max="50" class="field px-3 py-2 w-28" />
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-3 mt-4">
+          <button id="upd-policy-refresh" class="btn btn-ghost px-4 py-2">Refresh Policy</button>
+          <button id="upd-policy-save" class="btn btn-primary px-4 py-2">Save Policy</button>
+          <button id="upd-start" class="btn btn-primary px-4 py-2">Start Update</button>
+          <button id="upd-rollback" class="btn btn-danger px-4 py-2">Rollback</button>
+        </div>
+
+        <pre id="upd-status" class="mt-3" style="min-height:360px; max-height:520px; overflow:auto;"></pre>
+      </div>
+    </div>
+  </div>
+
+  <div id="backup-modal" class="fixed inset-0 hidden items-center justify-center bg-black/50 p-4">
+    <div class="card p-6 max-w-md w-full">
+      <h3 class="text-xl font-semibold mb-2">Backup Prompt</h3>
+      <p class="mb-4">Create a backup? (Y/n)</p>
+      <div class="flex gap-3 justify-end">
+        <button id="backup-yes" class="btn btn-primary px-4 py-2">Yes</button>
+        <button id="backup-no" class="btn btn-ghost px-4 py-2">No</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function themeInit(){
+  const toggle = document.getElementById('theme-toggle');
+  const icon = document.getElementById('theme-icon');
+  function setIcon(light){
+    icon.innerHTML = light
+      ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>'
+      : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+  }
+  const stored = localStorage.getItem('theme');
+  const light = stored === 'light';
+  document.body.classList.toggle('light', light);
+  setIcon(light);
+  toggle.addEventListener('click', ()=>{
+    const isLight = document.body.classList.toggle('light');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    setIcon(isLight);
+  });
+})();
+
+const ansi_up = new AnsiUp();
+ansi_up.use_classes = false;
+const $ = (id)=>document.getElementById(id);
+const CSRF_HEADER_NAME = 'X-Saturn-CSRF';
+const CSRF_HEADER_VALUE = '1';
+function withCsrf(headers = {}){ return { ...headers, [CSRF_HEADER_NAME]: CSRF_HEADER_VALUE }; }
+function show(el, on){ el.classList.toggle('hidden', !on); }
+
+function appendG2(line){
+  const out = $('g2-output');
+  out.innerHTML += ansi_up.ansi_to_html(line) + '<br>';
+  out.scrollTop = out.scrollHeight;
+}
+
+async function loadG2Flags(){
+  const host = $('g2-flags');
+  host.innerHTML = '';
+  try{
+    const r = await fetch('./get_flags?script=' + encodeURIComponent('update-G2.py'));
+    const data = await r.json().catch(()=>({}));
+    const flags = Array.isArray(data.flags) ? data.flags : [];
+    if (!flags.length){
+      host.textContent = 'No flags found for update-G2.py';
+      return;
+    }
+    flags.forEach((flag)=>{
+      const lbl = document.createElement('label');
+      lbl.className = 'inline-flex items-center gap-2';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.value = flag;
+      input.className = 'h-5 w-5';
+      if (flag === '--verbose') input.checked = true;
+      const text = document.createElement('span');
+      text.textContent = flag;
+      lbl.appendChild(input);
+      lbl.appendChild(text);
+      host.appendChild(lbl);
+    });
+  }catch(e){
+    host.textContent = 'Failed to load flags: ' + e.message;
+  }
+}
+
+async function sendBackupResponse(letter){
+  try{
+    await fetch('./backup_response', {
+      method: 'POST',
+      headers: withCsrf({'Content-Type':'application/x-www-form-urlencoded'}),
+      body: 'response=' + encodeURIComponent(letter),
+    });
+  }catch(_e){}
+  $('backup-modal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+$('backup-yes').addEventListener('click', ()=>sendBackupResponse('y'));
+$('backup-no').addEventListener('click', ()=>sendBackupResponse('n'));
+
+$('g2-clear').addEventListener('click', ()=>{
+  $('g2-output').innerHTML = '';
+  $('g2-progress').value = 0;
+  show($('g2-progress'), false);
+});
+
+$('g2-run').addEventListener('click', async ()=>{
+  const btn = $('g2-run');
+  const progress = $('g2-progress');
+  btn.disabled = true;
+  progress.value = 0;
+  show(progress, true);
+  appendG2('\x1b[36mStarting update-G2.py...\x1b[0m');
+
+  const selectedFlags = Array.from(document.querySelectorAll('#g2-flags input[type=checkbox]:checked')).map(el=>el.value);
+
+  try{
+    const fd = new FormData();
+    fd.append('script', 'update-G2.py');
+    selectedFlags.forEach((f)=>fd.append('flags', f));
+
+    const res = await fetch('./run', {
+      method: 'POST',
+      body: fd,
+      headers: withCsrf({'Accept':'text/event-stream'}),
+    });
+    if (!res.ok) {
+      let msg = 'HTTP ' + res.status;
+      try{
+        const data = await res.json();
+        if (data && data.message) msg = data.message;
+      }catch(_e){}
+      throw new Error(msg);
+    }
+
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+
+    while (true){
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const chunks = buf.split('\n\n');
+      buf = chunks.pop() || '';
+
+      for (const c of chunks){
+        if (!c.startsWith('data: ')) continue;
+        const line = c.slice(6);
+
+        if (line === 'BACKUP_PROMPT'){
+          $('backup-modal').classList.remove('hidden');
+          document.body.style.overflow = 'hidden';
+          continue;
+        }
+
+        appendG2(line);
+        const m = line.match(/Progress:\s*(\d+)%/i);
+        if (m) progress.value = parseInt(m[1], 10);
+      }
+    }
+  }catch(e){
+    appendG2('\x1b[31mRun error: ' + e.message + '\x1b[0m');
+  }finally{
+    btn.disabled = false;
+    setTimeout(()=>show(progress, false), 600);
+  }
+});
+
+let updPoll = null;
+
+function setUpdateStatusText(text){
+  $('upd-status').textContent = text || '';
+}
+
+function syncCustomRefState(){
+  const custom = $('upd-channel').value === 'custom';
+  $('upd-custom-ref').disabled = !custom;
+}
+
+function applyUpdatePolicyToForm(policy){
+  if (!policy) return;
+  $('upd-owner').value = policy.owner || '';
+  $('upd-repo').value = policy.repo || '';
+  $('upd-channel').value = policy.channel || 'stable';
+  $('upd-stable-ref').value = policy.stable_ref || 'main';
+  $('upd-beta-ref').value = policy.beta_ref || 'beta';
+  $('upd-custom-ref').value = policy.custom_ref || '';
+  $('upd-auto-snapshot').checked = !!policy.auto_snapshot;
+  $('upd-keep-snapshots').value = Number(policy.keep_snapshots || 5);
+  $('upd-health-url').value = policy.healthcheck_url || '';
+  $('upd-health-timeout').value = Number(policy.healthcheck_timeout_secs || 8);
+  syncCustomRefState();
+}
+
+function getPolicyFromForm(){
+  const customRef = $('upd-custom-ref').value.trim();
+  return {
+    owner: $('upd-owner').value.trim(),
+    repo: $('upd-repo').value.trim(),
+    remote: 'origin',
+    channel: $('upd-channel').value,
+    stable_ref: $('upd-stable-ref').value.trim(),
+    beta_ref: $('upd-beta-ref').value.trim(),
+    custom_ref: customRef ? customRef : null,
+    auto_snapshot: $('upd-auto-snapshot').checked,
+    keep_snapshots: Number($('upd-keep-snapshots').value || 5),
+    healthcheck_url: $('upd-health-url').value.trim(),
+    healthcheck_timeout_secs: Number($('upd-health-timeout').value || 8),
+  };
+}
+
+async function loadUpdatePolicy(){
+  try{
+    const r = await fetch('./update_policy', { cache: 'no-store' });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || ('HTTP ' + r.status));
+    applyUpdatePolicyToForm(data.policy || {});
+  }catch(e){
+    setUpdateStatusText('Failed to load update policy: ' + e.message);
+  }
+}
+
+function renderUpdateStatus(data){
+  setUpdateStatusText(JSON.stringify(data || {}, null, 2));
+  const running = data?.job?.status === 'running';
+  if (running && !updPoll){
+    updPoll = setInterval(refreshUpdateStatus, 1500);
+  } else if (!running && updPoll){
+    clearInterval(updPoll);
+    updPoll = null;
+  }
+}
+
+async function refreshUpdateStatus(){
+  try{
+    const r = await fetch('./update_status', { cache: 'no-store' });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || ('HTTP ' + r.status));
+    renderUpdateStatus(data);
+  }catch(e){
+    setUpdateStatusText('Failed to load update status: ' + e.message);
+  }
+}
+
+async function loadActiveRepoRoot(){
+  try{
+    const r = await fetch('./get_repo_root', { cache: 'no-store' });
+    const data = await r.json().catch(()=>({}));
+    $('upd-repo-root').textContent = data.repo_root || 'unknown';
+  }catch(e){
+    $('upd-repo-root').textContent = 'unknown (' + e.message + ')';
+  }
+}
+
+$('upd-channel').addEventListener('change', syncCustomRefState);
+
+$('upd-policy-refresh').addEventListener('click', async ()=>{
+  await loadUpdatePolicy();
+  await refreshUpdateStatus();
+  await loadActiveRepoRoot();
+});
+
+$('upd-policy-save').addEventListener('click', async ()=>{
+  try{
+    const r = await fetch('./update_policy', {
+      method: 'POST',
+      headers: withCsrf({'Content-Type':'application/json'}),
+      body: JSON.stringify(getPolicyFromForm()),
+    });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || ('HTTP ' + r.status));
+    applyUpdatePolicyToForm(data.policy || {});
+    setUpdateStatusText('Update policy saved.');
+    await refreshUpdateStatus();
+  }catch(e){
+    setUpdateStatusText('Save policy failed: ' + e.message);
+  }
+});
+
+$('upd-start').addEventListener('click', async ()=>{
+  if (!confirm('Start transactional update now?')) return;
+  try{
+    const payload = {
+      channel: $('upd-channel').value,
+      custom_ref: $('upd-custom-ref').value.trim() || null,
+    };
+    const r = await fetch('./update_start', {
+      method: 'POST',
+      headers: withCsrf({'Content-Type':'application/json'}),
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || ('HTTP ' + r.status));
+    setUpdateStatusText('Update started. Job: ' + (data.job_id || 'n/a'));
+    await refreshUpdateStatus();
+  }catch(e){
+    setUpdateStatusText('Update start failed: ' + e.message);
+  }
+});
+
+$('upd-rollback').addEventListener('click', async ()=>{
+  if (!confirm('Rollback to the previous repo root now?')) return;
+  try{
+    const r = await fetch('./update_rollback', {
+      method: 'POST',
+      headers: withCsrf(),
+    });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || ('HTTP ' + r.status));
+    setUpdateStatusText('Rollback complete. Active root: ' + (data.repo_root || ''));
+    await refreshUpdateStatus();
+    await loadActiveRepoRoot();
+  }catch(e){
+    setUpdateStatusText('Rollback failed: ' + e.message);
+  }
+});
+
+loadG2Flags();
+loadUpdatePolicy();
+refreshUpdateStatus();
+loadActiveRepoRoot();
+</script>
+</body>
+</html>

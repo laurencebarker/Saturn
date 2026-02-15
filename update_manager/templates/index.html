@@ -94,6 +94,7 @@
     <div class="flex items-center justify-between mb-6">
       <h1 class="title text-3xl sm:text-4xl">Saturn Go Update Manager</h1>
       <div class="flex items-center gap-3">
+        <button type="button" id="update-btn" class="btn btn-ghost px-4 py-2">Update Center</button>
         <button type="button" id="backup-btn" class="btn btn-ghost px-4 py-2">Backup / Restore</button>
         <button type="button" id="monitor-btn" class="btn btn-ghost px-4 py-2">Open Monitor</button>
         <!-- Single theme toggle button (classic) -->
@@ -332,9 +333,11 @@ async function loadScripts(){
     const data = await r.json();
     const sel = $('script');
     sel.innerHTML = '<option value="">Select a script…</option>';
+    const isG2 = (name) => /^update-g2\.(py|sh)$/i.test(String(name || '').trim());
 
     if (Array.isArray(data.scripts)) {
       data.scripts.forEach(s=>{
+        if (isG2(s)) return;
         const opt = document.createElement('option');
         opt.value = s; opt.textContent = s;
         sel.appendChild(opt);
@@ -344,6 +347,7 @@ async function loadScripts(){
         const og = document.createElement('optgroup');
         og.label = cat;
         (data.scripts[cat]||[]).forEach(s=>{
+          if (isG2(s.filename)) return;
           const opt = document.createElement('option');
           opt.value = s.filename;
           opt.textContent = s.name || s.filename;
@@ -403,6 +407,7 @@ $('toggle-versions').addEventListener('change', (e)=>{
 
 $('monitor-btn').addEventListener('click', ()=> window.open('./monitor', 'SaturnMonitor',
   'width=900,height=650,resizable=yes,scrollbars=yes,status=yes'));
+$('update-btn').addEventListener('click', ()=> window.location.href = './update');
 $('backup-btn').addEventListener('click', ()=> window.location.href = './backup');
 
 $('exit-btn').addEventListener('click', async ()=>{

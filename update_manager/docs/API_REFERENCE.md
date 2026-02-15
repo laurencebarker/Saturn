@@ -25,9 +25,11 @@ Backend also enforces same-host checks when `Origin` or `Referer` is present.
 | `/` | `GET` | No | Serve `index.html`. |
 | `/backup` | `GET` | No | Serve `backup.html`. |
 | `/backup.html` | `GET` | No | Serve `backup.html`. |
+| `/update` | `GET` | No | Serve `update.html` (Update Center). |
+| `/update.html` | `GET` | No | Serve `update.html` (Update Center). |
 | `/monitor` | `GET` | No | Serve `monitor.html`. |
 | `/monitor.html` | `GET` | No | Serve `monitor.html`. |
-| fallback mapped page paths | `GET` | No | Supports `/saturn`, `/saturn/backup`, `/saturn/monitor`, etc. |
+| fallback mapped page paths | `GET` | No | Supports `/saturn`, `/saturn/backup`, `/saturn/update`, `/saturn/monitor`, etc. |
 
 ## Health and Metadata
 
@@ -63,6 +65,15 @@ Validation rules for `/set_repo_root`:
 | `/update_status` | `GET` | No | none | `{ "job": {...}|null, "last_update": {...}|null }` |
 | `/update_rollback` | `POST` | Yes | none | `{ "status":"rolled_back", "repo_root":"/path" }` |
 
+Conflict behavior (`409`):
+
+- `POST /update_start`
+  - returns conflict when an appliance update is already running
+  - also returns conflict when another update activity is active (for example `update-G2.py`)
+- `POST /update_rollback`
+  - returns conflict when an appliance update is already running
+  - also returns conflict when another update activity is active
+
 `update_policy` fields:
 
 - `owner`, `repo`, `remote`
@@ -82,6 +93,8 @@ Normalization rules:
 |---|---|---|---|---|
 | `/backup_full` | `GET` | No | none | streaming `application/gzip` attachment |
 | `/restore_full` | `POST` | Yes | `multipart/form-data` with `file`; optional `confirm=RESTORE`; optional query `dry_run=1|true|yes|y|on` | JSON status |
+| `/g2_backups` | `GET` | No | none | `{ "home":"/home/...", "backups":[{ "name","path","files","dirs","bytes","modified_epoch" }, ...] }` |
+| `/g2_restore` | `POST` | Yes | JSON `{ "backup_name":"saturn-backup-...", "dry_run":bool, "confirm":"RESTORE" }` | dry-run stats or `{ "status":"ok", ... }` |
 
 Restore responses:
 
@@ -95,6 +108,14 @@ Restore safety checks:
 - must extract to a single top-level directory
 - uses `rsync -a --delete` into active repo root
 
+`/g2_restore` safety checks:
+
+- backup name must match `saturn-backup-*` and cannot include path traversal
+- selected backup must resolve under backend `$HOME`
+- selected backup and target repo root must both pass Saturn repo-root validation
+- non-dry-run requires `confirm=RESTORE`
+- non-dry-run acquires update-activity lock and returns `409` if conflicting update action is active
+
 ## Script Execution and Legacy Hooks
 
 | Route | Method | CSRF | Request | Success Response |
@@ -104,6 +125,15 @@ Restore safety checks:
 | `/exit` | `POST` | Yes | none | `{ "status":"shutting down" }` |
 
 SSE output is streamed line-by-line, including stderr lines prefixed with `ERR:`.
+
+Update-activity behavior for `/run`:
+
+- For `update-G2.py`/`update-G2.sh`, backend acquires the shared update-activity lock.
+- If appliance update/rollback (or another G2 run) is active, route returns `409` with `{ "message": "..." }`.
+- Child process environment includes:
+  - `SATURN_REPO_ROOT`
+  - `SATURN_DIR`
+  - `SATURN_ACTIVE_REPO_ROOT`
 
 ## Credentials
 

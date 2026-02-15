@@ -2,7 +2,7 @@
 
 This file documents the scripts deployed into `/opt/saturn-go/scripts` and related helper scripts currently in `update_manager/scripts`.
 
-## Config-Driven Scripts (Shown in Main UI)
+## Config-Driven Scripts (Exposed by API)
 
 Defined in `config.json` and surfaced by `/get_scripts`.
 
@@ -12,6 +12,12 @@ Defined in `config.json` and surfaced by `/get_scripts`.
 | `update-pihpsdr.py` | `1.10` | Update/build piHPSDR repository with backup options. | `--skip-git`, `-y`, `-n`, `--no-gpio`, `--dry-run`, `--verbose` |
 | `log_cleaner.sh` | `3.00` | Find and optionally delete `*.log` files under home directory. | `--delete-all`, `--no-recursive`, `--dry-run` |
 | `restore-backup.sh` | `3.10` | Restore Saturn or piHPSDR from backup directories with list/latest/explicit selection support. | `--saturn`, `--pihpsdr`, `--latest`, `--list`, `--backup-dir`, `--backup-name`, `--dry-run`, `--verbose`, `--json` |
+
+UI usage notes:
+
+- `index.html` (main runner) intentionally excludes `update-G2.py` from the generic script dropdown.
+- `update.html` (Update Center) is the dedicated UI for running `update-G2.py` with live SSE terminal output.
+- `/run` still executes scripts from `/opt/saturn-go/scripts` for both pages.
 
 ## Backup Page Workflows
 
@@ -39,3 +45,5 @@ Not all utilities are directly wired into current UI buttons, but are included i
   - `*.sh` and `*.py` scripts are set executable.
 - Script execution from UI is constrained to filenames in `/opt/saturn-go/scripts`.
 - SSE streaming route (`/run`) handles stdout and stderr with low-latency buffering behavior.
+- `/run` injects active repo-root context (`SATURN_REPO_ROOT`, `SATURN_DIR`, `SATURN_ACTIVE_REPO_ROOT`) so scripts operate on the currently selected Saturn checkout.
+- `update-G2.py` participates in the shared update-activity lock with appliance update/rollback routes to avoid overlapping update operations.

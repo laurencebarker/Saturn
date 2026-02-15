@@ -17,6 +17,20 @@ Saturn Update Manager is deployed as a small appliance-style web stack:
 4. Backend returns HTML from `/var/lib/saturn-web` and JSON/SSE API responses.
 5. For script execution, backend spawns scripts from `/opt/saturn-go/scripts` and streams output via SSE.
 
+## UI Page Responsibilities
+
+- `index.html`
+  - Main script runner for general maintenance scripts and password change.
+  - `update-G2.py` is intentionally hidden from the generic script dropdown.
+- `update.html`
+  - Dedicated Update Center that combines:
+    - Update G2 terminal workflow (`POST /run` with `update-G2.py`)
+    - Appliance Update policy/start/status/rollback controls.
+- `backup.html`
+  - Repo-root selection, full backup/restore, repair pack, Pi image workflow, and SD clone workflow.
+- `monitor.html`
+  - Real-time system monitoring and process controls.
+
 ## Runtime Layout
 
 ### Deployed Paths
@@ -26,7 +40,7 @@ Saturn Update Manager is deployed as a small appliance-style web stack:
 - `/opt/saturn-go/scripts/`
   - Executable maintenance scripts.
 - `/var/lib/saturn-web/`
-  - Web assets: `index.html`, `backup.html`, `monitor.html`, `config.json`, `themes.json`.
+  - Web assets: `index.html`, `update.html`, `backup.html`, `monitor.html`, `config.json`, `themes.json`.
 - `/var/lib/saturn-state/`
   - Mutable state: `repo_root.txt`, `update_policy.json`, `update_state.json`, snapshots, staged worktrees.
 - `/etc/systemd/system/saturn-go.service`
@@ -54,6 +68,7 @@ Saturn Update Manager is deployed as a small appliance-style web stack:
 - Last successful update/rollback metadata is persisted in `update_state.json`.
 - Snapshot archives are stored in `snapshots/`.
 - Transactional update worktrees are stored in `repo-staging/`.
+- A process-local update activity lock coordinates mutually exclusive update operations (appliance update, appliance rollback, and Update G2 runs).
 
 ## Security Model
 
@@ -98,6 +113,11 @@ All mutating (`POST`) routes require:
 
 Rollback (`POST /update_rollback`) re-points active repo root to `previous_repo_root` from last update state and re-runs health check.
 
+Concurrency guard:
+
+- Appliance update and rollback acquire the shared update-activity lock.
+- If another update activity is already running, these routes return `409 Conflict`.
+
 ## Script Execution Model
 
 - `POST /run` accepts multipart form:
@@ -106,12 +126,18 @@ Rollback (`POST /update_rollback`) re-points active repo root to `previous_repo_
 - Backend starts script from `/opt/saturn-go/scripts`.
 - Output from stdout/stderr is streamed as SSE messages.
 - `stdbuf` + unbuffered Python mode are used when available to reduce output latency.
+- Backend injects active repo-root context into child processes:
+  - `SATURN_REPO_ROOT`
+  - `SATURN_DIR`
+  - `SATURN_ACTIVE_REPO_ROOT`
+- For `update-G2.py`/`update-G2.sh`, `/run` also acquires the shared update-activity lock; conflicting update activity returns `409 Conflict`.
 
 ## Backup/Restore Model
 
 - Full backup (`GET /backup_full`): streams a `tar.gz` of active repo root.
 - Full restore (`POST /restore_full`): uploads archive to `/tmp`, validates and extracts it, then `rsync --delete` into active repo root.
 - Dry-run restore (`?dry_run=1`) reports extracted tree stats without applying changes.
+- Update G2 directory backups (`GET /g2_backups`, `POST /g2_restore`): lists `saturn-backup-*` directories under backend `$HOME` and restores selected backup into active repo root with validation and confirm guard.
 
 ## Monitor Model
 

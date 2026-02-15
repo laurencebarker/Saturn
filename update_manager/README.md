@@ -15,11 +15,13 @@ service names still use `saturn-go` for compatibility with existing installs.
 
 ## Features
 
-- Web UI for script execution, monitoring, and backup/restore workflows
+- Web UI for script execution, update coordination, monitoring, and backup/restore workflows
 - Server-Sent Events (SSE) script output streaming
 - Full repository backup download and restore with archive validation
+- Update G2 backup integration: list and restore `saturn-backup-*` directory backups from Backup / Restore page
 - Runtime repo-root switching via API/UI (`/list_repo_roots`, `/set_repo_root`)
-- Dedicated Backup / Restore page (`backup.html`)
+- Dedicated Update Center page (`update.html`) for Update G2 terminal output and Appliance Update policy/start/rollback
+- Dedicated Backup / Restore page (`backup.html`) for repo-root management, backup/restore, Pi imaging, clone, and repair tools
 - Pi image creation workflow with progress, validation, cancel, and download
 - SD-to-removable-device cloning workflow with progress and cancel
 - Repair Pack download and system config verification tools
@@ -28,6 +30,8 @@ service names still use `saturn-go` for compatibility with existing installs.
 - CSRF protection for mutating API calls (`X-Saturn-CSRF` + same-host Origin/Referer validation when present)
 - Low-latency script streaming: line-buffered subprocess launch (`stdbuf` when available), `\r`/`\n` output boundary handling, and anti-buffer SSE headers
 - Appliance update workflow: transactional repo staging, pre-update snapshot, policy-driven channels (`stable`/`beta`/`custom`), and rollback endpoint
+- Shared update-activity lock prevents overlapping `update-G2` runs with appliance update/rollback operations
+- Script runner injects active repo-root environment (`SATURN_REPO_ROOT`, `SATURN_DIR`, `SATURN_ACTIVE_REPO_ROOT`) so update scripts target the same checkout as backend state
 - Health watchdog timer for self-heal restart if `/healthz` fails
 - Repo-root safety checks for manual root switching and restore operations
 
@@ -42,6 +46,7 @@ Typical deployed paths:
 
 /var/lib/saturn-web/
   index.html
+  update.html
   monitor.html
   backup.html
   config.json
@@ -70,6 +75,7 @@ Script definitions come from `config.json`.
 - UI script list: `/get_scripts`
 - Flag list: `/get_flags`
 - Version list ("Show versions above"): `/get_versions`
+- Update Center page: `/update` (also `/update.html`)
 - Active repo root: `/get_repo_root`
 - Discover repo roots: `/list_repo_roots`
 - Switch active repo root: `POST /set_repo_root` with JSON `{ "repo_root": "/path/to/tree" }`
@@ -78,6 +84,8 @@ Script definitions come from `config.json`.
 - Start transactional update: `POST /update_start` with JSON `{ "channel":"stable|beta|custom", "custom_ref":"..." }`
 - Get update status + last state: `GET /update_status`
 - Roll back to previous repo root: `POST /update_rollback`
+- List Update G2 backups: `GET /g2_backups`
+- Validate/restore Update G2 backup directory: `POST /g2_restore` with JSON `{ "backup_name":"saturn-backup-...", "dry_run":true|false, "confirm":"RESTORE" }`
 
 For mutating API requests (`POST` routes), include header:
 
@@ -104,6 +112,9 @@ If a script entry does not define `version`, `/get_versions` now returns
   - `sudo -n` for non-interactive service execution
 - If privilege escalation is required but unavailable, the script exits with a
   clear actionable message.
+- When launched by `/run`, the backend sets `SATURN_REPO_ROOT`, `SATURN_DIR`,
+  and `SATURN_ACTIVE_REPO_ROOT` to the current active repo root before spawning
+  the script.
 
 ### Change Password
 

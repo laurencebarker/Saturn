@@ -110,6 +110,7 @@ info "Copying web assets..."
 copy_web_asset "index.html"
 copy_web_asset "monitor.html"
 copy_web_asset "backup.html"
+copy_web_asset "update.html"
 
 if [[ -f "$SOURCE_DIR/scripts/config.json" ]]; then
   cp -f "$SOURCE_DIR/scripts/config.json" "$WEB_ROOT/config.json"

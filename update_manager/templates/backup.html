@@ -85,6 +85,7 @@
     <div class="flex items-center justify-between mb-6">
       <h1 class="title text-3xl sm:text-4xl">Backup / Restore</h1>
       <div class="flex items-center gap-3">
+        <a href="./update" class="btn btn-ghost px-3 py-2">Update Center</a>
         <a href="./" class="btn btn-ghost px-3 py-2">Back</a>
         <button id="theme-toggle" class="btn btn-ghost p-2" title="Toggle theme">
           <svg id="theme-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,68 +140,29 @@
       <p class="text-sm opacity-80 mt-3">
         Restore overwrites the repo after extraction. Use Validate first to check the archive.
       </p>
-    </div>
 
-    <div class="card p-5 mt-6">
-      <h2 class="text-xl font-semibold mb-3">Appliance Update</h2>
-      <div class="text-sm opacity-80 mb-4">
-        Transactional GitHub update with pre-update snapshot and auto-rollback on health check failure.
+      <div class="mt-6 border-t border-white/15 pt-5">
+        <h3 class="text-lg font-semibold mb-2">Update G2 Backups</h3>
+        <div class="text-sm opacity-80 mb-3">
+          <code>update-G2.py</code> creates <code>saturn-backup-*</code> directories under the service home. You can validate or restore one directly into the active repo root.
+        </div>
+        <div class="flex flex-wrap gap-3 items-end">
+          <div class="min-w-[18rem] grow">
+            <label class="block text-sm mb-1">Select G2 Backup</label>
+            <select id="g2-backup-select" class="field w-full px-3 py-2">
+              <option value="">loading...</option>
+            </select>
+          </div>
+          <button id="g2-backup-refresh" class="btn btn-ghost px-4 py-2">Refresh G2 Backups</button>
+          <button id="g2-backup-validate" class="btn btn-ghost px-4 py-2">Validate Selected</button>
+          <div>
+            <label class="block text-sm mb-1">Type RESTORE</label>
+            <input id="g2-restore-confirm" type="text" placeholder="RESTORE" class="field px-3 py-2" />
+          </div>
+          <button id="g2-backup-restore" class="btn btn-danger px-4 py-2">Restore Selected</button>
+        </div>
+        <div id="g2-backup-status" class="text-sm opacity-80 mt-3"></div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div>
-          <label class="block text-sm mb-1">GitHub Owner</label>
-          <input id="upd-owner" type="text" class="field px-3 py-2 w-full" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">GitHub Repo</label>
-          <input id="upd-repo" type="text" class="field px-3 py-2 w-full" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Channel</label>
-          <select id="upd-channel" class="field px-3 py-2 w-full">
-            <option value="stable">stable</option>
-            <option value="beta">beta</option>
-            <option value="custom">custom</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Custom Ref</label>
-          <input id="upd-custom-ref" type="text" placeholder="custom branch/tag/commit" class="field px-3 py-2 w-full" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Stable Ref</label>
-          <input id="upd-stable-ref" type="text" class="field px-3 py-2 w-full" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Beta Ref</label>
-          <input id="upd-beta-ref" type="text" class="field px-3 py-2 w-full" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Healthcheck URL</label>
-          <input id="upd-health-url" type="text" class="field px-3 py-2 w-full" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Health Timeout (sec)</label>
-          <input id="upd-health-timeout" type="number" min="2" max="30" class="field px-3 py-2 w-full" />
-        </div>
-      </div>
-      <div class="flex flex-wrap gap-4 mt-3 items-center">
-        <label class="inline-flex items-center gap-2 text-sm">
-          <input id="upd-auto-snapshot" type="checkbox" class="h-4 w-4" checked>
-          Auto snapshot before update
-        </label>
-        <div>
-          <label class="block text-sm mb-1">Keep snapshots</label>
-          <input id="upd-keep-snapshots" type="number" min="1" max="50" class="field px-3 py-2 w-28" />
-        </div>
-      </div>
-      <div class="flex flex-wrap gap-3 mt-4">
-        <button id="upd-policy-refresh" class="btn btn-ghost px-4 py-2">Refresh Policy</button>
-        <button id="upd-policy-save" class="btn btn-primary px-4 py-2">Save Policy</button>
-        <button id="upd-start" class="btn btn-primary px-4 py-2">Start Update</button>
-        <button id="upd-rollback" class="btn btn-danger px-4 py-2">Rollback</button>
-      </div>
-      <pre id="upd-status" class="mt-3 p-3 rounded border border-white/20 bg-black/40 text-xs overflow-auto" style="max-height:280px"></pre>
     </div>
 
     <div class="card p-5 mt-6">
@@ -380,6 +342,12 @@ function setRestoreStatus(msg, isError=false){
   el.classList.toggle('text-red-400', !!isError);
 }
 
+function setG2BackupStatus(msg, isError=false){
+  const el = $('g2-backup-status');
+  el.textContent = msg || '';
+  el.classList.toggle('text-red-400', !!isError);
+}
+
 function uploadRestore(dryRun){
   const file = $('restore-file').files[0];
   if (!file) { setRestoreStatus('Select a .tar.gz file first', true); return; }
@@ -438,146 +406,87 @@ $('restore-upload').addEventListener('click', ()=> {
   uploadRestore(false);
 });
 
+function fmtBytes(bytes){
+  const mb = (Number(bytes) || 0) / (1024 * 1024);
+  return `${Math.round(mb)} MB`;
+}
+
+async function loadG2Backups(){
+  const sel = $('g2-backup-select');
+  sel.innerHTML = '<option value="">Loading...</option>';
+  try{
+    const r = await fetch('./g2_backups', { cache:'no-store' });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+    const backups = Array.isArray(data.backups) ? data.backups : [];
+    sel.innerHTML = '';
+    if (!backups.length){
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No G2 backups found';
+      sel.appendChild(opt);
+      setG2BackupStatus('No saturn-backup-* directories found yet.');
+      return;
+    }
+    backups.forEach((b)=>{
+      const opt = document.createElement('option');
+      opt.value = b.name || '';
+      const when = b.modified_epoch ? new Date(Number(b.modified_epoch) * 1000).toLocaleString() : 'unknown time';
+      opt.textContent = `${b.name} (${fmtBytes(b.bytes)}, ${when})`;
+      sel.appendChild(opt);
+    });
+    setG2BackupStatus(`Loaded ${backups.length} G2 backup(s).`);
+  }catch(e){
+    sel.innerHTML = '<option value="">Failed to load backups</option>';
+    setG2BackupStatus(`Failed to load G2 backups: ${e.message}`, true);
+  }
+}
+
+async function restoreG2Backup(dryRun){
+  const backupName = $('g2-backup-select').value.trim();
+  if (!backupName){
+    setG2BackupStatus('Select a G2 backup first.', true);
+    return;
+  }
+  const confirmText = $('g2-restore-confirm').value.trim();
+  if (!dryRun && confirmText !== 'RESTORE'){
+    setG2BackupStatus('Type RESTORE to confirm restore.', true);
+    return;
+  }
+  setG2BackupStatus(dryRun ? 'Validating selected G2 backup...' : 'Restoring selected G2 backup...');
+  try{
+    const r = await fetch('./g2_restore', {
+      method:'POST',
+      headers:withCsrf({'Content-Type':'application/json'}),
+      body: JSON.stringify({
+        backup_name: backupName,
+        dry_run: dryRun,
+        confirm: dryRun ? null : confirmText,
+      }),
+    });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+    if (dryRun){
+      const files = Number(data.files || 0);
+      const dirs = Number(data.dirs || 0);
+      setG2BackupStatus(`Validation OK. ${files} files, ${dirs} dirs, ${fmtBytes(data.bytes)}.`);
+    } else {
+      setG2BackupStatus(`Restore complete from ${backupName}.`);
+    }
+  }catch(e){
+    setG2BackupStatus(`G2 backup restore failed: ${e.message}`, true);
+  }
+}
+
+$('g2-backup-refresh').addEventListener('click', loadG2Backups);
+$('g2-backup-validate').addEventListener('click', ()=> restoreG2Backup(true));
+$('g2-backup-restore').addEventListener('click', ()=>{
+  if (!confirm('This will overwrite the active repo root from the selected G2 backup. Continue?')) return;
+  restoreG2Backup(false);
+});
+
 loadRepoRoots();
-
-let updPoll = null;
-function setUpdateStatusText(text){
-  $('upd-status').textContent = text || '';
-}
-
-function syncCustomRefState(){
-  const custom = $('upd-channel').value === 'custom';
-  $('upd-custom-ref').disabled = !custom;
-}
-
-function applyUpdatePolicyToForm(policy){
-  if (!policy) return;
-  $('upd-owner').value = policy.owner || '';
-  $('upd-repo').value = policy.repo || '';
-  $('upd-channel').value = policy.channel || 'stable';
-  $('upd-stable-ref').value = policy.stable_ref || 'main';
-  $('upd-beta-ref').value = policy.beta_ref || 'beta';
-  $('upd-custom-ref').value = policy.custom_ref || '';
-  $('upd-auto-snapshot').checked = !!policy.auto_snapshot;
-  $('upd-keep-snapshots').value = Number(policy.keep_snapshots || 5);
-  $('upd-health-url').value = policy.healthcheck_url || '';
-  $('upd-health-timeout').value = Number(policy.healthcheck_timeout_secs || 8);
-  syncCustomRefState();
-}
-
-function getPolicyFromForm(){
-  const customRef = $('upd-custom-ref').value.trim();
-  return {
-    owner: $('upd-owner').value.trim(),
-    repo: $('upd-repo').value.trim(),
-    remote: 'origin',
-    channel: $('upd-channel').value,
-    stable_ref: $('upd-stable-ref').value.trim(),
-    beta_ref: $('upd-beta-ref').value.trim(),
-    custom_ref: customRef ? customRef : null,
-    auto_snapshot: $('upd-auto-snapshot').checked,
-    keep_snapshots: Number($('upd-keep-snapshots').value || 5),
-    healthcheck_url: $('upd-health-url').value.trim(),
-    healthcheck_timeout_secs: Number($('upd-health-timeout').value || 8),
-  };
-}
-
-async function loadUpdatePolicy(){
-  try{
-    const r = await fetch('./update_policy', { cache:'no-store' });
-    const data = await r.json().catch(()=>({}));
-    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
-    applyUpdatePolicyToForm(data.policy || {});
-  }catch(e){
-    setUpdateStatusText(`Failed to load update policy: ${e.message}`);
-  }
-}
-
-function renderUpdateStatus(data){
-  setUpdateStatusText(JSON.stringify(data || {}, null, 2));
-  const running = data?.job?.status === 'running';
-  if (running && !updPoll){
-    updPoll = setInterval(refreshUpdateStatus, 1500);
-  } else if (!running && updPoll){
-    clearInterval(updPoll);
-    updPoll = null;
-  }
-}
-
-async function refreshUpdateStatus(){
-  try{
-    const r = await fetch('./update_status', { cache:'no-store' });
-    const data = await r.json().catch(()=>({}));
-    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
-    renderUpdateStatus(data);
-  }catch(e){
-    setUpdateStatusText(`Failed to load update status: ${e.message}`);
-  }
-}
-
-$('upd-channel').addEventListener('change', syncCustomRefState);
-$('upd-policy-refresh').addEventListener('click', async ()=>{
-  await loadUpdatePolicy();
-  await refreshUpdateStatus();
-});
-
-$('upd-policy-save').addEventListener('click', async ()=>{
-  try{
-    const r = await fetch('./update_policy', {
-      method:'POST',
-      headers: withCsrf({'Content-Type':'application/json'}),
-      body: JSON.stringify(getPolicyFromForm()),
-    });
-    const data = await r.json().catch(()=>({}));
-    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
-    applyUpdatePolicyToForm(data.policy || {});
-    setUpdateStatusText('Update policy saved.');
-    await refreshUpdateStatus();
-  }catch(e){
-    setUpdateStatusText(`Save policy failed: ${e.message}`);
-  }
-});
-
-$('upd-start').addEventListener('click', async ()=>{
-  if (!confirm('Start transactional update now?')) return;
-  try{
-    const payload = {
-      channel: $('upd-channel').value,
-      custom_ref: $('upd-custom-ref').value.trim() || null,
-    };
-    const r = await fetch('./update_start', {
-      method:'POST',
-      headers: withCsrf({'Content-Type':'application/json'}),
-      body: JSON.stringify(payload),
-    });
-    const data = await r.json().catch(()=>({}));
-    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
-    setUpdateStatusText(`Update started. Job: ${data.job_id || 'n/a'}`);
-    await refreshUpdateStatus();
-  }catch(e){
-    setUpdateStatusText(`Update start failed: ${e.message}`);
-  }
-});
-
-$('upd-rollback').addEventListener('click', async ()=>{
-  if (!confirm('Rollback to the previous repo root now?')) return;
-  try{
-    const r = await fetch('./update_rollback', {
-      method:'POST',
-      headers: withCsrf(),
-    });
-    const data = await r.json().catch(()=>({}));
-    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
-    setUpdateStatusText(`Rollback complete. Active root: ${data.repo_root || ''}`);
-    await loadRepoRoots();
-    await refreshUpdateStatus();
-  }catch(e){
-    setUpdateStatusText(`Rollback failed: ${e.message}`);
-  }
-});
-
-loadUpdatePolicy();
-refreshUpdateStatus();
+loadG2Backups();
 
 /* Pi image create/download */
 let piJobId = null;

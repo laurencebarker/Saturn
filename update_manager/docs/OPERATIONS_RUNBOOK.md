@@ -109,6 +109,7 @@ Validation requires `.git` and `update_manager/` in the target path.
 - Download full backup from `backup.html` (or `GET /backup_full`).
 - Validate archive first with restore dry-run (`POST /restore_full?dry_run=1`).
 - Apply restore only after confirmation (`confirm=RESTORE`).
+- For `update-G2.py` directory backups, use Backup page "Update G2 Backups" controls (`GET /g2_backups`, `POST /g2_restore`).
 
 Important:
 
@@ -117,10 +118,17 @@ Important:
 
 ### Appliance Update
 
-1. Set policy in Backup page (`owner`, `repo`, `channel`, refs, health check).
-2. Start update.
-3. Monitor `update_status` job until complete.
-4. If needed, run rollback.
+1. Open Update Center page (`/saturn/update`).
+2. Set policy (`owner`, `repo`, `channel`, refs, health check) and save.
+3. Start update.
+4. Monitor `update_status` job until complete.
+5. If needed, run rollback.
+
+Update Center coordination notes:
+
+- Update G2 terminal and Appliance Update now live on the same page.
+- If Appliance Update already moved Git to target commit, run Update G2 with `--skip-git`.
+- G2 runs and appliance update/rollback are mutually exclusive; overlapping requests return `409 Conflict`.
 
 Update behavior:
 
@@ -130,6 +138,23 @@ Update behavior:
 - stages update in `repo-staging` worktree
 - switches active repo root only after staging
 - health-check gates completion; failed checks auto-revert root
+
+### Update G2 (Dedicated Terminal)
+
+- Run `update-G2.py` from Update Center to keep terminal output and Appliance Update state together.
+- Backend injects active repo-root environment for `/run`:
+  - `SATURN_REPO_ROOT`
+  - `SATURN_DIR`
+  - `SATURN_ACTIVE_REPO_ROOT`
+- This allows `update-G2.py` to target the active Saturn checkout without hardcoded path dependence.
+
+### Backup and Restore Scope
+
+- Backup / Restore page now focuses on:
+  - repo-root selection
+  - full backup/restore
+  - repair pack and config verification
+  - Pi image and removable-device clone workflows
 
 ### Password Change
 
@@ -192,6 +217,7 @@ Common causes:
 - remote fetch failures
 - health check URL failure after staging
 - insufficient disk space for snapshots/staging
+- overlapping update actions (G2/appliance update/rollback) triggering `409 Conflict`
 
 Check:
 

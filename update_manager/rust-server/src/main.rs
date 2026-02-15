@@ -150,6 +150,8 @@ async fn main() {
         .route("/", get(root_handler))
         .route("/backup", get(backup_handler))
         .route("/backup.html", get(backup_handler))
+        .route("/update", get(update_handler))
+        .route("/update.html", get(update_handler))
         .route("/monitor", get(monitor_handler))
         .route("/monitor.html", get(monitor_handler))
         .route("/healthz", get(healthz))
@@ -167,6 +169,8 @@ async fn main() {
         .route("/update_rollback", post(update_rollback))
         .route("/backup_full", get(backup_full))
         .route("/restore_full", post(restore_full))
+        .route("/g2_backups", get(g2_backups))
+        .route("/g2_restore", post(g2_restore))
         .route("/pi_image_start", post(pi_image_start))
         .route("/pi_image_status", get(pi_image_status))
         .route("/pi_image_cancel", post(pi_image_cancel))
@@ -205,6 +209,10 @@ async fn backup_handler(State(state): State<AppState>) -> impl IntoResponse {
     serve_page(&state.webroot, "backup.html").await
 }
 
+async fn update_handler(State(state): State<AppState>) -> impl IntoResponse {
+    serve_page(&state.webroot, "update.html").await
+}
+
 async fn monitor_handler(State(state): State<AppState>) -> impl IntoResponse {
     serve_page(&state.webroot, "monitor.html").await
 }
@@ -220,6 +228,9 @@ fn route_to_page(path: &str) -> Option<&'static str> {
         }
         "/backup" | "/backup/" | "/backup.html" | "/saturn/backup" | "/saturn/backup/" | "/saturn/backup.html" => {
             Some("backup.html")
+        }
+        "/update" | "/update/" | "/update.html" | "/saturn/update" | "/saturn/update/" | "/saturn/update.html" => {
+            Some("update.html")
         }
         "/monitor" | "/monitor/" | "/monitor.html" | "/saturn/monitor" | "/saturn/monitor/" | "/saturn/monitor.html" => {
             Some("monitor.html")
@@ -585,10 +596,23 @@ struct ApplianceUpdateJob {
     log: Vec<String>,
 }
 
+#[derive(Debug, Clone)]
+struct UpdateActivity {
+    id: String,
+    kind: String,
+    started_at: String,
+    detail: String,
+}
+
 static APPLIANCE_UPDATE_JOB: OnceLock<Mutex<Option<ApplianceUpdateJob>>> = OnceLock::new();
+static UPDATE_ACTIVITY: OnceLock<Mutex<Option<UpdateActivity>>> = OnceLock::new();
 
 fn appliance_update_slot() -> &'static Mutex<Option<ApplianceUpdateJob>> {
     APPLIANCE_UPDATE_JOB.get_or_init(|| Mutex::new(None))
+}
+
+fn update_activity_slot() -> &'static Mutex<Option<UpdateActivity>> {
+    UPDATE_ACTIVITY.get_or_init(|| Mutex::new(None))
 }
 
 fn get_appliance_update_job() -> Option<ApplianceUpdateJob> {
@@ -627,6 +651,54 @@ fn finish_appliance_update_job(id: &str, status: &str, message: impl Into<String
         job.message = msg;
         job.finished_at = Some(Local::now().to_rfc3339());
     });
+}
+
+fn begin_update_activity(kind: &str, detail: impl Into<String>) -> Result<UpdateActivityGuard, String> {
+    let mut guard = update_activity_slot().lock().unwrap();
+    if let Some(active) = guard.as_ref() {
+        let suffix = if active.detail.is_empty() {
+            String::new()
+        } else {
+            format!(" ({})", active.detail)
+        };
+        return Err(format!(
+            "{} already running since {}{}",
+            active.kind, active.started_at, suffix
+        ));
+    }
+    let id = format!(
+        "activity-{}-{}",
+        std::process::id(),
+        Local::now().format("%Y%m%d%H%M%S%3f")
+    );
+    *guard = Some(UpdateActivity {
+        id: id.clone(),
+        kind: kind.to_string(),
+        started_at: Local::now().to_rfc3339(),
+        detail: detail.into(),
+    });
+    Ok(UpdateActivityGuard { id })
+}
+
+fn release_update_activity(id: &str) {
+    let mut guard = update_activity_slot().lock().unwrap();
+    if guard.as_ref().map(|a| a.id.as_str()) == Some(id) {
+        *guard = None;
+    }
+}
+
+struct UpdateActivityGuard {
+    id: String,
+}
+
+impl Drop for UpdateActivityGuard {
+    fn drop(&mut self) {
+        release_update_activity(&self.id);
+    }
+}
+
+fn is_g2_update_script(script: &str) -> bool {
+    script.eq_ignore_ascii_case("update-G2.py") || script.eq_ignore_ascii_case("update-G2.sh")
 }
 
 fn is_safe_repo_part(value: &str) -> bool {
@@ -1251,6 +1323,13 @@ async fn update_start(State(state): State<AppState>, Json(req): Json<UpdateStart
         Ok(v) => v,
         Err(e) => return json_error(StatusCode::BAD_REQUEST, &e),
     };
+    let activity_guard = match begin_update_activity(
+        "appliance-update",
+        format!("channel={channel} target_ref={target_ref}"),
+    ) {
+        Ok(g) => g,
+        Err(e) => return json_error(StatusCode::CONFLICT, &e),
+    };
     let job_id = format!(
         "upd-{}-{}",
         std::process::id(),
@@ -1281,6 +1360,7 @@ async fn update_start(State(state): State<AppState>, Json(req): Json<UpdateStart
     let state_clone = state.clone();
     let job_id_clone = job_id.clone();
     tokio::spawn(async move {
+        let _activity_guard = activity_guard;
         run_appliance_update(state_clone, job_id_clone, policy, channel, target_ref).await;
     });
 
@@ -1307,6 +1387,10 @@ async fn update_rollback(State(state): State<AppState>) -> Response {
             return json_error(StatusCode::CONFLICT, "update in progress");
         }
     }
+    let _activity_guard = match begin_update_activity("appliance-rollback", "manual rollback") {
+        Ok(g) => g,
+        Err(e) => return json_error(StatusCode::CONFLICT, &e),
+    };
 
     let last = match read_last_update_state(&state).await {
         Some(v) => v,
@@ -2025,6 +2109,186 @@ fn parse_boolish(v: Option<String>) -> bool {
     }
 }
 
+#[derive(Serialize)]
+struct G2BackupEntry {
+    name: String,
+    path: String,
+    files: u64,
+    dirs: u64,
+    bytes: u64,
+    modified_epoch: u64,
+}
+
+#[derive(Deserialize)]
+struct G2RestoreReq {
+    backup_name: String,
+    dry_run: Option<bool>,
+    confirm: Option<String>,
+}
+
+fn backup_home_dir() -> PathBuf {
+    PathBuf::from(std::env::var("HOME").unwrap_or_else(|_| "/home/pi".to_string()))
+}
+
+fn is_safe_backup_name(name: &str) -> bool {
+    !name.is_empty()
+        && name.starts_with("saturn-backup-")
+        && !name.contains('/')
+        && !name.contains('\\')
+        && !name.contains("..")
+        && name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.')
+}
+
+async fn resolve_backup_path(name: &str) -> Result<PathBuf, String> {
+    if !is_safe_backup_name(name) {
+        return Err("invalid backup name".to_string());
+    }
+    let home = backup_home_dir();
+    let home_canon = tokio::fs::canonicalize(&home)
+        .await
+        .map_err(|e| format!("cannot resolve backup home: {e}"))?;
+    let candidate = home.join(name);
+    let candidate_canon = tokio::fs::canonicalize(&candidate)
+        .await
+        .map_err(|e| format!("backup not found: {e}"))?;
+    if !candidate_canon.starts_with(&home_canon) {
+        return Err("backup path escapes home directory".to_string());
+    }
+    let meta = tokio::fs::metadata(&candidate_canon)
+        .await
+        .map_err(|e| format!("cannot read backup metadata: {e}"))?;
+    if !meta.is_dir() {
+        return Err("backup path is not a directory".to_string());
+    }
+    Ok(candidate_canon)
+}
+
+async fn g2_backups() -> Response {
+    let home = backup_home_dir();
+    let mut rows: Vec<(String, PathBuf, u64)> = Vec::new();
+    let mut read_dir = match tokio::fs::read_dir(&home).await {
+        Ok(v) => v,
+        Err(e) => return json_error(StatusCode::INTERNAL_SERVER_ERROR, &format!("failed to list backups: {e}")),
+    };
+
+    while let Ok(Some(ent)) = read_dir.next_entry().await {
+        let name = match ent.file_name().to_str() {
+            Some(v) => v.to_string(),
+            None => continue,
+        };
+        if !is_safe_backup_name(&name) {
+            continue;
+        }
+        let path = ent.path();
+        let meta = match ent.metadata().await {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+        if !meta.is_dir() {
+            continue;
+        }
+        let modified_epoch = meta
+            .modified()
+            .ok()
+            .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        rows.push((name, path, modified_epoch));
+    }
+
+    rows.sort_by(|a, b| b.2.cmp(&a.2).then_with(|| a.0.cmp(&b.0)));
+
+    let mut backups = Vec::new();
+    for (name, path, modified_epoch) in rows {
+        let (files, dirs, bytes) = tree_stats(path.clone()).await;
+        backups.push(G2BackupEntry {
+            name,
+            path: path.display().to_string(),
+            files,
+            dirs,
+            bytes,
+            modified_epoch,
+        });
+    }
+
+    Json(serde_json::json!({
+        "home": home,
+        "backups": backups,
+    }))
+    .into_response()
+}
+
+async fn g2_restore(State(state): State<AppState>, Json(req): Json<G2RestoreReq>) -> Response {
+    let dry_run = req.dry_run.unwrap_or(false);
+    if !dry_run && req.confirm.as_deref() != Some("RESTORE") {
+        return json_error(StatusCode::BAD_REQUEST, "confirm token required");
+    }
+
+    let _activity_guard = if dry_run {
+        None
+    } else {
+        match begin_update_activity("g2-backup-restore", format!("backup={}", req.backup_name)) {
+            Ok(g) => Some(g),
+            Err(e) => return json_error(StatusCode::CONFLICT, &e),
+        }
+    };
+
+    let backup_root = match resolve_backup_path(req.backup_name.trim()).await {
+        Ok(v) => v,
+        Err(e) => return json_error(StatusCode::BAD_REQUEST, &e),
+    };
+
+    if let Err(e) = validate_saturn_repo_root(&backup_root) {
+        return json_error(StatusCode::BAD_REQUEST, &format!("backup is not a Saturn repo snapshot: {e}"));
+    }
+
+    let repo_root = current_repo_root(&state);
+    if let Err(e) = validate_saturn_repo_root(&repo_root) {
+        return json_error(StatusCode::BAD_REQUEST, &e);
+    }
+
+    let (files, dirs, bytes) = tree_stats(backup_root.clone()).await;
+    if dry_run {
+        return Json(serde_json::json!({
+            "status": "ok",
+            "dry_run": true,
+            "backup_root": backup_root,
+            "repo_root": repo_root,
+            "files": files,
+            "dirs": dirs,
+            "bytes": bytes,
+        }))
+        .into_response();
+    }
+
+    let status = match Command::new("rsync")
+        .arg("-a")
+        .arg("--delete")
+        .arg(format!("{}/", backup_root.display()))
+        .arg(format!("{}/", repo_root.display()))
+        .status()
+        .await
+    {
+        Ok(v) => v,
+        Err(e) => return json_error(StatusCode::INTERNAL_SERVER_ERROR, &format!("failed to run rsync: {e}")),
+    };
+    if !status.success() {
+        return json_error(StatusCode::INTERNAL_SERVER_ERROR, "rsync failed");
+    }
+
+    Json(serde_json::json!({
+        "status": "ok",
+        "backup_root": backup_root,
+        "repo_root": repo_root,
+        "files": files,
+        "dirs": dirs,
+        "bytes": bytes,
+    }))
+    .into_response()
+}
+
 async fn restore_full(
     State(state): State<AppState>,
     Query(q): Query<RestoreQuery>,
@@ -2315,7 +2579,7 @@ async fn get_fpga_images() -> impl IntoResponse {
 }
 
 async fn run_sse(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     multipart: Multipart,
 ) -> Result<Response, Response> {
     let (script, flags) = match parse_multipart(multipart).await {
@@ -2331,6 +2595,19 @@ async fn run_sse(
     if tokio::fs::metadata(&script_path).await.is_err() {
         return Err((StatusCode::NOT_FOUND, "script not found").into_response());
     }
+    let repo_root = current_repo_root(&state);
+    let repo_root_display = repo_root.display().to_string();
+    let update_activity_guard = if is_g2_update_script(&script) {
+        Some(
+            begin_update_activity(
+                "update-g2",
+                format!("script={} repo_root={repo_root_display}", script),
+            )
+            .map_err(|e| json_error(StatusCode::CONFLICT, &e))?,
+        )
+    } else {
+        None
+    };
 
     let (tx, rx) = mpsc::unbounded_channel::<String>();
 
@@ -2338,6 +2615,9 @@ async fn run_sse(
     let _ = tx.send(start_line);
 
     let mut cmd = build_script_command(&script_path, &flags);
+    cmd.env("SATURN_REPO_ROOT", &repo_root_display);
+    cmd.env("SATURN_DIR", &repo_root_display);
+    cmd.env("SATURN_ACTIVE_REPO_ROOT", &repo_root_display);
 
     cmd.stdout(std::process::Stdio::piped());
     cmd.stderr(std::process::Stdio::piped());
@@ -2362,6 +2642,7 @@ async fn run_sse(
     }
 
     tokio::spawn(async move {
+        let _update_activity_guard = update_activity_guard;
         match child.wait().await {
             Ok(status) if status.success() => {
                 let _ = tx.send("Done".to_string());

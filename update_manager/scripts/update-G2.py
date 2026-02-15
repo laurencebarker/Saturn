@@ -12,7 +12,7 @@
 #   --debug        : extra debug logs
 #
 # Repo layout assumed by the original bash script:
-#   SATURN_DIR = ~/github/Saturn
+#   SATURN_DIR = $SATURN_REPO_ROOT (or $SATURN_DIR), default ~/github/Saturn
 #   scripts/               (contains update-p2app.sh, update-desktop-apps.sh, install-libraries.sh, find-bin.sh)
 #   rules/install-rules.sh (udev)
 #   desktop/               (desktop .desktop shortcuts)
@@ -32,7 +32,9 @@ from datetime import datetime
 # Config / constants
 # -----------------------------
 HOME = os.path.expanduser("~")
-SATURN_DIR = os.path.join(HOME, "github", "Saturn")
+DEFAULT_SATURN_DIR = os.path.join(HOME, "github", "Saturn")
+SATURN_DIR = os.environ.get("SATURN_REPO_ROOT") or os.environ.get("SATURN_DIR") or DEFAULT_SATURN_DIR
+SATURN_DIR = os.path.abspath(SATURN_DIR)
 LOG_DIR = os.path.join(HOME, "saturn-logs")
 os.makedirs(LOG_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOG_DIR, f"saturn-update-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
