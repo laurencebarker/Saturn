@@ -96,6 +96,7 @@
       <div class="flex items-center gap-3">
         <button type="button" id="g2-btn" class="btn btn-ghost px-4 py-2">G2 Update</button>
         <button type="button" id="pihpsdr-btn" class="btn btn-ghost px-4 py-2">piHPSDR Update</button>
+        <button type="button" id="fpga-btn" class="btn btn-ghost px-4 py-2">FPGA Flash</button>
         <button type="button" id="backup-btn" class="btn btn-ghost px-4 py-2">Backup / Restore</button>
         <button type="button" id="custom-btn" class="btn btn-ghost px-4 py-2">Custom Scripts</button>
         <button type="button" id="monitor-btn" class="btn btn-ghost px-4 py-2">Monitor</button>
@@ -569,6 +570,7 @@ $('toggle-versions').addEventListener('change', (e)=>{
 
 $('g2-btn').addEventListener('click', ()=> window.location.href = './');
 $('pihpsdr-btn').addEventListener('click', ()=> window.location.href = './pihpsdr');
+$('fpga-btn').addEventListener('click', ()=> window.location.href = './fpga');
 $('backup-btn').addEventListener('click', ()=> window.location.href = './backup');
 $('monitor-btn').addEventListener('click', ()=> window.location.href = './monitor');
 $('custom-btn').addEventListener('click', ()=> window.location.href = './custom');

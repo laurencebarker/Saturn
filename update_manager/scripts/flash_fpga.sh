@@ -1,24 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# flash_fpga.sh - Safe FPGA flashing helper for Saturn
-# Version: 1.0.0
+# flash_fpga.sh - Safe FPGA flashing helper for Saturn (load-FPGA wrapper)
+# Version: 2.0.0
 #
 # Requirements:
 # - Must run on Raspberry Pi (not WSL/desktop)
-# - Uses sw_tools/spiload with explicit offsets
-# - Verification is always enabled
-#
-# Offsets:
-#   Primary image:  9961472
-#   Fallback image: 0
-
-PRIMARY_OFFSET="9961472"
-FALLBACK_OFFSET="0"
+# - Uses sw_tools/load-FPGA
+# - Confirmation is mandatory
+# - Verification defaults ON
 
 IMAGE=""
 USE_FALLBACK=false
 USE_PRIMARY=false
+VERIFY=true
 CONFIRM=""
 DRY_RUN=false
 
@@ -50,6 +45,12 @@ resolve_saturn_dir(){
   local user_home="$1"
   local candidates=()
 
+  if [[ -n "${SATURN_ACTIVE_REPO_ROOT:-}" ]]; then
+    candidates+=("$SATURN_ACTIVE_REPO_ROOT")
+  fi
+  if [[ -n "${SATURN_REPO_ROOT:-}" ]]; then
+    candidates+=("$SATURN_REPO_ROOT")
+  fi
   if [[ -n "${SATURN_DIR:-}" ]]; then
     candidates+=("$SATURN_DIR")
   fi
@@ -63,7 +64,7 @@ resolve_saturn_dir(){
 
   local c
   for c in "${candidates[@]}"; do
-    if [[ -d "$c/sw_tools" ]]; then
+    if [[ -d "$c/sw_tools/load-FPGA" || -d "$c/sw_tools/spiload" ]]; then
       echo "$c"
       return 0
     fi
@@ -88,6 +89,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --fallback)
       USE_FALLBACK=true
+      shift
+      ;;
+    --verify)
+      VERIFY=true
+      shift
+      ;;
+    --no-verify)
+      VERIFY=false
       shift
       ;;
     --confirm)
@@ -128,7 +137,8 @@ if [[ -n "${SATURN_FPGA_DIR:-}" ]]; then
 else
   FPGA_DIR="${SATURN_DIR}/FPGA"
 fi
-SPILOAD_BIN="${SATURN_DIR}/sw_tools/spiload"
+LOADER_DIR="${SATURN_DIR}/sw_tools/load-FPGA"
+LOADER_BIN="${LOADER_DIR}/load-FPGA"
 
 if [[ "$USE_PRIMARY" == true && "$USE_FALLBACK" == true ]]; then
   err "Choose only one: --primary or --fallback"
@@ -137,10 +147,8 @@ if [[ "$USE_PRIMARY" == false && "$USE_FALLBACK" == false ]]; then
   USE_PRIMARY=true
 fi
 
-OFFSET="$PRIMARY_OFFSET"
 TARGET_NAME="PRIMARY"
 if [[ "$USE_FALLBACK" == true ]]; then
-  OFFSET="$FALLBACK_OFFSET"
   TARGET_NAME="FALLBACK"
 fi
 
@@ -149,9 +157,9 @@ if [[ ! -d "$FPGA_DIR" ]]; then
 fi
 
 if [[ -z "$IMAGE" || "$IMAGE" == "latest" ]]; then
-  # Pick newest plausible image file
-  IMAGE="$(ls -t "$FPGA_DIR"/*.{bin,rbf,bit} 2>/dev/null | head -n1 || true)"
-  [[ -n "$IMAGE" ]] || err "No FPGA image found in $FPGA_DIR"
+  # Pick newest binary image file expected by load-FPGA (-b)
+  IMAGE="$(ls -t "$FPGA_DIR"/*.bin 2>/dev/null | head -n1 || true)"
+  [[ -n "$IMAGE" ]] || err "No FPGA .bin image found in $FPGA_DIR"
 fi
 
 if [[ "$IMAGE" != /* ]]; then
@@ -163,21 +171,28 @@ fi
 if [[ ! -f "$IMAGE" ]]; then
   err "Image not found: $IMAGE"
 fi
+if [[ "${IMAGE##*.}" != "bin" ]]; then
+  err "load-FPGA requires a .bin image file: $IMAGE"
+fi
 
 progress 15
 
-# Ensure spiload is built
-if [[ ! -x "$SPILOAD_BIN" ]]; then
-  info "Building spiload..."
+if [[ ! -d "$LOADER_DIR" ]]; then
+  err "load-FPGA source directory not found: $LOADER_DIR"
+fi
+
+# Ensure load-FPGA is built
+if [[ ! -x "$LOADER_BIN" ]]; then
+  info "Building load-FPGA..."
   if [[ "$DRY_RUN" == true ]]; then
-    info "[Dry Run] make -C ${SATURN_DIR}/sw_tools spiload"
+    info "[Dry Run] make -C ${LOADER_DIR}"
   else
-    make -C "${SATURN_DIR}/sw_tools" spiload
+    make -C "${LOADER_DIR}"
   fi
 fi
 
-if [[ ! -x "$SPILOAD_BIN" && "$DRY_RUN" == false ]]; then
-  err "spiload not found or not executable at $SPILOAD_BIN"
+if [[ ! -x "$LOADER_BIN" && "$DRY_RUN" == false ]]; then
+  err "load-FPGA not found or not executable at $LOADER_BIN"
 fi
 
 progress 25
@@ -187,8 +202,9 @@ SHORT="${SHA:0:6}"
 
 info "FPGA image: $IMAGE"
 info "SHA256: $SHA"
-info "Target: $TARGET_NAME offset=$OFFSET"
-info "Verification: ON"
+info "Target slot: $TARGET_NAME"
+info "Verification: $([[ "$VERIFY" == true ]] && echo ON || echo OFF)"
+info "Loader: $LOADER_BIN"
 
 if [[ "$CONFIRM" != "FLASH" && "$CONFIRM" != "$SHORT" ]]; then
   err "Confirmation required. Re-run with: --confirm FLASH (or --confirm ${SHORT})"
@@ -196,7 +212,14 @@ fi
 
 progress 35
 
-CMD=("$SPILOAD_BIN" -v -o "$OFFSET" -f "$IMAGE")
+CMD=("$LOADER_BIN" -b "$IMAGE")
+if [[ "$VERIFY" == true ]]; then
+  CMD+=(-v)
+fi
+if [[ "$USE_FALLBACK" == true ]]; then
+  CMD+=(-f)
+fi
+
 info "Running: ${CMD[*]}"
 
 if [[ "$DRY_RUN" == true ]]; then
@@ -206,7 +229,7 @@ if [[ "$DRY_RUN" == true ]]; then
 fi
 
 if ! run_as_root "${CMD[@]}"; then
-  err "spiload failed"
+  err "load-FPGA failed"
 fi
 
 progress 100

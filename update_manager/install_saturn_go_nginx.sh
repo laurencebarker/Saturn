@@ -111,6 +111,7 @@ copy_web_asset "index.html"
 copy_web_asset "monitor.html"
 copy_web_asset "backup.html"
 copy_web_asset "update.html"
+copy_web_asset "fpga.html"
 copy_web_asset "pihpsdr.html"
 
 if [[ -f "$SOURCE_DIR/scripts/config.json" ]]; then

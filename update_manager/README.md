@@ -24,12 +24,13 @@ service names still use `saturn-go` for compatibility with existing installs.
 - G2 Update is the default landing page (`/`, `update.html`) with Appliance Update policy/start/rollback
 - Appliance Update policy panel (right side on desktop, below G2 terminal on narrow screens) stores GitHub repo URL + branch/ref + health-check values used by both Appliance Update and Run Update G2
 - Dedicated piHPSDR Update page (`pihpsdr.html`) for `update-pihpsdr.py` terminal execution
+- Dedicated FPGA Flash page (`fpga.html`) for `flash_fpga.sh` using `load-FPGA` (`-b`, `-v`, `-f`) with explicit confirmation guard
 - Dedicated Custom Scripts page (`custom.html` / `index.html`) to add/update/delete runnable scripts from browser with file upload + flag metadata
 - Default browser-managed custom scripts are auto-seeded on startup:
   - `cleanup-saturn-logs.sh`
   - `cleanup-saturn-backups.sh`
 - Dedicated Backup / Restore page (`backup.html`) for repo-root management, backup/restore, Pi imaging, clone, and repair tools
-- Navigation/page names in current UI are: `G2 Update`, `piHPSDR Update`, `Backup / Restore`, `Custom Scripts`, `Monitor`
+- Navigation/page names in current UI are: `G2 Update`, `piHPSDR Update`, `FPGA Flash`, `Backup / Restore`, `Custom Scripts`, `Monitor`
 - Pi image creation workflow with progress, validation, cancel, and download
 - SD-to-removable-device cloning workflow with progress and cancel
 - Repair Pack download and system config verification tools
@@ -56,6 +57,7 @@ Typical deployed paths:
   index.html
   update.html
   pihpsdr.html
+  fpga.html
   monitor.html
   backup.html
   config.json
@@ -87,7 +89,9 @@ Script definitions come from `config.json` plus browser-managed custom entries i
 - Version list ("Show versions above"): `/get_versions`
 - G2 Update page: `/update` (also `/update.html`)
 - piHPSDR update page: `/pihpsdr` (also `/pihpsdr.html`)
+- FPGA flash page: `/fpga` (also `/fpga.html`)
 - Custom scripts page: `/custom` (also `/custom.html`, `/index.html`)
+- Discover FPGA image candidates: `GET /get_fpga_images`
 - Active repo root: `/get_repo_root`
 - Discover repo roots: `/list_repo_roots`
 - Switch active repo root: `POST /set_repo_root` with JSON `{ "repo_root": "/path/to/tree" }`

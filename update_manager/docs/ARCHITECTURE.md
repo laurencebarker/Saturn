@@ -30,6 +30,8 @@ Saturn Update Manager is deployed as a small appliance-style web stack:
     - G2 run button is gated by valid Appliance repo URL input.
 - `pihpsdr.html`
   - Dedicated piHPSDR update terminal workflow (`POST /run` with `update-pihpsdr.py`).
+- `fpga.html`
+  - Dedicated FPGA flash workflow (`POST /run` with `flash_fpga.sh`) plus image discovery (`GET /get_fpga_images`).
 - `backup.html`
   - Repo-root selection, full backup/restore, repair pack, Pi image workflow, and SD clone workflow.
 - `monitor.html`
@@ -44,7 +46,7 @@ Saturn Update Manager is deployed as a small appliance-style web stack:
 - `/opt/saturn-go/scripts/`
   - Executable maintenance scripts (also target directory for browser-managed custom scripts).
 - `/var/lib/saturn-web/`
-  - Web assets: `index.html`, `update.html`, `pihpsdr.html`, `backup.html`, `monitor.html`, `config.json`, `themes.json`.
+  - Web assets: `index.html`, `update.html`, `pihpsdr.html`, `fpga.html`, `backup.html`, `monitor.html`, `config.json`, `themes.json`.
 - `/var/lib/saturn-state/`
   - Mutable state: `repo_root.txt`, `update_policy.json`, `update_state.json`, snapshots, staged worktrees.
 - `/etc/systemd/system/saturn-go.service`

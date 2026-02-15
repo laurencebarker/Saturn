@@ -19,6 +19,7 @@ UI usage notes:
 - `update.html` (G2 Update page) is the dedicated UI for running `update-G2.py` with live SSE terminal output.
 - `index.html` (Custom Scripts page) intentionally excludes `update-pihpsdr.py` from the dropdown.
 - `pihpsdr.html` is the dedicated UI for running `update-pihpsdr.py` with live SSE terminal output.
+- `fpga.html` is the dedicated UI for running `flash_fpga.sh` with confirmation and FPGA image discovery.
 - `restore-backup.sh` is intentionally excluded from the main dropdown; Backup / Restore page provides dedicated restore controls for script-created backup directories.
 - `index.html` is used as the browser-managed Custom Scripts page (`/custom`), backed by `custom_scripts.json`.
 - `/run` executes scripts from `/opt/saturn-go/scripts`.
@@ -48,7 +49,7 @@ Not all utilities are directly wired into current UI buttons, but are included i
 
 | Script | Purpose | Key Flags |
 |---|---|---|
-| `flash_fpga.sh` | Flash selected FPGA image to primary/fallback offset using `spiload` with confirmation guard. | `--image`, `--latest`, `--primary`, `--fallback`, `--confirm`, `--dry-run` |
+| `flash_fpga.sh` | Flash selected FPGA image via `sw_tools/load-FPGA/load-FPGA` using confirmation guard. | `--image`, `--latest`, `--primary`, `--fallback`, `--verify`, `--no-verify`, `--confirm`, `--dry-run` |
 | `qemu_pi_boot.sh` | Boot Raspberry Pi image in QEMU by extracting kernel/DTB and launching `qemu-system-aarch64`. | `--img`, `--work-dir`, `--memory`, `--cpus`, `--machine`, `--extra-append`, `--dry-run` |
 | `log_cleaner.sh` | Local log cleanup helper. | see above |
 

@@ -97,10 +97,11 @@ curl -fsS "http://127.0.0.1:8080/run_log?script=update-G2.py&from=0&limit=20"
 
 - `/saturn/` opens G2 Update (default landing page).
 - `/saturn/pihpsdr` opens dedicated piHPSDR update page.
+- `/saturn/fpga` opens dedicated FPGA flash page.
 - `/saturn/backup` opens Backup / Restore.
 - `/saturn/custom` (and `/saturn/index`) opens Custom Scripts page.
 - `/saturn/monitor` opens Monitor.
-- Navigation order in current UI: `G2 Update` -> `piHPSDR Update` -> `Backup / Restore` -> `Custom Scripts` -> `Monitor`.
+- Navigation order in current UI: `G2 Update` -> `piHPSDR Update` -> `FPGA Flash` -> `Backup / Restore` -> `Custom Scripts` -> `Monitor`.
 
 ### Repo Root Management
 
@@ -179,6 +180,19 @@ Update behavior:
 - Run `update-pihpsdr.py` from `/saturn/pihpsdr`.
 - This page mirrors the dedicated terminal workflow (flags + SSE output) used by Update G2.
 - In non-interactive web execution, backup prompts are skipped unless `-y` is selected.
+- Output can be resumed from backend run logs (`/run_log`) after navigating away and back.
+
+### FPGA Flash (Dedicated Terminal)
+
+- Run `flash_fpga.sh` from `/saturn/fpga`.
+- The page discovers candidate images from `GET /get_fpga_images`.
+- Use `Show only most current firmware` to limit dropdown selection to `latest_image` from backend scan.
+- The script uses `sw_tools/load-FPGA/load-FPGA` with:
+  - `-b <image>`
+  - optional `-v` verify (enabled by default in UI)
+  - optional `-f` fallback slot
+- Flash is confirmation-gated (`--confirm FLASH` or short hash shown by script).
+- In web mode, service-user passwordless sudo is required for hardware flashing.
 - Output can be resumed from backend run logs (`/run_log`) after navigating away and back.
 
 ### Custom Scripts (Browser Managed)

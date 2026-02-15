@@ -29,4 +29,4 @@ This folder contains the operational and technical documentation for the Rust-ba
 
 - `OPERATIONS_RUNBOOK.md`
   - Build, install, uninstall, daily operations, and troubleshooting.
-  - Includes G2 Update page (G2 + Appliance Update), dedicated piHPSDR update flow, browser-managed custom scripts flow, backup/restore flow, and service checks.
+  - Includes G2 Update page (G2 + Appliance Update), dedicated piHPSDR update flow, dedicated FPGA flash flow, browser-managed custom scripts flow, backup/restore flow, and service checks.

@@ -332,6 +332,8 @@ async fn main() {
         .route("/backup.html", get(backup_handler))
         .route("/update", get(update_handler))
         .route("/update.html", get(update_handler))
+        .route("/fpga", get(fpga_handler))
+        .route("/fpga.html", get(fpga_handler))
         .route("/pihpsdr", get(pihpsdr_handler))
         .route("/pihpsdr.html", get(pihpsdr_handler))
         .route("/monitor", get(monitor_handler))
@@ -405,6 +407,10 @@ async fn update_handler(State(state): State<AppState>) -> impl IntoResponse {
     serve_page(&state.webroot, "update.html").await
 }
 
+async fn fpga_handler(State(state): State<AppState>) -> impl IntoResponse {
+    serve_page(&state.webroot, "fpga.html").await
+}
+
 async fn pihpsdr_handler(State(state): State<AppState>) -> impl IntoResponse {
     serve_page(&state.webroot, "pihpsdr.html").await
 }
@@ -430,6 +436,9 @@ fn route_to_page(path: &str) -> Option<&'static str> {
         }
         "/update" | "/update/" | "/update.html" | "/saturn/update" | "/saturn/update/" | "/saturn/update.html" => {
             Some("update.html")
+        }
+        "/fpga" | "/fpga/" | "/fpga.html" | "/saturn/fpga" | "/saturn/fpga/" | "/saturn/fpga.html" => {
+            Some("fpga.html")
         }
         "/pihpsdr" | "/pihpsdr/" | "/pihpsdr.html" | "/saturn/pihpsdr" | "/saturn/pihpsdr/" | "/saturn/pihpsdr.html" => {
             Some("pihpsdr.html")
@@ -3125,22 +3134,29 @@ async fn get_flags(State(state): State<AppState>, Query(q): Query<FlagsQuery>) -
     Json(serde_json::json!({ "flags": [] }))
 }
 
-async fn get_fpga_images() -> impl IntoResponse {
-    fn list_images(dir: &Path) -> Vec<String> {
-        let mut images: Vec<String> = Vec::new();
+async fn get_fpga_images(State(state): State<AppState>) -> impl IntoResponse {
+    fn list_images(dir: &Path) -> Vec<(String, u64)> {
+        let mut images: Vec<(String, u64)> = Vec::new();
         if let Ok(entries) = fs::read_dir(dir) {
             for entry in entries.flatten() {
                 let path = entry.path();
                 if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
-                    if matches!(ext, "bin" | "rbf" | "bit") {
+                    if ext.eq_ignore_ascii_case("bin") {
                         if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                            images.push(name.to_string());
+                            let modified_epoch = entry
+                                .metadata()
+                                .ok()
+                                .and_then(|m| m.modified().ok())
+                                .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
+                                .map(|d| d.as_secs())
+                                .unwrap_or(0);
+                            images.push((name.to_string(), modified_epoch));
                         }
                     }
                 }
             }
         }
-        images.sort();
+        images.sort_by(|a, b| a.0.cmp(&b.0));
         images
     }
 
@@ -3148,6 +3164,13 @@ async fn get_fpga_images() -> impl IntoResponse {
     if let Ok(dir) = std::env::var("SATURN_FPGA_DIR") {
         candidates.push(PathBuf::from(dir));
     }
+    if let Ok(root) = std::env::var("SATURN_ACTIVE_REPO_ROOT") {
+        candidates.push(PathBuf::from(root).join("FPGA"));
+    }
+    if let Ok(root) = std::env::var("SATURN_REPO_ROOT") {
+        candidates.push(PathBuf::from(root).join("FPGA"));
+    }
+    candidates.push(current_repo_root(&state).join("FPGA"));
 
     if let Ok(home) = std::env::var("HOME") {
         candidates.push(PathBuf::from(&home).join("github/Saturn/FPGA"));
@@ -3165,6 +3188,7 @@ async fn get_fpga_images() -> impl IntoResponse {
 
     let mut selected: Option<PathBuf> = None;
     let mut images: Vec<String> = Vec::new();
+    let mut latest_image: Option<String> = None;
     let mut checked: Vec<String> = Vec::new();
 
     for dir in candidates {
@@ -3175,13 +3199,20 @@ async fn get_fpga_images() -> impl IntoResponse {
         checked.push(dir_str);
         if dir.is_dir() {
             let listed = list_images(&dir);
+            let listed_names: Vec<String> = listed.iter().map(|(name, _)| name.clone()).collect();
+            let listed_latest = listed
+                .iter()
+                .max_by(|a, b| a.1.cmp(&b.1).then_with(|| a.0.cmp(&b.0)))
+                .map(|(name, _)| name.clone());
             if selected.is_none() {
                 selected = Some(dir.clone());
-                images = listed.clone();
+                images = listed_names.clone();
+                latest_image = listed_latest.clone();
             }
             if !listed.is_empty() {
                 selected = Some(dir);
-                images = listed;
+                images = listed_names;
+                latest_image = listed_latest;
                 break;
             }
         }
@@ -3190,7 +3221,7 @@ async fn get_fpga_images() -> impl IntoResponse {
     let warning = if selected.is_none() {
         Some("No FPGA directory found (set SATURN_FPGA_DIR or place images in ~/github/Saturn/FPGA)".to_string())
     } else if images.is_empty() {
-        Some("FPGA directory found but no .bin/.rbf/.bit images were found".to_string())
+        Some("FPGA directory found but no .bin images were found".to_string())
     } else {
         None
     };
@@ -3198,6 +3229,7 @@ async fn get_fpga_images() -> impl IntoResponse {
     Json(serde_json::json!({
         "dir": selected,
         "images": images,
+        "latest_image": latest_image,
         "checked": checked,
         "warning": warning
     }))

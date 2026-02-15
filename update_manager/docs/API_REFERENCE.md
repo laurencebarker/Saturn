@@ -31,11 +31,13 @@ Backend also enforces same-host checks when `Origin` or `Referer` is present.
 | `/backup.html` | `GET` | No | Serve `backup.html`. |
 | `/update` | `GET` | No | Serve `update.html` (G2 + Appliance Update page). |
 | `/update.html` | `GET` | No | Serve `update.html` (G2 + Appliance Update page). |
+| `/fpga` | `GET` | No | Serve `fpga.html` (FPGA flash terminal/control page). |
+| `/fpga.html` | `GET` | No | Serve `fpga.html` (FPGA flash terminal/control page). |
 | `/pihpsdr` | `GET` | No | Serve `pihpsdr.html` (piHPSDR update terminal). |
 | `/pihpsdr.html` | `GET` | No | Serve `pihpsdr.html` (piHPSDR update terminal). |
 | `/monitor` | `GET` | No | Serve `monitor.html`. |
 | `/monitor.html` | `GET` | No | Serve `monitor.html`. |
-| fallback mapped page paths | `GET` | No | Supports `/saturn`, `/saturn/custom`, `/saturn/backup`, `/saturn/update`, `/saturn/pihpsdr`, `/saturn/monitor`, etc. |
+| fallback mapped page paths | `GET` | No | Supports `/saturn`, `/saturn/custom`, `/saturn/backup`, `/saturn/update`, `/saturn/fpga`, `/saturn/pihpsdr`, `/saturn/monitor`, etc. |
 
 ## Health and Metadata
 
@@ -48,7 +50,7 @@ Backend also enforces same-host checks when `Origin` or `Referer` is present.
 | `/custom_scripts` | `GET` | No | none | `{ "scripts": [ { "filename","name","description","flags",... }, ... ] }` (includes seeded default cleanup entries if present) |
 | `/custom_scripts` | `POST` | Yes | JSON `{ "filename","name","description","flags","content" }` | `{ "status":"ok", "script": {...} }` |
 | `/custom_scripts_delete` | `POST` | Yes | JSON `{ "filename", "delete_file": bool }` | `{ "status":"ok" }` |
-| `/get_fpga_images` | `GET` | No | none | `{ "dir", "images", "checked", "warning" }` |
+| `/get_fpga_images` | `GET` | No | none | `{ "dir", "images", "latest_image", "checked", "warning" }` (searches `SATURN_FPGA_DIR`, active repo-root `FPGA/`, and common repo paths for `.bin` images) |
 
 ## Repo Root Management
 
