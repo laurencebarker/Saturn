@@ -38,7 +38,8 @@ char* DeviceNames[] =
 {
   "G2V2 Panel",
   "G2V1 Panel Adapter",
-  "AriesATU"
+  "AriesATU",
+  "Ganymede PA Control"
 };
 
 

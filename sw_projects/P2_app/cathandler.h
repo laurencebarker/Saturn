@@ -37,7 +37,7 @@ typedef struct
   long MaxParamValue;             // eg "9999"
   byte NumParams;                 // number of parameter bytes in a "set" command
   bool AlwaysSigned;              // true if the param version should always have a sign
-  void (*handler)(int SourceDevice, ERXParamType HasParam, bool BoolParam, int NumParam, char* StringParam);          // handler function; no param and no return value
+  void (*handler)(int SourceDevice, ERXParamType HasParam, bool BoolParam, int NumParam, char* StringParam, bool IsRequest);          // handler function; no param and no return value
 } SCATCommands;
 
 extern SCATCommands GCATCommands[];

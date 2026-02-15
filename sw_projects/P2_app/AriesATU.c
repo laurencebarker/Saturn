@@ -40,6 +40,9 @@
 #include "g2v2panel.h"
 #include "AriesATU.h"
 
+#define ID_ARIES_ATU "2a7d4e1f-8b65-4a9c-b3d2-0f5e9c14a7e8"
+
+
 
 bool AriesATUActive;                                // true if Aries is operating
 bool AriesDetected;                                 // true if Aries detected from CAT message

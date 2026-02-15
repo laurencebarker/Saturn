@@ -53,7 +53,7 @@ bool CATDebugPrint = false;                 // true if to print generated CAT me
 
 
 #define VNUMOPSTRINGS 16                    // size of output queue
-#define VOPSTRSIZE 40                       // size of each string in queue
+#define VOPSTRSIZE 100                      // size of each string in queue
 //
 // CAT output buffer
 //
@@ -221,11 +221,12 @@ void ParseCATCmd(char* Buffer,  int Source)
   int ByteCntr;
   char ch;
   bool ValidResult = true;                  // true if we get a valid parse result
-  bool ParsedBool;                            // if a bool expected, it goes here
-  long ParsedInt;                             // if int expected, it goes here
-  char ParsedString[20];                      // if string expected, it goes here
+  bool ParsedBool;                          // if a bool expected, it goes here
+  long ParsedInt;                           // if int expected, it goes here
+  bool IsRequestOnly = false;               // true if we get a CAT command with no parameter eg ZZZA;
+  char ParsedString[100];                   // if string expected, it goes here
 
-  void (*HandlerPtr)(int SourceDevice, ERXParamType HasParam, bool BoolParam, int NumParam, char* StringParam); 
+  void (*HandlerPtr)(int SourceDevice, ERXParamType HasParam, bool BoolParam, int NumParam, char* StringParam, bool IsRequest); 
   
   CharCnt = strlen(Buffer) - 1;
 //
@@ -257,7 +258,7 @@ void ParseCATCmd(char* Buffer,  int Source)
 // any parameter starts at position 4 and ends at (charcnt-1)
 //
       if (CharCnt == 4)
-        ParsedType=eNone;
+        IsRequestOnly = true;
       else
       {
 //
@@ -299,7 +300,7 @@ void ParseCATCmd(char* Buffer,  int Source)
   }
   if (ValidResult == true)
   {
-    // debug: print the match found
+// debug: print the match found
 //    printf("match= %s ; parameter=", GCATCommands[MatchedCAT].CATString);
 //    switch(ParsedType)
 //    {
@@ -322,12 +323,11 @@ void ParseCATCmd(char* Buffer,  int Source)
 //    }
     HandlerPtr = GCATCommands[MatchedCAT].handler;
     if(HandlerPtr != NULL)
-      (*HandlerPtr)(Source, ParsedType, ParsedBool, ParsedInt, ParsedString);
+      (*HandlerPtr)(Source, ParsedType, ParsedBool, ParsedInt, ParsedString, IsRequestOnly);
   }
   else
   {
-//    Serial.print("Parse Error - cmd= ");
-//    Serial.println(GCATInputBuffer);
+    printf("Invalid CAT command received: %s\n", Buffer);
   }
 }
 
@@ -583,6 +583,12 @@ void* CATHandlerThread(__attribute__((unused)) void *arg)
     char SendBuffer[1024] = {0};
     unsigned int TXMessageLength;
     int SendError = 0;
+    char* SemicolonPosition = 0;
+    unsigned int ReadBufferLength;
+    char StringToParse[1024];
+    bool CharsRemaining;
+    unsigned int CatStringLength;
+    
 
 //    bool DebugMessageSent = false;
 
@@ -645,6 +651,7 @@ void* CATHandlerThread(__attribute__((unused)) void *arg)
       //
       // now loop; process read, write events
       // exit loop if port number changes
+      // a TCP/IP packet can contain one or several CAT commands, so need to break them up!
       //
       while(!ThreadError && SDRActive && !SignalThreadEnd && (ActiveCATPort == CATPort))    // thread main loop
       {
@@ -652,7 +659,33 @@ void* CATHandlerThread(__attribute__((unused)) void *arg)
           ReadResult = recv(CATSocketid, ReadBuffer, 1023, 0);
           if(ReadResult > 0)
           {
-              ParseCATCmd(ReadBuffer, DESTTCPCATPORT);
+              CharsRemaining = true;
+              //
+              // break into indivisual CAT commands, and process them
+              //
+              while(CharsRemaining)
+              {
+                ReadBufferLength = strlen(ReadBuffer);
+                if(ReadBufferLength < 3)
+                  CharsRemaining = false;                               // minimum CAT cat command length
+                SemicolonPosition = strchr(ReadBuffer, ';');
+                if(SemicolonPosition == NULL)                           // if no semicolon we don't have a CAT command
+                  break;
+                CatStringLength = (SemicolonPosition - ReadBuffer) + 1;
+                strncpy(StringToParse, ReadBuffer, CatStringLength);
+                StringToParse[CatStringLength] = 0;                     // null terminate
+                ParseCATCmd(StringToParse, DESTTCPCATPORT);
+                //
+                // now remove that CAT command from the buffer, and see if there is anything left to process
+                //
+                if(ReadBufferLength>CatStringLength)
+                {
+                    strncpy(ReadBuffer, ReadBuffer+CatStringLength, (ReadBufferLength-CatStringLength));
+                    ReadBuffer[ReadBufferLength-CatStringLength] = 0;         // null terminate
+                }
+                else 
+                  CharsRemaining = false;
+              }
               memset(ReadBuffer, 0, sizeof(ReadBuffer));
           }
           else if((ReadResult == -1) && (errno == 104))            // error 104 happens if server drops connection
