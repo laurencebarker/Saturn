@@ -487,6 +487,8 @@ fn build_script_command(script_path: &Path, flags: &[String]) -> Command {
         };
         cmd.env("PYTHONUNBUFFERED", "1");
         cmd.env("PYTHONIOENCODING", "UTF-8");
+        cmd.env("PYTHONDONTWRITEBYTECODE", "1");
+        cmd.env("PYTHONPYCACHEPREFIX", "/var/cache/saturn-python");
         return cmd;
     }
 
@@ -3304,6 +3306,25 @@ async fn run_sse(
         return Err((StatusCode::NOT_FOUND, "script not found").into_response());
     }
     let repo_root = current_repo_root(&state);
+    let script_is_python = script_path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .map(|ext| ext.eq_ignore_ascii_case("py"))
+        .unwrap_or(false);
+    if script_is_python {
+        let script_resolved = tokio::fs::canonicalize(&script_path)
+            .await
+            .unwrap_or_else(|_| script_path.clone());
+        let repo_root_resolved = tokio::fs::canonicalize(&repo_root)
+            .await
+            .unwrap_or_else(|_| repo_root.clone());
+        if script_resolved.starts_with(&repo_root_resolved) {
+            return Err(json_error(
+                StatusCode::BAD_REQUEST,
+                "Refusing to execute Python scripts from repo tree. Use installed scripts in /opt/saturn-go/scripts.",
+            ));
+        }
+    }
     let repo_root_display = repo_root.display().to_string();
     let g2_policy = if is_g2_update_script(&script) {
         let policy = load_update_policy(&state)

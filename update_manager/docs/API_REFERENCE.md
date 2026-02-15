@@ -167,10 +167,14 @@ Update-activity behavior for `/run`:
 
 - For `update-G2.py`/`update-G2.sh`, backend acquires the shared update-activity lock.
 - If appliance update/rollback (or another G2 run) is active, route returns `409` with `{ "message": "..." }`.
+- `/run` rejects Python scripts when the resolved script path is under active `SATURN_REPO_ROOT`.
 - Child process environment includes:
   - `SATURN_REPO_ROOT`
   - `SATURN_DIR`
   - `SATURN_ACTIVE_REPO_ROOT`
+- Python child runs also include:
+  - `PYTHONDONTWRITEBYTECODE=1`
+  - `PYTHONPYCACHEPREFIX=/var/cache/saturn-python`
 
 ## Credentials
 

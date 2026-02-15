@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # update-pihpsdr.py - piHPSDR Update Script
-# Automates cloning, updating, and building the pihpsdr repository from ~/github/Saturn/scripts
+# Automates cloning, updating, and building the pihpsdr repository
 # Version: 1.10
 # Written by: Jerry DeLong KD4YAL
 # Changes: Removed --show-compile flag, merged into --verbose, fixed make process output to display in CLI,
 #          changed make output color to white in CLI with --verbose, updated version to 1.10
 # Dependencies: psutil (version 7.0.0) in ~/venv, optional pyfiglet, urllib.error
-# Usage: source ~/venv/bin/activate; python3 ~/github/Saturn/scripts/update-pihpsdr.py; deactivate
+# Usage: python3 /opt/saturn-go/scripts/update-pihpsdr.py
 
 import os
 import sys
@@ -22,6 +22,8 @@ from pathlib import Path
 import psutil
 import urllib.error
 
+sys.dont_write_bytecode = True
+
 try:
     from pyfiglet import Figlet
 except ImportError:
@@ -36,6 +38,36 @@ class Colors:
     YELLOW = '\033[33m' # Yellow for warnings
     WHITE = '\033[37m'  # White for build output
     END = '\033[0m'
+
+def _is_subpath(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+def guard_repo_tree_python_execution():
+    script_path = Path(__file__).resolve()
+    candidate_roots = []
+    for candidate in (
+        os.environ.get("SATURN_REPO_ROOT"),
+        os.environ.get("SATURN_DIR"),
+        str(Path.home() / "github" / "Saturn"),
+    ):
+        if not candidate:
+            continue
+        root = Path(candidate).expanduser().resolve()
+        if root not in candidate_roots:
+            candidate_roots.append(root)
+
+    for root in candidate_roots:
+        if _is_subpath(script_path, root):
+            print(
+                f"{Colors.RED}✗ Refusing to run Python updater from repo tree: {script_path}\n"
+                f"Use installed script: /opt/saturn-go/scripts/{script_path.name}{Colors.END}",
+                file=sys.stderr,
+            )
+            sys.exit(2)
 
 # Script metadata
 SCRIPT_NAME = "piHPSDR Update"
@@ -556,6 +588,7 @@ def print_summary_report(start_time, backup_created):
 def main():
     global args
     args = parse_args()
+    guard_repo_tree_python_execution()
     start_time = time.time()
     BACKUP_CREATED = False
 

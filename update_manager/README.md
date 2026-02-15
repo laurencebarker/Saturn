@@ -139,6 +139,10 @@ If a script entry does not define `version`, `/get_versions` now returns
 - When launched by `/run`, the backend sets `SATURN_REPO_ROOT`, `SATURN_DIR`,
   and `SATURN_ACTIVE_REPO_ROOT` to the current active repo root before spawning
   the script.
+- `/run` refuses Python script execution when the resolved script path is inside
+  the active repo tree; use installed scripts under `/opt/saturn-go/scripts`.
+- Python script runs from `/run` set `PYTHONDONTWRITEBYTECODE=1` and
+  `PYTHONPYCACHEPREFIX=/var/cache/saturn-python` to keep source trees clean.
 
 ### Change Password
 

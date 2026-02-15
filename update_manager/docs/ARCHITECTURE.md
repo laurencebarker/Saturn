@@ -141,6 +141,7 @@ Concurrency guard:
 - `GET /run_log` returns buffered output for a script by offset:
   - `?script=<filename>&from=<offset>&limit=<n>`
 - Backend starts script from `SATURN_SCRIPTS_DIR` (default `/opt/saturn-go/scripts`).
+- `.py` scripts are rejected if their resolved path is inside active `SATURN_REPO_ROOT`.
 - Output from stdout/stderr is streamed as SSE messages.
 - Output is also copied into an in-memory per-script ring buffer so UI pages can resume output after tab/page switches.
 - `stdbuf` + unbuffered Python mode are used when available to reduce output latency.
@@ -148,6 +149,9 @@ Concurrency guard:
   - `SATURN_REPO_ROOT`
   - `SATURN_DIR`
   - `SATURN_ACTIVE_REPO_ROOT`
+- Python child runs also set:
+  - `PYTHONDONTWRITEBYTECODE=1`
+  - `PYTHONPYCACHEPREFIX=/var/cache/saturn-python`
 - For `update-G2.py`/`update-G2.sh`, `/run` also acquires the shared update-activity lock; conflicting update activity returns `409 Conflict`.
 
 ## Backup/Restore Model

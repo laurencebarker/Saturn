@@ -59,7 +59,9 @@ Not all utilities are directly wired into current UI buttons, but are included i
 - File permissions are normalized by installer:
   - `*.sh` and `*.py` scripts are set executable.
 - Script execution from UI is constrained to filenames in `/opt/saturn-go/scripts`.
+- `/run` rejects `.py` execution if the resolved script path is under the active repo root (`SATURN_REPO_ROOT`), preventing repo-tree Python runs.
 - Installer permissions keep `/opt/saturn-go/scripts` writable by the service user so browser-managed custom script content updates can persist.
 - SSE streaming route (`/run`) handles stdout and stderr with low-latency buffering behavior.
 - `/run` injects active repo-root context (`SATURN_REPO_ROOT`, `SATURN_DIR`, `SATURN_ACTIVE_REPO_ROOT`) so scripts operate on the currently selected Saturn checkout.
+- Python scripts launched by `/run` use `PYTHONDONTWRITEBYTECODE=1` and `PYTHONPYCACHEPREFIX=/var/cache/saturn-python`.
 - `update-G2.py` participates in the shared update-activity lock with appliance update/rollback routes to avoid overlapping update operations.

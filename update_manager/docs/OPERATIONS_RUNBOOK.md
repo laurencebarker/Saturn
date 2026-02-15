@@ -172,6 +172,8 @@ Update behavior:
   - `SATURN_REPO_ROOT`
   - `SATURN_DIR`
   - `SATURN_ACTIVE_REPO_ROOT`
+- `/run` rejects Python script execution when the resolved script path is inside active `SATURN_REPO_ROOT`.
+- Python runs from `/run` set `PYTHONDONTWRITEBYTECODE=1` and `PYTHONPYCACHEPREFIX=/var/cache/saturn-python`.
 - This allows `update-G2.py` to target the active Saturn checkout without hardcoded path dependence.
 - Output can be resumed from backend run logs (`/run_log`) after navigating away and back.
 

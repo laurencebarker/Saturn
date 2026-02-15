@@ -34,6 +34,8 @@ All notable changes to the Saturn Update Manager (Rust) are documented here.
 - Repo-root switching and restore now require Saturn-style git checkout paths (`.git` + `update_manager`), preventing destructive restore targets.
 - Appliance update now prunes older staged worktrees under `/var/lib/saturn-state/repo-staging` to limit disk growth.
 - Uninstaller now removes watchdog units and watchdog script to stay aligned with installer artifacts.
+- `/run` now blocks Python script execution when the resolved script path is inside the active Saturn repo tree; only installed script copies are allowed.
+- Python scripts launched by `/run` now set `PYTHONDONTWRITEBYTECODE=1` and `PYTHONPYCACHEPREFIX=/var/cache/saturn-python`.
 
 ### Fixed
 - `update-G2.py`: verbose mode now preserves captured command output used by status sections (fixes `Size: ?` and `Commit: ?` cases).
@@ -55,6 +57,7 @@ All notable changes to the Saturn Update Manager (Rust) are documented here.
 - `update-G2.py`: `install_udev_rules` now skips with warning (instead of hard-failing the full update) in non-interactive mode when passwordless sudo is unavailable.
 - G2 terminal runner now enforces a configured Appliance Update repo URL; if not configured, `/run` returns a clear error instead of silently using defaults.
 - G2 terminal runner now passes Appliance Update policy repo/remote/ref into `update-G2.py`, and `update-G2.py` now applies that policy by setting the git remote URL before pulling.
+- `update-G2.py` and `update-pihpsdr.py` now refuse execution when run from inside the Saturn repo tree, preventing accidental repo-local Python runs.
 
 ## [2026-02-13]
 ### Added

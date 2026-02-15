@@ -32,6 +32,8 @@ from datetime import datetime
 # -----------------------------
 # Config / constants
 # -----------------------------
+sys.dont_write_bytecode = True
+
 HOME = os.path.expanduser("~")
 DEFAULT_SATURN_DIR = os.path.join(HOME, "github", "Saturn")
 SATURN_DIR = os.environ.get("SATURN_REPO_ROOT") or os.environ.get("SATURN_DIR") or DEFAULT_SATURN_DIR
@@ -80,6 +82,35 @@ def has_tty():
         return sys.stdin.isatty() and sys.stdout.isatty()
     except Exception:
         return False
+
+def _is_subpath(path, root):
+    try:
+        return os.path.commonpath([os.path.realpath(path), os.path.realpath(root)]) == os.path.realpath(root)
+    except Exception:
+        return False
+
+def guard_repo_tree_python_execution():
+    script_path = os.path.realpath(__file__)
+    candidate_roots = []
+    for candidate in (
+        os.environ.get("SATURN_REPO_ROOT"),
+        os.environ.get("SATURN_DIR"),
+        DEFAULT_SATURN_DIR,
+    ):
+        if not candidate:
+            continue
+        root = os.path.realpath(candidate)
+        if root not in candidate_roots:
+            candidate_roots.append(root)
+
+    for root in candidate_roots:
+        if _is_subpath(script_path, root):
+            print(
+                f"{C.RED}✗ Refusing to run Python updater from repo tree: {script_path}\n"
+                f"Use installed script: /opt/saturn-go/scripts/{os.path.basename(script_path)}{C.END}",
+                file=sys.stderr,
+            )
+            sys.exit(2)
 
 def has_passwordless_sudo():
     try:
@@ -591,6 +622,7 @@ def footer():
 # Main
 # -----------------------------
 if __name__ == "__main__":
+    guard_repo_tree_python_execution()
     args = parse_args()
     start = time.time()
     init_logging()
