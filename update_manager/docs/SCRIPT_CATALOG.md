@@ -15,9 +15,23 @@ Defined in `config.json` and surfaced by `/get_scripts`.
 
 UI usage notes:
 
-- `index.html` (main runner) intentionally excludes `update-G2.py` from the generic script dropdown.
+- `index.html` (Custom Scripts page) intentionally excludes `update-G2.py` from the dropdown.
 - `update.html` (Update Center) is the dedicated UI for running `update-G2.py` with live SSE terminal output.
-- `/run` still executes scripts from `/opt/saturn-go/scripts` for both pages.
+- `index.html` (Custom Scripts page) intentionally excludes `update-pihpsdr.py` from the dropdown.
+- `pihpsdr.html` is the dedicated UI for running `update-pihpsdr.py` with live SSE terminal output.
+- `restore-backup.sh` is intentionally excluded from the main dropdown; Backup / Restore page provides dedicated restore controls for script-created backup directories.
+- `index.html` is used as the browser-managed Custom Scripts page (`/custom`), backed by `custom_scripts.json`.
+- `/run` executes scripts from `/opt/saturn-go/scripts`.
+- `/run_log` provides buffered per-script run output by offset (used for resume after page switches).
+
+## Backend-Seeded Default Custom Scripts
+
+These are created/registered by backend startup when missing and appear in `/custom_scripts`.
+
+| Script | Purpose | Typical Flags |
+|---|---|---|
+| `cleanup-saturn-logs.sh` | Remove Saturn update log files in `~/saturn-logs` (retention-oriented by default). | `--all`, `--older-7`, `--dry-run`, `--verbose` |
+| `cleanup-saturn-backups.sh` | Prune `~/saturn-backup-*` and `~/pihpsdr-backup-*` directories (keeps newest 2 by default). | `--saturn-only`, `--pihpsdr-only`, `--delete-all`, `--dry-run`, `--verbose` |
 
 ## Backup Page Workflows
 

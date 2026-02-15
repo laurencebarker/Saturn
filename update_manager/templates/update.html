@@ -92,10 +92,12 @@
 <body class="min-h-screen">
   <div class="max-w-6xl mx-auto px-4 py-6 sm:py-10">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-      <h1 class="title text-3xl sm:text-4xl">Saturn Update Center</h1>
+      <h1 class="title text-3xl sm:text-4xl">G2 Update Center</h1>
       <div class="flex items-center gap-3">
-        <a href="./" class="btn btn-ghost px-4 py-2">Main</a>
+        <a href="./" class="btn btn-ghost px-4 py-2">G2 Update</a>
+        <a href="./pihpsdr" class="btn btn-ghost px-4 py-2">piHPSDR Update</a>
         <a href="./backup" class="btn btn-ghost px-4 py-2">Backup / Restore</a>
+        <a href="./custom" class="btn btn-ghost px-4 py-2">Custom Scripts</a>
         <a href="./monitor" class="btn btn-ghost px-4 py-2">Monitor</a>
         <button id="theme-toggle" class="btn btn-ghost p-2" title="Toggle theme">
           <svg id="theme-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,7 +129,7 @@
 
       <div class="card p-5">
         <h2 class="text-xl font-semibold mb-2">Appliance Update</h2>
-        <p class="text-sm opacity-80 mb-4">Transactional Git update with staged repo root switch and rollback.</p>
+        <p class="text-sm opacity-80 mb-4">Transactional Git update with staged repo root switch and rollback. Enter repo + branch, then start.</p>
 
         <div class="mb-4">
           <div class="text-sm opacity-80">Active Repo Root</div>
@@ -137,57 +139,27 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm mb-1">GitHub Owner</label>
-            <input id="upd-owner" type="text" class="field px-3 py-2 w-full" />
+            <label class="block text-sm mb-1">GitHub Repo URL</label>
+            <input id="upd-repo-url" type="text" class="field px-3 py-2 w-full" placeholder="https://github.com/kd4yal2024/Saturn" />
           </div>
           <div>
-            <label class="block text-sm mb-1">GitHub Repo</label>
-            <input id="upd-repo" type="text" class="field px-3 py-2 w-full" />
-          </div>
-          <div>
-            <label class="block text-sm mb-1">Channel</label>
-            <select id="upd-channel" class="field px-3 py-2 w-full">
-              <option value="stable">stable</option>
-              <option value="beta">beta</option>
-              <option value="custom">custom</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm mb-1">Custom Ref</label>
-            <input id="upd-custom-ref" type="text" placeholder="branch/tag/commit" class="field px-3 py-2 w-full" />
-          </div>
-          <div>
-            <label class="block text-sm mb-1">Stable Ref</label>
-            <input id="upd-stable-ref" type="text" class="field px-3 py-2 w-full" />
-          </div>
-          <div>
-            <label class="block text-sm mb-1">Beta Ref</label>
-            <input id="upd-beta-ref" type="text" class="field px-3 py-2 w-full" />
+            <label class="block text-sm mb-1">Branch / Ref</label>
+            <input id="upd-branch" type="text" class="field px-3 py-2 w-full" placeholder="main" />
           </div>
           <div>
             <label class="block text-sm mb-1">Healthcheck URL</label>
-            <input id="upd-health-url" type="text" class="field px-3 py-2 w-full" />
+            <input id="upd-health-url" type="text" class="field px-3 py-2 w-full" placeholder="http://127.0.0.1:8080/healthz" />
           </div>
           <div>
             <label class="block text-sm mb-1">Health Timeout (sec)</label>
-            <input id="upd-health-timeout" type="number" min="2" max="30" class="field px-3 py-2 w-full" />
+            <input id="upd-health-timeout" type="number" min="2" max="60" class="field px-3 py-2 w-full" placeholder="8" />
           </div>
         </div>
-
-        <div class="flex flex-wrap gap-4 mt-3 items-center">
-          <label class="inline-flex items-center gap-2 text-sm">
-            <input id="upd-auto-snapshot" type="checkbox" class="h-4 w-4" checked>
-            Auto snapshot before update
-          </label>
-          <div>
-            <label class="block text-sm mb-1">Keep snapshots</label>
-            <input id="upd-keep-snapshots" type="number" min="1" max="50" class="field px-3 py-2 w-28" />
-          </div>
-        </div>
+        <p class="text-xs opacity-75 mt-2">Accepted repo formats: full URL (`https://github.com/owner/repo`) or `owner/repo`.</p>
 
         <div class="flex flex-wrap gap-3 mt-4">
           <button id="upd-policy-refresh" class="btn btn-ghost px-4 py-2">Refresh Policy</button>
-          <button id="upd-policy-save" class="btn btn-primary px-4 py-2">Save Policy</button>
+          <button id="upd-policy-save" class="btn btn-primary px-4 py-2">Save Settings</button>
           <button id="upd-start" class="btn btn-primary px-4 py-2">Start Update</button>
           <button id="upd-rollback" class="btn btn-danger px-4 py-2">Rollback</button>
         </div>
@@ -235,11 +207,144 @@ const CSRF_HEADER_NAME = 'X-Saturn-CSRF';
 const CSRF_HEADER_VALUE = '1';
 function withCsrf(headers = {}){ return { ...headers, [CSRF_HEADER_NAME]: CSRF_HEADER_VALUE }; }
 function show(el, on){ el.classList.toggle('hidden', !on); }
+function saveSessionJson(key, value){
+  try{ sessionStorage.setItem(key, JSON.stringify(value)); }catch(_e){}
+}
+function loadSessionJson(key, fallback){
+  try{
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return parsed == null ? fallback : parsed;
+  }catch(_e){
+    return fallback;
+  }
+}
+function saveSessionText(key, value){
+  try{ sessionStorage.setItem(key, String(value || '')); }catch(_e){}
+}
+function loadSessionText(key, fallback=''){
+  try{
+    const raw = sessionStorage.getItem(key);
+    return raw == null ? fallback : raw;
+  }catch(_e){
+    return fallback;
+  }
+}
+
+const G2_OUTPUT_LINES_KEY = 'saturn:update:g2-output-lines';
+const G2_OUTPUT_MAX_LINES = 2500;
+const UPDATE_STATUS_TEXT_KEY = 'saturn:update:status-text';
+const G2_RUN_ID_KEY = 'saturn:update:g2-run-id';
+const G2_RUN_NEXT_KEY = 'saturn:update:g2-run-next';
+let g2OutputLines = [];
+let g2RunLogRunId = '';
+let g2RunLogNext = 0;
+let g2RunLogPoll = null;
+
+function renderAnsiLines(lines){
+  if (!Array.isArray(lines) || !lines.length) return '';
+  return lines.map((line)=>ansi_up.ansi_to_html(String(line))).join('<br>') + '<br>';
+}
+
+function persistG2Output(){
+  saveSessionJson(G2_OUTPUT_LINES_KEY, g2OutputLines);
+  saveSessionText(G2_RUN_NEXT_KEY, String(g2RunLogNext));
+}
+
+function restoreG2Output(){
+  const saved = loadSessionJson(G2_OUTPUT_LINES_KEY, []);
+  g2OutputLines = Array.isArray(saved) ? saved.map((v)=>String(v)) : [];
+  if (g2OutputLines.length > G2_OUTPUT_MAX_LINES){
+    g2OutputLines = g2OutputLines.slice(-G2_OUTPUT_MAX_LINES);
+    persistG2Output();
+  }
+  g2RunLogRunId = loadSessionText(G2_RUN_ID_KEY, '');
+  const savedNext = Number(loadSessionText(G2_RUN_NEXT_KEY, String(g2OutputLines.length)));
+  g2RunLogNext = Number.isFinite(savedNext) && savedNext >= 0 ? savedNext : g2OutputLines.length;
+  $('g2-output').innerHTML = renderAnsiLines(g2OutputLines);
+  $('g2-output').scrollTop = $('g2-output').scrollHeight;
+}
 
 function appendG2(line){
+  const text = String(line ?? '');
+  g2OutputLines.push(text);
+  if (g2OutputLines.length > G2_OUTPUT_MAX_LINES){
+    g2OutputLines = g2OutputLines.slice(-G2_OUTPUT_MAX_LINES);
+    $('g2-output').innerHTML = renderAnsiLines(g2OutputLines);
+  } else {
+    $('g2-output').innerHTML += ansi_up.ansi_to_html(text) + '<br>';
+  }
+  g2RunLogNext = g2OutputLines.length;
+  persistG2Output();
   const out = $('g2-output');
-  out.innerHTML += ansi_up.ansi_to_html(line) + '<br>';
   out.scrollTop = out.scrollHeight;
+}
+
+function clearG2RunLogPoll(){
+  if (g2RunLogPoll){
+    clearInterval(g2RunLogPoll);
+    g2RunLogPoll = null;
+  }
+}
+
+function ensureG2RunLogPoll(){
+  if (!g2RunLogPoll){
+    g2RunLogPoll = setInterval(fetchBufferedG2RunLog, 1200);
+  }
+}
+
+function resetG2BufferedState(){
+  g2RunLogRunId = '';
+  g2RunLogNext = 0;
+  g2OutputLines = [];
+  saveSessionText(G2_RUN_ID_KEY, '');
+  persistG2Output();
+  $('g2-output').innerHTML = '';
+}
+
+async function fetchBufferedG2RunLog(){
+  if (g2RunInProgress) return;
+  try{
+    const from = Math.max(0, Number(g2RunLogNext) || 0);
+    const r = await fetch(`./run_log?script=${encodeURIComponent('update-G2.py')}&from=${from}&limit=600`, { cache: 'no-store' });
+    if (!r.ok) return;
+    const data = await r.json().catch(()=>({}));
+    const runId = String(data.run_id || '');
+    const running = !!data.running;
+
+    if (!runId){
+      clearG2RunLogPoll();
+      return;
+    }
+
+    if (g2RunLogRunId && runId !== g2RunLogRunId){
+      resetG2BufferedState();
+      g2RunLogRunId = runId;
+      saveSessionText(G2_RUN_ID_KEY, runId);
+      await fetchBufferedG2RunLog();
+      return;
+    }
+    if (!g2RunLogRunId){
+      g2RunLogRunId = runId;
+      saveSessionText(G2_RUN_ID_KEY, runId);
+    }
+
+    const lines = Array.isArray(data.lines) ? data.lines : [];
+    lines.forEach((line)=>appendG2(line));
+
+    const nextFrom = Number(data.next_from);
+    if (Number.isFinite(nextFrom) && nextFrom >= 0){
+      g2RunLogNext = nextFrom;
+      saveSessionText(G2_RUN_NEXT_KEY, String(g2RunLogNext));
+    }
+
+    if (running){
+      ensureG2RunLogPoll();
+    } else {
+      clearG2RunLogPoll();
+    }
+  }catch(_e){}
 }
 
 async function loadG2Flags(){
@@ -288,17 +393,43 @@ $('backup-yes').addEventListener('click', ()=>sendBackupResponse('y'));
 $('backup-no').addEventListener('click', ()=>sendBackupResponse('n'));
 
 $('g2-clear').addEventListener('click', ()=>{
-  $('g2-output').innerHTML = '';
+  resetG2BufferedState();
   $('g2-progress').value = 0;
   show($('g2-progress'), false);
 });
 
+let g2RunInProgress = false;
+
 $('g2-run').addEventListener('click', async ()=>{
+  let selectedRepo;
+  try{
+    selectedRepo = parseRepoInput($('upd-repo-url').value);
+  }catch(e){
+    appendG2('\x1b[31m' + e.message + ' Configure Appliance Update first, then run G2.\x1b[0m');
+    syncG2RunPrereq();
+    return;
+  }
+
   const btn = $('g2-run');
   const progress = $('g2-progress');
+  clearG2RunLogPoll();
+  resetG2BufferedState();
+  g2RunInProgress = true;
   btn.disabled = true;
   progress.value = 0;
   show(progress, true);
+  appendG2('\x1b[36mSaving update settings...\x1b[0m');
+
+  try{
+    const policy = await persistUpdatePolicy();
+    appendG2('\x1b[36mUsing repo ' + selectedRepo.owner + '/' + selectedRepo.repo + ' @ ' + String(policy.custom_ref || $('upd-branch').value.trim() || 'main') + '\x1b[0m');
+  }catch(e){
+    appendG2('\x1b[31mCannot start G2 update: ' + e.message + '\x1b[0m');
+    show(progress, false);
+    syncG2RunPrereq();
+    return;
+  }
+
   appendG2('\x1b[36mStarting update-G2.py...\x1b[0m');
 
   const selectedFlags = Array.from(document.querySelectorAll('#g2-flags input[type=checkbox]:checked')).map(el=>el.value);
@@ -351,52 +482,139 @@ $('g2-run').addEventListener('click', async ()=>{
   }catch(e){
     appendG2('\x1b[31mRun error: ' + e.message + '\x1b[0m');
   }finally{
-    btn.disabled = false;
+    g2RunInProgress = false;
+    syncG2RunPrereq();
+    setTimeout(fetchBufferedG2RunLog, 250);
     setTimeout(()=>show(progress, false), 600);
   }
 });
 
 let updPoll = null;
+let updPolicyCache = {
+  remote: 'origin',
+  beta_ref: 'beta',
+  auto_snapshot: true,
+  keep_snapshots: 5,
+  healthcheck_url: 'http://127.0.0.1:8080/healthz',
+  healthcheck_timeout_secs: 8,
+};
 
 function setUpdateStatusText(text){
-  $('upd-status').textContent = text || '';
+  const value = text || '';
+  $('upd-status').textContent = value;
+  saveSessionText(UPDATE_STATUS_TEXT_KEY, value);
 }
 
-function syncCustomRefState(){
-  const custom = $('upd-channel').value === 'custom';
-  $('upd-custom-ref').disabled = !custom;
+function normalizeRepoUrl(owner, repo){
+  const o = String(owner || '').trim();
+  const r = String(repo || '').trim().replace(/\.git$/i, '');
+  if (!o || !r) return '';
+  return `https://github.com/${o}/${r}`;
+}
+
+function parseRepoInput(raw){
+  const input = String(raw || '').trim();
+  if (!input) throw new Error('Repo URL is required.');
+
+  const scp = input.match(/^git@github\.com:([^/]+)\/(.+)$/i);
+  if (scp){
+    const owner = String(scp[1] || '').trim();
+    const repo = String(scp[2] || '').trim().replace(/\.git$/i, '');
+    if (!owner || !repo) throw new Error('Invalid GitHub repo format.');
+    return { owner, repo };
+  }
+
+  if (/^[^/\s]+\/[^/\s]+$/.test(input)){
+    const [ownerRaw, repoRaw] = input.split('/', 2);
+    const owner = String(ownerRaw || '').trim();
+    const repo = String(repoRaw || '').trim().replace(/\.git$/i, '');
+    if (!owner || !repo) throw new Error('Invalid owner/repo format.');
+    return { owner, repo };
+  }
+
+  let url;
+  try{
+    url = new URL(input);
+  }catch(_e){
+    throw new Error('Invalid repo URL. Use https://github.com/owner/repo');
+  }
+
+  if (String(url.hostname || '').toLowerCase() !== 'github.com'){
+    throw new Error('Only github.com repo URLs are supported.');
+  }
+  const parts = String(url.pathname || '').split('/').filter(Boolean);
+  if (parts.length < 2){
+    throw new Error('Repo URL must include owner and repo.');
+  }
+  const owner = String(parts[0] || '').trim();
+  const repo = String(parts[1] || '').trim().replace(/\.git$/i, '');
+  if (!owner || !repo){
+    throw new Error('Repo URL must include owner and repo.');
+  }
+  return { owner, repo };
 }
 
 function applyUpdatePolicyToForm(policy){
   if (!policy) return;
-  $('upd-owner').value = policy.owner || '';
-  $('upd-repo').value = policy.repo || '';
-  $('upd-channel').value = policy.channel || 'stable';
-  $('upd-stable-ref').value = policy.stable_ref || 'main';
-  $('upd-beta-ref').value = policy.beta_ref || 'beta';
-  $('upd-custom-ref').value = policy.custom_ref || '';
-  $('upd-auto-snapshot').checked = !!policy.auto_snapshot;
-  $('upd-keep-snapshots').value = Number(policy.keep_snapshots || 5);
-  $('upd-health-url').value = policy.healthcheck_url || '';
-  $('upd-health-timeout').value = Number(policy.healthcheck_timeout_secs || 8);
-  syncCustomRefState();
+  updPolicyCache = { ...updPolicyCache, ...policy };
+  $('upd-repo-url').value = normalizeRepoUrl(policy.owner, policy.repo);
+  const branch = String(policy.custom_ref || policy.stable_ref || 'main').trim() || 'main';
+  $('upd-branch').value = branch;
+  $('upd-health-url').value = String(policy.healthcheck_url || updPolicyCache.healthcheck_url || 'http://127.0.0.1:8080/healthz');
+  const timeout = Number(policy.healthcheck_timeout_secs || updPolicyCache.healthcheck_timeout_secs || 8);
+  $('upd-health-timeout').value = Number.isFinite(timeout) && timeout > 0 ? String(timeout) : '8';
+  syncG2RunPrereq();
 }
 
 function getPolicyFromForm(){
-  const customRef = $('upd-custom-ref').value.trim();
+  const parsed = parseRepoInput($('upd-repo-url').value);
+  const branch = $('upd-branch').value.trim() || 'main';
+  const keepSnapshots = Number(updPolicyCache.keep_snapshots || 5);
+  const healthUrl = $('upd-health-url').value.trim() || 'http://127.0.0.1:8080/healthz';
+  const healthTimeout = Number($('upd-health-timeout').value || updPolicyCache.healthcheck_timeout_secs || 8);
   return {
-    owner: $('upd-owner').value.trim(),
-    repo: $('upd-repo').value.trim(),
-    remote: 'origin',
-    channel: $('upd-channel').value,
-    stable_ref: $('upd-stable-ref').value.trim(),
-    beta_ref: $('upd-beta-ref').value.trim(),
-    custom_ref: customRef ? customRef : null,
-    auto_snapshot: $('upd-auto-snapshot').checked,
-    keep_snapshots: Number($('upd-keep-snapshots').value || 5),
-    healthcheck_url: $('upd-health-url').value.trim(),
-    healthcheck_timeout_secs: Number($('upd-health-timeout').value || 8),
+    owner: parsed.owner,
+    repo: parsed.repo,
+    remote: updPolicyCache.remote || 'origin',
+    channel: 'custom',
+    stable_ref: branch,
+    beta_ref: updPolicyCache.beta_ref || 'beta',
+    custom_ref: branch,
+    auto_snapshot: updPolicyCache.auto_snapshot !== false,
+    keep_snapshots: Number.isFinite(keepSnapshots) && keepSnapshots > 0 ? keepSnapshots : 5,
+    healthcheck_url: healthUrl,
+    healthcheck_timeout_secs: Number.isFinite(healthTimeout) && healthTimeout > 0 ? healthTimeout : 8,
   };
+}
+
+function syncG2RunPrereq(){
+  const btn = $('g2-run');
+  if (g2RunInProgress) {
+    btn.disabled = true;
+    btn.title = 'G2 update is running';
+    return;
+  }
+  try{
+    parseRepoInput($('upd-repo-url').value);
+    btn.disabled = false;
+    btn.title = '';
+  }catch(e){
+    btn.disabled = true;
+    btn.title = 'Enter a valid GitHub Repo URL in Appliance Update first';
+  }
+}
+
+async function persistUpdatePolicy(){
+  const policy = getPolicyFromForm();
+  const r = await fetch('./update_policy', {
+    method: 'POST',
+    headers: withCsrf({'Content-Type':'application/json'}),
+    body: JSON.stringify(policy),
+  });
+  const data = await r.json().catch(()=>({}));
+  if (!r.ok) throw new Error(data.message || ('HTTP ' + r.status));
+  applyUpdatePolicyToForm(data.policy || policy);
+  return data.policy || policy;
 }
 
 async function loadUpdatePolicy(){
@@ -442,24 +660,18 @@ async function loadActiveRepoRoot(){
   }
 }
 
-$('upd-channel').addEventListener('change', syncCustomRefState);
-
 $('upd-policy-refresh').addEventListener('click', async ()=>{
   await loadUpdatePolicy();
   await refreshUpdateStatus();
   await loadActiveRepoRoot();
 });
 
+$('upd-repo-url').addEventListener('input', syncG2RunPrereq);
+$('upd-repo-url').addEventListener('blur', syncG2RunPrereq);
+
 $('upd-policy-save').addEventListener('click', async ()=>{
   try{
-    const r = await fetch('./update_policy', {
-      method: 'POST',
-      headers: withCsrf({'Content-Type':'application/json'}),
-      body: JSON.stringify(getPolicyFromForm()),
-    });
-    const data = await r.json().catch(()=>({}));
-    if (!r.ok) throw new Error(data.message || ('HTTP ' + r.status));
-    applyUpdatePolicyToForm(data.policy || {});
+    await persistUpdatePolicy();
     setUpdateStatusText('Update policy saved.');
     await refreshUpdateStatus();
   }catch(e){
@@ -470,9 +682,10 @@ $('upd-policy-save').addEventListener('click', async ()=>{
 $('upd-start').addEventListener('click', async ()=>{
   if (!confirm('Start transactional update now?')) return;
   try{
+    const policy = await persistUpdatePolicy();
     const payload = {
-      channel: $('upd-channel').value,
-      custom_ref: $('upd-custom-ref').value.trim() || null,
+      channel: 'custom',
+      custom_ref: String(policy.custom_ref || $('upd-branch').value.trim() || 'main'),
     };
     const r = await fetch('./update_start', {
       method: 'POST',
@@ -506,9 +719,13 @@ $('upd-rollback').addEventListener('click', async ()=>{
 });
 
 loadG2Flags();
+restoreG2Output();
+setUpdateStatusText(loadSessionText(UPDATE_STATUS_TEXT_KEY, ''));
 loadUpdatePolicy();
 refreshUpdateStatus();
 loadActiveRepoRoot();
+syncG2RunPrereq();
+fetchBufferedG2RunLog();
 </script>
 </body>
 </html>

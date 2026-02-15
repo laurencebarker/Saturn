@@ -36,6 +36,8 @@ use tracing::{error, info};
 struct AppState {
     webroot: PathBuf,
     config_path: PathBuf,
+    custom_scripts_file: PathBuf,
+    scripts_dir: PathBuf,
     saturn_addr: String,
     repo_root: Arc<RwLock<PathBuf>>,
     repo_root_file: PathBuf,
@@ -53,10 +55,161 @@ const DEFAULT_UPDATE_KEEP_SNAPSHOTS: usize = 5;
 const DEFAULT_STAGE_WORKTREE_KEEP: usize = 6;
 const CSRF_HEADER_NAME: &str = "x-saturn-csrf";
 const CSRF_HEADER_VALUE: &str = "1";
+const RUN_LOG_MAX_LINES: usize = 5000;
+const RUN_LOG_FETCH_MAX_LINES: usize = 1000;
+const DEFAULT_CUSTOM_SCRIPT_CLEAN_LOGS: &str = r#"#!/usr/bin/env bash
+set -euo pipefail
+
+DRY_RUN=false
+DELETE_ALL=false
+OLDER_7=false
+VERBOSE=false
+
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=true ;;
+    --all) DELETE_ALL=true ;;
+    --older-7) OLDER_7=true ;;
+    --verbose) VERBOSE=true ;;
+    *)
+      echo "Unknown flag: $arg"
+      exit 1
+      ;;
+  esac
+done
+
+LOG_DIR="${SATURN_LOG_DIR:-$HOME/saturn-logs}"
+if [[ ! -d "$LOG_DIR" ]]; then
+  echo "No Saturn log directory found at: $LOG_DIR"
+  exit 0
+fi
+
+DAYS=30
+if $OLDER_7; then
+  DAYS=7
+fi
+
+if $DELETE_ALL; then
+  mapfile -t files < <(find "$LOG_DIR" -type f -name "*.log" | sort)
+else
+  mapfile -t files < <(find "$LOG_DIR" -type f -name "*.log" -mtime +"$DAYS" | sort)
+fi
+
+if [[ ${#files[@]} -eq 0 ]]; then
+  if $DELETE_ALL; then
+    echo "No log files found to delete in $LOG_DIR."
+  else
+    echo "No log files older than $DAYS days found in $LOG_DIR."
+  fi
+  exit 0
+fi
+
+echo "Matched ${#files[@]} log file(s) in $LOG_DIR."
+for file in "${files[@]}"; do
+  if $DRY_RUN; then
+    echo "[dry-run] would delete: $file"
+  else
+    rm -f -- "$file"
+    echo "deleted: $file"
+  fi
+done
+
+if $VERBOSE; then
+  du -sh "$LOG_DIR" 2>/dev/null || true
+fi
+
+echo "Done."
+"#;
+const DEFAULT_CUSTOM_SCRIPT_CLEAN_BACKUPS: &str = r#"#!/usr/bin/env bash
+set -euo pipefail
+
+DRY_RUN=false
+DELETE_ALL=false
+SATURN_ONLY=false
+PIHPSDR_ONLY=false
+VERBOSE=false
+
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=true ;;
+    --delete-all) DELETE_ALL=true ;;
+    --saturn-only) SATURN_ONLY=true ;;
+    --pihpsdr-only) PIHPSDR_ONLY=true ;;
+    --verbose) VERBOSE=true ;;
+    *)
+      echo "Unknown flag: $arg"
+      exit 1
+      ;;
+  esac
+done
+
+if $SATURN_ONLY && $PIHPSDR_ONLY; then
+  SATURN_ONLY=false
+  PIHPSDR_ONLY=false
+fi
+
+HOME_DIR="${HOME:-/home/pi}"
+KEEP_COUNT=2
+
+cleanup_type() {
+  local prefix="$1"
+  mapfile -t dirs < <(find "$HOME_DIR" -maxdepth 1 -type d -name "${prefix}-backup-*" | sort -r)
+
+  if [[ ${#dirs[@]} -eq 0 ]]; then
+    echo "No ${prefix} backups found."
+    return
+  fi
+
+  echo "Found ${#dirs[@]} ${prefix} backup(s)."
+
+  local start_index=0
+  if ! $DELETE_ALL; then
+    start_index=$KEEP_COUNT
+  fi
+
+  if (( start_index >= ${#dirs[@]} )); then
+    echo "Nothing to remove for ${prefix}."
+    return
+  fi
+
+  for ((i=start_index; i<${#dirs[@]}; i++)); do
+    local dir="${dirs[$i]}"
+    if $DRY_RUN; then
+      echo "[dry-run] would remove: $dir"
+    else
+      rm -rf -- "$dir"
+      echo "removed: $dir"
+    fi
+  done
+}
+
+if ! $SATURN_ONLY && ! $PIHPSDR_ONLY; then
+  cleanup_type "saturn"
+  cleanup_type "pihpsdr"
+elif $SATURN_ONLY; then
+  cleanup_type "saturn"
+else
+  cleanup_type "pihpsdr"
+fi
+
+if $VERBOSE; then
+  echo "Remaining backups:"
+  find "$HOME_DIR" -maxdepth 1 -type d \( -name "saturn-backup-*" -o -name "pihpsdr-backup-*" \) | sort || true
+fi
+
+echo "Done."
+"#;
 
 #[derive(Debug, Deserialize)]
 struct FlagsQuery {
     script: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RunLogQuery {
+    script: Option<String>,
+    from: Option<usize>,
+    limit: Option<usize>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -70,6 +223,12 @@ struct CfgEntry {
     version: Option<String>,
 }
 
+#[derive(Clone)]
+struct DefaultCustomScript {
+    entry: CfgEntry,
+    content: &'static str,
+}
+
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
@@ -81,6 +240,13 @@ async fn main() {
     let config_path = std::env::var("SATURN_CONFIG")
         .map(PathBuf::from)
         .unwrap_or_else(|_| PathBuf::from(format!("{webroot}/config.json")));
+    let scripts_dir = std::env::var("SATURN_SCRIPTS_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from("/opt/saturn-go/scripts"));
+    let default_state_dir = std::env::var("SATURN_STATE_DIR").unwrap_or_else(|_| "/var/lib/saturn-state".to_string());
+    let custom_scripts_file = std::env::var("SATURN_CUSTOM_SCRIPTS_FILE")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from(format!("{default_state_dir}/custom_scripts.json")));
     let default_repo_root = std::env::var("SATURN_REPO_ROOT").unwrap_or_else(|_| {
         let home = std::env::var("HOME").unwrap_or_else(|_| "/home/pi".to_string());
         format!("{home}/github/Saturn")
@@ -129,6 +295,10 @@ async fn main() {
     if let Some(parent) = update_state_file.parent() {
         let _ = tokio::fs::create_dir_all(parent).await;
     }
+    if let Some(parent) = custom_scripts_file.parent() {
+        let _ = tokio::fs::create_dir_all(parent).await;
+    }
+    let _ = tokio::fs::create_dir_all(&scripts_dir).await;
     let _ = tokio::fs::create_dir_all(&snapshot_dir).await;
     let _ = tokio::fs::create_dir_all(&staging_dir).await;
     let _ = tokio::fs::write(&repo_root_file, format!("{}\n", repo_root.display())).await;
@@ -136,6 +306,8 @@ async fn main() {
     let state = AppState {
         webroot: PathBuf::from(webroot),
         config_path,
+        custom_scripts_file,
+        scripts_dir,
         saturn_addr: addr.clone(),
         repo_root: Arc::new(RwLock::new(repo_root)),
         repo_root_file,
@@ -146,18 +318,31 @@ async fn main() {
         restore_max_upload_bytes,
     };
 
+    if let Err(e) = ensure_default_custom_scripts(&state).await {
+        error!("failed to initialize default custom scripts: {e}");
+    }
+
     let app = Router::new()
         .route("/", get(root_handler))
+        .route("/custom", get(custom_handler))
+        .route("/custom.html", get(custom_handler))
+        .route("/index", get(custom_handler))
+        .route("/index.html", get(custom_handler))
         .route("/backup", get(backup_handler))
         .route("/backup.html", get(backup_handler))
         .route("/update", get(update_handler))
         .route("/update.html", get(update_handler))
+        .route("/pihpsdr", get(pihpsdr_handler))
+        .route("/pihpsdr.html", get(pihpsdr_handler))
         .route("/monitor", get(monitor_handler))
         .route("/monitor.html", get(monitor_handler))
         .route("/healthz", get(healthz))
         .route("/get_versions", get(get_versions))
         .route("/get_scripts", get(get_scripts))
         .route("/get_flags", get(get_flags))
+        .route("/custom_scripts", get(get_custom_scripts))
+        .route("/custom_scripts", post(upsert_custom_script))
+        .route("/custom_scripts_delete", post(delete_custom_script))
         .route("/get_fpga_images", get(get_fpga_images))
         .route("/get_repo_root", get(get_repo_root))
         .route("/list_repo_roots", get(list_repo_roots))
@@ -171,6 +356,8 @@ async fn main() {
         .route("/restore_full", post(restore_full))
         .route("/g2_backups", get(g2_backups))
         .route("/g2_restore", post(g2_restore))
+        .route("/pihpsdr_backups", get(pihpsdr_backups))
+        .route("/pihpsdr_restore", post(pihpsdr_restore))
         .route("/pi_image_start", post(pi_image_start))
         .route("/pi_image_status", get(pi_image_status))
         .route("/pi_image_cancel", post(pi_image_cancel))
@@ -182,6 +369,7 @@ async fn main() {
         .route("/repair_pack", get(repair_pack))
         .route("/verify_system_config", get(verify_system_config))
         .route("/run", post(run_sse))
+        .route("/run_log", get(get_run_log))
         .route("/backup_response", post(no_content))
         .route("/change_password", post(change_password))
         .route("/exit", post(exit_server))
@@ -202,6 +390,10 @@ async fn main() {
 }
 
 async fn root_handler(State(state): State<AppState>) -> impl IntoResponse {
+    serve_page(&state.webroot, "update.html").await
+}
+
+async fn custom_handler(State(state): State<AppState>) -> impl IntoResponse {
     serve_page(&state.webroot, "index.html").await
 }
 
@@ -211,6 +403,10 @@ async fn backup_handler(State(state): State<AppState>) -> impl IntoResponse {
 
 async fn update_handler(State(state): State<AppState>) -> impl IntoResponse {
     serve_page(&state.webroot, "update.html").await
+}
+
+async fn pihpsdr_handler(State(state): State<AppState>) -> impl IntoResponse {
+    serve_page(&state.webroot, "pihpsdr.html").await
 }
 
 async fn monitor_handler(State(state): State<AppState>) -> impl IntoResponse {
@@ -223,7 +419,10 @@ async fn healthz() -> impl IntoResponse {
 
 fn route_to_page(path: &str) -> Option<&'static str> {
     match path {
-        "/" | "/index" | "/index.html" | "/saturn" | "/saturn/" | "/saturn/index" | "/saturn/index.html" => {
+        "/" | "/saturn" | "/saturn/" => {
+            Some("update.html")
+        }
+        "/custom" | "/custom/" | "/custom.html" | "/index" | "/index.html" | "/saturn/custom" | "/saturn/custom/" | "/saturn/custom.html" | "/saturn/index" | "/saturn/index.html" => {
             Some("index.html")
         }
         "/backup" | "/backup/" | "/backup.html" | "/saturn/backup" | "/saturn/backup/" | "/saturn/backup.html" => {
@@ -231,6 +430,9 @@ fn route_to_page(path: &str) -> Option<&'static str> {
         }
         "/update" | "/update/" | "/update.html" | "/saturn/update" | "/saturn/update/" | "/saturn/update.html" => {
             Some("update.html")
+        }
+        "/pihpsdr" | "/pihpsdr/" | "/pihpsdr.html" | "/saturn/pihpsdr" | "/saturn/pihpsdr/" | "/saturn/pihpsdr.html" => {
+            Some("pihpsdr.html")
         }
         "/monitor" | "/monitor/" | "/monitor.html" | "/saturn/monitor" | "/saturn/monitor/" | "/saturn/monitor.html" => {
             Some("monitor.html")
@@ -290,7 +492,25 @@ fn build_script_command(script_path: &Path, flags: &[String]) -> Command {
     }
 }
 
-async fn stream_process_output<R>(mut reader: R, tx: mpsc::UnboundedSender<String>, prefix: &'static str)
+type RunLineSink = Arc<dyn Fn(String) + Send + Sync>;
+
+fn emit_process_line(
+    tx: &mpsc::UnboundedSender<String>,
+    line_sink: Option<&RunLineSink>,
+    line: String,
+) {
+    let _ = tx.send(line.clone());
+    if let Some(sink) = line_sink {
+        sink(line);
+    }
+}
+
+async fn stream_process_output<R>(
+    mut reader: R,
+    tx: mpsc::UnboundedSender<String>,
+    prefix: &'static str,
+    line_sink: Option<RunLineSink>,
+)
 where
     R: AsyncRead + Unpin,
 {
@@ -302,7 +522,7 @@ where
             Ok(0) => {
                 if !pending.is_empty() {
                     let line = std::mem::take(&mut pending);
-                    let _ = tx.send(format!("{prefix}{line}"));
+                    emit_process_line(&tx, line_sink.as_ref(), format!("{prefix}{line}"));
                 }
                 break;
             }
@@ -314,7 +534,7 @@ where
                         ended_with_delim = true;
                         if !pending.is_empty() {
                             let line = std::mem::take(&mut pending);
-                            let _ = tx.send(format!("{prefix}{line}"));
+                            emit_process_line(&tx, line_sink.as_ref(), format!("{prefix}{line}"));
                         }
                     } else {
                         ended_with_delim = false;
@@ -324,15 +544,19 @@ where
                 if !ended_with_delim && !pending.is_empty() {
                     // Flush partial chunks too, so long-running commands update in near real-time.
                     let line = std::mem::take(&mut pending);
-                    let _ = tx.send(format!("{prefix}{line}"));
+                    emit_process_line(&tx, line_sink.as_ref(), format!("{prefix}{line}"));
                 }
             }
             Err(e) => {
                 if !pending.is_empty() {
                     let line = std::mem::take(&mut pending);
-                    let _ = tx.send(format!("{prefix}{line}"));
+                    emit_process_line(&tx, line_sink.as_ref(), format!("{prefix}{line}"));
                 }
-                let _ = tx.send(format!("{prefix}stream read error: {e}"));
+                emit_process_line(
+                    &tx,
+                    line_sink.as_ref(),
+                    format!("{prefix}stream read error: {e}"),
+                );
                 break;
             }
         }
@@ -456,6 +680,140 @@ async fn read_config(state: &AppState) -> Result<Vec<CfgEntry>, String> {
         .map_err(|e| e.to_string())?;
     let entries: Vec<CfgEntry> = serde_json::from_str(&data).map_err(|e| e.to_string())?;
     Ok(entries)
+}
+
+fn default_custom_scripts(state: &AppState) -> Vec<DefaultCustomScript> {
+    let scripts_dir = state.scripts_dir.display().to_string();
+    vec![
+        DefaultCustomScript {
+            entry: CfgEntry {
+                filename: "cleanup-saturn-logs.sh".to_string(),
+                name: Some("Cleanup Saturn Logs".to_string()),
+                description: Some("Delete Saturn update logs (keep newer logs by default)".to_string()),
+                directory: Some(scripts_dir.clone()),
+                category: Some("Custom Scripts".to_string()),
+                flags: Some(vec![
+                    "--all".to_string(),
+                    "--older-7".to_string(),
+                    "--dry-run".to_string(),
+                    "--verbose".to_string(),
+                ]),
+                version: Some("custom-default".to_string()),
+            },
+            content: DEFAULT_CUSTOM_SCRIPT_CLEAN_LOGS,
+        },
+        DefaultCustomScript {
+            entry: CfgEntry {
+                filename: "cleanup-saturn-backups.sh".to_string(),
+                name: Some("Cleanup Saturn Backups".to_string()),
+                description: Some("Prune Saturn/piHPSDR backup directories (keeps 2 newest by default)".to_string()),
+                directory: Some(scripts_dir),
+                category: Some("Custom Scripts".to_string()),
+                flags: Some(vec![
+                    "--saturn-only".to_string(),
+                    "--pihpsdr-only".to_string(),
+                    "--delete-all".to_string(),
+                    "--dry-run".to_string(),
+                    "--verbose".to_string(),
+                ]),
+                version: Some("custom-default".to_string()),
+            },
+            content: DEFAULT_CUSTOM_SCRIPT_CLEAN_BACKUPS,
+        },
+    ]
+}
+
+async fn ensure_default_custom_scripts(state: &AppState) -> Result<(), String> {
+    let defaults = default_custom_scripts(state);
+    for default in &defaults {
+        let path = state.scripts_dir.join(&default.entry.filename);
+        match tokio::fs::metadata(&path).await {
+            Ok(meta) => {
+                if !meta.is_file() {
+                    return Err(format!("default script path is not a file: {}", path.display()));
+                }
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                tokio::fs::write(&path, default.content)
+                    .await
+                    .map_err(|err| format!("failed to write default script {}: {err}", path.display()))?;
+                tokio::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755))
+                    .await
+                    .map_err(|err| format!("failed to chmod default script {}: {err}", path.display()))?;
+            }
+            Err(e) => return Err(format!("failed to stat default script {}: {e}", path.display())),
+        }
+    }
+
+    let mut entries = load_custom_scripts(state).await?;
+    let mut changed = false;
+    for default in defaults {
+        if entries.iter().all(|e| e.filename != default.entry.filename) {
+            entries.push(default.entry);
+            changed = true;
+        }
+    }
+    if changed {
+        save_custom_scripts(state, &entries).await?;
+    }
+    Ok(())
+}
+
+async fn load_custom_scripts(state: &AppState) -> Result<Vec<CfgEntry>, String> {
+    let data = match tokio::fs::read_to_string(&state.custom_scripts_file).await {
+        Ok(v) => v,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => return Err(format!("failed to read custom scripts: {e}")),
+    };
+    serde_json::from_str::<Vec<CfgEntry>>(&data).map_err(|e| format!("invalid custom scripts json: {e}"))
+}
+
+async fn save_custom_scripts(state: &AppState, entries: &[CfgEntry]) -> Result<(), String> {
+    if let Some(parent) = state.custom_scripts_file.parent() {
+        tokio::fs::create_dir_all(parent)
+            .await
+            .map_err(|e| format!("failed to create custom scripts dir: {e}"))?;
+    }
+    let bytes = serde_json::to_vec_pretty(entries).map_err(|e| format!("failed to serialize custom scripts: {e}"))?;
+    tokio::fs::write(&state.custom_scripts_file, bytes)
+        .await
+        .map_err(|e| format!("failed to write custom scripts: {e}"))?;
+    let _ = tokio::fs::set_permissions(
+        &state.custom_scripts_file,
+        std::fs::Permissions::from_mode(0o640),
+    )
+    .await;
+    Ok(())
+}
+
+async fn read_all_script_entries(state: &AppState) -> Result<Vec<CfgEntry>, String> {
+    let mut merged = Vec::new();
+    if let Ok(mut builtins) = read_config(state).await {
+        merged.append(&mut builtins);
+    }
+    let mut custom = load_custom_scripts(state).await?;
+    merged.append(&mut custom);
+    Ok(merged)
+}
+
+fn is_safe_custom_script_filename(name: &str) -> bool {
+    !name.is_empty()
+        && !name.contains('/')
+        && !name.contains('\\')
+        && !name.contains("..")
+        && name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '_' || c == '-')
+}
+
+fn sanitize_custom_flags(flags: Option<Vec<String>>) -> Vec<String> {
+    flags
+        .unwrap_or_default()
+        .into_iter()
+        .map(|f| f.trim().to_string())
+        .filter(|f| !f.is_empty())
+        .filter(|f| !f.contains('\n') && !f.contains('\r') && !f.contains('\0'))
+        .collect()
 }
 
 fn current_repo_root(state: &AppState) -> PathBuf {
@@ -604,8 +962,18 @@ struct UpdateActivity {
     detail: String,
 }
 
+#[derive(Debug, Clone)]
+struct ScriptRunLog {
+    run_id: String,
+    status: String, // running|done|error
+    started_at: String,
+    finished_at: Option<String>,
+    lines: Vec<String>,
+}
+
 static APPLIANCE_UPDATE_JOB: OnceLock<Mutex<Option<ApplianceUpdateJob>>> = OnceLock::new();
 static UPDATE_ACTIVITY: OnceLock<Mutex<Option<UpdateActivity>>> = OnceLock::new();
+static SCRIPT_RUN_LOGS: OnceLock<Mutex<BTreeMap<String, ScriptRunLog>>> = OnceLock::new();
 
 fn appliance_update_slot() -> &'static Mutex<Option<ApplianceUpdateJob>> {
     APPLIANCE_UPDATE_JOB.get_or_init(|| Mutex::new(None))
@@ -613,6 +981,60 @@ fn appliance_update_slot() -> &'static Mutex<Option<ApplianceUpdateJob>> {
 
 fn update_activity_slot() -> &'static Mutex<Option<UpdateActivity>> {
     UPDATE_ACTIVITY.get_or_init(|| Mutex::new(None))
+}
+
+fn script_run_log_slot() -> &'static Mutex<BTreeMap<String, ScriptRunLog>> {
+    SCRIPT_RUN_LOGS.get_or_init(|| Mutex::new(BTreeMap::new()))
+}
+
+fn begin_script_run_log(script: &str, flags: &[String]) -> (String, String) {
+    let run_id = format!(
+        "run-{}",
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0)
+    );
+    let start_line = format!("Running {} {}", script, flags.join(" "));
+    let entry = ScriptRunLog {
+        run_id: run_id.clone(),
+        status: "running".to_string(),
+        started_at: Local::now().to_rfc3339(),
+        finished_at: None,
+        lines: vec![start_line.clone()],
+    };
+    script_run_log_slot()
+        .lock()
+        .unwrap()
+        .insert(script.to_string(), entry);
+    (run_id, start_line)
+}
+
+fn append_script_run_log_line(script: &str, run_id: &str, line: String) {
+    let mut guard = script_run_log_slot().lock().unwrap();
+    let Some(run) = guard.get_mut(script) else {
+        return;
+    };
+    if run.run_id != run_id {
+        return;
+    }
+    run.lines.push(line);
+    if run.lines.len() > RUN_LOG_MAX_LINES {
+        let excess = run.lines.len() - RUN_LOG_MAX_LINES;
+        run.lines.drain(0..excess);
+    }
+}
+
+fn finish_script_run_log(script: &str, run_id: &str, status: &str) {
+    let mut guard = script_run_log_slot().lock().unwrap();
+    let Some(run) = guard.get_mut(script) else {
+        return;
+    };
+    if run.run_id != run_id {
+        return;
+    }
+    run.status = status.to_string();
+    run.finished_at = Some(Local::now().to_rfc3339());
 }
 
 fn get_appliance_update_job() -> Option<ApplianceUpdateJob> {
@@ -2027,7 +2449,7 @@ async fn tree_stats(root: PathBuf) -> (u64, u64, u64) {
 }
 
 async fn get_versions(State(state): State<AppState>) -> impl IntoResponse {
-    let entries = read_config(&state).await.unwrap_or_default();
+    let entries = read_all_script_entries(&state).await.unwrap_or_default();
     let mut versions = BTreeMap::new();
     for e in entries {
         let v = e.version.unwrap_or_else(|| "unknown".to_string());
@@ -2130,9 +2552,25 @@ fn backup_home_dir() -> PathBuf {
     PathBuf::from(std::env::var("HOME").unwrap_or_else(|_| "/home/pi".to_string()))
 }
 
-fn is_safe_backup_name(name: &str) -> bool {
+fn pihpsdr_repo_root() -> PathBuf {
+    std::env::var("SATURN_PIHPSDR_ROOT")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| backup_home_dir().join("github").join("pihpsdr"))
+}
+
+fn validate_pihpsdr_repo_root(path: &Path) -> Result<(), String> {
+    if !path.is_dir() {
+        return Err("pihpsdr root is not a directory".to_string());
+    }
+    if !path.join(".git").exists() {
+        return Err("pihpsdr root is not a git checkout".to_string());
+    }
+    Ok(())
+}
+
+fn is_safe_backup_name_with_prefix(name: &str, prefix: &str) -> bool {
     !name.is_empty()
-        && name.starts_with("saturn-backup-")
+        && name.starts_with(prefix)
         && !name.contains('/')
         && !name.contains('\\')
         && !name.contains("..")
@@ -2141,8 +2579,8 @@ fn is_safe_backup_name(name: &str) -> bool {
             .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.')
 }
 
-async fn resolve_backup_path(name: &str) -> Result<PathBuf, String> {
-    if !is_safe_backup_name(name) {
+async fn resolve_backup_path(name: &str, prefix: &str) -> Result<PathBuf, String> {
+    if !is_safe_backup_name_with_prefix(name, prefix) {
         return Err("invalid backup name".to_string());
     }
     let home = backup_home_dir();
@@ -2165,7 +2603,7 @@ async fn resolve_backup_path(name: &str) -> Result<PathBuf, String> {
     Ok(candidate_canon)
 }
 
-async fn g2_backups() -> Response {
+async fn list_backups_with_prefix(prefix: &str) -> Response {
     let home = backup_home_dir();
     let mut rows: Vec<(String, PathBuf, u64)> = Vec::new();
     let mut read_dir = match tokio::fs::read_dir(&home).await {
@@ -2178,7 +2616,7 @@ async fn g2_backups() -> Response {
             Some(v) => v.to_string(),
             None => continue,
         };
-        if !is_safe_backup_name(&name) {
+        if !is_safe_backup_name_with_prefix(&name, prefix) {
             continue;
         }
         let path = ent.path();
@@ -2220,7 +2658,20 @@ async fn g2_backups() -> Response {
     .into_response()
 }
 
-async fn g2_restore(State(state): State<AppState>, Json(req): Json<G2RestoreReq>) -> Response {
+async fn g2_backups() -> Response {
+    list_backups_with_prefix("saturn-backup-").await
+}
+
+async fn pihpsdr_backups() -> Response {
+    list_backups_with_prefix("pihpsdr-backup-").await
+}
+
+async fn restore_backup_by_kind(state: &AppState, req: G2RestoreReq, kind: &str) -> Response {
+    let (prefix, target_label) = match kind {
+        "saturn" => ("saturn-backup-", "saturn"),
+        "pihpsdr" => ("pihpsdr-backup-", "pihpsdr"),
+        _ => return json_error(StatusCode::BAD_REQUEST, "invalid backup kind"),
+    };
     let dry_run = req.dry_run.unwrap_or(false);
     if !dry_run && req.confirm.as_deref() != Some("RESTORE") {
         return json_error(StatusCode::BAD_REQUEST, "confirm token required");
@@ -2229,25 +2680,42 @@ async fn g2_restore(State(state): State<AppState>, Json(req): Json<G2RestoreReq>
     let _activity_guard = if dry_run {
         None
     } else {
-        match begin_update_activity("g2-backup-restore", format!("backup={}", req.backup_name)) {
+        match begin_update_activity(
+            &format!("{target_label}-backup-restore"),
+            format!("backup={}", req.backup_name),
+        ) {
             Ok(g) => Some(g),
             Err(e) => return json_error(StatusCode::CONFLICT, &e),
         }
     };
 
-    let backup_root = match resolve_backup_path(req.backup_name.trim()).await {
+    let backup_root = match resolve_backup_path(req.backup_name.trim(), prefix).await {
         Ok(v) => v,
         Err(e) => return json_error(StatusCode::BAD_REQUEST, &e),
     };
 
-    if let Err(e) = validate_saturn_repo_root(&backup_root) {
-        return json_error(StatusCode::BAD_REQUEST, &format!("backup is not a Saturn repo snapshot: {e}"));
-    }
-
-    let repo_root = current_repo_root(&state);
-    if let Err(e) = validate_saturn_repo_root(&repo_root) {
-        return json_error(StatusCode::BAD_REQUEST, &e);
-    }
+    let repo_root = if kind == "saturn" {
+        if let Err(e) = validate_saturn_repo_root(&backup_root) {
+            return json_error(StatusCode::BAD_REQUEST, &format!("backup is not a Saturn repo snapshot: {e}"));
+        }
+        let root = current_repo_root(state);
+        if let Err(e) = validate_saturn_repo_root(&root) {
+            return json_error(StatusCode::BAD_REQUEST, &e);
+        }
+        root
+    } else {
+        if let Err(e) = validate_pihpsdr_repo_root(&backup_root) {
+            return json_error(
+                StatusCode::BAD_REQUEST,
+                &format!("backup is not a piHPSDR repo snapshot: {e}"),
+            );
+        }
+        let root = pihpsdr_repo_root();
+        if let Err(e) = validate_pihpsdr_repo_root(&root) {
+            return json_error(StatusCode::BAD_REQUEST, &e);
+        }
+        root
+    };
 
     let (files, dirs, bytes) = tree_stats(backup_root.clone()).await;
     if dry_run {
@@ -2280,6 +2748,7 @@ async fn g2_restore(State(state): State<AppState>, Json(req): Json<G2RestoreReq>
 
     Json(serde_json::json!({
         "status": "ok",
+        "kind": target_label,
         "backup_root": backup_root,
         "repo_root": repo_root,
         "files": files,
@@ -2287,6 +2756,14 @@ async fn g2_restore(State(state): State<AppState>, Json(req): Json<G2RestoreReq>
         "bytes": bytes,
     }))
     .into_response()
+}
+
+async fn g2_restore(State(state): State<AppState>, Json(req): Json<G2RestoreReq>) -> Response {
+    restore_backup_by_kind(&state, req, "saturn").await
+}
+
+async fn pihpsdr_restore(State(state): State<AppState>, Json(req): Json<G2RestoreReq>) -> Response {
+    restore_backup_by_kind(&state, req, "pihpsdr").await
 }
 
 async fn restore_full(
@@ -2450,8 +2927,120 @@ async fn restore_full(
     Ok(Json(serde_json::json!({ "status": "ok" })).into_response())
 }
 
+#[derive(Debug, Deserialize)]
+struct CustomScriptUpsertReq {
+    filename: String,
+    name: Option<String>,
+    description: Option<String>,
+    flags: Option<Vec<String>>,
+    content: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct CustomScriptDeleteReq {
+    filename: String,
+    delete_file: Option<bool>,
+}
+
+async fn get_custom_scripts(State(state): State<AppState>) -> Response {
+    match load_custom_scripts(&state).await {
+        Ok(entries) => Json(serde_json::json!({ "scripts": entries })).into_response(),
+        Err(e) => json_error(StatusCode::INTERNAL_SERVER_ERROR, &e),
+    }
+}
+
+async fn upsert_custom_script(State(state): State<AppState>, Json(req): Json<CustomScriptUpsertReq>) -> Response {
+    let filename = req.filename.trim();
+    if !is_safe_custom_script_filename(filename) {
+        return json_error(StatusCode::BAD_REQUEST, "invalid filename");
+    }
+
+    let script_path = state.scripts_dir.join(filename);
+    if let Some(content) = req.content.as_deref() {
+        let normalized = content.replace("\r\n", "\n");
+        if normalized.trim().is_empty() {
+            return json_error(StatusCode::BAD_REQUEST, "content is empty");
+        }
+        if let Some(parent) = script_path.parent() {
+            if let Err(e) = tokio::fs::create_dir_all(parent).await {
+                return json_error(StatusCode::INTERNAL_SERVER_ERROR, &format!("failed to create script dir: {e}"));
+            }
+        }
+        if let Err(e) = tokio::fs::write(&script_path, normalized).await {
+            return json_error(StatusCode::INTERNAL_SERVER_ERROR, &format!("failed to write script: {e}"));
+        }
+        let _ = tokio::fs::set_permissions(&script_path, std::fs::Permissions::from_mode(0o755)).await;
+    }
+
+    let meta = match tokio::fs::metadata(&script_path).await {
+        Ok(v) => v,
+        Err(_) => return json_error(StatusCode::BAD_REQUEST, "script file not found in scripts directory"),
+    };
+    if !meta.is_file() {
+        return json_error(StatusCode::BAD_REQUEST, "script path is not a file");
+    }
+
+    let mut scripts = match load_custom_scripts(&state).await {
+        Ok(v) => v,
+        Err(e) => return json_error(StatusCode::INTERNAL_SERVER_ERROR, &e),
+    };
+
+    let entry = CfgEntry {
+        filename: filename.to_string(),
+        name: Some(req.name.as_deref().unwrap_or(filename).trim().to_string()),
+        description: req.description.map(|s| s.trim().to_string()),
+        directory: Some(state.scripts_dir.display().to_string()),
+        category: Some("Custom Scripts".to_string()),
+        flags: Some(sanitize_custom_flags(req.flags)),
+        version: Some("custom".to_string()),
+    };
+
+    if let Some(existing) = scripts.iter_mut().find(|s| s.filename == filename) {
+        *existing = entry.clone();
+    } else {
+        scripts.push(entry.clone());
+    }
+
+    if let Err(e) = save_custom_scripts(&state, &scripts).await {
+        return json_error(StatusCode::INTERNAL_SERVER_ERROR, &e);
+    }
+
+    Json(serde_json::json!({
+        "status": "ok",
+        "script": entry
+    }))
+    .into_response()
+}
+
+async fn delete_custom_script(State(state): State<AppState>, Json(req): Json<CustomScriptDeleteReq>) -> Response {
+    let filename = req.filename.trim();
+    if !is_safe_custom_script_filename(filename) {
+        return json_error(StatusCode::BAD_REQUEST, "invalid filename");
+    }
+
+    let mut scripts = match load_custom_scripts(&state).await {
+        Ok(v) => v,
+        Err(e) => return json_error(StatusCode::INTERNAL_SERVER_ERROR, &e),
+    };
+    let before = scripts.len();
+    scripts.retain(|s| s.filename != filename);
+    if scripts.len() == before {
+        return json_error(StatusCode::NOT_FOUND, "custom script not found");
+    }
+    if let Err(e) = save_custom_scripts(&state, &scripts).await {
+        return json_error(StatusCode::INTERNAL_SERVER_ERROR, &e);
+    }
+
+    if req.delete_file.unwrap_or(false) {
+        let path = state.scripts_dir.join(filename);
+        let _ = tokio::fs::remove_file(path).await;
+    }
+
+    Json(serde_json::json!({ "status": "ok" })).into_response()
+}
+
 async fn get_scripts(State(state): State<AppState>) -> impl IntoResponse {
-    let entries = read_config(&state).await.unwrap_or_default();
+    let entries = read_all_script_entries(&state).await.unwrap_or_default();
     if entries.is_empty() {
         return Json(serde_json::json!({
             "scripts": {
@@ -2481,7 +3070,7 @@ async fn get_scripts(State(state): State<AppState>) -> impl IntoResponse {
 
 async fn get_flags(State(state): State<AppState>, Query(q): Query<FlagsQuery>) -> impl IntoResponse {
     let script = q.script.unwrap_or_default();
-    let entries = match read_config(&state).await {
+    let entries = match read_all_script_entries(&state).await {
         Ok(v) => v,
         Err(_) => {
             return Json(serde_json::json!({
@@ -2492,7 +3081,7 @@ async fn get_flags(State(state): State<AppState>, Query(q): Query<FlagsQuery>) -
         }
     };
 
-    for e in entries {
+    for e in entries.into_iter().rev() {
         if e.filename == script {
             return Json(serde_json::json!({ "flags": e.flags.unwrap_or_default() }));
         }
@@ -2578,6 +3167,57 @@ async fn get_fpga_images() -> impl IntoResponse {
     }))
 }
 
+fn is_safe_script_name(script: &str) -> bool {
+    !script.is_empty() && !script.contains("..") && !script.contains('/') && !script.contains('\\')
+}
+
+async fn get_run_log(Query(q): Query<RunLogQuery>) -> Response {
+    let script = q.script.unwrap_or_default();
+    if !is_safe_script_name(&script) {
+        return json_error(StatusCode::BAD_REQUEST, "invalid script");
+    }
+    let from = q.from.unwrap_or(0);
+    let limit = q
+        .limit
+        .unwrap_or(300)
+        .clamp(1, RUN_LOG_FETCH_MAX_LINES);
+
+    let guard = script_run_log_slot().lock().unwrap();
+    let Some(run) = guard.get(&script) else {
+        return Json(serde_json::json!({
+            "script": script,
+            "run_id": serde_json::Value::Null,
+            "status": "idle",
+            "running": false,
+            "started_at": serde_json::Value::Null,
+            "finished_at": serde_json::Value::Null,
+            "from": from,
+            "next_from": from,
+            "total_lines": 0,
+            "lines": Vec::<String>::new(),
+        }))
+        .into_response();
+    };
+
+    let total = run.lines.len();
+    let start = from.min(total);
+    let end = (start + limit).min(total);
+    let lines = run.lines[start..end].to_vec();
+    Json(serde_json::json!({
+        "script": script,
+        "run_id": run.run_id,
+        "status": run.status,
+        "running": run.status == "running",
+        "started_at": run.started_at,
+        "finished_at": run.finished_at,
+        "from": start,
+        "next_from": end,
+        "total_lines": total,
+        "lines": lines,
+    }))
+    .into_response()
+}
+
 async fn run_sse(
     State(state): State<AppState>,
     multipart: Multipart,
@@ -2587,11 +3227,11 @@ async fn run_sse(
         Err(resp) => return Err(resp),
     };
 
-    if script.is_empty() || script.contains("..") || script.contains('/') || script.contains('\\') {
+    if !is_safe_script_name(&script) {
         return Err((StatusCode::BAD_REQUEST, "invalid script").into_response());
     }
 
-    let script_path = PathBuf::from("/opt/saturn-go/scripts").join(&script);
+    let script_path = state.scripts_dir.join(&script);
     if tokio::fs::metadata(&script_path).await.is_err() {
         return Err((StatusCode::NOT_FOUND, "script not found").into_response());
     }
@@ -2611,7 +3251,7 @@ async fn run_sse(
 
     let (tx, rx) = mpsc::unbounded_channel::<String>();
 
-    let start_line = format!("Running {} {}", script, flags.join(" "));
+    let (run_id, start_line) = begin_script_run_log(&script, &flags);
     let _ = tx.send(start_line);
 
     let mut cmd = build_script_command(&script_path, &flags);
@@ -2624,34 +3264,60 @@ async fn run_sse(
 
     let mut child = match cmd.spawn() {
         Ok(c) => c,
-        Err(e) => return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()),
+        Err(e) => {
+            let msg = format!("Error: {e}");
+            append_script_run_log_line(&script, &run_id, msg);
+            finish_script_run_log(&script, &run_id, "error");
+            return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response());
+        }
     };
 
     if let Some(stdout) = child.stdout.take() {
         let tx_out = tx.clone();
+        let script_out = script.clone();
+        let run_id_out = run_id.clone();
+        let line_sink: RunLineSink = Arc::new(move |line: String| {
+            append_script_run_log_line(&script_out, &run_id_out, line);
+        });
         tokio::spawn(async move {
-            stream_process_output(stdout, tx_out, "").await;
+            stream_process_output(stdout, tx_out, "", Some(line_sink)).await;
         });
     }
 
     if let Some(stderr) = child.stderr.take() {
         let tx_err = tx.clone();
+        let script_err = script.clone();
+        let run_id_err = run_id.clone();
+        let line_sink: RunLineSink = Arc::new(move |line: String| {
+            append_script_run_log_line(&script_err, &run_id_err, line);
+        });
         tokio::spawn(async move {
-            stream_process_output(stderr, tx_err, "ERR: ").await;
+            stream_process_output(stderr, tx_err, "ERR: ", Some(line_sink)).await;
         });
     }
 
+    let script_wait = script.clone();
+    let run_id_wait = run_id.clone();
     tokio::spawn(async move {
         let _update_activity_guard = update_activity_guard;
         match child.wait().await {
             Ok(status) if status.success() => {
-                let _ = tx.send("Done".to_string());
+                let line = "Done".to_string();
+                let _ = tx.send(line.clone());
+                append_script_run_log_line(&script_wait, &run_id_wait, line);
+                finish_script_run_log(&script_wait, &run_id_wait, "done");
             }
             Ok(status) => {
-                let _ = tx.send(format!("Error: {status}"));
+                let line = format!("Error: {status}");
+                let _ = tx.send(line.clone());
+                append_script_run_log_line(&script_wait, &run_id_wait, line);
+                finish_script_run_log(&script_wait, &run_id_wait, "error");
             }
             Err(e) => {
-                let _ = tx.send(format!("Error: {e}"));
+                let line = format!("Error: {e}");
+                let _ = tx.send(line.clone());
+                append_script_run_log_line(&script_wait, &run_id_wait, line);
+                finish_script_run_log(&script_wait, &run_id_wait, "error");
             }
         }
     });

@@ -87,9 +87,19 @@ Through NGINX (authenticated session in browser) or locally against backend:
 curl -fsS http://127.0.0.1:8080/healthz
 curl -fsS http://127.0.0.1:8080/update_status
 curl -fsS http://127.0.0.1:8080/list_repo_roots
+curl -fsS "http://127.0.0.1:8080/run_log?script=update-G2.py&from=0&limit=20"
 ```
 
 ## Key Workflows
+
+### Navigation Layout
+
+- `/saturn/` opens G2 Update (default landing page).
+- `/saturn/pihpsdr` opens dedicated piHPSDR update page.
+- `/saturn/backup` opens Backup / Restore.
+- `/saturn/custom` (and `/saturn/index`) opens Custom Scripts page.
+- `/saturn/monitor` opens Monitor.
+- Navigation order in current UI: `G2 Update` -> `piHPSDR Update` -> `Backup / Restore` -> `Custom Scripts` -> `Monitor`.
 
 ### Repo Root Management
 
@@ -109,7 +119,9 @@ Validation requires `.git` and `update_manager/` in the target path.
 - Download full backup from `backup.html` (or `GET /backup_full`).
 - Validate archive first with restore dry-run (`POST /restore_full?dry_run=1`).
 - Apply restore only after confirmation (`confirm=RESTORE`).
-- For `update-G2.py` directory backups, use Backup page "Update G2 Backups" controls (`GET /g2_backups`, `POST /g2_restore`).
+- For script-created directory backups, use Backup page "Script Backups" controls:
+  - Saturn backups from `update-G2.py`: `GET /g2_backups`, `POST /g2_restore`
+  - piHPSDR backups from `update-pihpsdr.py`: `GET /pihpsdr_backups`, `POST /pihpsdr_restore`
 
 Important:
 
@@ -119,10 +131,19 @@ Important:
 ### Appliance Update
 
 1. Open Update Center page (`/saturn/update`).
-2. Set policy (`owner`, `repo`, `channel`, refs, health check) and save.
-3. Start update.
-4. Monitor `update_status` job until complete.
-5. If needed, run rollback.
+2. Enter GitHub repo URL and branch/ref.
+3. Configure health-check URL and timeout.
+4. Save settings (optional; Start also persists current values).
+5. Start update.
+6. Monitor `update_status` job until complete.
+7. If needed, run rollback.
+
+Current UI behavior:
+
+- UI persists policy using `channel=custom` and `custom_ref=<branch/ref>`.
+- `Run Update G2` requires valid Appliance repo URL before run can start.
+- `Run Update G2` auto-saves current Appliance settings before spawning script.
+- Terminal output is resumable after tab/page changes using buffered `/run_log` polling.
 
 Update Center coordination notes:
 
@@ -142,11 +163,30 @@ Update behavior:
 ### Update G2 (Dedicated Terminal)
 
 - Run `update-G2.py` from Update Center to keep terminal output and Appliance Update state together.
+- Repo URL in Appliance section must be valid before G2 run is enabled.
 - Backend injects active repo-root environment for `/run`:
   - `SATURN_REPO_ROOT`
   - `SATURN_DIR`
   - `SATURN_ACTIVE_REPO_ROOT`
 - This allows `update-G2.py` to target the active Saturn checkout without hardcoded path dependence.
+- Output can be resumed from backend run logs (`/run_log`) after navigating away and back.
+
+### Update piHPSDR (Dedicated Terminal)
+
+- Run `update-pihpsdr.py` from `/saturn/pihpsdr`.
+- This page mirrors the dedicated terminal workflow (flags + SSE output) used by Update G2.
+- In non-interactive web execution, backup prompts are skipped unless `-y` is selected.
+- Output can be resumed from backend run logs (`/run_log`) after navigating away and back.
+
+### Custom Scripts (Browser Managed)
+
+- Use `/saturn/custom` to add/update/delete custom script entries from browser.
+- Optional script content can be written directly to scripts directory.
+- Custom script metadata is persisted in `SATURN_CUSTOM_SCRIPTS_FILE`.
+- Default custom scripts are seeded by backend startup:
+  - `cleanup-saturn-logs.sh`
+  - `cleanup-saturn-backups.sh`
+- Custom script output also resumes through `/run_log` buffering.
 
 ### Backup and Restore Scope
 
@@ -175,12 +215,16 @@ Service environment commonly used in deployment:
 - `SATURN_ADDR` (default `127.0.0.1:8080`)
 - `SATURN_WEBROOT` (default `/var/lib/saturn-web`)
 - `SATURN_CONFIG` (default `$SATURN_WEBROOT/config.json`)
+- `SATURN_SCRIPTS_DIR` (default `/opt/saturn-go/scripts`)
 - `SATURN_STATE_DIR` (default `/var/lib/saturn-state`)
 - `SATURN_REPO_ROOT_FILE` (default `$SATURN_STATE_DIR/repo_root.txt`)
 - `SATURN_UPDATE_POLICY_FILE` (default `$SATURN_STATE_DIR/update_policy.json`)
 - `SATURN_UPDATE_STATE_FILE` (default `$SATURN_STATE_DIR/update_state.json`)
 - `SATURN_SNAPSHOT_DIR` (default `$SATURN_STATE_DIR/snapshots`)
 - `SATURN_STAGING_DIR` (default `$SATURN_STATE_DIR/repo-staging`)
+- `SATURN_CUSTOM_SCRIPTS_FILE` (default `$SATURN_STATE_DIR/custom_scripts.json`)
+- `SATURN_PIHPSDR_ROOT` (default `$HOME/github/pihpsdr`)
+- `SATURN_FPGA_DIR` (optional override for FPGA image scan path)
 - `SATURN_MAX_BODY_BYTES` (default `2147483648`)
 - `SATURN_RESTORE_MAX_UPLOAD_BYTES` (default `2147483648`)
 - `SATURN_NGINX_CLIENT_MAX_BODY_SIZE` (installer default `2G`)
@@ -200,6 +244,11 @@ Service environment commonly used in deployment:
 - verify script exists and is executable in `/opt/saturn-go/scripts`
 - check service logs for spawn errors
 - check NGINX still has dedicated `/saturn/run` SSE location
+- verify buffered lines are available:
+
+```bash
+curl -sS "http://127.0.0.1:8080/run_log?script=update-G2.py&from=0&limit=50" | jq
+```
 
 ### Restore Errors
 

@@ -20,12 +20,16 @@ Saturn Update Manager is deployed as a small appliance-style web stack:
 ## UI Page Responsibilities
 
 - `index.html`
-  - Main script runner for general maintenance scripts and password change.
-  - `update-G2.py` is intentionally hidden from the generic script dropdown.
+  - Custom Scripts page (browser-managed script catalog + runner) and password change.
+  - `update-G2.py`, `update-pihpsdr.py`, and `restore-backup.sh` are intentionally hidden from this page dropdown.
+  - Supports browser file upload for custom script content and includes backend-seeded default custom cleanup scripts.
 - `update.html`
-  - Dedicated Update Center that combines:
+  - Default landing page (`/`) that combines:
     - Update G2 terminal workflow (`POST /run` with `update-G2.py`)
-    - Appliance Update policy/start/status/rollback controls.
+    - Appliance Update policy/start/status/rollback controls (repo URL + branch/ref + healthcheck inputs in current UI).
+    - G2 run button is gated by valid Appliance repo URL input.
+- `pihpsdr.html`
+  - Dedicated piHPSDR update terminal workflow (`POST /run` with `update-pihpsdr.py`).
 - `backup.html`
   - Repo-root selection, full backup/restore, repair pack, Pi image workflow, and SD clone workflow.
 - `monitor.html`
@@ -38,9 +42,9 @@ Saturn Update Manager is deployed as a small appliance-style web stack:
 - `/opt/saturn-go/bin/saturn-go`
   - Rust server binary.
 - `/opt/saturn-go/scripts/`
-  - Executable maintenance scripts.
+  - Executable maintenance scripts (also target directory for browser-managed custom scripts).
 - `/var/lib/saturn-web/`
-  - Web assets: `index.html`, `update.html`, `backup.html`, `monitor.html`, `config.json`, `themes.json`.
+  - Web assets: `index.html`, `update.html`, `pihpsdr.html`, `backup.html`, `monitor.html`, `config.json`, `themes.json`.
 - `/var/lib/saturn-state/`
   - Mutable state: `repo_root.txt`, `update_policy.json`, `update_state.json`, snapshots, staged worktrees.
 - `/etc/systemd/system/saturn-go.service`
@@ -61,6 +65,14 @@ Saturn Update Manager is deployed as a small appliance-style web stack:
 - `update_manager/scripts/`
   - Runtime scripts copied to `/opt/saturn-go/scripts`.
 
+Browser-managed custom scripts:
+
+- Metadata persisted at `SATURN_CUSTOM_SCRIPTS_FILE` (default `/var/lib/saturn-state/custom_scripts.json`).
+- Optional script content writes to `SATURN_SCRIPTS_DIR` (default `/opt/saturn-go/scripts`).
+- Backend seeds default custom entries (and missing files) on startup:
+  - `cleanup-saturn-logs.sh`
+  - `cleanup-saturn-backups.sh`
+
 ## Core State Model
 
 - Active repo root is held in memory and persisted to `repo_root.txt`.
@@ -69,6 +81,7 @@ Saturn Update Manager is deployed as a small appliance-style web stack:
 - Snapshot archives are stored in `snapshots/`.
 - Transactional update worktrees are stored in `repo-staging/`.
 - A process-local update activity lock coordinates mutually exclusive update operations (appliance update, appliance rollback, and Update G2 runs).
+- Process-local per-script run-log buffers (in memory) back `/run_log` resume behavior for terminal pages.
 
 ## Security Model
 
@@ -123,8 +136,11 @@ Concurrency guard:
 - `POST /run` accepts multipart form:
   - `script=<filename>`
   - zero or more `flags=<flag>` values
-- Backend starts script from `/opt/saturn-go/scripts`.
+- `GET /run_log` returns buffered output for a script by offset:
+  - `?script=<filename>&from=<offset>&limit=<n>`
+- Backend starts script from `SATURN_SCRIPTS_DIR` (default `/opt/saturn-go/scripts`).
 - Output from stdout/stderr is streamed as SSE messages.
+- Output is also copied into an in-memory per-script ring buffer so UI pages can resume output after tab/page switches.
 - `stdbuf` + unbuffered Python mode are used when available to reduce output latency.
 - Backend injects active repo-root context into child processes:
   - `SATURN_REPO_ROOT`
@@ -138,6 +154,7 @@ Concurrency guard:
 - Full restore (`POST /restore_full`): uploads archive to `/tmp`, validates and extracts it, then `rsync --delete` into active repo root.
 - Dry-run restore (`?dry_run=1`) reports extracted tree stats without applying changes.
 - Update G2 directory backups (`GET /g2_backups`, `POST /g2_restore`): lists `saturn-backup-*` directories under backend `$HOME` and restores selected backup into active repo root with validation and confirm guard.
+- piHPSDR directory backups (`GET /pihpsdr_backups`, `POST /pihpsdr_restore`): lists `pihpsdr-backup-*` directories under backend `$HOME` and restores selected backup into configured piHPSDR checkout.
 
 ## Monitor Model
 

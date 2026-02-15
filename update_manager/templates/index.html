@@ -92,11 +92,13 @@
 <body class="min-h-screen">
   <div class="max-w-5xl mx-auto px-4 py-6 sm:py-10">
     <div class="flex items-center justify-between mb-6">
-      <h1 class="title text-3xl sm:text-4xl">Saturn Go Update Manager</h1>
+      <h1 class="title text-3xl sm:text-4xl">Custom Scripts</h1>
       <div class="flex items-center gap-3">
-        <button type="button" id="update-btn" class="btn btn-ghost px-4 py-2">Update Center</button>
+        <button type="button" id="g2-btn" class="btn btn-ghost px-4 py-2">G2 Update</button>
+        <button type="button" id="pihpsdr-btn" class="btn btn-ghost px-4 py-2">piHPSDR Update</button>
         <button type="button" id="backup-btn" class="btn btn-ghost px-4 py-2">Backup / Restore</button>
-        <button type="button" id="monitor-btn" class="btn btn-ghost px-4 py-2">Open Monitor</button>
+        <button type="button" id="custom-btn" class="btn btn-ghost px-4 py-2">Custom Scripts</button>
+        <button type="button" id="monitor-btn" class="btn btn-ghost px-4 py-2">Monitor</button>
         <!-- Single theme toggle button (classic) -->
         <button id="theme-toggle" class="btn btn-ghost p-2" title="Toggle theme">
           <svg id="theme-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,12 +121,55 @@
       <ul id="version-list" class="mt-3 list-disc pl-6"></ul>
     </div>
 
+    <div class="card p-5 mb-6">
+      <h2 class="text-xl font-semibold mb-3">Manage Custom Scripts</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm mb-1">Filename (in /opt/saturn-go/scripts)</label>
+          <input id="custom-filename" class="field w-full px-3 py-2" placeholder="my-script.sh" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Display Name</label>
+          <input id="custom-name" class="field w-full px-3 py-2" placeholder="My Script" />
+        </div>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4 mt-3">
+        <div>
+          <label class="block text-sm mb-1">Description</label>
+          <input id="custom-description" class="field w-full px-3 py-2" placeholder="What this script does" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Flags (comma separated)</label>
+          <input id="custom-flags" class="field w-full px-3 py-2" placeholder="--dry-run, --verbose" />
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="block text-sm mb-1">Upload Script File</label>
+        <input id="custom-file" type="file" accept=".sh,.py,.bash,.zsh,.ksh,.txt,text/plain" class="field w-full px-3 py-2" />
+        <p class="text-xs opacity-70 mt-1">Selecting a file loads it into Script Content and sets Filename automatically (you can edit it).</p>
+      </div>
+      <div class="mt-3">
+        <label class="block text-sm mb-1">Script Content (optional, writes/overwrites file)</label>
+        <textarea id="custom-content" class="field w-full px-3 py-2 h-32" placeholder="#!/usr/bin/env bash&#10;echo hello"></textarea>
+      </div>
+      <div class="mt-3 flex flex-wrap items-center gap-3">
+        <label class="text-sm flex items-center gap-2">
+          <input id="custom-delete-file" type="checkbox" class="h-4 w-4" />
+          Delete script file when removing entry
+        </label>
+        <button id="custom-save" type="button" class="btn btn-primary px-4 py-2">Save / Update</button>
+        <button id="custom-delete" type="button" class="btn btn-danger px-4 py-2">Delete</button>
+        <button id="custom-refresh" type="button" class="btn btn-ghost px-4 py-2">Refresh</button>
+      </div>
+      <div id="custom-status" class="text-sm opacity-80 mt-2"></div>
+    </div>
+
     <!-- Runner card -->
     <div class="card p-5 mb-6">
       <form id="script-form" class="space-y-4">
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm mb-1">Select Script</label>
+            <label class="block text-sm mb-1">Select Custom Script</label>
             <select id="script" name="script" class="field w-full px-3 py-2">
               <option value="">Select a script…</option>
             </select>
@@ -139,19 +184,6 @@
         <div>
           <label class="block text-sm mb-1">Flags</label>
           <div id="flags" class="flex flex-wrap gap-4"></div>
-        </div>
-
-        <!-- Restore directory (only for restore script) -->
-        <div id="restore-wrap" class="hidden">
-          <div class="flex items-center gap-3">
-            <div class="grow">
-              <label for="restore-dir-select" class="block text-sm mb-1">Select Backup Directory</label>
-              <select id="restore-dir-select" class="field w-full px-3 py-2">
-                <option value="">Select…</option>
-              </select>
-            </div>
-            <!-- Refresh removed by request -->
-          </div>
         </div>
       </form>
     </div>
@@ -224,6 +256,7 @@
     const isLight = document.body.classList.toggle('light');
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
     setIcon(isLight);
+    refreshCustomRenderedOutput();
   });
 })();
 
@@ -237,127 +270,257 @@ const output = $('output');
 const progress = $('progress');
 const CSRF_HEADER_NAME = 'X-Saturn-CSRF';
 const CSRF_HEADER_VALUE = '1';
+const CUSTOM_OUTPUT_LINES_KEY = 'saturn:custom:output-lines';
+const CUSTOM_OUTPUT_MAX_LINES = 2500;
+const CUSTOM_RUN_SCRIPT_KEY = 'saturn:custom:run-script';
+const CUSTOM_RUN_ID_KEY = 'saturn:custom:run-id';
+const CUSTOM_RUN_NEXT_KEY = 'saturn:custom:run-next';
+let customOutputLines = [];
+let customRunScript = '';
+let customRunId = '';
+let customRunNext = 0;
+let customRunPoll = null;
+let customRunInProgress = false;
+
+function ansiToHtml(line){
+  const html = ansi_up.ansi_to_html(String(line ?? ''));
+  if (!document.body.classList.contains('light')) return html;
+  return html
+    .replace(/color:rgb\(\s*255\s*,\s*255\s*,\s*255\s*\)/g, 'color:rgb(0,0,0)')
+    .replace(/color:rgb\(\s*187\s*,\s*187\s*,\s*187\s*\)/g, 'color:rgb(55,65,81)')
+    .replace(/color:rgb\(\s*85\s*,\s*85\s*,\s*85\s*\)/g, 'color:rgb(55,65,81)');
+}
 
 function withCsrf(headers = {}){
   return { ...headers, [CSRF_HEADER_NAME]: CSRF_HEADER_VALUE };
 }
 
-function show(el, on){ el.classList.toggle('hidden', !on); }
-function append(line){
-  output.innerHTML += ansi_up.ansi_to_html(line) + '<br>';
+function saveSessionJson(key, value){
+  try{ sessionStorage.setItem(key, JSON.stringify(value)); }catch(_e){}
+}
+
+function loadSessionJson(key, fallback){
+  try{
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return parsed == null ? fallback : parsed;
+  }catch(_e){
+    return fallback;
+  }
+}
+
+function saveSessionText(key, value){
+  try{ sessionStorage.setItem(key, String(value || '')); }catch(_e){}
+}
+
+function loadSessionText(key, fallback=''){
+  try{
+    const raw = sessionStorage.getItem(key);
+    return raw == null ? fallback : raw;
+  }catch(_e){
+    return fallback;
+  }
+}
+
+function renderAnsiLines(lines){
+  if (!Array.isArray(lines) || !lines.length) return '';
+  return lines.map((line)=>ansiToHtml(line)).join('<br>') + '<br>';
+}
+
+function refreshCustomRenderedOutput(){
+  output.innerHTML = renderAnsiLines(customOutputLines);
   output.scrollTop = output.scrollHeight;
 }
 
-/* Helpers to detect restore mode/type */
-function isRestoreScript(name){
-  return /restore-?backup\.sh$/i.test(name);
-}
-function getRestoreTypeFromFlags(flags){
-  // returns 'saturn' | 'pihpsdr' | null
-  if (flags.some(f => f === '--saturn')) return 'saturn';
-  if (flags.some(f => f === '--pihpsdr')) return 'pihpsdr';
-  return null;
-}
-function isListOnly(flags){
-  return flags.some(f => f === '--list');
+function persistOutput(){
+  saveSessionJson(CUSTOM_OUTPUT_LINES_KEY, customOutputLines);
+  saveSessionText(CUSTOM_RUN_NEXT_KEY, String(customRunNext));
 }
 
-/* Live parse of backup names from script output */
-let collecting = false;
-let collectType = null;         // 'saturn' | 'pihpsdr'
-let collectedNames = [];
+function persistRunMeta(){
+  saveSessionText(CUSTOM_RUN_SCRIPT_KEY, customRunScript);
+  saveSessionText(CUSTOM_RUN_ID_KEY, customRunId);
+  saveSessionText(CUSTOM_RUN_NEXT_KEY, String(customRunNext));
+}
 
-function resetBackupCollection(){
-  collecting = false;
-  collectType = null;
-  collectedNames = [];
-  // also clear dropdown to avoid stale names when switching types/flags
-  const sel = $('restore-dir-select');
-  if (sel){
-    sel.innerHTML = '<option value="">Select…</option>';
+function restoreOutput(){
+  const saved = loadSessionJson(CUSTOM_OUTPUT_LINES_KEY, []);
+  customOutputLines = Array.isArray(saved) ? saved.map((v)=>String(v)) : [];
+  if (customOutputLines.length > CUSTOM_OUTPUT_MAX_LINES){
+    customOutputLines = customOutputLines.slice(-CUSTOM_OUTPUT_MAX_LINES);
+    persistOutput();
+  }
+  customRunScript = loadSessionText(CUSTOM_RUN_SCRIPT_KEY, '');
+  customRunId = loadSessionText(CUSTOM_RUN_ID_KEY, '');
+  const savedNext = Number(loadSessionText(CUSTOM_RUN_NEXT_KEY, String(customOutputLines.length)));
+  customRunNext = Number.isFinite(savedNext) && savedNext >= 0 ? savedNext : customOutputLines.length;
+  output.innerHTML = renderAnsiLines(customOutputLines);
+  output.scrollTop = output.scrollHeight;
+}
+
+function show(el, on){ el.classList.toggle('hidden', !on); }
+function append(line){
+  const text = String(line ?? '');
+  customOutputLines.push(text);
+  if (customOutputLines.length > CUSTOM_OUTPUT_MAX_LINES){
+    customOutputLines = customOutputLines.slice(-CUSTOM_OUTPUT_MAX_LINES);
+    output.innerHTML = renderAnsiLines(customOutputLines);
+  } else {
+    output.innerHTML += ansiToHtml(text) + '<br>';
+  }
+  customRunNext = customOutputLines.length;
+  persistOutput();
+  output.scrollTop = output.scrollHeight;
+}
+
+function clearCustomRunPoll(){
+  if (customRunPoll){
+    clearInterval(customRunPoll);
+    customRunPoll = null;
   }
 }
 
-function tryStartCollection(line){
-  // The script prints e.g.:
-  // "Available saturn backups:" or "Available pihpsdr backups:"
-  const m = line.match(/Available\s+(saturn|pihpsdr)\s+backups:/i);
-  if (m){
-    collecting = true;
-    collectType = m[1].toLowerCase();
-    collectedNames = [];
-    return true;
+function ensureCustomRunPoll(){
+  if (!customRunPoll){
+    customRunPoll = setInterval(fetchBufferedCustomRunLog, 1200);
   }
-  return false;
 }
 
-function maybeCollectName(line){
-  // backup lines look like: "  saturn-backup-YYYYMMDD-HHMMSS"
-  const m = line.match(/^\s{2,}([A-Za-z0-9._-]+backup[-\w\.]*)\s*$/);
-  if (collecting && m){
-    collectedNames.push(m[1]);
-    return true;
-  }
-  return false;
+function resetCustomRunState(script){
+  customRunScript = String(script || '').trim();
+  customRunId = '';
+  customRunNext = 0;
+  customOutputLines = [];
+  persistOutput();
+  persistRunMeta();
+  output.innerHTML = '';
 }
 
-function stopCollectionIfDone(line){
-  if (/^\s*Done\s*$/i.test(line)){
-    collecting = false;
-    // push names into dropdown
-    const sel = $('restore-dir-select');
-    if (sel){
-      sel.innerHTML = '';
-      if (collectedNames.length){
-        for (const n of collectedNames){
-          const opt = document.createElement('option');
-          // we keep the "name" as the value; your restore script expects --backup-name <name>
-          opt.value = n;
-          opt.textContent = n;
-          sel.appendChild(opt);
-        }
-      }else{
-        const opt = document.createElement('option');
-        opt.value = '';
-        opt.textContent = 'No backups found';
-        sel.appendChild(opt);
-      }
+async function fetchBufferedCustomRunLog(targetScript){
+  if (customRunInProgress) return;
+  const selected = String(targetScript || $('script').value || customRunScript || '').trim();
+  if (!selected){
+    clearCustomRunPoll();
+    return;
+  }
+
+  if (customRunScript !== selected){
+    resetCustomRunState(selected);
+  }
+
+  try{
+    const from = Math.max(0, Number(customRunNext) || 0);
+    const r = await fetch(`./run_log?script=${encodeURIComponent(selected)}&from=${from}&limit=600`, { cache: 'no-store' });
+    if (!r.ok) return;
+    const data = await r.json().catch(()=>({}));
+    const runId = String(data.run_id || '');
+    const running = !!data.running;
+
+    if (!runId){
+      clearCustomRunPoll();
+      return;
     }
-  }
+
+    if (customRunId && runId !== customRunId){
+      resetCustomRunState(selected);
+      customRunId = runId;
+      persistRunMeta();
+      await fetchBufferedCustomRunLog(selected);
+      return;
+    }
+    if (!customRunId){
+      customRunId = runId;
+      persistRunMeta();
+    }
+
+    const lines = Array.isArray(data.lines) ? data.lines : [];
+    lines.forEach((line)=>append(line));
+
+    const nextFrom = Number(data.next_from);
+    if (Number.isFinite(nextFrom) && nextFrom >= 0){
+      customRunNext = nextFrom;
+      persistRunMeta();
+    }
+
+    if (running){
+      ensureCustomRunPoll();
+    } else {
+      clearCustomRunPoll();
+    }
+  }catch(_e){}
 }
 
-/* Loaders */
+let customScripts = [];
+
+function setCustomStatus(msg, isError=false){
+  const el = $('custom-status');
+  el.textContent = msg || '';
+  el.classList.toggle('text-red-400', !!isError);
+}
+
+function parseCsvFlags(text){
+  return String(text || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function displayNameFromFilename(filename){
+  const base = String(filename || '').replace(/\.[A-Za-z0-9]+$/, '');
+  return base
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (m)=>m.toUpperCase());
+}
+
+function fillCustomForm(filename){
+  const entry = customScripts.find(s => s.filename === filename);
+  if (!entry) return;
+  $('custom-filename').value = entry.filename || '';
+  $('custom-name').value = entry.name || '';
+  $('custom-description').value = entry.description || '';
+  $('custom-flags').value = Array.isArray(entry.flags) ? entry.flags.join(', ') : '';
+}
+
 async function loadScripts(){
   try{
-    const r = await fetch('./get_scripts', { headers:{'Cache-Control':'no-cache'} });
-    const data = await r.json();
-    const sel = $('script');
-    sel.innerHTML = '<option value="">Select a script…</option>';
-    const isG2 = (name) => /^update-g2\.(py|sh)$/i.test(String(name || '').trim());
+    const r = await fetch('./custom_scripts', { cache:'no-store' });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
 
-    if (Array.isArray(data.scripts)) {
-      data.scripts.forEach(s=>{
-        if (isG2(s)) return;
-        const opt = document.createElement('option');
-        opt.value = s; opt.textContent = s;
-        sel.appendChild(opt);
-      });
-    } else {
-      Object.keys(data.scripts||{}).sort().forEach(cat=>{
-        const og = document.createElement('optgroup');
-        og.label = cat;
-        (data.scripts[cat]||[]).forEach(s=>{
-          if (isG2(s.filename)) return;
-          const opt = document.createElement('option');
-          opt.value = s.filename;
-          opt.textContent = s.name || s.filename;
-          opt.title = s.description || '';
-          og.appendChild(opt);
-        });
-        sel.appendChild(og);
-      });
+    customScripts = Array.isArray(data.scripts) ? data.scripts : [];
+    customScripts.sort((a,b)=> String(a.filename || '').localeCompare(String(b.filename || '')));
+
+    const sel = $('script');
+    const previous = sel.value || loadSessionText(CUSTOM_RUN_SCRIPT_KEY, '');
+    sel.innerHTML = '<option value="">Select a script…</option>';
+    customScripts.forEach(s=>{
+      const opt = document.createElement('option');
+      opt.value = s.filename;
+      opt.textContent = s.name || s.filename;
+      opt.title = s.description || '';
+      sel.appendChild(opt);
+    });
+
+    if (previous && customScripts.some(s => s.filename === previous)) {
+      sel.value = previous;
     }
-  }catch(e){ append(`\x1b[31mError loading scripts: ${e.message}\x1b[0m`); }
+    if (sel.value) {
+      customRunScript = sel.value;
+      persistRunMeta();
+      await loadFlags(sel.value);
+      fillCustomForm(sel.value);
+      await fetchBufferedCustomRunLog(sel.value);
+    } else {
+      $('flags').innerHTML = '';
+      clearCustomRunPoll();
+    }
+    setCustomStatus(`Loaded ${customScripts.length} custom script(s).`);
+  }catch(e){
+    setCustomStatus(`Failed to load custom scripts: ${e.message}`, true);
+  }
 }
 
 async function loadVersions(){
@@ -384,20 +547,19 @@ async function loadFlags(filename){
       lbl.innerHTML = `<input type="checkbox" value="${flag}" class="h-5 w-5"> <span>${flag}</span>`;
       host.appendChild(lbl);
     });
-
-    // restore UI visibility
-    const isRestore = isRestoreScript(filename);
-    show($('restore-wrap'), isRestore);
-
-    // new flags => clear any previously collected names
-    resetBackupCollection();
   }catch(e){ append(`\x1b[31mError loading flags: ${e.message}\x1b[0m`); }
 }
 
 /* UI events */
 $('script').addEventListener('change', (e)=>{
-  if (e.target.value) loadFlags(e.target.value);
-  resetBackupCollection();
+  if (e.target.value) {
+    loadFlags(e.target.value);
+    fillCustomForm(e.target.value);
+    resetCustomRunState(e.target.value);
+    fetchBufferedCustomRunLog(e.target.value);
+  } else {
+    clearCustomRunPoll();
+  }
 });
 
 $('toggle-versions').addEventListener('change', (e)=>{
@@ -405,10 +567,91 @@ $('toggle-versions').addEventListener('change', (e)=>{
   if (e.target.checked) loadVersions();
 });
 
-$('monitor-btn').addEventListener('click', ()=> window.open('./monitor', 'SaturnMonitor',
-  'width=900,height=650,resizable=yes,scrollbars=yes,status=yes'));
-$('update-btn').addEventListener('click', ()=> window.location.href = './update');
+$('g2-btn').addEventListener('click', ()=> window.location.href = './');
+$('pihpsdr-btn').addEventListener('click', ()=> window.location.href = './pihpsdr');
 $('backup-btn').addEventListener('click', ()=> window.location.href = './backup');
+$('monitor-btn').addEventListener('click', ()=> window.location.href = './monitor');
+$('custom-btn').addEventListener('click', ()=> window.location.href = './custom');
+
+$('custom-refresh').addEventListener('click', loadScripts);
+$('custom-file').addEventListener('change', async (e)=>{
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  try{
+    const text = await file.text();
+    $('custom-filename').value = file.name;
+    if (!$('custom-name').value.trim()) {
+      $('custom-name').value = displayNameFromFilename(file.name) || file.name;
+    }
+    $('custom-content').value = text;
+    setCustomStatus(`Loaded file: ${file.name} (${text.length} bytes).`);
+  }catch(err){
+    setCustomStatus(`Failed to read file: ${err.message}`, true);
+  }
+});
+
+$('custom-save').addEventListener('click', async ()=>{
+  const filename = $('custom-filename').value.trim();
+  if (!filename) {
+    setCustomStatus('Filename is required.', true);
+    return;
+  }
+  const payload = {
+    filename,
+    name: $('custom-name').value.trim() || filename,
+    description: $('custom-description').value.trim() || null,
+    flags: parseCsvFlags($('custom-flags').value),
+    content: $('custom-content').value.trim() ? $('custom-content').value : null,
+  };
+  try{
+    const r = await fetch('./custom_scripts', {
+      method:'POST',
+      headers: withCsrf({'Content-Type':'application/json'}),
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+    setCustomStatus(`Saved custom script: ${filename}`);
+    $('custom-content').value = '';
+    await loadScripts();
+    $('script').value = filename;
+    await loadFlags(filename);
+    fillCustomForm(filename);
+  }catch(e){
+    setCustomStatus(`Save failed: ${e.message}`, true);
+  }
+});
+
+$('custom-delete').addEventListener('click', async ()=>{
+  const filename = $('custom-filename').value.trim() || $('script').value.trim();
+  if (!filename) {
+    setCustomStatus('Select or enter a filename to delete.', true);
+    return;
+  }
+  if (!confirm(`Delete custom script entry for ${filename}?`)) return;
+  try{
+    const r = await fetch('./custom_scripts_delete', {
+      method:'POST',
+      headers: withCsrf({'Content-Type':'application/json'}),
+      body: JSON.stringify({
+        filename,
+        delete_file: $('custom-delete-file').checked,
+      }),
+    });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+    setCustomStatus(`Deleted custom script entry: ${filename}`);
+    $('custom-filename').value = '';
+    $('custom-name').value = '';
+    $('custom-description').value = '';
+    $('custom-flags').value = '';
+    $('custom-content').value = '';
+    $('flags').innerHTML = '';
+    await loadScripts();
+  }catch(e){
+    setCustomStatus(`Delete failed: ${e.message}`, true);
+  }
+});
 
 $('exit-btn').addEventListener('click', async ()=>{
   try{
@@ -457,31 +700,21 @@ async function sendBackupResponse(letter){
 /* Run handler (SSE) */
 $('script-form').addEventListener('submit', async (e)=>{
   e.preventDefault();
-  output.innerHTML=''; progress.value=0; show(progress,true);
-
   const filename = $('script').value;
+  if (!filename) {
+    append('\x1b[31mPlease select a custom script first.\x1b[0m');
+    show(progress,false);
+    return;
+  }
+  clearCustomRunPoll();
+  customRunInProgress = true;
+  resetCustomRunState(filename);
+  output.innerHTML=''; progress.value=0; show(progress,true);
   const flags = Array.from(document.querySelectorAll('#flags input[type=checkbox]:checked')).map(i=>i.value);
-
-  const restoreMode = isRestoreScript(filename);
-  const restoreType = getRestoreTypeFromFlags(flags);
-  const listing = isListOnly(flags);
-
-  // If the user is listing, DO NOT send --backup-name.
-  // Only send --backup-name when restoring (not listing) and a selection exists.
-  const selectedName = $('restore-dir-select').value;
 
   try{
     const fd = new FormData(); fd.append('script', filename);
     flags.forEach(f=>fd.append('flags', f));
-
-    if (restoreMode && !listing && selectedName){
-      // restoring a specific backup
-      fd.append('flags', '--backup-name');
-      fd.append('flags', selectedName);
-    }
-
-    // every new run: reset collection buffer
-    resetBackupCollection();
 
     const res = await fetch('./run', {
       method:'POST',
@@ -510,14 +743,6 @@ $('script-form').addEventListener('submit', async (e)=>{
           continue;
         }
 
-        // When running list, parse and populate
-        if (restoreMode && listing){
-          // start/end and item lines
-          if (tryStartCollection(line)) { /* started collecting */ }
-          else if (maybeCollectName(line)) { /* collected */ }
-          else { stopCollectionIfDone(line); }
-        }
-
         // Always output with ANSI colors
         append(line);
 
@@ -529,10 +754,13 @@ $('script-form').addEventListener('submit', async (e)=>{
   }catch(err){
     append(`\x1b[31mRun error: ${err.message}\x1b[0m`);
   }
+  customRunInProgress = false;
+  setTimeout(fetchBufferedCustomRunLog, 250);
   show(progress,false);
 });
 
 /* Init */
+restoreOutput();
 loadScripts();
 </script>
 </body>

@@ -85,8 +85,11 @@
     <div class="flex items-center justify-between mb-6">
       <h1 class="title text-3xl sm:text-4xl">Backup / Restore</h1>
       <div class="flex items-center gap-3">
-        <a href="./update" class="btn btn-ghost px-3 py-2">Update Center</a>
-        <a href="./" class="btn btn-ghost px-3 py-2">Back</a>
+        <a href="./" class="btn btn-ghost px-3 py-2">G2 Update</a>
+        <a href="./pihpsdr" class="btn btn-ghost px-3 py-2">piHPSDR Update</a>
+        <a href="./backup" class="btn btn-ghost px-3 py-2">Backup / Restore</a>
+        <a href="./custom" class="btn btn-ghost px-3 py-2">Custom Scripts</a>
+        <a href="./monitor" class="btn btn-ghost px-3 py-2">Monitor</a>
         <button id="theme-toggle" class="btn btn-ghost p-2" title="Toggle theme">
           <svg id="theme-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -142,18 +145,25 @@
       </p>
 
       <div class="mt-6 border-t border-white/15 pt-5">
-        <h3 class="text-lg font-semibold mb-2">Update G2 Backups</h3>
+        <h3 class="text-lg font-semibold mb-2">Script Backups</h3>
         <div class="text-sm opacity-80 mb-3">
-          <code>update-G2.py</code> creates <code>saturn-backup-*</code> directories under the service home. You can validate or restore one directly into the active repo root.
+          Use this for backups created by <code>update-G2.py</code> (<code>saturn-backup-*</code>) and <code>update-pihpsdr.py</code> (<code>pihpsdr-backup-*</code>).
         </div>
         <div class="flex flex-wrap gap-3 items-end">
+          <div>
+            <label class="block text-sm mb-1">Backup Type</label>
+            <select id="g2-backup-kind" class="field px-3 py-2">
+              <option value="saturn">Saturn (G2)</option>
+              <option value="pihpsdr">piHPSDR</option>
+            </select>
+          </div>
           <div class="min-w-[18rem] grow">
-            <label class="block text-sm mb-1">Select G2 Backup</label>
+            <label class="block text-sm mb-1">Select Backup</label>
             <select id="g2-backup-select" class="field w-full px-3 py-2">
               <option value="">loading...</option>
             </select>
           </div>
-          <button id="g2-backup-refresh" class="btn btn-ghost px-4 py-2">Refresh G2 Backups</button>
+          <button id="g2-backup-refresh" class="btn btn-ghost px-4 py-2">Refresh Backups</button>
           <button id="g2-backup-validate" class="btn btn-ghost px-4 py-2">Validate Selected</button>
           <div>
             <label class="block text-sm mb-1">Type RESTORE</label>
@@ -412,10 +422,13 @@ function fmtBytes(bytes){
 }
 
 async function loadG2Backups(){
+  const kind = $('g2-backup-kind').value;
+  const listUrl = kind === 'pihpsdr' ? './pihpsdr_backups' : './g2_backups';
+  const kindLabel = kind === 'pihpsdr' ? 'piHPSDR' : 'Saturn';
   const sel = $('g2-backup-select');
   sel.innerHTML = '<option value="">Loading...</option>';
   try{
-    const r = await fetch('./g2_backups', { cache:'no-store' });
+    const r = await fetch(listUrl, { cache:'no-store' });
     const data = await r.json().catch(()=>({}));
     if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
     const backups = Array.isArray(data.backups) ? data.backups : [];
@@ -423,9 +436,9 @@ async function loadG2Backups(){
     if (!backups.length){
       const opt = document.createElement('option');
       opt.value = '';
-      opt.textContent = 'No G2 backups found';
+      opt.textContent = `No ${kindLabel} backups found`;
       sel.appendChild(opt);
-      setG2BackupStatus('No saturn-backup-* directories found yet.');
+      setG2BackupStatus(`No ${kindLabel} backup directories found yet.`);
       return;
     }
     backups.forEach((b)=>{
@@ -435,17 +448,20 @@ async function loadG2Backups(){
       opt.textContent = `${b.name} (${fmtBytes(b.bytes)}, ${when})`;
       sel.appendChild(opt);
     });
-    setG2BackupStatus(`Loaded ${backups.length} G2 backup(s).`);
+    setG2BackupStatus(`Loaded ${backups.length} ${kindLabel} backup(s).`);
   }catch(e){
     sel.innerHTML = '<option value="">Failed to load backups</option>';
-    setG2BackupStatus(`Failed to load G2 backups: ${e.message}`, true);
+    setG2BackupStatus(`Failed to load backups: ${e.message}`, true);
   }
 }
 
 async function restoreG2Backup(dryRun){
+  const kind = $('g2-backup-kind').value;
+  const restoreUrl = kind === 'pihpsdr' ? './pihpsdr_restore' : './g2_restore';
+  const kindLabel = kind === 'pihpsdr' ? 'piHPSDR' : 'Saturn';
   const backupName = $('g2-backup-select').value.trim();
   if (!backupName){
-    setG2BackupStatus('Select a G2 backup first.', true);
+    setG2BackupStatus('Select a backup first.', true);
     return;
   }
   const confirmText = $('g2-restore-confirm').value.trim();
@@ -453,9 +469,9 @@ async function restoreG2Backup(dryRun){
     setG2BackupStatus('Type RESTORE to confirm restore.', true);
     return;
   }
-  setG2BackupStatus(dryRun ? 'Validating selected G2 backup...' : 'Restoring selected G2 backup...');
+  setG2BackupStatus(dryRun ? `Validating selected ${kindLabel} backup...` : `Restoring selected ${kindLabel} backup...`);
   try{
-    const r = await fetch('./g2_restore', {
+    const r = await fetch(restoreUrl, {
       method:'POST',
       headers:withCsrf({'Content-Type':'application/json'}),
       body: JSON.stringify({
@@ -471,13 +487,14 @@ async function restoreG2Backup(dryRun){
       const dirs = Number(data.dirs || 0);
       setG2BackupStatus(`Validation OK. ${files} files, ${dirs} dirs, ${fmtBytes(data.bytes)}.`);
     } else {
-      setG2BackupStatus(`Restore complete from ${backupName}.`);
+      setG2BackupStatus(`${kindLabel} restore complete from ${backupName}.`);
     }
   }catch(e){
-    setG2BackupStatus(`G2 backup restore failed: ${e.message}`, true);
+    setG2BackupStatus(`Restore failed: ${e.message}`, true);
   }
 }
 
+$('g2-backup-kind').addEventListener('change', loadG2Backups);
 $('g2-backup-refresh').addEventListener('click', loadG2Backups);
 $('g2-backup-validate').addEventListener('click', ()=> restoreG2Backup(true));
 $('g2-backup-restore').addEventListener('click', ()=>{

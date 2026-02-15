@@ -103,7 +103,8 @@ def print_info(msg):
 def print_build_output(msg):
     cols, _ = get_term_size()
     msg = truncate_text(msg, cols-7)
-    print(f"{Colors.WHITE}{msg}{Colors.END}")
+    # Keep compile output uncolored so web UI light theme remains readable.
+    print(msg)
     logging.info(msg)
 
 def progress_bar(pid, msg, total_steps):
@@ -243,8 +244,14 @@ def create_backup():
         print_info("[Dry Run] Simulating backup creation")
         return True
     else:
+        if not sys.__stdin__.isatty():
+            print_warning("Non-interactive session: backup skipped (use -y to force)")
+            return False
         print(f"{Colors.YELLOW}⚠ Backup? Y/n: {Colors.END}", end="", flush=True)
-        reply = input("").lower()
+        try:
+            reply = input("").lower()
+        except Exception:
+            reply = "n"
         print(Colors.END)
         if reply == "n":
             print_warning("Backup skipped")

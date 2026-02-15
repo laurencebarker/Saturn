@@ -50,6 +50,7 @@ All notable changes to the Saturn Update Manager (Rust) are documented here.
 - Installer health check now fails loudly (with `systemctl`/`journalctl` diagnostics) if backend `/healthz` does not come up.
 - Installer now always restarts `saturn-go.service` after writing the unit, preventing stale in-memory env (e.g., old bind port) on reinstall.
 - Password minimum reduced to 5 characters across installer prompt, backend `/change_password`, and web UI validation.
+- Light-theme terminal output now keeps compile/build lines readable (ANSI white mapped for light backgrounds), including the dedicated `pihpsdr.html` terminal view.
 
 ## [2026-02-13]
 ### Added

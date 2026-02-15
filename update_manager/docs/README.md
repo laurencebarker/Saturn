@@ -22,10 +22,11 @@ This folder contains the operational and technical documentation for the Rust-ba
 - `API_REFERENCE.md`
   - Endpoint-by-endpoint reference for the backend API.
   - CSRF requirements, request format, and response notes.
+  - Includes `/run_log` terminal resume/buffer endpoint details.
 
 - `SCRIPT_CATALOG.md`
   - Inventory of deployed scripts, versions, flags, and which API/UI path calls each one.
 
 - `OPERATIONS_RUNBOOK.md`
   - Build, install, uninstall, daily operations, and troubleshooting.
-  - Includes Update Center (G2 + Appliance Update) flow, backup/restore flow, and service checks.
+  - Includes Update Center (G2 + Appliance Update), dedicated piHPSDR update flow, browser-managed custom scripts flow, backup/restore flow, and service checks.

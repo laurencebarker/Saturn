@@ -17,10 +17,17 @@ service names still use `saturn-go` for compatibility with existing installs.
 
 - Web UI for script execution, update coordination, monitoring, and backup/restore workflows
 - Server-Sent Events (SSE) script output streaming
+- Backend run-log buffering endpoint (`/run_log`) so terminal output can resume after page switches
 - Full repository backup download and restore with archive validation
-- Update G2 backup integration: list and restore `saturn-backup-*` directory backups from Backup / Restore page
+- Script backup integration: list and restore `saturn-backup-*` and `pihpsdr-backup-*` directories from Backup / Restore page
 - Runtime repo-root switching via API/UI (`/list_repo_roots`, `/set_repo_root`)
-- Dedicated Update Center page (`update.html`) for Update G2 terminal output and Appliance Update policy/start/rollback
+- G2 Update is the default landing page (`/`, `update.html`) with Appliance Update policy/start/rollback
+- Appliance Update UI uses GitHub repo URL + branch/ref + health-check fields; G2 run requires valid repo URL in Appliance Update first
+- Dedicated piHPSDR Update page (`pihpsdr.html`) for `update-pihpsdr.py` terminal execution
+- Dedicated Custom Scripts page (`custom.html` / `index.html`) to add/update/delete runnable scripts from browser with file upload + flag metadata
+- Default browser-managed custom scripts are auto-seeded on startup:
+  - `cleanup-saturn-logs.sh`
+  - `cleanup-saturn-backups.sh`
 - Dedicated Backup / Restore page (`backup.html`) for repo-root management, backup/restore, Pi imaging, clone, and repair tools
 - Pi image creation workflow with progress, validation, cancel, and download
 - SD-to-removable-device cloning workflow with progress and cancel
@@ -28,7 +35,7 @@ service names still use `saturn-go` for compatibility with existing installs.
 - Built-in monitor for CPU, memory, disk, network, and process data
 - Basic auth via NGINX
 - CSRF protection for mutating API calls (`X-Saturn-CSRF` + same-host Origin/Referer validation when present)
-- Low-latency script streaming: line-buffered subprocess launch (`stdbuf` when available), `\r`/`\n` output boundary handling, and anti-buffer SSE headers
+- Low-latency script streaming: line-buffered subprocess launch (`stdbuf` when available), `\r`/`\n` output boundary handling, anti-buffer SSE headers, plus in-memory run-log buffering for reconnect
 - Appliance update workflow: transactional repo staging, pre-update snapshot, policy-driven channels (`stable`/`beta`/`custom`), and rollback endpoint
 - Shared update-activity lock prevents overlapping `update-G2` runs with appliance update/rollback operations
 - Script runner injects active repo-root environment (`SATURN_REPO_ROOT`, `SATURN_DIR`, `SATURN_ACTIVE_REPO_ROOT`) so update scripts target the same checkout as backend state
@@ -47,6 +54,7 @@ Typical deployed paths:
 /var/lib/saturn-web/
   index.html
   update.html
+  pihpsdr.html
   monitor.html
   backup.html
   config.json
@@ -54,6 +62,7 @@ Typical deployed paths:
 
 /var/lib/saturn-state/
   repo_root.txt
+  custom_scripts.json
   update_policy.json
   update_state.json
   snapshots/
@@ -70,12 +79,14 @@ update_manager/scripts/          # script and UI config assets
 
 ## Script Metadata and Versions
 
-Script definitions come from `config.json`.
+Script definitions come from `config.json` plus browser-managed custom entries in `custom_scripts.json`.
 
 - UI script list: `/get_scripts`
 - Flag list: `/get_flags`
 - Version list ("Show versions above"): `/get_versions`
 - Update Center page: `/update` (also `/update.html`)
+- piHPSDR update page: `/pihpsdr` (also `/pihpsdr.html`)
+- Custom scripts page: `/custom` (also `/custom.html`, `/index.html`)
 - Active repo root: `/get_repo_root`
 - Discover repo roots: `/list_repo_roots`
 - Switch active repo root: `POST /set_repo_root` with JSON `{ "repo_root": "/path/to/tree" }`
@@ -86,6 +97,12 @@ Script definitions come from `config.json`.
 - Roll back to previous repo root: `POST /update_rollback`
 - List Update G2 backups: `GET /g2_backups`
 - Validate/restore Update G2 backup directory: `POST /g2_restore` with JSON `{ "backup_name":"saturn-backup-...", "dry_run":true|false, "confirm":"RESTORE" }`
+- List piHPSDR backups: `GET /pihpsdr_backups`
+- Validate/restore piHPSDR backup directory: `POST /pihpsdr_restore` with JSON `{ "backup_name":"pihpsdr-backup-...", "dry_run":true|false, "confirm":"RESTORE" }`
+- List browser-managed custom scripts: `GET /custom_scripts`
+- Add/update browser-managed custom script entry: `POST /custom_scripts`
+- Delete browser-managed custom script entry: `POST /custom_scripts_delete`
+- Fetch buffered run output for a script: `GET /run_log?script=<filename>&from=<offset>&limit=<n>`
 
 For mutating API requests (`POST` routes), include header:
 
@@ -192,6 +209,7 @@ Default URL:
 - `SATURN_ADDR` (default `127.0.0.1:8080`)
 - `SATURN_WEBROOT` (default `/var/lib/saturn-web`)
 - `SATURN_CONFIG` (default `$SATURN_WEBROOT/config.json`)
+- `SATURN_SCRIPTS_DIR` (default `/opt/saturn-go/scripts`)
 - `SATURN_REPO_ROOT` (default `$HOME/github/Saturn`)
 - `SATURN_STATE_DIR` (installer default `/var/lib/saturn-state`)
 - `SATURN_REPO_ROOT_FILE` (default `$SATURN_STATE_DIR/repo_root.txt`)
@@ -201,6 +219,8 @@ Default URL:
 - `SATURN_UPDATE_STATE_FILE` (default `$SATURN_STATE_DIR/update_state.json`)
 - `SATURN_SNAPSHOT_DIR` (default `$SATURN_STATE_DIR/snapshots`)
 - `SATURN_STAGING_DIR` (default `$SATURN_STATE_DIR/repo-staging`)
+- `SATURN_CUSTOM_SCRIPTS_FILE` (default `$SATURN_STATE_DIR/custom_scripts.json`)
+- `SATURN_PIHPSDR_ROOT` (default `$HOME/github/pihpsdr`)
 - `SATURN_NGINX_CLIENT_MAX_BODY_SIZE` (installer default `2G`)
 - `SATURN_WATCHDOG_URL` (installer default `http://$SATURN_ADDR/healthz`)
 - `SATURN_WATCHDOG_INTERVAL` (installer default `30s`)
