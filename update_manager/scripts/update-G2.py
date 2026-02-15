@@ -26,6 +26,7 @@ import json
 import argparse
 import subprocess
 import logging
+import re
 from datetime import datetime
 
 # -----------------------------
@@ -35,6 +36,11 @@ HOME = os.path.expanduser("~")
 DEFAULT_SATURN_DIR = os.path.join(HOME, "github", "Saturn")
 SATURN_DIR = os.environ.get("SATURN_REPO_ROOT") or os.environ.get("SATURN_DIR") or DEFAULT_SATURN_DIR
 SATURN_DIR = os.path.abspath(SATURN_DIR)
+POLICY_OWNER = os.environ.get("SATURN_UPDATE_POLICY_OWNER", "").strip()
+POLICY_REPO = os.environ.get("SATURN_UPDATE_POLICY_REPO", "").strip()
+POLICY_REMOTE = os.environ.get("SATURN_UPDATE_POLICY_REMOTE", "origin").strip() or "origin"
+POLICY_REF = os.environ.get("SATURN_UPDATE_POLICY_REF", "").strip()
+POLICY_URL = os.environ.get("SATURN_UPDATE_POLICY_URL", "").strip()
 LOG_DIR = os.path.join(HOME, "saturn-logs")
 os.makedirs(LOG_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOG_DIR, f"saturn-update-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log")
@@ -75,7 +81,17 @@ def has_tty():
     except Exception:
         return False
 
-def sudo_prefix(step_desc):
+def has_passwordless_sudo():
+    try:
+        return subprocess.run(
+            ["sudo", "-n", "-v"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode == 0
+    except Exception:
+        return False
+
+def sudo_prefix(step_desc, *, optional=False):
     """
     Return the sudo prefix for privileged commands:
       []             when already root
@@ -86,16 +102,13 @@ def sudo_prefix(step_desc):
         return []
     if has_tty():
         return ["sudo"]
-    try:
-        rc = subprocess.run(
-            ["sudo", "-n", "-v"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        ).returncode
-    except Exception:
-        rc = 1
-    if rc == 0:
+    if has_passwordless_sudo():
         return ["sudo", "-n"]
+    if optional:
+        warn(
+            f"{step_desc} requires root privileges and non-interactive sudo is unavailable; skipping this step."
+        )
+        return None
     err_out(
         f"{step_desc} requires root privileges and no interactive sudo is available. "
         "Run in a terminal or configure passwordless sudo for this user."
@@ -329,8 +342,22 @@ def update_git():
     before = out.strip()
     info(f"Commit: {before or '?'}")
 
-    # Pull
-    run(["git", "pull", "origin", "main"], cwd=SATURN_DIR, live=True)
+    target_remote = POLICY_REMOTE
+    target_ref = POLICY_REF or "main"
+    policy_url = POLICY_URL
+    if not policy_url and POLICY_OWNER and POLICY_REPO:
+        policy_url = f"https://github.com/{POLICY_OWNER}/{POLICY_REPO}.git"
+
+    if policy_url:
+        info(f"Policy repo: {policy_url} @ {target_ref}")
+        rc, _ = run(["git", "remote", "get-url", target_remote], cwd=SATURN_DIR, check=False)
+        if rc == 0:
+            run(["git", "remote", "set-url", target_remote, policy_url], cwd=SATURN_DIR, live=bool(args.verbose))
+        else:
+            run(["git", "remote", "add", target_remote, policy_url], cwd=SATURN_DIR, live=bool(args.verbose))
+
+    # Pull from configured/default remote+ref
+    run(["git", "pull", target_remote, target_ref], cwd=SATURN_DIR, live=True)
 
     _rc, out = run(["git", "rev-parse", "--short", "HEAD"], cwd=SATURN_DIR, check=False)
     after = out.strip()
@@ -376,6 +403,62 @@ def install_libraries():
 
     ok("Libraries installed")
 
+def patch_p2app_cat_compatibility():
+    section("P2App Compatibility")
+    p2_dir = os.path.join(SATURN_DIR, "sw_projects", "P2_app")
+    src = os.path.join(p2_dir, "g2panel_libgpiodv2.c")
+    hdr = os.path.join(p2_dir, "catmessages.h")
+    if not (os.path.isfile(src) and os.path.isfile(hdr)):
+        warn("P2App CAT compatibility check skipped (missing P2_app sources)")
+        return
+
+    try:
+        with open(hdr, "r", encoding="utf-8", errors="replace") as f:
+            hdr_text = f.read()
+    except Exception as e:
+        warn(f"Could not read catmessages.h for compatibility check: {e}")
+        return
+
+    expects_dest = bool(
+        re.search(
+            r"MakeProductVersionCAT\s*\(\s*uint8_t\s+ProductID\s*,\s*uint8_t\s+HWVersion\s*,\s*uint8_t\s+SWVersion\s*,\s*int\s+DestDevice\s*\)",
+            hdr_text,
+        )
+    )
+    if not expects_dest:
+        info("CAT signature does not require DestDevice; no patch needed")
+        return
+
+    try:
+        with open(src, "r", encoding="utf-8", errors="replace") as f:
+            src_text = f.read()
+    except Exception as e:
+        warn(f"Could not read g2panel_libgpiodv2.c for compatibility check: {e}")
+        return
+
+    pattern = (
+        r"MakeProductVersionCAT\s*\(\s*PRODUCTID\s*,\s*HWVERSION\s*,\s*GetP2appVersion\s*\(\s*\)\s*\)\s*;"
+    )
+    replacement = "MakeProductVersionCAT(PRODUCTID, HWVERSION, GetP2appVersion(), DESTTCPCATPORT);"
+    new_text, n = re.subn(pattern, replacement, src_text)
+    if n == 0:
+        if "GetP2appVersion(), DESTTCPCATPORT" in src_text:
+            info("P2App CAT compatibility patch already present")
+        else:
+            warn("No legacy MakeProductVersionCAT call found in g2panel_libgpiodv2.c")
+        return
+
+    if args.dry_run:
+        info(f"[Dry Run] Would patch {src}")
+        return
+
+    try:
+        with open(src, "w", encoding="utf-8") as f:
+            f.write(new_text)
+        ok("Applied P2App CAT compatibility patch for gpiod v2 build")
+    except Exception as e:
+        warn(f"Failed to write compatibility patch to g2panel_libgpiodv2.c: {e}")
+
 def build_p2app():
     section("p2app Build")
     script = os.path.join(SATURN_DIR, "scripts", "update-p2app.sh")
@@ -410,7 +493,9 @@ def install_udev_rules():
     if args.dry_run:
         info(f"[Dry Run] Would run (sudo) {script}")
         return
-    sudo_cmd = sudo_prefix("Installing udev rules")
+    sudo_cmd = sudo_prefix("Installing udev rules", optional=True)
+    if sudo_cmd is None:
+        return
     run(sudo_cmd + [script], live=True, cwd=rules_dir)
     ok("Rules installed")
 
@@ -516,6 +601,7 @@ if __name__ == "__main__":
     backup_created = maybe_backup()
     update_git()
     install_libraries()
+    patch_p2app_cat_compatibility()
     build_p2app()
     build_desktop_apps()
     install_udev_rules()

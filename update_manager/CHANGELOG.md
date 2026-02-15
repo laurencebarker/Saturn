@@ -51,6 +51,10 @@ All notable changes to the Saturn Update Manager (Rust) are documented here.
 - Installer now always restarts `saturn-go.service` after writing the unit, preventing stale in-memory env (e.g., old bind port) on reinstall.
 - Password minimum reduced to 5 characters across installer prompt, backend `/change_password`, and web UI validation.
 - Light-theme terminal output now keeps compile/build lines readable (ANSI white mapped for light backgrounds), including the dedicated `pihpsdr.html` terminal view.
+- `update-G2.py`: added an automatic CAT signature compatibility patch for `sw_projects/P2_app/g2panel_libgpiodv2.c` after pulls, fixing recent `MakeProductVersionCAT` build breaks.
+- `update-G2.py`: `install_udev_rules` now skips with warning (instead of hard-failing the full update) in non-interactive mode when passwordless sudo is unavailable.
+- G2 terminal runner now enforces a configured Appliance Update repo URL; if not configured, `/run` returns a clear error instead of silently using defaults.
+- G2 terminal runner now passes Appliance Update policy repo/remote/ref into `update-G2.py`, and `update-G2.py` now applies that policy by setting the git remote URL before pulling.
 
 ## [2026-02-13]
 ### Added

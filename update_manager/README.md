@@ -22,13 +22,14 @@ service names still use `saturn-go` for compatibility with existing installs.
 - Script backup integration: list and restore `saturn-backup-*` and `pihpsdr-backup-*` directories from Backup / Restore page
 - Runtime repo-root switching via API/UI (`/list_repo_roots`, `/set_repo_root`)
 - G2 Update is the default landing page (`/`, `update.html`) with Appliance Update policy/start/rollback
-- Appliance Update UI uses GitHub repo URL + branch/ref + health-check fields; G2 run requires valid repo URL in Appliance Update first
+- Appliance Update policy panel (right side on desktop, below G2 terminal on narrow screens) stores GitHub repo URL + branch/ref + health-check values used by both Appliance Update and Run Update G2
 - Dedicated piHPSDR Update page (`pihpsdr.html`) for `update-pihpsdr.py` terminal execution
 - Dedicated Custom Scripts page (`custom.html` / `index.html`) to add/update/delete runnable scripts from browser with file upload + flag metadata
 - Default browser-managed custom scripts are auto-seeded on startup:
   - `cleanup-saturn-logs.sh`
   - `cleanup-saturn-backups.sh`
 - Dedicated Backup / Restore page (`backup.html`) for repo-root management, backup/restore, Pi imaging, clone, and repair tools
+- Navigation/page names in current UI are: `G2 Update`, `piHPSDR Update`, `Backup / Restore`, `Custom Scripts`, `Monitor`
 - Pi image creation workflow with progress, validation, cancel, and download
 - SD-to-removable-device cloning workflow with progress and cancel
 - Repair Pack download and system config verification tools
@@ -84,7 +85,7 @@ Script definitions come from `config.json` plus browser-managed custom entries i
 - UI script list: `/get_scripts`
 - Flag list: `/get_flags`
 - Version list ("Show versions above"): `/get_versions`
-- Update Center page: `/update` (also `/update.html`)
+- G2 Update page: `/update` (also `/update.html`)
 - piHPSDR update page: `/pihpsdr` (also `/pihpsdr.html`)
 - Custom scripts page: `/custom` (also `/custom.html`, `/index.html`)
 - Active repo root: `/get_repo_root`
@@ -127,8 +128,10 @@ If a script entry does not define `version`, `/get_versions` now returns
   - direct execution when already root
   - `sudo` when interactive TTY is available
   - `sudo -n` for non-interactive service execution
-- If privilege escalation is required but unavailable, the script exits with a
-  clear actionable message.
+- Required privileged steps exit with a clear actionable message when
+  elevation is unavailable.
+- Optional privileged steps (currently udev rules install in web/non-TTY mode)
+  are skipped with a warning instead of failing the whole run.
 - When launched by `/run`, the backend sets `SATURN_REPO_ROOT`, `SATURN_DIR`,
   and `SATURN_ACTIVE_REPO_ROOT` to the current active repo root before spawning
   the script.
@@ -181,6 +184,7 @@ Installer behavior (current):
 - Enables `saturn-go-watchdog.timer` to auto-restart service when health check fails
 - Applies systemd hardening defaults (restricted kernel/control-group access, syscall architecture/address-family restrictions)
 - Leaves `NoNewPrivileges` disabled so controlled `sudo -n` paths (for example password update) can work when sudoers permits them
+- Sets `/opt/saturn-go/scripts` ownership to the service user/group so browser-managed custom script content can be saved
 
 ## Uninstall
 

@@ -47,6 +47,7 @@ LOG_DIR = Path.home() / "saturn-logs"
 BACKUP_DIR = Path.home() / f"pihpsdr-backup-{TIMESTAMP}"
 REPO_URL = "https://github.com/dl1ycf/pihpsdr"
 DEFAULT_BRANCH = "master"
+TMP_DIR = Path("/tmp") / f"pihpsdr-update-{TIMESTAMP}-{os.getpid()}"
 
 # Terminal utilities
 def get_term_size():
@@ -69,6 +70,9 @@ def debug_print(msg):
     if args.debug:
         print(f"{Colors.END}[DEBUG] {msg}{Colors.END}")
         logging.debug(msg)
+
+def temp_log_path(name):
+    return TMP_DIR / f"{name}.log"
 
 # UI functions
 def print_header(title):
@@ -124,6 +128,10 @@ def init_logging(verbose=False):
         LOG_DIR.mkdir(parents=True, exist_ok=True)
     except Exception as e:
         print_error(f"Failed to create log dir: {str(e)}")
+    try:
+        TMP_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        print_error(f"Failed to create temp dir: {str(e)}")
     class Tee:
         def __init__(self, *files):
             self.files = files
@@ -146,7 +154,13 @@ def init_logging(verbose=False):
         print_error(f"Failed to open log file {log_file}: {str(e)}")
     sys.stdout = Tee(sys.__stdout__, log_handle)
     sys.stderr = Tee(sys.__stderr__, log_handle)
-    os.system("tput clear")
+    if sys.__stdout__.isatty() and shutil.which("tput"):
+        subprocess.run(
+            ["tput", "clear"],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
     cols, _ = get_term_size()
     if Figlet:
         f = Figlet(font='standard', width=cols-2, justify='center')
@@ -276,19 +290,18 @@ def create_backup():
                 BACKUP_DIR.mkdir(parents=True, exist_ok=True)
         except Exception as e:
             print_error(f"Cannot create backup dir: {str(e)}")
+        rsync_log = temp_log_path("rsync_output")
         try:
-            with open("/tmp/rsync_output", "w") as f:
+            with rsync_log.open("w") as f:
                 process = subprocess.Popen(["rsync", "-a", f"{PIHPSDR_DIR}/", str(BACKUP_DIR)], stdout=f, stderr=f, text=True)
                 return_code = progress_bar(process, "Copying files", 50)
                 if return_code != 0:
-                    with open("/tmp/rsync_output", "r") as f:
-                        error_output = f.read().strip()
+                    error_output = rsync_log.read_text(errors="replace").strip()
                     print_error(f"Backup failed: {error_output}")
                 if args.verbose:
-                    with open("/tmp/rsync_output", "r") as f:
-                        print_info(f"Rsync output: {f.read().strip()}")
+                    print_info(f"Rsync output: {rsync_log.read_text(errors='replace').strip()}")
         except Exception as e:
-            print_error(f"Failed to access /tmp/rsync_output: {str(e)}")
+            print_error(f"Failed to access {rsync_log}: {str(e)}")
         if args.dry_run:
             print_info("[Dry Run] Backup created")
             return True
@@ -319,23 +332,22 @@ def update_git():
                 print_warning("Stashing changes")
                 subprocess.run(["git", "stash", "push", "-m", f"Auto-stash {datetime.now()}"], check=True)
             max_attempts = 3
+            git_pull_log = temp_log_path("git_pull_output")
             for attempt in range(1, max_attempts + 1):
                 try:
-                    with open("/tmp/git_output", "w") as f:
+                    with git_pull_log.open("w") as f:
                         process = subprocess.Popen(["git", "pull", "origin", DEFAULT_BRANCH], stdout=f, stderr=f, text=True)
                         return_code = progress_bar(process, "Pulling changes", 50)
                         if return_code == 0:
                             break
-                        with open("/tmp/git_output", "r") as f:
-                            error_output = f.read().strip()
+                        error_output = git_pull_log.read_text(errors="replace").strip()
                         if attempt < max_attempts:
                             print_warning(f"Git update failed (attempt {attempt}/{max_attempts}): {error_output}. Retrying...")
                             time.sleep(2)
                         else:
                             print_error(f"Git update failed after {max_attempts} attempts: {error_output}")
                     if args.verbose:
-                        with open("/tmp/git_output", "r") as f:
-                            print_info(f"Git output: {f.read().strip()}")
+                        print_info(f"Git output: {git_pull_log.read_text(errors='replace').strip()}")
                     break
                 except subprocess.CalledProcessError as e:
                     if attempt < max_attempts:
@@ -358,23 +370,22 @@ def update_git():
     else:
         print(f"{Colors.CYAN}⚡ Cloning repository...{Colors.END}")
         max_attempts = 3
+        git_clone_log = temp_log_path("git_clone_output")
         for attempt in range(1, max_attempts + 1):
             try:
-                with open("/tmp/git_output", "w") as f:
+                with git_clone_log.open("w") as f:
                     process = subprocess.Popen(["git", "clone", REPO_URL, str(PIHPSDR_DIR)], stdout=f, stderr=f, text=True)
                     return_code = progress_bar(process, "Cloning repository", 50)
                     if return_code == 0:
                         break
-                    with open("/tmp/git_output", "r") as f:
-                        error_output = f.read().strip()
+                    error_output = git_clone_log.read_text(errors="replace").strip()
                     if attempt < max_attempts:
                         print_warning(f"Git clone failed (attempt {attempt}/{max_attempts}): {error_output}. Retrying...")
                         time.sleep(2)
                     else:
                         print_error(f"Git clone failed after {max_attempts} attempts: {error_output}")
                 if args.verbose:
-                    with open("/tmp/git_output", "r") as f:
-                        print_info(f"Git output: {f.read().strip()}")
+                    print_info(f"Git output: {git_clone_log.read_text(errors='replace').strip()}")
                 os.chdir(PIHPSDR_DIR)
                 new_commit = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], text=True).strip()
                 print_info(f"Commit: {new_commit}")
@@ -405,12 +416,12 @@ def build_pihpsdr():
                 if return_code != 0:
                     print_error(f"make clean failed: Check log for details")
             else:
-                with open("/tmp/make_clean_output", "w") as f:
+                make_clean_log = temp_log_path("make_clean_output")
+                with make_clean_log.open("w") as f:
                     process = subprocess.Popen(["make", "clean"], stdout=f, stderr=f, text=True)
                     return_code = progress_bar(process, "Cleaning build", 50)
                     if return_code != 0:
-                        with open("/tmp/make_clean_output", "r") as f:
-                            error_output = f.read().strip()
+                        error_output = make_clean_log.read_text(errors="replace").strip()
                         print_error(f"make clean failed: {error_output}")
         else:
             print_info("[Dry Run] Simulating make clean")
@@ -433,12 +444,12 @@ def build_pihpsdr():
                             if return_code != 0:
                                 print_error(f"Dependency installation failed: Check log for details")
                         else:
-                            with open("/tmp/libinstall_output", "w") as f:
+                            libinstall_log = temp_log_path("libinstall_output")
+                            with libinstall_log.open("w") as f:
                                 process = subprocess.Popen(["bash", str(libinstall_script)], stdout=f, stderr=f, text=True)
                                 return_code = progress_bar(process, "Installing dependencies", 50)
                                 if return_code != 0:
-                                    with open("/tmp/libinstall_output", "r") as f:
-                                        error_output = f.read().strip()
+                                    error_output = libinstall_log.read_text(errors="replace").strip()
                                     print_error(f"Dependency installation failed: {error_output}")
                     else:
                         print_info(f"[Dry Run] Simulating {libinstall_script}")
@@ -476,12 +487,12 @@ def build_pihpsdr():
                     if return_code != 0:
                         print_error(f"piHPSDR build failed: Check log for details")
                 else:
-                    with open("/tmp/make_output", "w") as f:
+                    make_no_gpio_log = temp_log_path("make_no_gpio_output")
+                    with make_no_gpio_log.open("w") as f:
                         process = subprocess.Popen(["make"], stdout=f, stderr=f, text=True)
                         return_code = progress_bar(process, "Building piHPSDR", 50)
                         if return_code != 0:
-                            with open("/tmp/make_output", "r") as f:
-                                error_output = f.read().strip()
+                            error_output = make_no_gpio_log.read_text(errors="replace").strip()
                             print_error(f"piHPSDR build failed: {error_output}")
             else:
                 print_info("[Dry Run] Simulating build with GPIO disabled")
@@ -497,12 +508,12 @@ def build_pihpsdr():
                     if return_code != 0:
                         print_error(f"piHPSDR build failed: Check log for details")
                 else:
-                    with open("/tmp/make_output", "w") as f:
+                    make_log = temp_log_path("make_output")
+                    with make_log.open("w") as f:
                         process = subprocess.Popen(["make"], stdout=f, stderr=f, text=True)
                         return_code = progress_bar(process, "Building piHPSDR", 50)
                         if return_code != 0:
-                            with open("/tmp/make_output", "r") as f:
-                                error_output = f.read().strip()
+                            error_output = make_log.read_text(errors="replace").strip()
                             print_error(f"piHPSDR build failed: {error_output}")
             else:
                 print_info("[Dry Run] Simulating piHPSDR build")
@@ -586,3 +597,4 @@ if __name__ == "__main__":
         print_error(f"Unexpected error: {str(e)}")
     finally:
         os.chdir(Path.home())
+        shutil.rmtree(TMP_DIR, ignore_errors=True)

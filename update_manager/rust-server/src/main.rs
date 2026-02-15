@@ -887,6 +887,8 @@ struct SetRepoRootReq {
 struct UpdatePolicy {
     owner: String,
     repo: String,
+    #[serde(default)]
+    repo_url_configured: bool,
     remote: String,
     channel: String, // stable|beta|custom
     stable_ref: String,
@@ -901,8 +903,9 @@ struct UpdatePolicy {
 impl Default for UpdatePolicy {
     fn default() -> Self {
         Self {
-            owner: "Saturn".to_string(),
-            repo: "Saturn".to_string(),
+            owner: String::new(),
+            repo: String::new(),
+            repo_url_configured: false,
             remote: "origin".to_string(),
             channel: "stable".to_string(),
             stable_ref: "main".to_string(),
@@ -1147,16 +1150,27 @@ fn expected_remote_url(policy: &UpdatePolicy) -> String {
     )
 }
 
+fn update_policy_repo_configured(policy: &UpdatePolicy) -> bool {
+    policy.repo_url_configured
+        && is_safe_repo_part(policy.owner.trim())
+        && is_safe_repo_part(policy.repo.trim())
+}
+
 fn normalize_update_policy(mut policy: UpdatePolicy, state: &AppState) -> UpdatePolicy {
-    if !is_safe_repo_part(policy.owner.trim()) {
-        policy.owner = "Saturn".to_string();
+    let owner = policy.owner.trim();
+    let repo = policy.repo.trim();
+    let repo_valid = is_safe_repo_part(owner) && is_safe_repo_part(repo);
+    let legacy_default_unconfigured = !policy.repo_url_configured
+        && owner.eq_ignore_ascii_case("Saturn")
+        && repo.eq_ignore_ascii_case("Saturn");
+    if repo_valid && !legacy_default_unconfigured {
+        policy.owner = owner.to_string();
+        policy.repo = repo.to_string();
+        policy.repo_url_configured = true;
     } else {
-        policy.owner = policy.owner.trim().to_string();
-    }
-    if !is_safe_repo_part(policy.repo.trim()) {
-        policy.repo = "Saturn".to_string();
-    } else {
-        policy.repo = policy.repo.trim().to_string();
+        policy.owner.clear();
+        policy.repo.clear();
+        policy.repo_url_configured = false;
     }
 
     let remote = policy.remote.trim();
@@ -1741,6 +1755,12 @@ async fn update_start(State(state): State<AppState>, Json(req): Json<UpdateStart
         Ok(p) => p,
         Err(e) => return json_error(StatusCode::INTERNAL_SERVER_ERROR, &e),
     };
+    if !update_policy_repo_configured(&policy) {
+        return json_error(
+            StatusCode::BAD_REQUEST,
+            "Appliance Update repo URL is not configured. Save a GitHub repo URL first.",
+        );
+    }
     let (channel, target_ref) = match select_channel_and_target(&policy, &req) {
         Ok(v) => v,
         Err(e) => return json_error(StatusCode::BAD_REQUEST, &e),
@@ -2772,6 +2792,14 @@ async fn restore_full(
     mut multipart: Multipart,
 ) -> Result<Response, Response> {
     let dry_run = parse_boolish(q.dry_run);
+    let _activity_guard = if dry_run {
+        None
+    } else {
+        match begin_update_activity("saturn-full-restore", "full archive restore") {
+            Ok(g) => Some(g),
+            Err(e) => return Err(json_error(StatusCode::CONFLICT, &e)),
+        }
+    };
     let repo_root = current_repo_root(&state);
 
     let mut upload_path: Option<PathBuf> = None;
@@ -2888,6 +2916,14 @@ async fn restore_full(
         return Err(json_error(StatusCode::BAD_REQUEST, "archive must contain a single top-level directory"));
     }
     let extracted_root = top_dirs.remove(0);
+    if let Err(e) = validate_saturn_repo_root(&extracted_root) {
+        let _ = tokio::fs::remove_file(&upload_path).await;
+        let _ = tokio::fs::remove_dir_all(&extract_dir).await;
+        return Err(json_error(
+            StatusCode::BAD_REQUEST,
+            &format!("archive root is not a Saturn repo snapshot: {e}"),
+        ));
+    }
 
     if dry_run {
         let (files, dirs, bytes) = tree_stats(extracted_root.clone()).await;
@@ -3237,6 +3273,20 @@ async fn run_sse(
     }
     let repo_root = current_repo_root(&state);
     let repo_root_display = repo_root.display().to_string();
+    let g2_policy = if is_g2_update_script(&script) {
+        let policy = load_update_policy(&state)
+            .await
+            .map_err(|e| json_error(StatusCode::INTERNAL_SERVER_ERROR, &e))?;
+        if !update_policy_repo_configured(&policy) {
+            return Err(json_error(
+                StatusCode::BAD_REQUEST,
+                "Appliance Update repo URL is not configured. Save a GitHub repo URL first.",
+            ));
+        }
+        Some(policy)
+    } else {
+        None
+    };
     let update_activity_guard = if is_g2_update_script(&script) {
         Some(
             begin_update_activity(
@@ -3258,6 +3308,17 @@ async fn run_sse(
     cmd.env("SATURN_REPO_ROOT", &repo_root_display);
     cmd.env("SATURN_DIR", &repo_root_display);
     cmd.env("SATURN_ACTIVE_REPO_ROOT", &repo_root_display);
+    if let Some(policy) = &g2_policy {
+        let target_ref = policy
+            .custom_ref
+            .clone()
+            .unwrap_or_else(|| policy.stable_ref.clone());
+        cmd.env("SATURN_UPDATE_POLICY_OWNER", policy.owner.trim());
+        cmd.env("SATURN_UPDATE_POLICY_REPO", policy.repo.trim());
+        cmd.env("SATURN_UPDATE_POLICY_REMOTE", policy.remote.trim());
+        cmd.env("SATURN_UPDATE_POLICY_REF", target_ref.trim());
+        cmd.env("SATURN_UPDATE_POLICY_URL", expected_remote_url(policy));
+    }
 
     cmd.stdout(std::process::Stdio::piped());
     cmd.stderr(std::process::Stdio::piped());
@@ -4023,7 +4084,6 @@ async fn repair_pack() -> Result<Response, Response> {
         "/etc/systemd/system/saturn-go-watchdog.timer",
         "/etc/nginx/sites-available/saturn",
         "/etc/nginx/conf.d/saturn_sse_map.conf",
-        "/etc/nginx/.htpasswd",
     ];
 
     let mut entries: Vec<RepairEntry> = Vec::new();

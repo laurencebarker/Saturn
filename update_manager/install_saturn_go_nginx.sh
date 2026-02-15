@@ -157,10 +157,11 @@ info "Setting file permissions..."
 chown -R root:root "$SATURN_ROOT" "$WEB_ROOT"
 find "$WEB_ROOT" -type d -print0 | xargs -0 -r chmod 0755
 find "$WEB_ROOT" -type f -print0 | xargs -0 -r chmod 0644
-find "$SCRIPTS_DIR" -type d -print0 | xargs -0 -r chmod 0755
+find "$SCRIPTS_DIR" -type d -print0 | xargs -0 -r chmod 0775
 find "$SCRIPTS_DIR" -type f \( -name '*.sh' -o -name '*.py' \) -print0 | xargs -0 -r chmod 0755
 find "$SCRIPTS_DIR" -type f ! \( -name '*.sh' -o -name '*.py' \) -print0 | xargs -0 -r chmod 0644
 chmod 0755 "$SCRIPTS_DIR/$WATCHDOG_SCRIPT_NAME"
+chown -R "$SERVICE_USER:$SERVICE_GROUP" "$SCRIPTS_DIR"
 chown -R "$SERVICE_USER:$SERVICE_GROUP" "$SATURN_STATE_DIR"
 find "$SATURN_STATE_DIR" -type d -print0 | xargs -0 -r chmod 0750
 find "$SATURN_STATE_DIR" -type f -print0 | xargs -0 -r chmod 0640

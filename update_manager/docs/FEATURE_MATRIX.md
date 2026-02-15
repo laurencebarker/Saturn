@@ -12,7 +12,7 @@ This matrix maps current capabilities to the implementation points in UI, backen
 | Script catalog and flag metadata | `index.html`, `update.html`, `pihpsdr.html` | `GET /get_scripts`, `GET /get_flags`, `GET /get_versions` | Reads `config.json` | `/var/lib/saturn-web/config.json` |
 | Repo root discovery and switch | `backup.html` | `GET /list_repo_roots`, `GET /get_repo_root`, `POST /set_repo_root` | Path validation in backend | `repo_root.txt` |
 | Full repo backup download | `backup.html` | `GET /backup_full` | `tar -czf -` | Active repo root content |
-| Full repo restore (validate/apply) | `backup.html` | `POST /restore_full` | `tar -tzf`, `tar -xzf`, `rsync -a --delete` | Active repo root content |
+| Full repo restore (validate/apply) | `backup.html` | `POST /restore_full` | `tar -tzf`, `tar -xzf`, `rsync -a --delete` (non-dry-run guarded by shared update lock) | Active repo root content |
 | Restore from script-managed directory backups | `backup.html` | `GET /g2_backups`, `POST /g2_restore`, `GET /pihpsdr_backups`, `POST /pihpsdr_restore` | `rsync -a --delete` from selected `saturn-backup-*` or `pihpsdr-backup-*` dir | `~/saturn-backup-*`, `~/pihpsdr-backup-*` |
 | Transactional appliance update | `update.html` (repo URL + branch/ref + health fields in UI) | `GET/POST /update_policy`, `POST /update_start`, `GET /update_status`, `POST /update_rollback` | `git fetch`, `git worktree add/remove`, `curl` health check, snapshot `tar` | `update_policy.json`, `update_state.json`, `snapshots/`, `repo-staging/` |
 | Buffered terminal resume across page switches | `update.html`, `pihpsdr.html`, `index.html` | `GET /run_log` | Offset polling by script + run ID | In-memory per-script run log ring |
@@ -34,7 +34,7 @@ This matrix maps current capabilities to the implementation points in UI, backen
 Compared to a simple script-runner deployment, the following were added as first-class features:
 
 - Backup and restore page with repo-root awareness
-- Dedicated Update Center page that pairs Update G2 terminal output with Appliance Update controls
+- Dedicated G2 Update page that pairs Update G2 terminal output with Appliance Update controls
 - Transactional appliance update policy, execution, status, and rollback
 - Pre-update snapshots and staging lifecycle management
 - Shared update-activity lock to prevent overlapping G2/appliance update actions

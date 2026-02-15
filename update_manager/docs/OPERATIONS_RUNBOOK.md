@@ -27,6 +27,7 @@ Installer actions include:
 - builds and deploys Rust binary to `/opt/saturn-go/bin/saturn-go`
 - copies web assets to `/var/lib/saturn-web`
 - copies scripts to `/opt/saturn-go/scripts`
+- grants service-user ownership of `/opt/saturn-go/scripts` so browser-managed custom script edits can persist
 - writes NGINX config for `/saturn/*` and SSE route `/saturn/run`
 - writes `saturn-go.service`, watchdog service, and watchdog timer
 - waits for backend health at `/healthz`
@@ -127,10 +128,11 @@ Important:
 
 - restore overwrites active repo root using `rsync --delete`
 - upload size is limited by `SATURN_RESTORE_MAX_UPLOAD_BYTES`
+- non-dry-run full restore acquires the shared update lock; concurrent update actions return `409 Conflict`
 
 ### Appliance Update
 
-1. Open Update Center page (`/saturn/update`).
+1. Open G2 Update page (`/saturn/update`).
 2. Enter GitHub repo URL and branch/ref.
 3. Configure health-check URL and timeout.
 4. Save settings (optional; Start also persists current values).
@@ -141,11 +143,12 @@ Important:
 Current UI behavior:
 
 - UI persists policy using `channel=custom` and `custom_ref=<branch/ref>`.
+- Appliance policy panel stores repo/ref/health settings consumed by both transactional Appliance Update and `Run Update G2`.
 - `Run Update G2` requires valid Appliance repo URL before run can start.
 - `Run Update G2` auto-saves current Appliance settings before spawning script.
 - Terminal output is resumable after tab/page changes using buffered `/run_log` polling.
 
-Update Center coordination notes:
+G2 Update coordination notes:
 
 - Update G2 terminal and Appliance Update now live on the same page.
 - If Appliance Update already moved Git to target commit, run Update G2 with `--skip-git`.
@@ -162,7 +165,7 @@ Update behavior:
 
 ### Update G2 (Dedicated Terminal)
 
-- Run `update-G2.py` from Update Center to keep terminal output and Appliance Update state together.
+- Run `update-G2.py` from the G2 Update page to keep terminal output and Appliance Update state together.
 - Repo URL in Appliance section must be valid before G2 run is enabled.
 - Backend injects active repo-root environment for `/run`:
   - `SATURN_REPO_ROOT`

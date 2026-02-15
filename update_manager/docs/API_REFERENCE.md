@@ -123,7 +123,9 @@ Restore safety checks:
 - upload size limit from `SATURN_RESTORE_MAX_UPLOAD_BYTES`
 - tar path traversal guard (reject absolute and `..` paths)
 - must extract to a single top-level directory
+- extracted top-level directory must pass Saturn repo-root validation (`.git` + `update_manager/`)
 - uses `rsync -a --delete` into active repo root
+- non-dry-run acquires update-activity lock and returns `409` if another update action is active
 
 `/g2_restore` safety checks:
 

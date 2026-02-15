@@ -153,6 +153,8 @@ Concurrency guard:
 - Full backup (`GET /backup_full`): streams a `tar.gz` of active repo root.
 - Full restore (`POST /restore_full`): uploads archive to `/tmp`, validates and extracts it, then `rsync --delete` into active repo root.
 - Dry-run restore (`?dry_run=1`) reports extracted tree stats without applying changes.
+- Full restore requires extracted top-level directory to pass Saturn repo-root validation (`.git` + `update_manager/`).
+- Non-dry-run full restore acquires the shared update-activity lock and returns `409 Conflict` if another update action is active.
 - Update G2 directory backups (`GET /g2_backups`, `POST /g2_restore`): lists `saturn-backup-*` directories under backend `$HOME` and restores selected backup into active repo root with validation and confirm guard.
 - piHPSDR directory backups (`GET /pihpsdr_backups`, `POST /pihpsdr_restore`): lists `pihpsdr-backup-*` directories under backend `$HOME` and restores selected backup into configured piHPSDR checkout.
 
