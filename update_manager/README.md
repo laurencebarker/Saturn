@@ -4,6 +4,15 @@ Saturn Update Manager provides a web UI for Saturn maintenance tasks.
 The current backend is implemented in Rust (Axum), while deployment paths and
 service names still use `saturn-go` for compatibility with existing installs.
 
+## Documentation Map
+
+- Architecture and internal flow: `docs/ARCHITECTURE.md`
+- Full feature inventory (what was added and where): `docs/FEATURE_MATRIX.md`
+- Backend endpoint reference: `docs/API_REFERENCE.md`
+- Script inventory and usage map: `docs/SCRIPT_CATALOG.md`
+- Build/install/operate/troubleshoot runbook: `docs/OPERATIONS_RUNBOOK.md`
+- Docs index: `docs/README.md`
+
 ## Features
 
 - Web UI for script execution, monitoring, and backup/restore workflows
