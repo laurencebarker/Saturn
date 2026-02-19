@@ -4,6 +4,7 @@ All notable changes to the Saturn Update Manager (Rust) are documented here.
 
 ## [Unreleased]
 ### Added
+- Graceful shutdown: server now handles SIGINT/SIGTERM via `axum::serve().with_graceful_shutdown()`, allowing in-flight requests to complete before exit.
 - Runtime repo-tree discovery/switching API: `GET /list_repo_roots`, `POST /set_repo_root`, with persisted active root (`repo_root.txt`).
 - Backup UI controls for selecting and applying the active repo root.
 - Rust backend health endpoint: `GET /healthz`.
@@ -15,13 +16,20 @@ All notable changes to the Saturn Update Manager (Rust) are documented here.
 - `saturn-go-watchdog.timer` + `saturn-go-watchdog.service` for periodic health checks and self-heal restart.
 
 ### Changed
+- CSRF middleware now rejects POST requests that are missing both `Origin` and `Referer` headers, closing a bypass when neither header was sent.
+- `/get_system_data`: `proc_regex` query parameter now compiled with a 64 KB size limit via `RegexBuilder` to prevent regex-based CPU exhaustion.
+- `/exit` endpoint now logs the remote IP at `warn` level before initiating shutdown.
+- Pi image download cleanup delay increased from 30 seconds to 10 minutes, preventing file deletion while large downloads are still in progress.
+- Completed Pi image and clone job maps are now pruned to a maximum of 20 entries, preventing unbounded memory growth over long uptimes.
+- Default custom script constants replaced with `include_str!()` referencing `scripts/cleanup-saturn-logs.sh` and `scripts/cleanup-saturn-backups.sh`, eliminating source duplication.
 - Updated `README.md` to document the current Rust/Axum backend, deployment layout, and compatibility naming (`saturn-go` service/binary).
 - Documented version panel behavior and the non-interactive privilege model used by `update-G2.py` and `/change_password`.
 - Replaced installer implementation with a Rust-only deployment flow (no embedded Go source generation/build).
 - Installer now configures NGINX as a path-prefix reverse proxy for `/saturn/*` plus a dedicated SSE route for `/saturn/run`.
 - Installer now enforces non-default admin bootstrap credentials (prompt/env/random generation), instead of shipping `admin/admin`.
 - Re-aligned uninstall script to remove the exact artifacts created by current install flow (service, NGINX site, SSE map, optional auth/runtime purge).
-- Uninstall now defaults to purging runtime directories for a clean reinstall path; `--no-purge` keeps runtime state.
+- Uninstall now defaults to keeping runtime directories/custom state; use `--purge` for full cleanup.
+- Installer script sync now preserves browser-managed custom scripts and only updates packaged scripts when source files are newer.
 - Request body handling now uses explicit limits (`SATURN_MAX_BODY_BYTES`, `SATURN_RESTORE_MAX_UPLOAD_BYTES`) instead of unlimited bodies.
 - Main, backup, and monitor web UIs now attach `X-Saturn-CSRF: 1` to all mutating API calls.
 - `run` SSE path now streams with lower latency: line-buffered subprocess invocation (`stdbuf` when available), `\r` + `\n` boundary handling, and no-cache/anti-buffer response headers.

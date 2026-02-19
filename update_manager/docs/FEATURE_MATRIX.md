@@ -24,7 +24,7 @@ This matrix maps current capabilities to the implementation points in UI, backen
 | Repair pack export | `backup.html` | `GET /repair_pack` | `tar -czf -` over key runtime files | Generated manifest in `/tmp` |
 | Runtime/config verification | `backup.html` | `GET /verify_system_config` | Filesystem checks + `systemctl is-active` | N/A |
 | Password change in UI | `index.html` | `POST /change_password` | `htpasswd -i` (direct or `sudo -n`) | `/etc/nginx/.htpasswd` |
-| Service self-health watchdog | Not directly in UI | `GET /healthz` consumed by watchdog | `saturn-health-watchdog.sh`, systemd timer/service | `saturn-go-watchdog.*` units |
+| Service self-health watchdog | Not directly in UI | `GET /healthz` consumed by watchdog | `/usr/local/lib/saturn-go/saturn-health-watchdog.sh`, systemd timer/service | `saturn-go-watchdog.*` units |
 | System monitor dashboard | `monitor.html` | `GET /get_system_data`, `GET /network_test`, `POST /kill_process/:pid` | `/proc`, sysfs, `curl`, `kill` | N/A |
 | FPGA image discovery for flash UI | `fpga.html` | `GET /get_fpga_images` | Directory scan for `.bin` files | `SATURN_FPGA_DIR` or repo paths |
 | Legacy backup prompt response hook | `index.html` (modal) | `POST /backup_response` | No-op backend endpoint | N/A |

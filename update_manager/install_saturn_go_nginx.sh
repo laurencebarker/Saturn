@@ -4,6 +4,7 @@ set -euo pipefail
 SATURN_ROOT="/opt/saturn-go"
 BIN_DIR="$SATURN_ROOT/bin"
 SCRIPTS_DIR="$SATURN_ROOT/scripts"
+WATCHDOG_SCRIPT_DIR="/usr/local/lib/saturn-go"
 WEB_ROOT="/var/lib/saturn-web"
 NGINX_SITE="/etc/nginx/sites-available/saturn"
 NGINX_SITE_LINK="/etc/nginx/sites-enabled/saturn"
@@ -11,6 +12,7 @@ NGINX_SSE_MAP="/etc/nginx/conf.d/saturn_sse_map.conf"
 BASIC_AUTH_FILE="/etc/nginx/.htpasswd"
 SERVICE_FILE="/etc/systemd/system/saturn-go.service"
 WATCHDOG_SCRIPT_NAME="saturn-health-watchdog.sh"
+WATCHDOG_SCRIPT_PATH="$WATCHDOG_SCRIPT_DIR/$WATCHDOG_SCRIPT_NAME"
 WATCHDOG_SERVICE_FILE="/etc/systemd/system/saturn-go-watchdog.service"
 WATCHDOG_TIMER_FILE="/etc/systemd/system/saturn-go-watchdog.timer"
 SOURCE_DIR="/home/${SUDO_USER:-$USER}/github/Saturn/update_manager"
@@ -89,7 +91,7 @@ apt-get install -y -qq \
 ok "Dependencies installed"
 
 info "Preparing runtime directories..."
-mkdir -p "$BIN_DIR" "$SCRIPTS_DIR" "$WEB_ROOT" "$SATURN_STATE_DIR" "$SATURN_SNAPSHOT_DIR" "$SATURN_STAGING_DIR"
+mkdir -p "$BIN_DIR" "$SCRIPTS_DIR" "$WATCHDOG_SCRIPT_DIR" "$WEB_ROOT" "$SATURN_STATE_DIR" "$SATURN_SNAPSHOT_DIR" "$SATURN_STAGING_DIR"
 ok "Directories ready"
 
 copy_web_asset () {
@@ -134,12 +136,23 @@ fi
 ok "Web assets copied"
 
 info "Copying scripts..."
-find "$SCRIPTS_DIR" -mindepth 1 -maxdepth 1 -type f -delete || true
+added_scripts=0
+updated_scripts=0
+kept_scripts=0
 while IFS= read -r -d '' src; do
-  cp -f "$src" "$SCRIPTS_DIR/"
+  dest="$SCRIPTS_DIR/$(basename "$src")"
+  if [[ ! -e "$dest" ]]; then
+    cp -f "$src" "$dest"
+    added_scripts=$((added_scripts + 1))
+  elif [[ "$src" -nt "$dest" ]]; then
+    cp -f "$src" "$dest"
+    updated_scripts=$((updated_scripts + 1))
+  else
+    kept_scripts=$((kept_scripts + 1))
+  fi
 done < <(find "$SOURCE_DIR/scripts" -maxdepth 1 -type f -print0)
 
-cat >"$SCRIPTS_DIR/$WATCHDOG_SCRIPT_NAME" <<'WATCHDOG'
+cat >"$WATCHDOG_SCRIPT_PATH" <<'WATCHDOG'
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -152,7 +165,7 @@ if ! curl -fsS --max-time "$timeout" "$url" >/dev/null 2>&1; then
   systemctl restart "$service" || true
 fi
 WATCHDOG
-ok "Scripts copied"
+ok "Scripts synced (added=$added_scripts updated=$updated_scripts kept=$kept_scripts; custom scripts preserved)"
 
 info "Setting file permissions..."
 chown -R root:root "$SATURN_ROOT" "$WEB_ROOT"
@@ -161,7 +174,8 @@ find "$WEB_ROOT" -type f -print0 | xargs -0 -r chmod 0644
 find "$SCRIPTS_DIR" -type d -print0 | xargs -0 -r chmod 0775
 find "$SCRIPTS_DIR" -type f \( -name '*.sh' -o -name '*.py' \) -print0 | xargs -0 -r chmod 0755
 find "$SCRIPTS_DIR" -type f ! \( -name '*.sh' -o -name '*.py' \) -print0 | xargs -0 -r chmod 0644
-chmod 0755 "$SCRIPTS_DIR/$WATCHDOG_SCRIPT_NAME"
+chown root:root "$WATCHDOG_SCRIPT_DIR" "$WATCHDOG_SCRIPT_PATH"
+chmod 0755 "$WATCHDOG_SCRIPT_DIR" "$WATCHDOG_SCRIPT_PATH"
 chown -R "$SERVICE_USER:$SERVICE_GROUP" "$SCRIPTS_DIR"
 chown -R "$SERVICE_USER:$SERVICE_GROUP" "$SATURN_STATE_DIR"
 find "$SATURN_STATE_DIR" -type d -print0 | xargs -0 -r chmod 0750
@@ -342,7 +356,7 @@ Type=oneshot
 Environment=SATURN_WATCHDOG_URL=${SATURN_WATCHDOG_URL}
 Environment=SATURN_WATCHDOG_SERVICE=saturn-go.service
 Environment=SATURN_WATCHDOG_TIMEOUT=4
-ExecStart=${SCRIPTS_DIR}/${WATCHDOG_SCRIPT_NAME}
+ExecStart=${WATCHDOG_SCRIPT_PATH}
 WATCHDOG_SERVICE
 
 cat >"$WATCHDOG_TIMER_FILE" <<WATCHDOG_TIMER

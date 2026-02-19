@@ -47,14 +47,16 @@ Installer is designed to refresh service, web assets, scripts, and config.
 
 ```bash
 cd /home/pi/github/Saturn
-sudo bash update_manager/uninstall_saturn_go_nginx.sh [--no-purge] [--keep-auth] [--remove-packages] [--dry-run] [--yes]
+sudo bash update_manager/uninstall_saturn_go_nginx.sh [--purge] [--no-purge] [--keep-auth] [--remove-packages] [--dry-run] [--yes]
 ```
 
-Default behavior purges runtime directories:
+Default behavior keeps runtime directories (including custom scripts and state):
 
 - `/opt/saturn-go`
 - `/var/lib/saturn-web`
 - `/var/lib/saturn-state`
+
+Use `--purge` for a full cleanup.
 
 ## Service Operations
 

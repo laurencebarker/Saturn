@@ -20,7 +20,7 @@ use std::{
     sync::{Arc, Mutex, OnceLock, RwLock},
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
-use regex::Regex;
+use regex::RegexBuilder;
 use users::get_user_by_uid;
 use sysinfo::{Disks, Networks, System};
 use tokio::{
@@ -57,148 +57,11 @@ const CSRF_HEADER_NAME: &str = "x-saturn-csrf";
 const CSRF_HEADER_VALUE: &str = "1";
 const RUN_LOG_MAX_LINES: usize = 5000;
 const RUN_LOG_FETCH_MAX_LINES: usize = 1000;
-const DEFAULT_CUSTOM_SCRIPT_CLEAN_LOGS: &str = r#"#!/usr/bin/env bash
-set -euo pipefail
-
-DRY_RUN=false
-DELETE_ALL=false
-OLDER_7=false
-VERBOSE=false
-
-for arg in "$@"; do
-  case "$arg" in
-    --dry-run) DRY_RUN=true ;;
-    --all) DELETE_ALL=true ;;
-    --older-7) OLDER_7=true ;;
-    --verbose) VERBOSE=true ;;
-    *)
-      echo "Unknown flag: $arg"
-      exit 1
-      ;;
-  esac
-done
-
-LOG_DIR="${SATURN_LOG_DIR:-$HOME/saturn-logs}"
-if [[ ! -d "$LOG_DIR" ]]; then
-  echo "No Saturn log directory found at: $LOG_DIR"
-  exit 0
-fi
-
-DAYS=30
-if $OLDER_7; then
-  DAYS=7
-fi
-
-if $DELETE_ALL; then
-  mapfile -t files < <(find "$LOG_DIR" -type f -name "*.log" | sort)
-else
-  mapfile -t files < <(find "$LOG_DIR" -type f -name "*.log" -mtime +"$DAYS" | sort)
-fi
-
-if [[ ${#files[@]} -eq 0 ]]; then
-  if $DELETE_ALL; then
-    echo "No log files found to delete in $LOG_DIR."
-  else
-    echo "No log files older than $DAYS days found in $LOG_DIR."
-  fi
-  exit 0
-fi
-
-echo "Matched ${#files[@]} log file(s) in $LOG_DIR."
-for file in "${files[@]}"; do
-  if $DRY_RUN; then
-    echo "[dry-run] would delete: $file"
-  else
-    rm -f -- "$file"
-    echo "deleted: $file"
-  fi
-done
-
-if $VERBOSE; then
-  du -sh "$LOG_DIR" 2>/dev/null || true
-fi
-
-echo "Done."
-"#;
-const DEFAULT_CUSTOM_SCRIPT_CLEAN_BACKUPS: &str = r#"#!/usr/bin/env bash
-set -euo pipefail
-
-DRY_RUN=false
-DELETE_ALL=false
-SATURN_ONLY=false
-PIHPSDR_ONLY=false
-VERBOSE=false
-
-for arg in "$@"; do
-  case "$arg" in
-    --dry-run) DRY_RUN=true ;;
-    --delete-all) DELETE_ALL=true ;;
-    --saturn-only) SATURN_ONLY=true ;;
-    --pihpsdr-only) PIHPSDR_ONLY=true ;;
-    --verbose) VERBOSE=true ;;
-    *)
-      echo "Unknown flag: $arg"
-      exit 1
-      ;;
-  esac
-done
-
-if $SATURN_ONLY && $PIHPSDR_ONLY; then
-  SATURN_ONLY=false
-  PIHPSDR_ONLY=false
-fi
-
-HOME_DIR="${HOME:-/home/pi}"
-KEEP_COUNT=2
-
-cleanup_type() {
-  local prefix="$1"
-  mapfile -t dirs < <(find "$HOME_DIR" -maxdepth 1 -type d -name "${prefix}-backup-*" | sort -r)
-
-  if [[ ${#dirs[@]} -eq 0 ]]; then
-    echo "No ${prefix} backups found."
-    return
-  fi
-
-  echo "Found ${#dirs[@]} ${prefix} backup(s)."
-
-  local start_index=0
-  if ! $DELETE_ALL; then
-    start_index=$KEEP_COUNT
-  fi
-
-  if (( start_index >= ${#dirs[@]} )); then
-    echo "Nothing to remove for ${prefix}."
-    return
-  fi
-
-  for ((i=start_index; i<${#dirs[@]}; i++)); do
-    local dir="${dirs[$i]}"
-    if $DRY_RUN; then
-      echo "[dry-run] would remove: $dir"
-    else
-      rm -rf -- "$dir"
-      echo "removed: $dir"
-    fi
-  done
-}
-
-if ! $SATURN_ONLY && ! $PIHPSDR_ONLY; then
-  cleanup_type "saturn"
-  cleanup_type "pihpsdr"
-elif $SATURN_ONLY; then
-  cleanup_type "saturn"
-else
-  cleanup_type "pihpsdr"
-fi
-
-if $VERBOSE; then
-  echo "Remaining backups:"
-  find "$HOME_DIR" -maxdepth 1 -type d \( -name "saturn-backup-*" -o -name "pihpsdr-backup-*" \) | sort || true
-fi
-
-echo "Done."
-"#;
+const MAX_COMPLETED_JOBS: usize = 20;
+const DEFAULT_CUSTOM_SCRIPT_CLEAN_LOGS: &str =
+    include_str!("../../scripts/cleanup-saturn-logs.sh");
+const DEFAULT_CUSTOM_SCRIPT_CLEAN_BACKUPS: &str =
+    include_str!("../../scripts/cleanup-saturn-backups.sh");
 
 #[derive(Debug, Deserialize)]
 struct FlagsQuery {
@@ -253,19 +116,19 @@ async fn main() {
     });
     let repo_root_file = std::env::var("SATURN_REPO_ROOT_FILE")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from(format!("{webroot}/repo_root.txt")));
+        .unwrap_or_else(|_| PathBuf::from(format!("{default_state_dir}/repo_root.txt")));
     let update_policy_file = std::env::var("SATURN_UPDATE_POLICY_FILE")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from(format!("{webroot}/update_policy.json")));
+        .unwrap_or_else(|_| PathBuf::from(format!("{default_state_dir}/update_policy.json")));
     let update_state_file = std::env::var("SATURN_UPDATE_STATE_FILE")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from(format!("{webroot}/update_state.json")));
+        .unwrap_or_else(|_| PathBuf::from(format!("{default_state_dir}/update_state.json")));
     let snapshot_dir = std::env::var("SATURN_SNAPSHOT_DIR")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from(format!("{webroot}/snapshots")));
+        .unwrap_or_else(|_| PathBuf::from(format!("{default_state_dir}/snapshots")));
     let staging_dir = std::env::var("SATURN_STAGING_DIR")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from(format!("{webroot}/repo-staging")));
+        .unwrap_or_else(|_| PathBuf::from(format!("{default_state_dir}/repo-staging")));
     let restore_max_upload_bytes = std::env::var("SATURN_RESTORE_MAX_UPLOAD_BYTES")
         .ok()
         .and_then(|v| v.parse::<u64>().ok())
@@ -388,7 +251,32 @@ async fn main() {
 
     info!("Saturn server listening on {addr}");
     let listener = tokio::net::TcpListener::bind(&addr).await.expect("bind failed");
-    axum::serve(listener, app).await.expect("server failed");
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await
+        .expect("server failed");
+    info!("Saturn server shut down");
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+    #[cfg(unix)]
+    let terminate = async {
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("failed to install SIGTERM handler")
+            .recv()
+            .await;
+    };
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+    tokio::select! {
+        _ = ctrl_c => { info!("received SIGINT, shutting down"); }
+        _ = terminate => { info!("received SIGTERM, shutting down"); }
+    }
 }
 
 async fn root_handler(State(state): State<AppState>) -> impl IntoResponse {
@@ -658,9 +546,14 @@ async fn csrf_protect(
         Some(v) => v,
         None => return json_error(StatusCode::BAD_REQUEST, "missing Host header"),
     };
-    if let Some(source_host) = get_source_host(headers) {
-        if source_host != req_host {
-            return json_error(StatusCode::FORBIDDEN, "Origin/Referer host mismatch");
+    match get_source_host(headers) {
+        Some(source_host) => {
+            if source_host != req_host {
+                return json_error(StatusCode::FORBIDDEN, "Origin/Referer host mismatch");
+            }
+        }
+        None => {
+            return json_error(StatusCode::FORBIDDEN, "missing Origin or Referer header");
         }
     }
 
@@ -1988,6 +1881,21 @@ fn jobs_map() -> &'static Mutex<std::collections::HashMap<String, PiImageJob>> {
 fn set_job(job: PiImageJob) {
     let mut map = jobs_map().lock().unwrap();
     map.insert(job.id.clone(), job);
+    prune_completed_image_jobs(&mut map);
+}
+
+fn prune_completed_image_jobs(map: &mut std::collections::HashMap<String, PiImageJob>) {
+    let completed: Vec<String> = map
+        .iter()
+        .filter(|(_, j)| j.status != "running")
+        .map(|(id, _)| id.clone())
+        .collect();
+    if completed.len() > MAX_COMPLETED_JOBS {
+        let excess = completed.len() - MAX_COMPLETED_JOBS;
+        for id in completed.into_iter().take(excess) {
+            map.remove(&id);
+        }
+    }
 }
 
 fn update_job(id: &str, f: impl FnOnce(&mut PiImageJob)) {
@@ -2031,6 +1939,21 @@ fn clone_jobs_map() -> &'static Mutex<std::collections::HashMap<String, PiCloneJ
 fn set_clone_job(job: PiCloneJob) {
     let mut map = clone_jobs_map().lock().unwrap();
     map.insert(job.id.clone(), job);
+    prune_completed_clone_jobs(&mut map);
+}
+
+fn prune_completed_clone_jobs(map: &mut std::collections::HashMap<String, PiCloneJob>) {
+    let completed: Vec<String> = map
+        .iter()
+        .filter(|(_, j)| j.status != "running")
+        .map(|(id, _)| id.clone())
+        .collect();
+    if completed.len() > MAX_COMPLETED_JOBS {
+        let excess = completed.len() - MAX_COMPLETED_JOBS;
+        for id in completed.into_iter().take(excess) {
+            map.remove(&id);
+        }
+    }
 }
 
 fn update_clone_job(id: &str, f: impl FnOnce(&mut PiCloneJob)) {
@@ -2255,9 +2178,9 @@ async fn pi_image_download(Query(q): Query<PiImageStatusQuery>) -> Result<Respon
         }),
     );
 
-    // best-effort cleanup after a short delay
+    // best-effort cleanup after a delay long enough for large downloads
     tokio::spawn(async move {
-        tokio::time::sleep(Duration::from_secs(30)).await;
+        tokio::time::sleep(Duration::from_secs(600)).await;
         let _ = tokio::fs::remove_file(&path).await;
     });
 
@@ -3554,7 +3477,13 @@ async fn change_password(
     }
 }
 
-async fn exit_server() -> impl IntoResponse {
+async fn exit_server(headers: HeaderMap) -> impl IntoResponse {
+    let remote = headers
+        .get("x-forwarded-for")
+        .or_else(|| headers.get("x-real-ip"))
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("unknown");
+    tracing::warn!("exit_server called (remote: {remote}); shutting down in 200ms");
     tokio::spawn(async {
         tokio::time::sleep(Duration::from_millis(200)).await;
         std::process::exit(0);
@@ -4035,7 +3964,7 @@ fn list_procs_sysinfo(sys: &System, total_mem_kb: f64, q: &ProcQuery) -> Vec<ser
         out.retain(|p| p.user == *u);
     }
     if let Some(r) = &q.proc_regex {
-        if let Ok(re) = Regex::new(r) {
+        if let Ok(re) = RegexBuilder::new(r).size_limit(1 << 16).build() {
             out.retain(|p| re.is_match(&p.command));
         }
     }
@@ -4125,6 +4054,7 @@ async fn repair_pack() -> Result<Response, Response> {
     let targets = vec![
         "/opt/saturn-go/bin/saturn-go",
         "/opt/saturn-go/scripts",
+        "/usr/local/lib/saturn-go/saturn-health-watchdog.sh",
         "/opt/saturn-go/scripts/saturn-health-watchdog.sh",
         "/var/lib/saturn-state/repo_root.txt",
         "/var/lib/saturn-web/index.html",
@@ -4231,7 +4161,6 @@ async fn verify_system_config() -> impl IntoResponse {
     let required = vec![
         "/opt/saturn-go/bin/saturn-go",
         "/opt/saturn-go/scripts",
-        "/opt/saturn-go/scripts/saturn-health-watchdog.sh",
         "/var/lib/saturn-state/repo_root.txt",
         "/var/lib/saturn-web/index.html",
         "/var/lib/saturn-web/backup.html",
@@ -4245,6 +4174,10 @@ async fn verify_system_config() -> impl IntoResponse {
         "/etc/nginx/conf.d/saturn_sse_map.conf",
         "/etc/nginx/.htpasswd",
     ];
+    let watchdog_candidates = vec![
+        "/usr/local/lib/saturn-go/saturn-health-watchdog.sh",
+        "/opt/saturn-go/scripts/saturn-health-watchdog.sh",
+    ];
 
     let mut missing: Vec<String> = Vec::new();
     let mut checks: Vec<VerifyEntry> = Vec::new();
@@ -4254,6 +4187,18 @@ async fn verify_system_config() -> impl IntoResponse {
         if !exists {
             missing.push(p.to_string());
         }
+    }
+    let mut watchdog_exists = false;
+    for p in &watchdog_candidates {
+        let exists = Path::new(p).exists();
+        checks.push(VerifyEntry { path: p.to_string(), exists });
+        watchdog_exists = watchdog_exists || exists;
+    }
+    if !watchdog_exists {
+        missing.push(format!(
+            "watchdog script missing (checked: {} | {})",
+            watchdog_candidates[0], watchdog_candidates[1]
+        ));
     }
 
     let mut warnings: Vec<String> = Vec::new();

@@ -54,6 +54,8 @@ Saturn Update Manager is deployed as a small appliance-style web stack:
 - `/etc/systemd/system/saturn-go-watchdog.service`
 - `/etc/systemd/system/saturn-go-watchdog.timer`
   - Periodic health check and restart logic.
+- `/usr/local/lib/saturn-go/saturn-health-watchdog.sh`
+  - Root-owned watchdog script executed by the watchdog service unit.
 - `/etc/nginx/sites-available/saturn`
 - `/etc/nginx/conf.d/saturn_sse_map.conf`
   - NGINX proxy config and SSE behavior.

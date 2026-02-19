@@ -193,6 +193,8 @@ Installer behavior (current):
 - Applies systemd hardening defaults (restricted kernel/control-group access, syscall architecture/address-family restrictions)
 - Leaves `NoNewPrivileges` disabled so controlled `sudo -n` paths (for example password update) can work when sudoers permits them
 - Sets `/opt/saturn-go/scripts` ownership to the service user/group so browser-managed custom script content can be saved
+- Syncs packaged scripts from `update_manager/scripts` without deleting browser-managed custom scripts; packaged copies update only when source files are newer
+- Installs root-owned watchdog script at `/usr/local/lib/saturn-go/saturn-health-watchdog.sh` (outside writable custom script path)
 
 ## Uninstall
 
@@ -200,13 +202,14 @@ Uninstaller aligned to the current installer:
 
 ```bash
 cd /home/pi/github/Saturn
-sudo bash update_manager/uninstall_saturn_go_nginx.sh [--no-purge] [--keep-auth] [--remove-packages] [--dry-run] [--yes]
+sudo bash update_manager/uninstall_saturn_go_nginx.sh [--purge] [--no-purge] [--keep-auth] [--remove-packages] [--dry-run] [--yes]
 ```
 
 Flags:
 
-- Default behavior purges `/opt/saturn-go`, `/var/lib/saturn-web`, and `/var/lib/saturn-state` for clean reinstall
-- `--no-purge`: keep `/opt/saturn-go`, `/var/lib/saturn-web`, and `/var/lib/saturn-state`
+- Default behavior keeps `/opt/saturn-go`, `/var/lib/saturn-web`, and `/var/lib/saturn-state` (including custom scripts/state) for safer reinstalls
+- `--purge`: remove `/opt/saturn-go`, `/var/lib/saturn-web`, and `/var/lib/saturn-state` for a clean slate
+- `--no-purge`: explicit keep mode (same as default)
 - `--keep-auth`: keep `/etc/nginx/.htpasswd`
 - `--remove-packages`: best-effort removal of install-time packages
 - `--dry-run`: print actions without making changes

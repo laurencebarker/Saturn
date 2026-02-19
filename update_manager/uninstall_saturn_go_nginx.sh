@@ -3,11 +3,11 @@
 # Remove Saturn Rust + NGINX deployment created by install_saturn_go_nginx.sh.
 #
 # Usage:
-#   sudo bash uninstall_saturn_go_nginx.sh [--no-purge] [--keep-auth] [--remove-packages] [--dry-run] [--yes]
+#   sudo bash uninstall_saturn_go_nginx.sh [--purge] [--no-purge] [--keep-auth] [--remove-packages] [--dry-run] [--yes]
 
 set -euo pipefail
 
-PURGE=1
+PURGE=0
 KEEP_AUTH=0
 REMOVE_PACKAGES=0
 DRY_RUN=0
@@ -39,7 +39,9 @@ NGINX_SSE_MAP="/etc/nginx/conf.d/saturn_sse_map.conf"
 BASIC_AUTH_FILE="/etc/nginx/.htpasswd"
 SATURN_ROOT="/opt/saturn-go"
 WEB_ROOT="/var/lib/saturn-web"
-WATCHDOG_SCRIPT="/opt/saturn-go/scripts/saturn-health-watchdog.sh"
+WATCHDOG_SCRIPT_NEW="/usr/local/lib/saturn-go/saturn-health-watchdog.sh"
+WATCHDOG_SCRIPT_OLD="/opt/saturn-go/scripts/saturn-health-watchdog.sh"
+WATCHDOG_SCRIPT_DIR="/usr/local/lib/saturn-go"
 SATURN_STATE_DIR="/var/lib/saturn-state"
 
 run_cmd() {
@@ -98,9 +100,18 @@ if [[ -f "$WATCHDOG_TIMER" ]]; then
   echo "[INFO] Removing watchdog timer file: $WATCHDOG_TIMER"
   run_cmd rm -f "$WATCHDOG_TIMER"
 fi
-if [[ -f "$WATCHDOG_SCRIPT" ]]; then
-  echo "[INFO] Removing watchdog script: $WATCHDOG_SCRIPT"
-  run_cmd rm -f "$WATCHDOG_SCRIPT"
+for watchdog_script in "$WATCHDOG_SCRIPT_NEW" "$WATCHDOG_SCRIPT_OLD"; do
+  if [[ -f "$watchdog_script" ]]; then
+    echo "[INFO] Removing watchdog script: $watchdog_script"
+    run_cmd rm -f "$watchdog_script"
+  fi
+done
+if [[ -d "$WATCHDOG_SCRIPT_DIR" ]]; then
+  if [[ $DRY_RUN -eq 1 ]]; then
+    echo "[DRY] rmdir $WATCHDOG_SCRIPT_DIR (if empty)"
+  else
+    rmdir "$WATCHDOG_SCRIPT_DIR" >/dev/null 2>&1 || true
+  fi
 fi
 run_cmd systemctl daemon-reload
 
@@ -136,7 +147,7 @@ if command -v nginx >/dev/null 2>&1; then
   fi
 fi
 
-# 7) Purge runtime dirs by default (clean reinstall path)
+# 7) Optional purge of runtime dirs
 if [[ $PURGE -eq 1 ]]; then
   for dir in "$SATURN_ROOT" "$WEB_ROOT" "$SATURN_STATE_DIR"; do
     if [[ -e "$dir" ]]; then
@@ -145,7 +156,7 @@ if [[ $PURGE -eq 1 ]]; then
     fi
   done
 else
-  echo "[INFO] Keeping runtime directories (--no-purge): $SATURN_ROOT, $WEB_ROOT, $SATURN_STATE_DIR"
+  echo "[INFO] Keeping runtime directories (default, or --no-purge): $SATURN_ROOT, $WEB_ROOT, $SATURN_STATE_DIR"
 fi
 
 # 8) Optional package cleanup
@@ -170,6 +181,8 @@ else
 fi
 if [[ $PURGE -eq 1 ]]; then
   echo " Purged runtime dirs: $SATURN_ROOT, $WEB_ROOT, $SATURN_STATE_DIR"
+else
+  echo " Kept runtime dirs: $SATURN_ROOT, $WEB_ROOT, $SATURN_STATE_DIR"
 fi
 if [[ $REMOVE_PACKAGES -eq 1 ]]; then
   echo " Package cleanup attempted"
