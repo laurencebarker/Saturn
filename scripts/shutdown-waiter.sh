@@ -1,8 +1,11 @@
 #
 # script to wait for a shutdown input
-# put GPIO26 (pin 37) into pullup mode
+# put GPIO26 (pin 37) into input pullup mode
 # The first read will be before the pullup is activated
 # so wait for a delay before scanning proper. 
+#
+# set gpio18 to input, pullup so that it can be sensed
+# by a high imprednace microcontroller input
 #
 # this should only be needed on G2V2 vintage radios. 
 # Radios with a G2V1 panel use GPIO26 as an encodeer input.
@@ -14,6 +17,7 @@ else
 	echo "G2V2 type radio found with no I2C device"
 	sleep 20
 	gpioget --bias=pull-up gpiochip0 26
+	gpioget --bias=pull-up gpiochip0 18
 	pinvalue=1
 	sleep 2
 	echo "waiting for shutdown to be triggered..."
