@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>piHPSDR Update</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/ansi_up@5.2.1/ansi_up.min.js"></script>
+
+<style>
+  :root{
+    --bg-color:#1f2937;
+    --text-color:#ffffff;
+    --card-bg:rgba(31,41,55,0.85);
+    --border:rgba(255,255,255,0.18);
+    --shadow:rgba(0,0,0,0.35);
+    --primary:#3b82f6;
+    --primary-600:#2563eb;
+    --danger:#ef4444;
+    --input-bg:#111827;
+    --input-text:#ffffff;
+  }
+  body.light{
+    --bg-color:#f9fafb;
+    --text-color:#374151;
+    --card-bg:rgba(255,255,255,0.92);
+    --border:rgba(0,0,0,0.08);
+    --shadow:rgba(0,0,0,0.12);
+    --primary:#2563eb;
+    --primary-600:#1d4ed8;
+    --danger:#dc2626;
+    --input-bg:#ffffff;
+    --input-text:#374151;
+  }
+  html,body{height:100%}
+  body{
+    font-family:'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: radial-gradient(1000px 600px at 20% -10%, rgba(59,130,246,.25) 0%, transparent 60%),
+                radial-gradient(800px 500px at 100% 0%, rgba(16,185,129,.18) 0%, transparent 55%),
+                var(--bg-color);
+    color:var(--text-color);
+    transition:background .25s ease, color .25s ease;
+  }
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    box-shadow:0 10px 30px var(--shadow);
+    border-radius:16px;
+  }
+  .btn{
+    border-radius:12px;
+    font-weight:600;
+    transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg, var(--primary), var(--primary-600));
+    color:#fff;
+    box-shadow:0 6px 18px rgba(59,130,246,.35);
+  }
+  .btn-primary:hover{ transform:translateY(-1px); filter:brightness(1.05) }
+  .btn-ghost{
+    background:rgba(255,255,255,.08);
+    border:1px solid var(--border);
+    color:var(--text-color);
+  }
+  pre{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    background:#0a0a0a;
+    color:#fff;
+    border-radius:10px;
+    border:1px solid #333;
+    padding:1rem;
+  }
+  body.light pre{ background:#f3f4f6; color:#111; border-color:#d1d5db }
+  body.light pre span[style*="color:rgb(255,255,255)"]{ color:#111 !important; }
+  .title{ font-weight:800; letter-spacing:.2px }
+</style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 py-6 sm:py-10">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <h1 class="title text-3xl sm:text-4xl">piHPSDR Update</h1>
+      <div class="flex items-center gap-3">
+        <a href="./" class="btn btn-ghost px-4 py-2">G2 Update</a>
+        <a href="./pihpsdr" class="btn btn-ghost px-4 py-2">piHPSDR Update</a>
+        <a href="./fpga" class="btn btn-ghost px-4 py-2">FPGA Flash</a>
+        <a href="./backup" class="btn btn-ghost px-4 py-2">Backup / Restore</a>
+        <a href="./custom" class="btn btn-ghost px-4 py-2">Custom Scripts</a>
+        <a href="./monitor" class="btn btn-ghost px-4 py-2">Monitor</a>
+        <button id="theme-toggle" class="btn btn-ghost p-2" title="Toggle theme">
+          <svg id="theme-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+             d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="card p-5">
+      <h2 class="text-xl font-semibold mb-2">Update piHPSDR (Terminal)</h2>
+      <p class="text-sm opacity-80 mb-4">Runs <code>update-pihpsdr.py</code> with live terminal output.</p>
+
+      <div class="mb-3">
+        <label class="block text-sm mb-1">Flags</label>
+        <div id="pihpsdr-flags" class="flex flex-wrap gap-4"></div>
+      </div>
+
+      <div class="flex flex-wrap gap-3 items-center mb-3">
+        <button id="pihpsdr-run" class="btn btn-primary px-5 py-2">Run piHPSDR Update</button>
+        <button id="pihpsdr-clear" class="btn btn-ghost px-4 py-2">Clear Output</button>
+        <progress id="pihpsdr-progress" max="100" value="0" class="hidden w-48"></progress>
+      </div>
+
+      <pre id="pihpsdr-output" style="min-height:420px; max-height:620px; overflow:auto;"></pre>
+    </div>
+  </div>
+
+  <div id="backup-modal" class="fixed inset-0 hidden items-center justify-center bg-black/50 p-4">
+    <div class="card p-6 max-w-md w-full">
+      <h3 class="text-xl font-semibold mb-2">Backup Prompt</h3>
+      <p class="mb-4">Create a backup? (Y/n)</p>
+      <div class="flex gap-3 justify-end">
+        <button id="backup-yes" class="btn btn-primary px-4 py-2">Yes</button>
+        <button id="backup-no" class="btn btn-ghost px-4 py-2">No</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function themeInit(){
+  const toggle = document.getElementById('theme-toggle');
+  const icon = document.getElementById('theme-icon');
+  function setIcon(light){
+    icon.innerHTML = light
+      ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>'
+      : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+  }
+  const stored = localStorage.getItem('theme');
+  const light = stored === 'light';
+  document.body.classList.toggle('light', light);
+  setIcon(light);
+  toggle.addEventListener('click', ()=>{
+    const isLight = document.body.classList.toggle('light');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    setIcon(isLight);
+    refreshRenderedOutput();
+  });
+})();
+
+const ansi_up = new AnsiUp();
+ansi_up.use_classes = false;
+const $ = (id)=>document.getElementById(id);
+const CSRF_HEADER_NAME = 'X-Saturn-CSRF';
+const CSRF_HEADER_VALUE = '1';
+const SCRIPT_NAME = 'update-pihpsdr.py';
+function withCsrf(headers = {}){ return { ...headers, [CSRF_HEADER_NAME]: CSRF_HEADER_VALUE }; }
+function show(el, on){ el.classList.toggle('hidden', !on); }
+function saveSessionJson(key, value){
+  try{ sessionStorage.setItem(key, JSON.stringify(value)); }catch(_e){}
+}
+function loadSessionJson(key, fallback){
+  try{
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return parsed == null ? fallback : parsed;
+  }catch(_e){
+    return fallback;
+  }
+}
+
+const PIH_OUTPUT_LINES_KEY = 'saturn:pihpsdr:output-lines';
+const PIH_OUTPUT_MAX_LINES = 2500;
+const PIH_RUN_ID_KEY = 'saturn:pihpsdr:run-id';
+const PIH_RUN_NEXT_KEY = 'saturn:pihpsdr:run-next';
+let pihOutputLines = [];
+let pihRunLogRunId = '';
+let pihRunLogNext = 0;
+let pihRunLogPoll = null;
+let pihRunInProgress = false;
+
+function ansiToHtml(line){
+  const html = ansi_up.ansi_to_html(String(line ?? ''));
+  if (!document.body.classList.contains('light')) return html;
+  return html
+    .replace(/color:rgb\(\s*255\s*,\s*255\s*,\s*255\s*\)/g, 'color:rgb(0,0,0)')
+    .replace(/color:rgb\(\s*187\s*,\s*187\s*,\s*187\s*\)/g, 'color:rgb(55,65,81)')
+    .replace(/color:rgb\(\s*85\s*,\s*85\s*,\s*85\s*\)/g, 'color:rgb(55,65,81)');
+}
+
+function renderAnsiLines(lines){
+  if (!Array.isArray(lines) || !lines.length) return '';
+  return lines.map((line)=>ansiToHtml(line)).join('<br>') + '<br>';
+}
+
+function refreshRenderedOutput(){
+  const out = $('pihpsdr-output');
+  out.innerHTML = renderAnsiLines(pihOutputLines);
+  out.scrollTop = out.scrollHeight;
+}
+
+function persistOutput(){
+  saveSessionJson(PIH_OUTPUT_LINES_KEY, pihOutputLines);
+  try{ sessionStorage.setItem(PIH_RUN_NEXT_KEY, String(pihRunLogNext)); }catch(_e){}
+}
+
+function restoreOutput(){
+  const saved = loadSessionJson(PIH_OUTPUT_LINES_KEY, []);
+  pihOutputLines = Array.isArray(saved) ? saved.map((v)=>String(v)) : [];
+  if (pihOutputLines.length > PIH_OUTPUT_MAX_LINES){
+    pihOutputLines = pihOutputLines.slice(-PIH_OUTPUT_MAX_LINES);
+    persistOutput();
+  }
+  try{
+    pihRunLogRunId = sessionStorage.getItem(PIH_RUN_ID_KEY) || '';
+    const rawNext = Number(sessionStorage.getItem(PIH_RUN_NEXT_KEY) || String(pihOutputLines.length));
+    pihRunLogNext = Number.isFinite(rawNext) && rawNext >= 0 ? rawNext : pihOutputLines.length;
+  }catch(_e){
+    pihRunLogRunId = '';
+    pihRunLogNext = pihOutputLines.length;
+  }
+  $('pihpsdr-output').innerHTML = renderAnsiLines(pihOutputLines);
+  $('pihpsdr-output').scrollTop = $('pihpsdr-output').scrollHeight;
+}
+
+function appendOutput(line){
+  const text = String(line ?? '');
+  pihOutputLines.push(text);
+  if (pihOutputLines.length > PIH_OUTPUT_MAX_LINES){
+    pihOutputLines = pihOutputLines.slice(-PIH_OUTPUT_MAX_LINES);
+    $('pihpsdr-output').innerHTML = renderAnsiLines(pihOutputLines);
+  } else {
+    $('pihpsdr-output').innerHTML += ansiToHtml(text) + '<br>';
+  }
+  pihRunLogNext = pihOutputLines.length;
+  persistOutput();
+  const out = $('pihpsdr-output');
+  out.scrollTop = out.scrollHeight;
+}
+
+function clearRunLogPoll(){
+  if (pihRunLogPoll){
+    clearInterval(pihRunLogPoll);
+    pihRunLogPoll = null;
+  }
+}
+
+function ensureRunLogPoll(){
+  if (!pihRunLogPoll){
+    pihRunLogPoll = setInterval(fetchBufferedRunLog, 1200);
+  }
+}
+
+function resetBufferedState(){
+  pihRunLogRunId = '';
+  pihRunLogNext = 0;
+  pihOutputLines = [];
+  try{ sessionStorage.setItem(PIH_RUN_ID_KEY, ''); }catch(_e){}
+  persistOutput();
+  $('pihpsdr-output').innerHTML = '';
+}
+
+async function fetchBufferedRunLog(){
+  if (pihRunInProgress) return;
+  try{
+    const from = Math.max(0, Number(pihRunLogNext) || 0);
+    const r = await fetch(`./run_log?script=${encodeURIComponent(SCRIPT_NAME)}&from=${from}&limit=600`, { cache: 'no-store' });
+    if (!r.ok) return;
+    const data = await r.json().catch(()=>({}));
+    const runId = String(data.run_id || '');
+    const running = !!data.running;
+
+    if (!runId){
+      clearRunLogPoll();
+      return;
+    }
+    if (pihRunLogRunId && runId !== pihRunLogRunId){
+      resetBufferedState();
+      pihRunLogRunId = runId;
+      try{ sessionStorage.setItem(PIH_RUN_ID_KEY, runId); }catch(_e){}
+      await fetchBufferedRunLog();
+      return;
+    }
+    if (!pihRunLogRunId){
+      pihRunLogRunId = runId;
+      try{ sessionStorage.setItem(PIH_RUN_ID_KEY, runId); }catch(_e){}
+    }
+
+    const lines = Array.isArray(data.lines) ? data.lines : [];
+    lines.forEach((line)=>appendOutput(line));
+
+    const nextFrom = Number(data.next_from);
+    if (Number.isFinite(nextFrom) && nextFrom >= 0){
+      pihRunLogNext = nextFrom;
+      try{ sessionStorage.setItem(PIH_RUN_NEXT_KEY, String(nextFrom)); }catch(_e){}
+    }
+
+    if (running){
+      ensureRunLogPoll();
+    } else {
+      clearRunLogPoll();
+    }
+  }catch(_e){}
+}
+
+async function loadFlags(){
+  const host = $('pihpsdr-flags');
+  host.innerHTML = '';
+  try{
+    const r = await fetch('./get_flags?script=' + encodeURIComponent(SCRIPT_NAME));
+    const data = await r.json().catch(()=>({}));
+    const flags = Array.isArray(data.flags) ? data.flags : [];
+    if (!flags.length){
+      host.textContent = 'No flags found for ' + SCRIPT_NAME;
+      return;
+    }
+    flags.forEach((flag)=>{
+      const lbl = document.createElement('label');
+      lbl.className = 'inline-flex items-center gap-2';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.value = flag;
+      input.className = 'h-5 w-5';
+      if (flag === '--verbose') input.checked = true;
+      const text = document.createElement('span');
+      text.textContent = flag;
+      lbl.appendChild(input);
+      lbl.appendChild(text);
+      host.appendChild(lbl);
+    });
+  }catch(e){
+    host.textContent = 'Failed to load flags: ' + e.message;
+  }
+}
+
+async function sendBackupResponse(letter){
+  try{
+    await fetch('./backup_response', {
+      method: 'POST',
+      headers: withCsrf({'Content-Type':'application/x-www-form-urlencoded'}),
+      body: 'response=' + encodeURIComponent(letter),
+    });
+  }catch(_e){}
+  $('backup-modal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+$('backup-yes').addEventListener('click', ()=>sendBackupResponse('y'));
+$('backup-no').addEventListener('click', ()=>sendBackupResponse('n'));
+
+$('pihpsdr-clear').addEventListener('click', ()=>{
+  resetBufferedState();
+  $('pihpsdr-progress').value = 0;
+  show($('pihpsdr-progress'), false);
+});
+
+$('pihpsdr-run').addEventListener('click', async ()=>{
+  const btn = $('pihpsdr-run');
+  const progress = $('pihpsdr-progress');
+  clearRunLogPoll();
+  resetBufferedState();
+  pihRunInProgress = true;
+  btn.disabled = true;
+  progress.value = 0;
+  show(progress, true);
+  appendOutput('\x1b[36mStarting ' + SCRIPT_NAME + '...\x1b[0m');
+
+  const selectedFlags = Array.from(document.querySelectorAll('#pihpsdr-flags input[type=checkbox]:checked')).map(el=>el.value);
+
+  try{
+    const fd = new FormData();
+    fd.append('script', SCRIPT_NAME);
+    selectedFlags.forEach((f)=>fd.append('flags', f));
+
+    const res = await fetch('./run', {
+      method: 'POST',
+      body: fd,
+      headers: withCsrf({'Accept':'text/event-stream'}),
+    });
+    if (!res.ok) {
+      let msg = 'HTTP ' + res.status;
+      try{
+        const data = await res.json();
+        if (data && data.message) msg = data.message;
+      }catch(_e){}
+      throw new Error(msg);
+    }
+
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+
+    while (true){
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const chunks = buf.split('\n\n');
+      buf = chunks.pop() || '';
+
+      for (const c of chunks){
+        if (!c.startsWith('data: ')) continue;
+        const line = c.slice(6);
+        if (line === 'BACKUP_PROMPT'){
+          $('backup-modal').classList.remove('hidden');
+          document.body.style.overflow = 'hidden';
+          continue;
+        }
+        appendOutput(line);
+        const m = line.match(/Progress:\s*(\d+)%/i);
+        if (m) progress.value = parseInt(m[1], 10);
+      }
+    }
+  }catch(e){
+    appendOutput('\x1b[31mRun error: ' + e.message + '\x1b[0m');
+  }finally{
+    pihRunInProgress = false;
+    btn.disabled = false;
+    setTimeout(fetchBufferedRunLog, 250);
+    setTimeout(()=>show(progress, false), 600);
+  }
+});
+
+restoreOutput();
+fetchBufferedRunLog();
+loadFlags();
+</script>
+</body>
+</html>
