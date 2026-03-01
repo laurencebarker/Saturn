@@ -1,0 +1,46 @@
+#cloud-config
+hostname: saturn-g2
+manage_etc_hosts: true
+
+package_update: true
+package_upgrade: false
+packages:
+  - git
+  - ca-certificates
+  - sudo
+
+write_files:
+  - path: /etc/default/saturn-provision
+    permissions: "0644"
+    owner: root:root
+    content: |
+      # Primary provisioning target
+      SATURN_USER=pi
+      SATURN_REPO_URL=https://github.com/kd4yal2024/Saturn.git
+      SATURN_REPO_BRANCH=main
+
+      # Feature toggles
+      SATURN_INSTALL_UPDATE_MANAGER=1
+      SATURN_INSTALL_P2APP_CONTROL=1
+      SATURN_INSTALL_UDEV_RULES=1
+      SATURN_REBUILD_XDMA=1
+      SATURN_BUILD_OPTIONAL_TOOLS=1
+
+      # FPGA flash is OFF by default for safety.
+      SATURN_FLASH_FPGA=0
+      SATURN_FLASH_IMAGE=latest
+      SATURN_FLASH_FALLBACK=0
+      # Required if SATURN_FLASH_FPGA=1:
+      # SATURN_FLASH_CONFIRM=FLASH
+
+      # Optional: set explicit admin password for Update Manager basic auth.
+      # If empty in non-interactive mode, installer generates a random password and prints it in logs.
+      SATURN_ADMIN_PASSWORD=
+
+      # Re-run on every boot only if explicitly requested.
+      SATURN_FORCE_REPROVISION=0
+
+runcmd:
+  - [bash, -lc, "set -euo pipefail; source /etc/default/saturn-provision; SATURN_HOME=$(getent passwd \"$SATURN_USER\" | cut -d: -f6); install -d -m 0755 -o \"$SATURN_USER\" -g \"$SATURN_USER\" \"$SATURN_HOME/github\"; if [[ ! -d \"$SATURN_HOME/github/Saturn/.git\" ]]; then sudo -u \"$SATURN_USER\" -H git clone --depth 1 --branch \"$SATURN_REPO_BRANCH\" \"$SATURN_REPO_URL\" \"$SATURN_HOME/github/Saturn\"; else sudo -u \"$SATURN_USER\" -H git -C \"$SATURN_HOME/github/Saturn\" fetch --depth 1 origin \"$SATURN_REPO_BRANCH\"; sudo -u \"$SATURN_USER\" -H git -C \"$SATURN_HOME/github/Saturn\" checkout -B \"$SATURN_REPO_BRANCH\" \"origin/$SATURN_REPO_BRANCH\"; fi; bash \"$SATURN_HOME/github/Saturn/provision/cloud-init/provision-saturn.sh\""]
+
+final_message: "Saturn provisioning complete. Review /var/log/saturn-provision.log and /var/lib/saturn-provision/complete"

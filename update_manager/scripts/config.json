@@ -5,7 +5,8 @@
     "description": "Updates Saturn G2",
     "directory": "/opt/saturn-go/scripts",
     "category": "Update Scripts",
-    "flags": ["--skip-git", "-y", "-n", "--dry-run", "--verbose"]
+    "flags": ["--skip-git", "-y", "-n", "--dry-run", "--verbose"],
+    "version": "2.14"
   },
   {
     "filename": "update-pihpsdr.py",
@@ -13,7 +14,8 @@
     "description": "Updates piHPSDR",
     "directory": "/opt/saturn-go/scripts",
     "category": "Update Scripts",
-    "flags": ["--skip-git", "-y", "-n", "--no-gpio", "--dry-run", "--verbose"]
+    "flags": ["--skip-git", "-y", "-n", "--no-gpio", "--dry-run", "--verbose"],
+    "version": "1.10"
   },
   {
     "filename": "log_cleaner.sh",
@@ -27,7 +29,7 @@
     "filename": "restore-backup.sh",
     "name": "Restore Backup",
     "description": "Restores from a previous Saturn or piHPSDR backup directory",
-    "directory": "~/opt/saturn-go/scripts",
+    "directory": "/opt/saturn-go/scripts",
     "category": "Maintenance",
     "flags": ["--pihpsdr", "--saturn", "--latest", "--list", "--dry-run", "--verbose"]
   }

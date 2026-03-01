@@ -11,3 +11,6 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Local backups / local tools
+sw_projects/P2_app/p2app.prev.*

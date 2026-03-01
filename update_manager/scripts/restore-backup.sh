@@ -6,7 +6,7 @@
 #
 # Usage:
 #   ./restore-backup.sh [--pihpsdr] [--saturn]
-#                       [--latest | --list | --backup-dir <dir>]
+#                       [--latest | --list | --backup-dir <dir> | --backup-name <name>]
 #                       [--dry-run] [--verbose] [--json]
 #
 # Notes:
@@ -29,6 +29,7 @@ declare -a TYPES=()
 LATEST=false
 LIST=false
 BACKUP_DIR_ARG=""
+BACKUP_NAME_ARG=""
 DRY_RUN=false
 VERBOSE=false
 JSON=false
@@ -49,6 +50,9 @@ while [[ $# -gt 0 ]]; do
     --backup-dir)
       shift || err "--backup-dir requires a directory argument"
       BACKUP_DIR_ARG="${1:-}";;
+    --backup-name)
+      shift || err "--backup-name requires a backup directory name"
+      BACKUP_NAME_ARG="${1:-}";;
     --dry-run) DRY_RUN=true ;;
     --verbose) VERBOSE=true ;;
     --json)    JSON=true ;;
@@ -83,7 +87,7 @@ target_dir_for_type() {
 
 find_backups_for_type() {
   local t="$1"
-  local pattern="$HOME_DIR/${t}-backup-"*
+  local pattern="${HOME_DIR}/${t}-backup-*"
   # nullglob ensures non-matches yield empty array
   local matches=($pattern)
   # Sort by mtime desc
@@ -98,7 +102,7 @@ find_backups_for_type() {
 latest_backup_for_type() {
   local t="$1"
   local latest
-  latest="$(find_backups_for_type "$t" | tr -d '\0' | head -n1 || true)"
+  latest="$(find_backups_for_type "$t" | tr '\0' '\n' | head -n1 || true)"
   echo "$latest"
 }
 
@@ -123,15 +127,21 @@ if $LIST; then
   if $JSON; then
     # JSON object keyed by type with array of basenames
     printf '{'
-    local firstType=1
+    firstType=true
     for t in "${TYPES[@]}"; do
-      $firstType || printf ','
-      firstType=0
+      if [[ "$firstType" == "true" ]]; then
+        firstType=false
+      else
+        printf ','
+      fi
       printf '"%s":[' "$t"
-      local first=1
+      first=true
       while IFS= read -r -d '' path; do
-        $first || printf ','
-        first=0
+        if [[ "$first" == "true" ]]; then
+          first=false
+        else
+          printf ','
+        fi
         printf '"%s"' "$(basename "$path")"
       done < <(find_backups_for_type "$t")
       printf ']'
@@ -157,7 +167,31 @@ declare -a to_restore_types=()
 declare -a to_restore_sources=()
 declare -a to_restore_targets=()
 
-if [[ -n "$BACKUP_DIR_ARG" ]]; then
+if [[ -n "$BACKUP_DIR_ARG" && -n "$BACKUP_NAME_ARG" ]]; then
+  err "Use only one of --backup-dir or --backup-name"
+fi
+
+if [[ -n "$BACKUP_NAME_ARG" ]]; then
+  if [[ -d "$BACKUP_NAME_ARG" ]]; then
+    sel="$BACKUP_NAME_ARG"
+  elif [[ -d "$HOME_DIR/$BACKUP_NAME_ARG" ]]; then
+    sel="$HOME_DIR/$BACKUP_NAME_ARG"
+  else
+    err "Invalid backup name/path: $BACKUP_NAME_ARG"
+  fi
+
+  inferred="$(infer_type_from_dirname "$sel")"
+  [[ -n "$inferred" ]] || err "Cannot infer backup type from: $(basename "$sel")"
+
+  in_requested=false
+  for t in "${TYPES[@]}"; do [[ "$t" == "$inferred" ]] && in_requested=true; done
+  $in_requested || err "Backup name is '$inferred' but requested types were: ${TYPES[*]}"
+
+  to_restore_types+=("$inferred")
+  to_restore_sources+=("$sel")
+  to_restore_targets+=("$(target_dir_for_type "$inferred")")
+
+elif [[ -n "$BACKUP_DIR_ARG" ]]; then
   # Normalize path
   if [[ -d "$BACKUP_DIR_ARG" ]]; then
     sel="$BACKUP_DIR_ARG"
