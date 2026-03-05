@@ -1,0 +1,5 @@
+# GIT should ignore:
+project_1
+
+.Xil
+*.ui
