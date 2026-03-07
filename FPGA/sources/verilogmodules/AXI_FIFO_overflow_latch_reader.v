@@ -12,14 +12,23 @@
 // Tool Versions: 
 // Description: 
 // latch FIFO overflow indications and hold until read.
+// also used for FIFO overflows.
+// function added: also record ADC peak samples within the same period as ADC overflows
 // AXI4-lite bus interface to read back the overflow indications and clear the latch.
 //
 // Registers:
-//  addr 0         Status register (read only, with side effect)
+//  addr 0         Overflow register (read only, with side effect)
 //                 bit 0: reads out latched overflow 1
 //                 bit 1: reads out latched overflow 2
 //                 bit 15: reads out latched overflow 16
-//		   An axi4 read transaction clears the latch.
+//	An axi4 read transaction clears the latch.
+//  on read: the ADC peak values are latched, read yto be read out.
+// ** it is critical to read the Overflow register first **
+//
+// addr 4          ADC1 peak amplitude value (16 bit unsigned)
+// addr 8          ADC2 peak amplitude value (16 bit unsigned)
+// addr C          ADC2 peak amplitude value (16 bit unsigned)
+
 
 //
 // Dependencies: 
@@ -75,23 +84,40 @@ module AXI_FIFO_overflow_reader #
     input wire overflow13,				// FIFO13 overflow input
     input wire overflow14,				// FIFO14 overflow input
     input wire overflow15,				// FIFO15 overflow input
-    input wire overflow16				// FIFO16 overflow input
+    input wire overflow16,				// FIFO16 overflow input
+    
+// ADC input data for ADC max sample value detection
+    input wire [15:0] ADC1data,
+    input wire [15:0] ADC2data
 );
 
+  reg [AXI_DATA_WIDTH-1:0] raddrreg;
   reg [AXI_DATA_WIDTH-1:0] rdatareg;
+  reg [AXI_DATA_WIDTH-1:0] overflowdatareg;
+  reg [AXI_DATA_WIDTH-1:0] overflowdataregpl1;      // pipelined once
+  reg [AXI_DATA_WIDTH-1:0] overflowdataregpl2;      // pipelined twice
+  reg signed [15:0]        ADC1datareg;
+  reg signed [15:0]        ADC2datareg;
+  reg signed [15:0]        ADC1magnitudereg;
+  reg signed [15:0]        ADC2magnitudereg;
+  reg [AXI_DATA_WIDTH-1:0] ADC1latchedpeakreg;
+  reg [AXI_DATA_WIDTH-1:0] ADC2latchedpeakreg;
+  reg [AXI_DATA_WIDTH-1:0] ADC1currentpeakreg;
+  reg [AXI_DATA_WIDTH-1:0] ADC2currentpeakreg;
   reg arreadyreg;                           // false when write address has been latched
   reg rvalidreg;                            // true when read data out is valid
 
 //
 // AXI read strategy:
 // 1. at reset, assert arready and tready, to be able to accept address and stream transfers 
-// 2. latch the overrrange bits when they occur
-// 3. when arvalid is true, signalling address transfer, deassert arready 
-// 4. assert rvalid when arvalid is false, and tready is false 
-// 5. when rvalid and rready both true, data is transferred:
-// 5a. clear the data;
-// 5b. deassert rvalid
-// 5c. reassert arready
+// 1a. latch the overrrange bits when they occur
+// 2. when arvalid is true, signalling address transfer, deassert arready 
+// 3. assert rvalid when arvalid is false
+// 4. when rvalid and rready both true, data is transferred:
+// 4a. clear the data;
+// 4b. deassert rvalid
+// 4c. reassert arready
+// it is a requirement that there is no combinatorial path from inpu tot output
 //
 
 
@@ -114,62 +140,118 @@ module AXI_FIFO_overflow_reader #
     if(~aresetn)
     begin
 // step 1
+      raddrreg <= {(AXI_DATA_WIDTH){1'b0}};
       rdatareg <= {(AXI_DATA_WIDTH){1'b0}};
+
+      overflowdatareg <= {(AXI_DATA_WIDTH){1'b0}};
+      ADC1datareg <= 0;
+      ADC2datareg <= 0;
+      ADC1magnitudereg <= 0;
+      ADC2magnitudereg <= 0;
+      ADC1latchedpeakreg <= {(AXI_DATA_WIDTH){1'b0}};
+      ADC2latchedpeakreg <= {(AXI_DATA_WIDTH){1'b0}};
+      ADC1currentpeakreg <=0;
+      ADC2currentpeakreg <= 0;
       arreadyreg <= 1'b1;                           // ready for address transfer
       rvalidreg <= 1'b0;                            // not ready to transfer read data
     end
     else
     begin
-// step 2. latch the overflow bits
+// step 1b. latch the overflow bits
       if(overflow1)
-        rdatareg[0] <= 1'b1;            // latch data
+        overflowdatareg[0] <= 1'b1;            // latch data
       if(overflow2)
-        rdatareg[1] <= 1'b1;            // latch data
+        overflowdatareg[1] <= 1'b1;            // latch data
       if(overflow3)
-        rdatareg[2] <= 1'b1;            // latch data
+        overflowdatareg[2] <= 1'b1;            // latch data
       if(overflow4)
-        rdatareg[3] <= 1'b1;            // latch data
+        overflowdatareg[3] <= 1'b1;            // latch data
       if(overflow5)
-        rdatareg[4] <= 1'b1;            // latch data
+        overflowdatareg[4] <= 1'b1;            // latch data
       if(overflow6)
-        rdatareg[5] <= 1'b1;            // latch data
+        overflowdatareg[5] <= 1'b1;            // latch data
       if(overflow7)
-        rdatareg[6] <= 1'b1;            // latch data
+        overflowdatareg[6] <= 1'b1;            // latch data
       if(overflow8)
-        rdatareg[7] <= 1'b1;            // latch data
+        overflowdatareg[7] <= 1'b1;            // latch data
       if(overflow9)
-        rdatareg[8] <= 1'b1;            // latch data
+        overflowdatareg[8] <= 1'b1;            // latch data
       if(overflow10)
-        rdatareg[9] <= 1'b1;            // latch data
+        overflowdatareg[9] <= 1'b1;            // latch data
       if(overflow11)
-        rdatareg[10] <= 1'b1;           // latch data
+        overflowdatareg[10] <= 1'b1;           // latch data
       if(overflow12)
-        rdatareg[11] <= 1'b1;           // latch data
+        overflowdatareg[11] <= 1'b1;           // latch data
       if(overflow13)
-        rdatareg[12] <= 1'b1;           // latch data
+        overflowdatareg[12] <= 1'b1;           // latch data
       if(overflow14)
-        rdatareg[13] <= 1'b1;           // latch data
+        overflowdatareg[13] <= 1'b1;           // latch data
       if(overflow15)
-        rdatareg[14] <= 1'b1;           // latch data
+        overflowdatareg[14] <= 1'b1;           // latch data
       if(overflow16)
-        rdatareg[15] <= 1'b1;           // latch data
+        overflowdatareg[15] <= 1'b1;           // latch data
+// latch input ADC data
+      ADC1datareg <= ADC1data;
+      ADC2datareg <= ADC2data;
+//
+// step 1c. process ADC data to find peaks
+// this is pipelined into two cycles. Find magnitude; thern running max magnitude. 
+// find
+      if(ADC1datareg < 0)
+        ADC1magnitudereg <= -ADC1datareg;
+      else
+        ADC1magnitudereg <= ADC1datareg;
+      if(ADC1magnitudereg > ADC1currentpeakreg)
+        ADC1currentpeakreg <= ADC1magnitudereg;
 
-// step 3. read address transaction: latch when arvalid and arready both true    
+      if(ADC2datareg < 0)
+        ADC2magnitudereg <= -ADC2datareg;
+      else
+        ADC2magnitudereg <= ADC2datareg;
+      if(ADC2magnitudereg > ADC2currentpeakreg)
+        ADC2currentpeakreg <= ADC2magnitudereg;
+
+//
+// step 1d. Register overflow bits to same pipeline depth
+//
+    overflowdataregpl1 <= overflowdatareg;
+    overflowdataregpl2 <= overflowdataregpl1;
+    
+
+// step 2. read address transaction: latch address when arvalid and arready both true
+//         and deassert arready as the addres transaction is in its last cycle    
       if(s_axi_arvalid & arreadyreg)
       begin
-        arreadyreg <= 1'b0;                  // clear when address transaction happens
+        arreadyreg <= 1'b0;                     // clear when address transaction happens
+        raddrreg <= s_axi_araddr;               // latch the required read address
       end
-// step 4. assert rvalid when address and stream data transfers are ready
-      if(s_axi_arvalid & arreadyreg)       // address complete and stream already complete
+
+// step 3. assert rvalid when address and stream data transfers are ready
+      if(!arreadyreg)                           // address complete and stream already complete
       begin
         rvalidreg <= 1'b1;                                  // signal ready to complete data
+        case (raddrreg[3:2])
+            0: rdatareg <= overflowdataregpl2;
+            1: rdatareg <= ADC1latchedpeakreg;
+            2: rdatareg <= ADC2latchedpeakreg;
+            3: rdatareg <= ADC2latchedpeakreg;
+            
+        endcase
       end
-// step 5. When rvalid and rready, terminate the transaction & clear data.
+
+// step 4. When rvalid and rready, terminate the transaction & clear data.
       if(rvalidreg & s_axi_rready)
       begin
         rvalidreg <= 1'b0;                                  // deassert rvalid
         arreadyreg <= 1'b1;                                 // ready for new address
-        rdatareg <= {(AXI_DATA_WIDTH){1'b0}};
+        overflowdatareg <= {(AXI_DATA_WIDTH){1'b0}};
+        if(raddrreg[3:2] == 0)                              // store peaks if it is the overflow register being read
+        begin
+          ADC1latchedpeakreg <= ADC1currentpeakreg;
+          ADC2latchedpeakreg <= ADC2currentpeakreg;
+          ADC1currentpeakreg <= 0;
+          ADC2currentpeakreg <= 0;
+        end
       end
     end
   end

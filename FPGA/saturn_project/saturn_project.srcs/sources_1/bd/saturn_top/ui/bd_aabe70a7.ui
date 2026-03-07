@@ -1,7 +1,7 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"0.843796",
-   "Default View_TopLeft":"-799,329",
+   "Default View_TopLeft":"-593,329",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
 #  -string -flagsOSRD
@@ -52,6 +52,8 @@ preplace netloc D_register_2_dout 1 1 3 N 550 N 550 690
 preplace netloc D_register_3_dout 1 1 3 N 380 N 380 710
 preplace netloc D_register_norst_0_dout 1 3 1 720 960n
 preplace netloc DualDDCRate_1 1 0 1 -160 670n
+preplace netloc LOIQSel_1 1 3 1 820 1170n
+preplace netloc LOSelDebug_1 1 0 2 -140J 910 100
 preplace netloc Net 1 0 1 -150 770n
 preplace netloc Net1 1 0 5 -190 850 N 850 360 610 730 850 1210
 preplace netloc Net2 1 0 4 -170 830 N 830 340 810 800
@@ -63,14 +65,12 @@ preplace netloc din_1_1 1 0 1 -180J 220n
 preplace netloc din_2_1 1 0 1 -180J 570n
 preplace netloc din_3_1 1 0 1 -200J 400n
 preplace netloc util_reduced_logic_0_Res 1 1 3 150 660 370 480 630
+preplace netloc xlconcat_0_dout 1 2 1 360 1180n
 preplace netloc xlconstant_0_dout 1 1 3 120 600 N 600 810
 preplace netloc xlconstant_1_dout 1 1 3 110 570 N 570 700
 preplace netloc xlslice_Arate_Dout 1 1 2 NJ 670 350
 preplace netloc xlslice_Asource_Dout 1 1 3 100J 580 N 580 N
 preplace netloc xlslice_Brate_Dout 1 1 2 N 970 370
-preplace netloc xlconcat_0_dout 1 2 1 360 1180n
-preplace netloc LOIQSel_1 1 3 1 820 1170n
-preplace netloc LOSelDebug_1 1 0 2 -140J 910 100
 preplace netloc DDC_Block_0_LOIQOut 1 3 2 820 840 1180
 preplace netloc DDC_Block_0_M_AXIS_DATA 1 4 1 1190 640n
 preplace netloc DDC_Block_1_M_AXIS_DATA 1 4 1 1220 1020n
