@@ -213,7 +213,7 @@ void* G2PanelTick(__attribute__((unused)) void *arg)
             if(CATDetected == false)
             {
                 CATDetected = true;
-                MakeProductVersionCAT(PRODUCTID, HWVERSION, GetP2appVersion());
+                MakeProductVersionCAT(PRODUCTID, HWVERSION, GetP2appVersion(), DESTTCPCATPORT);
             }
         }
         else
