@@ -790,12 +790,13 @@ unsigned int GetP2PTTKeyInputs(void);
 
 
 //
-// GetADCOverflow(void)
-// return true if ADC overflow has occurred since last read.
+// GetADCOverflow(uint16_t* ADC1Max, uint16_t* ADC2Max)
+// return true if ADC amplitude overflow has occurred since last read.
 // the overflow stored state is reset when this is read.
-// returns bit0: 1 if ADC1 overflow; bit1: 1 if ADC2 overflow
+// returns bit0: 1 if ADC1 overflow; bit1: 1 if ARC2 overflow
+// for FPGA version >27, returns the unsigned max amplitude from each ADC as parameters
 //
-unsigned int GetADCOverflow(void);
+unsigned int GetADCOverflow(uint16_t* ADC1Max, uint16_t* ADC2Max);
 
 
 //

@@ -30,6 +30,7 @@
 #include "../common/saturndrivers.h"
 #include "../common/byteio.h"
 #include "LDGATU.h"
+#include <sys/param.h>
 
 
 uint8_t GlobalFIFOOverflows = 0;             // FIFO overflow words
@@ -63,6 +64,10 @@ void *OutgoingHighPriority(void *arg)
   bool FIFOOverflow, FIFOUnderflow, FIFOOverThreshold;      // FIFO flags
   uint8_t FIFOOverflows;
   uint8_t ADCOverflows = 0;                       // set non zero if ADC overflows detected
+  uint16_t ADC1MaxAmpl;                           // max ADC amplitude in period where overflows clecked
+  uint16_t ADC2MaxAmpl;                           // max ADC amplitude in period where overflows clecked
+  uint16_t PeakADC1MaxAmpl;                       // max hold ADC amplitude in period of message
+  uint16_t PeakADC2MaxAmpl;                       // max hold ADC amplitude in period of message
 
 //
 // initialise. Create memory buffers and open DMA file devices
@@ -114,6 +119,10 @@ void *OutgoingHighPriority(void *arg)
     // when a DDC becomes enabled, its paired DDC may not know yet and may still be set to interleaved.
     // when a DDC is set to interleaved, the paired DDC may not have been disabled yet.
     //
+    // note ADC overflows are read at a higher rate, and any overflow causes a new message to be sent out. 
+    // ADC overflow bits are ORed, and max ADC amplitude  held as a local max until the message is sent. 
+  
+    //
     while(SDRActive && !InitError)                               // main loop
     {
       uint16_t SleepCount;                                      // counter for sending next message
@@ -123,9 +132,16 @@ void *OutgoingHighPriority(void *arg)
       ReadStatusRegister();
       PTTBits = (uint8_t)GetP2PTTKeyInputs();
       *(uint8_t *)(UDPBuffer+4) = PTTBits;
-      ADCOverflows |= (uint8_t)GetADCOverflow();                // add in any new overflows
+      ADCOverflows |= (uint8_t)GetADCOverflow(&ADC1MaxAmpl, &ADC2MaxAmpl);                // add in any new overflows
+      PeakADC1MaxAmpl = MAX(PeakADC1MaxAmpl, ADC1MaxAmpl);      // get peak hold
+      PeakADC2MaxAmpl = MAX(PeakADC2MaxAmpl, ADC2MaxAmpl);      // get peak hold
       *(uint8_t *)(UDPBuffer+5) = ADCOverflows;
       ADCOverflows = 0;                                         // and clear ready for next test
+      wr_be_u16(UDPBuffer+39, PeakADC1MaxAmpl);         // ADC1 peak hold
+      PeakADC1MaxAmpl = 0;
+      wr_be_u16(UDPBuffer+41, PeakADC2MaxAmpl);         // ADC2 peak hold
+      PeakADC2MaxAmpl = 0;
+
       Word = (uint16_t)GetAnalogueIn(4);
       wr_be_u16(UDPBuffer+6, Word);                     // exciter power
       Word = (uint16_t)GetAnalogueIn(0);
@@ -207,7 +223,9 @@ void *OutgoingHighPriority(void *arg)
         ReadStatusRegister();
         if ((uint8_t)GetP2PTTKeyInputs() != PTTBits)
           break;
-        ADCOverflows |= (uint8_t)GetADCOverflow();
+        ADCOverflows |= (uint8_t)GetADCOverflow(&ADC1MaxAmpl, &ADC2MaxAmpl);                // add in any new overflows
+        PeakADC1MaxAmpl = MAX(PeakADC1MaxAmpl, ADC1MaxAmpl);      // get peak hold
+        PeakADC2MaxAmpl = MAX(PeakADC2MaxAmpl, ADC2MaxAmpl);      // get peak hold
         if(ADCOverflows != 0)
           break;
         usleep(500);
