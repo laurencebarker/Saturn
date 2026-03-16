@@ -7,6 +7,7 @@ cd github/saturn/linuxdriver/xdma
 sudo apt install linux-headers-rpi-v8
 
 # build and install driver
+sudo rmmod -s xdma
 make
 sudo make install
 sudo modprobe xdma

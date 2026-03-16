@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=true
+Name[eb_GB]=p2app
+Exec=/home/pi/github/Saturn/sw_projects/P2_app/p2app -p
+Icon=/usr/share/pixmaps/openbox.png
+Name=p2app

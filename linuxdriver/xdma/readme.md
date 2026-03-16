@@ -5,12 +5,14 @@ build instructions for the XDMA driver
 (note if this fails you will need to use an older OS release, or rebuild the kernel 
 by following the instructions at https://www.raspberrypi.org/documentation/linux/kernel/building.md)
 
+sudo apt install linux-headers-rpi-v8
 
-sudo apt install raspberrypi-kernel-headers
+(if that fails, try: sudo apt install raspberrypi-kernel-headers)
 
 
-2. build the kernel module:
+2. build the kernel module, removing any existing one if needed:
 
+sudo rmmod -s xdma
 cd ~/github/Saturn/linuxdriver/xdma
 make
 sudo make install
@@ -34,7 +36,3 @@ sudo modprobe xdma
 rmmod -s xdma
 
 
-6. to buld the tools for testing:
-
-cd ~/github/saturn/linuxdriver/tools
-make

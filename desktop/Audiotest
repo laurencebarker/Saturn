@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Audiotest
 Comment=Saturn FPGA Mic and speaker audio Test app
-Icon=/usr/share/pixmaps/obconf.png
+Icon=/usr/share/pixmaps/openbox.png
 Exec=/home/pi/github/Saturn/sw_projects/audiotest/audiotest
 Type=Application
 Encoding=UTF-8

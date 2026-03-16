@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=biascheck
 Comment=Saturn PA Bias Setup
-Icon=/usr/share/pixmaps/obconf.png
+Icon=/usr/share/pixmaps/openbox.png
 Exec=/home/pi/github/Saturn/sw_projects/biascheck/biascheck
 Type=Application
 Encoding=UTF-8
