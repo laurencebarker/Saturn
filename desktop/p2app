@@ -5,5 +5,5 @@ Type=Application
 Terminal=true
 Name[eb_GB]=p2app
 Exec=/home/pi/github/Saturn/sw_projects/P2_app/p2app -p
-Icon=/usr/share/pixmaps/openbox.png
+Icon=/home/pi/github/Saturn/desktop/p2app.png
 Name=p2app
