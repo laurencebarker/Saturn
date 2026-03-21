@@ -1,4 +1,8 @@
-This folder holds files reused from Xilinx SDK at https://github.com/Xilinx/embeddedsw. Some files were modified some weren't.
+Command line FPGA flash programmer
+can be used to program the primary or fallback images
+
+This folder holds files reused from Xilinx SDK at https://github.com/Xilinx/embeddedsw. 
+
 
 
 build instructions:
@@ -9,6 +13,10 @@ make
 usage:
 1. Generate bitstream in Vivado
 2. Use Vivado to create a binary format prom file eg "prom.bin"
-3. use command line to program ad address 0, with verify:
+3. load-FPGA [-b binary file] [-f] [-v]
+   Programming specification options
+   -b: Data file to load (raw binary)
+   -v: Verify after programming
+   -f: program fallback image
 
-./spiload -a 0 -f prom.bin -v
+
