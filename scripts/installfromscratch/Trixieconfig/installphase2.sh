@@ -84,6 +84,15 @@ make
 echo 
 echo "================================================================="
 
+# build command line FPGA programmer
+echo 
+echo "building command line FPGA programmer"
+cd ~/github/Saturn/sw_tools/load-FPGA
+make clean
+make
+echo 
+echo "================================================================="
+
 # build command line FPGA flash writer
 echo 
 echo "building command line FPGA flash writer"
@@ -111,6 +120,14 @@ make
 echo 
 echo "================================================================="
 
+# program FPGA with newest code
+echo 
+echo "updating FPGA"
+cd ~/github/Saturn/scripts
+bash program-bin.sh
+echo 
+echo "================================================================="
+
 # build desktop piHPSDR
 echo 
 echo "building piHPSDR"
@@ -132,7 +149,7 @@ cp p2app ~/Desktop
 
 mkdir ~/.config/autostart
 cd ~/github/Saturn/autostart-files
-cp g2-shutdown.desktop ~/.config/autostart
+cp g2-shutdown-trixie.desktop ~/.config/autostart
 
 echo 
 echo "================================================================="
