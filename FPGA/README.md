@@ -10,9 +10,8 @@ saturnprinaryxx.bin: primary config file for FPGA version XX. This should be pro
 Version history:
 
 
-
+V27. 07/03/2026. added recording of max magnitude ADC0 and ADC1 samples in the same period that ADC overflows are reported
 V26. 04/01/2026. Added debug LO DDS selection to allow a Thetis debug mode to be used. No benefit for normal operation. 
-
 V25. 07/06/2025: Added drives to select HPF in TX path for future Saturn PCB. Does not affect behaviour with current PCB.
 V24. 20/05/2025: Cordic removed and replaced by original DDS. Cordic had slightly worse broadband noise performance.
 V23. 15/05/2025: experimental replacement of TX DDS by CORDIC derived from that in Orion. fixed I/Q amplitude for debug use set to 0.9 ampl from 1.0
