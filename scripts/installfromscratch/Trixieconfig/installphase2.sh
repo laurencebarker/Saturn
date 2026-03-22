@@ -137,7 +137,7 @@ make
 echo 
 echo "================================================================="
 
-# install desktop shortcuts and auto-run files
+# install desktop shortcuts and auto-run shutdown detector files
 echo 
 echo "adding desktop shortcuts and auto-run files"
 cd ~/github/Saturn/desktop
@@ -153,3 +153,18 @@ cp g2-shutdown.desktop ~/.config/autostart
 
 echo 
 echo "================================================================="
+
+# install auto-run for p2app or piHPSDR
+# begin by detecting if a front panel is fitted
+# auto run pihpsdr if a front panel is fitted, else p2app
+echo 
+echo "adding auto-run for p2app or piHPSDR"
+cd ~/github/Saturn/scripts
+Result=$(python3 findpanel.py)
+cd ~/github/Saturn/autostart-files
+if [ "$Result" != "NONE" ]
+then
+	cp g2-autostart-piHPSDR.desktop ~/.config/autostart
+else
+	cp g2-autostart-p2app.desktop ~/.config/autostart
+fi
