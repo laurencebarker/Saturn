@@ -111,7 +111,7 @@ make
 echo 
 echo "================================================================="
 
-# build desktop audiotest app
+# build desktop biashheck app
 echo 
 echo "building desktop biascheck app"
 cd ~/github/Saturn/sw_projects/biascheck
@@ -149,7 +149,7 @@ cp p2app ~/Desktop
 
 mkdir ~/.config/autostart
 cd ~/github/Saturn/autostart-files
-cp g2-shutdown-trixie.desktop ~/.config/autostart
+cp g2-shutdown.desktop ~/.config/autostart
 
 echo 
 echo "================================================================="

@@ -30,10 +30,37 @@
 #            installphase1.sh
 # this script needs to work out the correct config.txt file, then install it
 # this depends on:
-# 1. whether a t7" or 8" display is fitted;
+# 1. whether a 7" display is fitted;
 # 2. whether the code runs on a CM4 or CM5 processor. 
 # remember we are setting up code for existing users' radio, not just new build!
 #
+cd ~/github/Saturn/scripts/installfromscratch/Trixieconfig
+# discover the processor type:
+CMText=$(cat /sys/firmware/devicetree/base/model)
+CMModel=${CMText:28:1}
+#discover the 7" panel: then copy a file to config.txt
+#
+if i2cget -y 1 0x20
+then
+	echo "7 inch display present"
+	if [ $CMModel -eq 5 ]
+	then
+		sudo cp cm5_7inch_config.txt /boot/firmware/config.txt
+	else
+		sudo cp cm4_7inch_config.txt /boot/firmware/config.txt
+	fi
+	
+else
+	echo "7 inch display is not fitted"
+	if [ $CMModel -eq 5 ]
+	then
+		sudo cp cm5_8inch_config.txt /boot/firmware/config.txt
+	else
+		sudo cp cm4_8inch_config.txt /boot/firmware/config.txt
+	fi
+fi
 
 
-
+#
+# now set to restart with installphase2 script auto-running
+#
