@@ -116,7 +116,7 @@ Type=Application
 Name=P2_app Control
 Comment=Start/Stop ${UNIT_NAME}
 Exec=${BIN_INSTALL}
-Icon=utilities-terminal
+Icon=/home/pi/github/Saturn/sw_tools/p2app-control/p2appcontrol.png
 Terminal=false
 Categories=Utility;System;
 EOF4

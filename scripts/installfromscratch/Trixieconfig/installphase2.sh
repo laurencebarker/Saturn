@@ -120,7 +120,17 @@ make
 echo 
 echo "================================================================="
 
-# program FPGA with newest code
+# build desktop p2app-control app
+echo 
+echo "building desktop p2app-control app"
+cd ~/github/Saturn/sw_tools/p2app-control
+make clean
+make
+./install.sh
+echo 
+echo "================================================================="# program FPGA with newest code
+
+# program FPGA with latest code
 echo 
 echo "updating FPGA"
 cd ~/github/Saturn/scripts
