@@ -170,7 +170,7 @@ echo "================================================================="
 echo 
 echo "adding auto-run for p2app or piHPSDR"
 cd ~/github/Saturn/scripts
-Result=$(python3 findpanel.py)
+Result=$(python3 findpanel.py "/dev/serial/by-id/g2-front-9600")
 cd ~/github/Saturn/autostart-files
 if [ "$Result" != "NONE" ]
 then

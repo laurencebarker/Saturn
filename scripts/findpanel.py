@@ -1,7 +1,12 @@
 # script to discover if a front panel is present
-# could be none, G2V1 or G2V2
+# could be none, G2V1 or G2V2, or Remotehead
 #G2V1: I2C interface, discovered by device presence
-#G2V2: serial, discovered by CAT response
+#G2V2, RemoteHead: serial, discovered by CAT response
+# serial port name passed in 1st parameter
+# e.g. $ python3 findpanel.py "/dev/serial/by-id/g2-front-9600"
+#
+# make sure p2app isn't running!
+#
 # print() response sends back strings as the return value
 #
 # Laurence barker March 2026
@@ -15,7 +20,7 @@ import smbus
 G2V2Found = False
 G2V1Found = False
 
-serial_path = '/dev/serial/by-id/g2-front-9600'
+serial_path = sys.argv[1]
 if os.path.exists(serial_path):
 	ser = serial.Serial(serial_path, 9600, timeout=1)
 	ser.write(b'ZZZS;')
@@ -26,7 +31,10 @@ if os.path.exists(serial_path):
 	startpoint=str.find(b'ZZZS05') #-1 if not found
 	if(startpoint == 0):
 		G2V2Found = True
-
+	#look for "ZZZS08" to identify a RemoteHead
+	startpoint=str.find(b'ZZZS08') #-1 if not found
+	if(startpoint == 0):
+		RemoteHeadFound = True
 	ser.close()
 
 
@@ -43,6 +51,8 @@ if (G2V1Found==True):
 	print("G2V1")
 elif (G2V2Found==True):
 	print("G2V2")
+elif (RemoteHeadFound==True):
+	print("RemoteHead")
 else:
 	print("NONE")
 
