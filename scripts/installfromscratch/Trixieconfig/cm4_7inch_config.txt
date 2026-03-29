@@ -56,6 +56,6 @@ dtparam=uart0=on
 #enable uart3
 dtoverlay=uart3
 
-#enable waveshare 7" LCD with i2c1
+#enable waveshare 7" LCD with i2c0
 dtoverlay=vc4-kms-dsi-waveshare-panel,7_0_inchC,i2c0
 usb_max_current_enable=1
