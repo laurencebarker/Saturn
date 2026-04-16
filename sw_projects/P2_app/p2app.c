@@ -63,6 +63,7 @@
 #include "cathandler.h"
 #include "LDGATU.h"
 #include "AriesATU.h"
+#include "SPEAmpControl.h"
 #include "frontpanelhandler.h"
 #include "GanymedePAControl.h"
 
@@ -146,6 +147,8 @@ bool UseControlPanel = false;               // true if to use a control panel
 bool UseGanymede = false;                   // true if to use Ganymede PA protection
 bool UseLDGATU = false;                     // true if to use an LDG ATU via CAT
 bool UseAriesATU = false;                   // true if to use an Aries ATU
+bool UseSPEAmp = false;                   // true if to emulate Kenwood CAT for SPE amp
+char SPEAmpDevice[160] = "";             // SPE amp serial device path (and optional :baud)
 uint32_t LODebugDDC1Frequency;              // -x debug mode: LO frequency for DDC1
 bool InterleavedDDCDebugMode = false;       // true if interleaved DDC for debug are allowed
 
@@ -385,6 +388,8 @@ void Shutdown()
     ShutdownFrontPanelHandler();
   if(UseAriesATU)
     ShutdownAriesHandler();
+  if(UseSPEAmp)
+    ShutdownSPEAmpHandler();
 
   close(SocketData[0].Socketid);                          // close incoming data socket
   sem_destroy(&DDCInSelMutex);
@@ -535,7 +540,7 @@ int main(int argc, char *argv[])
 // option string needs a colon after each option letter that has a parameter after it
 // and it has a leading colon to suppress error messages
 //
-  while((CmdOption = getopt(argc, argv, ":a:i:f:x:m:sdphg")) != -1)
+  while((CmdOption = getopt(argc, argv, ":a:e:i:f:x:m:sdphg")) != -1)
   {
     switch(CmdOption)
     {
@@ -544,6 +549,8 @@ int main(int argc, char *argv[])
         printf("optional arguments:\n");
         printf("-a LDG        control TUNE for LDG ATU\n");
         printf("-a Aries      control TUNE for Aries ATU\n");
+        printf("-e <tty>      emulate Kenwood CAT for SPE Expert amp (e.g. /dev/ttyUSB0)\n");
+        printf("              optionally append :baudrate, e.g. /dev/ttyUSB0:4800 (default 9600)\n");
         printf("-f <frequency in Hz> turns on test source for all DDCs\n");
         printf("-g            enables PA protection (G2-1k only)\n");
         printf("-i saturn     board responds as board id = Saturn\n");
@@ -555,6 +562,12 @@ int main(int argc, char *argv[])
         printf("-p            drive G2 control panel\n");
         printf("-x            dubin mode to allow interleaved DDC on different frquencies\n");
         return EXIT_SUCCESS;
+        break;
+
+      case 'e':
+        strncpy(SPEAmpDevice, optarg, sizeof(SPEAmpDevice) - 1);
+        SPEAmpDevice[sizeof(SPEAmpDevice) - 1] = '\0';
+        UseSPEAmp = true;
         break;
 
       case 'a':
@@ -668,6 +681,15 @@ int main(int argc, char *argv[])
 //
   if(UseAriesATU)
     InitialiseAriesHandler();
+
+//
+// startup SPE Expert amp CAT emulation if requested
+//
+  if(UseSPEAmp)
+  {
+    if(!InitialiseSPEAmpHandler(SPEAmpDevice))
+      printf("SPE amp CAT: failed to start - check device path and permissions\n");
+  }
 
 //
 // startup Ganymede handler if needed
