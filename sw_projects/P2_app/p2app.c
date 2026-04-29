@@ -66,7 +66,7 @@
 #include "frontpanelhandler.h"
 #include "GanymedePAControl.h"
 
-#define P2APPVERSION 45
+#define P2APPVERSION 46
 #define FWREQUIREDMAJORVERSION 1                  // major version that is required. Only altered if programming interface changes. 
 //
 // the Firmware version is a protection to make sure that if a p2app update is required by the new firmware,
@@ -74,6 +74,7 @@
 //
 //------------------------------------------------------------------------------------------
 // VERSION History
+// V46, 29/4/2026.   reduced PA drive level for V3 H/W to same as V2 H/W so that puresignal works OK
 // V45, 16/3/2026.   encodes max ADC1, ADC2 sample in the message period into the high priority status message.
 // V44, 31/01/2026.  Support for Thetis "push" CAT commands for Ganymede, g2v2 indicators & Aries instead of polling
 // V43, 19/01/2026.  Initial support for Ganymede PA controller if stared with -g switch.
@@ -159,7 +160,8 @@ bool InterleavedDDCDebugMode = false;       // true if interleaved DDC for debug
 #define VCONSTTXAMPLSCALEFACTOR_13 0x0002000  // 18 bit scale value - set to 1/32 of full scale FWV13+
 #define VCONSTTXAMPLSCALEFACTOR_17 0x0002000  // 18 bit scale value - set to 1/32 of full scale FWV17+
 //#define VCONSTTXAMPLSCALEFACTOR_17 0x0002800  // 18 bit scale value - set to 1/32 of full scale FWV17+
-#define VCONSTTXAMPLSCALEFACTOR_PCBV3 0x0002A00  // 18 bit scale value - set to 1/32 of full scale for PCB V3
+//#define VCONSTTXAMPLSCALEFACTOR_PCBV3 0x0002A00  // 18 bit scale value - set to 1/32 of full scale for PCB V3
+#define VCONSTTXAMPLSCALEFACTOR_PCBV3 0x0002000  // 18 bit scale value - set to 1/32 of full scale for PCB V3
 
 struct ThreadSocketData SocketData[VPORTTABLESIZE] =
 {
