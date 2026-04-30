@@ -29,6 +29,7 @@
 #include "../common/byteio.h"
 #include "cathandler.h"
 #include "AriesATU.h"
+#include "SPEAmpControl.h"
 #include <pthread.h>
 #include <syscall.h>
 
@@ -109,6 +110,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
         SetTXEnable(false);
         IsTXMode = false;
         SetMOX(false);
+        SetSPEAmpTXState(false);
         EnableCW(false, false);
         printf("set to inactive by client app\n");
         StartBitReceived = false;
@@ -118,6 +120,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       //
       IsTXMode = (bool)(Byte&2);
       SetMOX(IsTXMode);
+      SetSPEAmpTXState(IsTXMode);
 
 //
 // now properly decode DDC frequencies
@@ -136,6 +139,7 @@ void *IncomingHighPriority(void *arg)                   // listener thread
       LongWord = rd_be_u32(UDPInBuffer+329);
       SetDUCFrequency(LongWord, true);
       SetAriesTXFrequency(LongWord);
+      SetSPEAmpTXFrequency(LongWord);
       Byte = (uint8_t)(UDPInBuffer[345]);
       SetTXDriveLevel(Byte);
       //

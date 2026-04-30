@@ -45,6 +45,15 @@ typedef enum
 
 
 //
+// open and configure a serial port for read/write access.
+// DeviceName: device path (e.g. "/dev/ttyUSB0")
+// Baud: termios speed constant (e.g. B9600)
+// Returns the file descriptor on success, -1 on failure.
+//
+int OpenSerialPort(char* DeviceName, unsigned int Baud);
+
+
+//
 // send a string to the serial port
 //
 void SendStringToSerial(int Device, char* Message);
