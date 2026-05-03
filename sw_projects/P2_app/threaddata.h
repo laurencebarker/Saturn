@@ -20,6 +20,7 @@
 
 #include <stdint.h>
 #include <netinet/in.h>
+#include <stdatomic.h>
 #include "../common/saturntypes.h"
 #include <semaphore.h>
 
@@ -78,8 +79,7 @@ extern bool StartBitReceived;                       // true when "run" bit has b
 extern bool NewMessageReceived;                     // set whenever a message is received
 extern bool ThreadError;                            // set true if a thread reports an error
 extern bool UseDebug;                               // true if debugging enabled
-extern uint8_t GlobalFIFOOverflows;                 // FIFO overflow words
-extern pthread_mutex_t g_fifo_overflow_mutex;       // protect GlobalFIFOOverflows from race conditions
+extern atomic_uint_fast8_t GlobalFIFOOverflows;     // FIFO overflow flags (atomic)
 extern sem_t MicWBDMAMutex;                         // protect one DMA read channel shared by mic and WB read
 
 
