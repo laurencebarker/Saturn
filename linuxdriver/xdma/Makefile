@@ -14,9 +14,9 @@ topdir := $(shell cd $(src)/.. && pwd)
 
 TARGET_MODULE:=xdma
 
-EXTRA_CFLAGS := -I$(topdir)/include $(XVC_FLAGS)
-#EXTRA_CFLAGS += -D__LIBXDMA_DEBUG__
-#EXTRA_CFLAGS += -DINTERNAL_TESTING
+ccflags-y := -I$(topdir)/include $(XVC_FLAGS)
+#ccflags-y += -D__LIBXDMA_DEBUG__
+#ccflags-y += -DINTERNAL_TESTING
 
 ifneq ($(KERNELRELEASE),)
 	$(TARGET_MODULE)-objs := libxdma.o xdma_cdev.o cdev_ctrl.o cdev_events.o cdev_sgdma.o cdev_xvc.o cdev_bypass.o xdma_mod.o xdma_thread.o
