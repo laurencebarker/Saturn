@@ -56,6 +56,19 @@ dtparam=uart0=on
 #enable uart2
 dtoverlay=uart2-pi5
 
-#enable waveshare 8" LCD with i2c1
-dtoverlay=vc4-kms-dsi-waveshare-panel,8_0_inch,i2c1
+#enable waveshare 8" LCD
+#On a G2 the panel's video and its I2C control are reached through different DSI
+#instances, so both must be declared. With only ,dsi0 the I2C works (panel init,
+#backlight and touch are all fine) but there is no image. With only ,i2c1, or with
+#no modifier, the video is on the right port but nothing answers on the I2C, so the
+#panel is never initialised. Declaring both supplies each half from the instance
+#that has it. Apply with a cold power cycle; a warm reboot behaves differently.
+dtoverlay=vc4-kms-dsi-waveshare-panel,8_0_inch,i2c0,dsi1
+dtoverlay=vc4-kms-dsi-waveshare-panel,8_0_inch,i2c1,dsi0
 usb_max_current_enable=1
+
+#Panel and front-panel GPIO setup, as used by the factory CM4 configuration.
+#Without gpio=15 the panel controller can fail its init write at boot:
+#  ws_touchscreen 10-0045: I2C write failed: -121
+gpio=15=op,dh
+gpio=4-13,16-27=ip,pu
