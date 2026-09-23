@@ -47,14 +47,14 @@ input   wire          resetn;       // reset
 input   wire          CLK_IN;
 (* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 BCLK CLK" *)
 (* X_INTERFACE_PARAMETER = "FREQ_HZ 5000000" *)
-output  reg           BCLK;
-output  reg           Brise;
-output  reg           Bfall;
+output  reg           BCLK = 0;
+output  reg           Brise = 0;
+output  reg           Bfall= 0;
 (* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 LRCLK CLK" *)
 (* X_INTERFACE_PARAMETER = "FREQ_HZ 1000000" *)
-output  reg           LRCLK;
-output  reg           LRrise;
-output  reg           LRfall;
+output  reg           LRCLK = 1;
+output  reg           LRrise = 0;
+output  reg           LRfall = 0;
 
 localparam LS = clogb2 (32-1); // 0 to (BCLK_10-1)
 

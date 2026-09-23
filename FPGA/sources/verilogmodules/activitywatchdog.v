@@ -44,7 +44,7 @@ module Watchdog #
   input wire             activity1,
   input wire             activity2,
 
-  output reg             TXEnable
+  output reg             TXEnable = 0     // TX disabled from power-up until activity is seen
 );
 //
 // internal registers

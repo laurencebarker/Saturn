@@ -41,7 +41,7 @@ module LTC2208_derandomise #(parameter DATA_WIDTH = 16)
     if (rand_sel)
     begin
     	if (InputData[0])
-            dout[DATA_WIDTH-1:0] <= {~InputData[15:1],InputData[0]};
+            dout[DATA_WIDTH-1:0] <= {~InputData[DATA_WIDTH-1:1],InputData[0]};
         else
             dout[DATA_WIDTH-1:0] <= InputData[DATA_WIDTH-1:0];
 

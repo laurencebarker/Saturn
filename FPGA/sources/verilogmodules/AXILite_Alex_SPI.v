@@ -16,7 +16,7 @@
 // Registers:
 //  addr 0         TX filter & RX antenna Data (bits 15:0)
 //  addr 4         RX data (bits 31:0)
-//  addr 8:        TX filter & TX antenna data (bits 156:0)
+//  addr 8:        TX filter & TX antenna data (bits 15:0)
 
 // Revision:
 // Revision 0.01 - File Created
@@ -133,7 +133,7 @@ module AXILite_Alex_SPI #
 // 
 // local variables
 //
-  reg[15:0] DivideCount;		// clock divide count register
+  reg[15:0] DivideCount = 0;		// clock divide count register
 
   reg [3:0]spi_state = 4'b0000;
   reg [5:0]data_count;
@@ -189,12 +189,12 @@ module AXILite_Alex_SPI #
 
 //
 // clock divider
+// free running, including during reset: the reset shift of zeros must use the
+// normal SPI clock rate, not the undivided AXI clock
 //
   always @ (posedge aclk)
     begin
-      if (!aresetn)
-	    DivideCount <= 0;
-      else if (DivideCount == 0)
+      if (DivideCount == 0)
 	    DivideCount <= (CLOCK_DIVIDER-1);
       else
 	    DivideCount <= DivideCount - 1'b1;
@@ -240,7 +240,7 @@ module AXILite_Alex_SPI #
             rx_needed <= 1;
         end
         
-        if (TXdatareg != previous_Tx_data)
+        if (TXdatareg[15:0] != previous_Tx_data)      // only 16 bits are shifted
         begin
             //previous_Tx_data <= TXdatareg;
             tx_needed <= 1;
@@ -346,7 +346,7 @@ module AXILite_Alex_SPI #
         raddrreg <= s_axi_araddr;            // latch read address
       end
 // read step 3. assert rvalid & data when address is complete
-      if(!arreadyreg)         // address complete
+      if(!arreadyreg & !rvalidreg)         // address complete
       begin
         rvalidreg <= 1'b1;                                  // signal ready to complete data
 

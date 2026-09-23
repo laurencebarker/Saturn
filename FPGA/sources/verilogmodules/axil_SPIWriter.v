@@ -12,9 +12,10 @@
 
 // Registers:
 // note this is true even if the axi-lite bus is wider!
-//  addr 0         SPI write data [31:0]        R/W
-//  addr 4         SPI read data [63:32]        read only
+//  addr 0         SPI write data [15:0]        R/W
+//  addr 4         SPI read data [15:0]         read only
 //  addr 8         bit 0: 1 if busy             read only
+//  writes to addresses other than 0 are acknowledged and ignored
 //
 // write transfers will stall if a shift is in progress, so consecutive writes are OK
 // read transfers are not stalled. Before reaging SPI read data (0x04)
@@ -106,6 +107,15 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
   reg ClearValid;                           // true when valid input should be cleared
   reg [15:0] SPICount;                      // counter
 
+// 2 flip flop synchroniser for the asynchronous serial input.
+// the 2 clock delay is well inside the time the input bit is stable before it is sampled
+  (* ASYNC_REG = "TRUE" *) reg SPIMISO_meta = 0, SPIMISO_sync = 0;
+  always @(posedge aclk)
+  begin
+    SPIMISO_meta <= SPIMISO;
+    SPIMISO_sync <= SPIMISO_meta;
+  end
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // this design is in two halves: Axilite register interface, and SPI shifter.
@@ -157,6 +167,7 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
       bvalidreg <= 1'b0;                // initialise to "not ready to complete"
       SPIValid_0 <= 0;                  // no data in register 0
       wcompleted <= 1'b0;               // no write complete yet
+      ClearValidReg <= 1'b0;
     end
     else
     begin
@@ -179,7 +190,7 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
         raddrreg <= s_axi_araddr;            // latch read address
       end
 // read step 3. assert rvalid & data when address is complete
-      if(!arreadyreg)         // address complete
+      if(!arreadyreg & !rvalidreg)         // address complete
       begin
         rvalidreg <= 1'b1;                                  // signal ready to complete data
         if(raddrreg[3:2]==2'b00)                            // read back reg 0
@@ -187,7 +198,7 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
         else if(raddrreg[3:2]==2'b01)                       // read back reg 1
           rdatareg <= {16'b0, SPIInWord};
         else
-          rdatareg <= {{(AXI_DATA_WIDTH-1){1'b0}}, SPIBusy};
+          rdatareg <= {{(AXI_DATA_WIDTH-1){1'b0}}, (SPIBusy | SPIValid_0)};   // busy from write until shift done
       end
 // read step 4. When rvalid and rready, terminate the transaction & clear data.
       if(rvalidreg & s_axi_rready)
@@ -230,11 +241,14 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
         awreadyreg <= 1'b1;                                 // and reassert the readys
 //        wreadyreg <= 1'b1;                                // NOT reasserting this yet
         wcompleted <= 1'b0;                                 // ready for next cycle
-        if(waddrreg[2]==0)
+        if(waddrreg[3:2]==2'b00)                            // SPI data register: start a shift
         begin
           config_reg0 <= wdatareg;
-          SPIValid_0 <= 1;
+          SPIValid_0 <= 1;                                  // wready re-asserted when shift completes
         end
+        else
+          wreadyreg <= 1'b1;                                // read only / unused address: nothing
+                                                            // to shift so ready immediately
       end 
     end         // if(!aresetn)
   end           // always @
@@ -278,6 +292,7 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
         if(!aresetn)                // reset condition
         begin
             SPILoad <= 1;
+            SPICk <= 0;
             shiftreg <= 0;
             shiftinreg <= 0;
             SPIInWord <= 0;
@@ -318,7 +333,7 @@ localparam CKDIVWIDTH = clogb2(SPI_CLOCK_DIVIDE);  // number of bits to hold clo
             3:  begin                                   // clock low state
                     SPIState <= 4;                      // next state always state 4
                     SPICk <= 0;
-                    shiftinreg[0] <= SPIMISO;           // add in new data bit
+                    shiftinreg[0] <= SPIMISO_sync;           // add in new data bit
                 end
 
             // End of clock cycle. if counter == 0, assert ClearValid & move on else next lap

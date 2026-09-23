@@ -176,7 +176,7 @@ IQBLKTB_axi_vip_0_0_mst_t      master_agent;
 
 initial begin    
 
-CWRampLength=3840;
+CWRampLength=960;                   // ramp length in words (3840 bytes written below)
 CWHangTime = 10;
 CWPttDelay=3;
 protocol_2=1;

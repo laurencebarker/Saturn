@@ -110,7 +110,7 @@ module iambic #
 	input wire dash_key,                   // dash paddle input, active high
 	input wire CWX,                        // CW data from PC active high
 	input wire paddle_swap,                // swap if set
-	output reg keyer_out,                  // keyer output, active high
+	output reg keyer_out = 0,              // keyer output, active high
 	input wire IO8                         // additional CW key via digital input IO8, debounced, inverted
 );
 				
@@ -128,7 +128,8 @@ localparam 	LOOP 		= 0,
 			LETTERSPACE = 9;	
 			
 localparam  DELAYDOT 	= clogb2(1200 * clock_speed);  	          // worse case number of bits needed to hold dot delay counter
-localparam  DELAYDASH 	= clogb2(1200 * clock_speed * 3 * 66/50); // worse case number of bits needed for dash delay counter	
+localparam  DELAYDASH 	= clogb2(1200 * clock_speed * 3 * 255/50); // worse case number of bits for dash delay counter
+                                                                   // (weight is an 8 bit field: size for 255)
 
 				
 reg dot_memory = 0;
@@ -140,7 +141,8 @@ wire [DELAYDOT-1:0]  dot_delay;
 wire [DELAYDASH-1:0] dash_delay;
 
 
-assign  dot_delay  = (1200 * clock_speed)/cw_speed;	
+wire [5:0] speed = (cw_speed == 0) ? 6'd1 : cw_speed;  // speed 0 (reset value) treated as 1 WPM, never divide by 0
+assign  dot_delay  = (1200 * clock_speed)/speed;	
 assign  dash_delay = (dot_delay * 3 * weight)/50; 	// will be 3 * dot length at standard weight
 
 // swap paddles if set
@@ -166,7 +168,7 @@ LOOP:
 				keyer_out <= 1'b1;
 			else if (dot)								// and automatic dots
 				key_state <= PREDOT;
-			else keyer_out <= CWX;					// neither so use CWX
+			else keyer_out <= (CWX || IO8);			// neither so use CWX or IO8 ext CW digital input
         end
 		else
         begin

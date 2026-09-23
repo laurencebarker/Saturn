@@ -107,18 +107,19 @@ begin
   if ((shift_cnt == (DS+BCNT)) && (b_clk_cnt == DSTRB) && !LRCLK)
     LocalData  <= #IF_TPD temp_data;
 
+//
+// deassert TVALID when TREADY detected
+// (before the new sample code below, so a new sample in the same cycle keeps TVALID set)
+//
+  if (mrecv_axis_tvalid && mrecv_axis_tready)
+    mrecv_axis_tvalid <= 1'b0;
+
   if ((shift_cnt == (DS+BCNT)) && (b_clk_cnt == DSTRB) && LRCLK)
   begin
     mrecv_axis_tdata[DS-1:0]  <= #IF_TPD temp_data;                    // 2ns half of local shifdted data
     mrecv_axis_tdata[DATA_BITS-1:DS] <= LocalData;
     mrecv_axis_tvalid <= 1'b1;
   end
-
-//
-// deassert TVALID when TREADY detected
-//
-  if (mrecv_axis_tvalid && mrecv_axis_tready)
-    mrecv_axis_tvalid <= 1'b0;
 end
 
 function integer clogb2;

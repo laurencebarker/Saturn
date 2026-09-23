@@ -41,8 +41,8 @@ module byteswap_32
   output wire                       s_axis_tready,
 
   // Master side
-  output reg [31:0]                 m_axis_tdata,
-  output reg                        m_axis_tvalid,
+  output reg [31:0]                 m_axis_tdata = 0,
+  output reg                        m_axis_tvalid = 0,
   input wire                        m_axis_tready
 );
 

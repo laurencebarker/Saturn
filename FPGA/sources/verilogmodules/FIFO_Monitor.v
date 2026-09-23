@@ -21,13 +21,13 @@
 //     bit 29      1 id an underflow has occurred, from depth
 //     bit 30      1 if an overflow has occurred, from depth 
 //     bit 31      1 if an overflow has occurred, from FIFO flag. 
-//     bits 29-31 Cleared by read.
+//     bits 29-31 Cleared by read (only flags returned by that read are cleared).
 //
 //  addr 10         Control register 1 (read/write, with no read side effect)
-//  addr 14         Control register 1 (read/write, with no read side effect)
-//  addr 18         Control register 1 (read/write, with no read side effect)
-//  addr 1C         Control register 1 (read/write, with no read side effect)
-//     bit(15:0)   Threshold FIFO depth
+//  addr 14         Control register 2 (read/write, with no read side effect)
+//  addr 18         Control register 3 (read/write, with no read side effect)
+//  addr 1C         Control register 4 (read/write, with no read side effect)
+//     bit(15:0)   Threshold FIFO depth (0 = no threshold)
 //     bit 31      Interrupt enable
 //
 // FIFO Interface signals:
@@ -135,6 +135,12 @@ module FIFO_Monitor #
   reg awreadyreg;                            // false when write address has been latched
   reg wreadyreg;                             // false when write data has been latched
   reg bvalidreg;                             // goes true when address and data completed
+  reg [2:0] reported1, reported2, reported3, reported4;   // flags {ovf, over threshold, under} returned by the current read
+  wire readcomplete = rvalidreg & s_axi_rready;
+  wire clear1 = readcomplete & (raddrreg[4:2] == 3'd0);
+  wire clear2 = readcomplete & (raddrreg[4:2] == 3'd1);
+  wire clear3 = readcomplete & (raddrreg[4:2] == 3'd2);
+  wire clear4 = readcomplete & (raddrreg[4:2] == 3'd3);
    
 //
 // read transaction strategy:
@@ -183,6 +189,7 @@ module FIFO_Monitor #
       wreadyreg  <= 1'b1;                           // initialise to write data ready
       bvalidreg <= 1'b0;                            // initialise to "not ready to complete"
 // clear the FIFO registers      
+      reported1 <= 0; reported2 <= 0; reported3 <= 0; reported4 <= 0;
       fifo1_threshold <= {32{1'b0}};                // zero the FIFO threshold
       int1_enable <= 1'b0;
       fifo1_overflowed <= 1'b0;
@@ -219,49 +226,45 @@ module FIFO_Monitor #
 // FIFO 1
 //
       fifo1_count_reg <= fifo1_count;           // latch the current FIFO data count
-      if(fifo1_overflow)                        // if FIFO overflow flag, set the bit
-        fifo1_overflowed <= 1'b1;               // set persistently
-
-      if(fifo1_count_reg >= fifo1_threshold)
-        fifo1_over_threshold <= 1'b1;
-      else if(fifo1_count_reg == 0)
-        fifo1_underflowed <= 1'b1;
+      // flags are set persistently; a read clears only the flags it reported, and
+      // a new event takes priority over the clear. threshold 0 = no threshold.
+      fifo1_overflowed <= (fifo1_overflowed & ~(clear1 & reported1[2])) | fifo1_overflow;
+      fifo1_over_threshold <= (fifo1_over_threshold & ~(clear1 & reported1[1]))
+                              | ((fifo1_threshold != 0) && (fifo1_count_reg >= fifo1_threshold));
+      fifo1_underflowed <= (fifo1_underflowed & ~(clear1 & reported1[0])) | (fifo1_count_reg == 0);
       interrupt1_out <= (int1_enable & (fifo1_overflowed | fifo1_over_threshold | fifo1_underflowed));
 //
 // FIFO 2
 //
       fifo2_count_reg <= fifo2_count;           // latch the current FIFO data count
-      if(fifo2_overflow)                        // if FIFO overflow flag, set the bit
-        fifo2_overflowed <= 1'b1;               // set persistently
-
-      if(fifo2_count_reg >= fifo2_threshold)
-        fifo2_over_threshold <= 1'b1;
-      else if(fifo2_count_reg == 0)
-        fifo2_underflowed <= 1'b1;
+      // flags are set persistently; a read clears only the flags it reported, and
+      // a new event takes priority over the clear. threshold 0 = no threshold.
+      fifo2_overflowed <= (fifo2_overflowed & ~(clear2 & reported2[2])) | fifo2_overflow;
+      fifo2_over_threshold <= (fifo2_over_threshold & ~(clear2 & reported2[1]))
+                              | ((fifo2_threshold != 0) && (fifo2_count_reg >= fifo2_threshold));
+      fifo2_underflowed <= (fifo2_underflowed & ~(clear2 & reported2[0])) | (fifo2_count_reg == 0);
       interrupt2_out <= (int2_enable & (fifo2_overflowed | fifo2_over_threshold | fifo2_underflowed));
 //
 // FIFO 3
 //
       fifo3_count_reg <= fifo3_count;           // latch the current FIFO data count
-      if(fifo3_overflow)                        // if FIFO overflow flag, set the bit
-        fifo3_overflowed <= 1'b1;               // set persistently
-
-      if(fifo3_count_reg >= fifo3_threshold)
-        fifo3_over_threshold <= 1'b1;
-      else if(fifo3_count_reg == 0)
-        fifo3_underflowed <= 1'b1;
+      // flags are set persistently; a read clears only the flags it reported, and
+      // a new event takes priority over the clear. threshold 0 = no threshold.
+      fifo3_overflowed <= (fifo3_overflowed & ~(clear3 & reported3[2])) | fifo3_overflow;
+      fifo3_over_threshold <= (fifo3_over_threshold & ~(clear3 & reported3[1]))
+                              | ((fifo3_threshold != 0) && (fifo3_count_reg >= fifo3_threshold));
+      fifo3_underflowed <= (fifo3_underflowed & ~(clear3 & reported3[0])) | (fifo3_count_reg == 0);
       interrupt3_out <= (int3_enable & (fifo3_overflowed | fifo3_over_threshold | fifo3_underflowed));
 //
 // FIFO 4
 //
       fifo4_count_reg <= fifo4_count;           // latch the current FIFO data count
-      if(fifo4_overflow)                        // if FIFO overflow flag, set the bit
-        fifo4_overflowed <= 1'b1;               // set persistently
-
-      if(fifo4_count_reg >= fifo4_threshold)
-        fifo4_over_threshold <= 1'b1;
-      else if(fifo4_count_reg == 0)
-        fifo4_underflowed <= 1'b1;
+      // flags are set persistently; a read clears only the flags it reported, and
+      // a new event takes priority over the clear. threshold 0 = no threshold.
+      fifo4_overflowed <= (fifo4_overflowed & ~(clear4 & reported4[2])) | fifo4_overflow;
+      fifo4_over_threshold <= (fifo4_over_threshold & ~(clear4 & reported4[1]))
+                              | ((fifo4_threshold != 0) && (fifo4_count_reg >= fifo4_threshold));
+      fifo4_underflowed <= (fifo4_underflowed & ~(clear4 & reported4[0])) | (fifo4_count_reg == 0);
       interrupt4_out <= (int4_enable & (fifo4_overflowed | fifo4_over_threshold | fifo4_underflowed));
 
 //
@@ -273,9 +276,13 @@ module FIFO_Monitor #
         raddrreg <= s_axi_araddr;            // latch read address
       end
 // read step 3. assert rvalid & data when address is complete
-      if(!arreadyreg)         // address complete
+      if(!arreadyreg & !rvalidreg)  // address complete: load data once, held stable until rready
       begin
         rvalidreg <= 1'b1;                                  // signal ready to complete data
+        reported1 <= {fifo1_overflowed, fifo1_over_threshold, fifo1_underflowed};
+        reported2 <= {fifo2_overflowed, fifo2_over_threshold, fifo2_underflowed};
+        reported3 <= {fifo3_overflowed, fifo3_over_threshold, fifo3_underflowed};
+        reported4 <= {fifo4_overflowed, fifo4_over_threshold, fifo4_underflowed};
         case (raddrreg[4:2])
         0:  rdatareg <= {fifo1_overflowed, fifo1_over_threshold, fifo1_underflowed,
                     {(AXI_DATA_WIDTH - 19){1'b0}}, 
@@ -308,32 +315,7 @@ module FIFO_Monitor #
       begin
         rvalidreg <= 1'b0;                                  // deassert rvalid
         arreadyreg <= 1'b1;                                 // ready for new address
-        rdatareg <= {(AXI_DATA_WIDTH){1'b0}};
-        case (raddrreg[4:2])
-          0: begin 
-                fifo1_overflowed <= 0; 
-                fifo1_over_threshold <= 0; 
-                fifo1_underflowed <= 0; 
-          end             // clear on data transfer
-
-          1: begin 
-                fifo2_overflowed <= 0; 
-                fifo2_over_threshold <= 0; 
-                fifo2_underflowed <= 0; 
-          end             // clear on data transfer
-
-          2: begin 
-                fifo3_overflowed <= 0; 
-                fifo3_over_threshold <= 0; 
-                fifo3_underflowed <= 0; 
-          end             // clear on data transfer
-
-          3: begin 
-                fifo4_overflowed <= 0; 
-                fifo4_over_threshold <= 0; 
-                fifo4_underflowed <= 0; 
-          end             // clear on data transfer
-        endcase
+        // status flags reported by this read are cleared in the flag logic above
       end
 
 

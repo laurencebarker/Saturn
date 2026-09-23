@@ -29,7 +29,9 @@ module PTTATUGate(
     input wire aresetn                   // active low reset
     );
 
-reg ATUReq2 = 0, ATUReq3 = 0;               // regs to double register the ATU request
+// ATURequest and PTTIn come from logic clocked by related clocks (timed paths), so they are
+// used directly. They must not be delayed relative to each other: a delayed ATU request
+// would let PTT out through for a few clocks when both assert together.
 reg [1:0] State = 0;                        // state register
 reg PTTOutReg = 0;                          // PTT out 
 
@@ -48,8 +50,6 @@ begin
     end
     else                                    // normal clock cycle
     begin
-        ATUReq2 <= ATURequest;              // double register the ATU request in 
-        ATUReq3 <= ATUReq2;
         case(State)
             Idle: begin
                 PTTOutReg <= 0;

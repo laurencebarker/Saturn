@@ -72,7 +72,9 @@ module axis_multiplier #
   reg int00_axis_tvalid_reg = 0;                // tvalid from stage 1 to stage 2
   reg int01_axis_tvalid_reg = 0;                // tvalid from stage 1 to stage 2
 
-localparam ProductSize = S00Size + S01Size - 1;
+localparam ProductSize = S00Size + S01Size - 1;     // product size without the redundant sign bit
+localparam FullSize = S00Size + S01Size;            // full product size
+localparam Shift = ProductSize - MSize;             // LSBs dropped from the product
 //
 // axi stream output registers
 //
@@ -83,6 +85,20 @@ localparam ProductSize = S00Size + S01Size - 1;
   assign s00_axis_tready = s00_axis_tready_reg;
   assign s01_axis_tready = s01_axis_tready_reg;
   assign m_axis_tdata = m_axis_tdata_reg[ProductSize-1:ProductSize-MSize];
+
+//
+// full product, rounded to nearest and saturated to ProductSize bits.
+// the only value that overflows ProductSize bits is (-max) * (-max); without saturation
+// it wrapped to a large negative value
+//
+  wire signed [FullSize-1:0] full_product = s00_axis_tdata_reg * s01_axis_tdata_reg;
+  localparam [FullSize:0] ONE = 1;                   // sized constant, so any product width works
+  localparam [FullSize:0] ROUND_CONST = (Shift > 0) ? (ONE << (Shift - 1)) : 0;
+  localparam [FullSize:0] MAX_PRODUCT = (ONE << (ProductSize - 1)) - (ONE << Shift);   // max value, dropped LSBs clear
+  wire signed [FullSize:0]   rounded = full_product + $signed(ROUND_CONST);
+  wire signed [FullSize:0]   max_product = $signed(MAX_PRODUCT);
+  wire signed [ProductSize-1:0] sat_product = (rounded > max_product) ? max_product[ProductSize-1:0]
+                                                                      : rounded[ProductSize-1:0];
   assign m_axis_tvalid = m_axis_tvalid_reg;
 
 //
@@ -151,7 +167,7 @@ localparam ProductSize = S00Size + S01Size - 1;
 // take both data sources, multiply & add
       if(int00_axis_tvalid_reg & int01_axis_tvalid_reg & int_axis_tready_reg)     // accept data if available & ready
       begin
-        m_axis_tdata_reg <= s00_axis_tdata_reg * s01_axis_tdata_reg;
+        m_axis_tdata_reg <= sat_product;
         int_axis_tready_reg <= 0;                       // can't accept until consumed
         m_axis_tvalid_reg <= 1;                         // data available
       end

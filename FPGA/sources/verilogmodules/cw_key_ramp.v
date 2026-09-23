@@ -51,11 +51,18 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module cw_key_ramp
+module cw_key_ramp #
+(
+    // TX safety: maximum continuous key down time in ms. If the key is held longer, the
+    // envelope ramps down and PTT is released until the key is released and pressed again.
+    // Protects against a stuck paddle or a stuck CWX bit while the host keeps streaming
+    // (the FIFO activity watchdog only acts if the host stops). 0 = no limit.
+    parameter KEYDOWN_TIMEOUT_MS = 60000
+)
 (
 (* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 ACLK CLK" *)
 (* X_INTERFACE_PARAMETER = "ASSOCIATED_RESET aresetn" *)
-    input wire aclk,                    // 12.288MHz clock (CODEC MCLK)
+    input wire aclk,                    // 122.88MHz clock
 (* X_INTERFACE_INFO = "xilinx.com:signal:reset:1.0 aresetn RST" *)
 (* X_INTERFACE_PARAMETER = "POLARITY ACTIVE_LOW" *)
     input wire aresetn,                   // asynch reset
@@ -88,6 +95,38 @@ reg [1:0] decimate_count = 0;           // reads to decimate; output codec ampl 
 reg [4:0] address_increment = 0;        // protocol dependent address increment (4 or 16)
 
 localparam MILLISEC_COUNT = 122880;     // clock counts for 1ms @ 122.88MHz clock
+
+//
+// key down timeout
+//
+reg [16:0] keydown_prescale = 0;        // clock counter for 1ms ticks while key held
+reg [31:0] keydown_ms = 0;              // ms the key has been held
+reg keydown_timedout = 0;               // set when held too long; cleared on key release
+wire key_request = key_down && keyer_enable;
+wire key_active = key_request && !keydown_timedout;
+
+always @ (posedge aclk)
+begin
+    if (!aresetn || !key_request || (KEYDOWN_TIMEOUT_MS == 0))
+    begin
+        keydown_prescale <= 0;
+        keydown_ms <= 0;
+        keydown_timedout <= 0;
+    end
+    else if (!keydown_timedout)
+    begin
+        if (keydown_prescale == MILLISEC_COUNT-1)
+        begin
+            keydown_prescale <= 0;
+            if (keydown_ms == KEYDOWN_TIMEOUT_MS-1)
+                keydown_timedout <= 1;
+            else
+                keydown_ms <= keydown_ms + 1;
+        end
+        else
+            keydown_prescale <= keydown_prescale + 1;
+    end
+end
 
 always @ (posedge aclk)
 begin
@@ -139,7 +178,7 @@ begin
             bram_enable <= 0;
             m0_axis_tdata_reg <= 0;                     // no output data
             m1_axis_tdata <= 0;
-            if(key_down && keyer_enable)
+            if(key_active)
             begin
                 ramp_length_reg <= (ramp_length << 2);
                 if(protocol_2 == 1)
@@ -174,12 +213,12 @@ begin
                     ramp_state <= 2;
                 else
                 begin
-                    millis_count = MILLISEC_COUNT;
-                    delay_count = delay_count - 1;          // decrement counter if not all done
+                    millis_count <= MILLISEC_COUNT;
+                    delay_count <= delay_count - 1;          // decrement counter if not all done
                 end
             end
             else
-                millis_count = millis_count - 1;            // decrement milisecond counter
+                millis_count <= millis_count - 1;            // decrement milisecond counter
         end
 
 
@@ -196,7 +235,7 @@ begin
  // some clocks later, get data from register
                 else
                 begin
-                    if (!(key_down && keyer_enable))    // if key no longer active
+                    if (!key_active)                    // if key no longer active (or timed out)
                     begin
                         if (delay_time == 0)            // if no delay begin ramp down
                             ramp_state <= 4;
@@ -222,12 +261,12 @@ begin
                     ramp_state <= 4;
                 else
                 begin
-                    delay_count = delay_count - 1;          // decrement counter if not all done
-                    millis_count = MILLISEC_COUNT;
+                    delay_count <= delay_count - 1;          // decrement counter if not all done
+                    millis_count <= MILLISEC_COUNT;
                 end
             end
             else
-                millis_count = millis_count - 1;            // decrement milisecond counter
+                millis_count <= millis_count - 1;            // decrement milisecond counter
         end
 
 //
@@ -262,7 +301,7 @@ begin
 //
         5:  begin                        // hang count with PTT still active
             m0_axis_tdata_reg <= 0;
-            if(key_down && keyer_enable)
+            if(key_active)
             begin
                 if(delay_time != 0)
                 begin
@@ -281,12 +320,12 @@ begin
                         ramp_state <= 0;
                     else
                     begin
-                        delay_count = delay_count - 1;          // decrement counter if not all done
-                        millis_count = MILLISEC_COUNT;
+                        delay_count <= delay_count - 1;          // decrement counter if not all done
+                        millis_count <= MILLISEC_COUNT;
                     end
                 end
                 else
-                    millis_count = millis_count - 1;            // decrement milisecond counter
+                    millis_count <= millis_count - 1;            // decrement milisecond counter
             end
 
         end

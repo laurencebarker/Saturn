@@ -1,3 +1,8 @@
+#
+# NOTE (2026): this script is OBSOLETE and no longer maintained - see FPGA/README.md.
+# Open FPGA/saturn_project/saturn_project.xpr instead. Several source files it lists have since
+# been moved to sources/verilogmodules/unused/ because they are not used by the design.
+#
 #*****************************************************************************************
 # Vivado (TM) v2023.1 (64-bit)
 #

@@ -70,6 +70,9 @@ module AXI_SPI_ADC #
   reg [AXI_DATA_WIDTH-1:0] rdatareg;
   reg arreadyreg;                          // false when write address has been latched
   reg rvalidreg;                           // true when read data out is valid
+  reg awreadyreg;                          // false when write address has been latched
+  reg wreadyreg;                           // false when write data has been latched
+  reg bvalidreg;                           // true when write response valid
 
   reg[1:0] clk_divide;				       // derive input clock/4 (31.25MHz)
   reg[1:0] clk_phase;				       // derive input clock/16 as 4 phases (7.8125MHz)
@@ -88,6 +91,15 @@ module AXI_SPI_ADC #
   reg  [2:0] NextADCAddress;                // next ADC address			
   reg  [15:0] ADCData;				        // shifted data
   reg   [4:0] BitCnt;				        // bit counter in shift sequence
+
+// 2 flip flop synchroniser for the asynchronous serial input.
+// the 2 clock delay is well inside the time the input bit is stable before it is sampled
+  (* ASYNC_REG = "TRUE" *) reg MISO_meta = 0, MISO_sync = 0;
+  always @(posedge aclk)
+  begin
+    MISO_meta <= MISO;
+    MISO_sync <= MISO_meta;
+  end
  
 // internal registers. When set, clear AIN1 or AIN2
   reg clear_AIN1;                       // asserted by AXI read block to clear a peak hold reg when next accessed
@@ -101,8 +113,8 @@ module AXI_SPI_ADC #
   always @ (posedge aclk)
   if(~aresetn)
   begin
-    clk_divide = 2'b00;                 // reset to 0
-    clk_phase = 2'b00;                  // reset to 0
+    clk_divide <= 2'b00;                // reset to 0
+    clk_phase <= 2'b00;                 // reset to 0
   end
   else
   begin
@@ -132,6 +144,9 @@ module AXI_SPI_ADC #
   if(~aresetn)
   begin
     BitCnt <= 5'b000;                   // reset to 0
+    nCS <= 1'b1;                        // SPI idle: chip deselected
+    MOSI <= 1'b0;
+    SCLK <= 1'b1;                       // clock idles high (set high in phase 3)
 	ADCAddress <= 3'b101;		        // reset current ADC address
 	NextADCAddress <= 3'b000;		    // reset ADC address
 	ADCData <= 16'b0;                   // shift register
@@ -227,7 +242,7 @@ module AXI_SPI_ADC #
             begin
                 ADCData[15:1] <= ADCData[14:0];
                 if(BitCnt >= 4)
-                    ADCData[0] <= MISO;
+                    ADCData[0] <= MISO_sync;
                 else
                     ADCData[0] <= 0;
             end
@@ -282,7 +297,7 @@ module AXI_SPI_ADC #
         arreadyreg <= 1'b0;                     // clear when address transaction happens
       end
 // step 3. assert rvalid and data when address and stream data transfers are ready
-      if(!arreadyreg)                           // address already complete
+      if(!arreadyreg & !rvalidreg)                           // address already complete
       begin
         rvalidreg <= 1'b1;                                  // signal ready to complete data
         case(raddrreg[4:2])                                 // select appropriate register
@@ -311,16 +326,39 @@ module AXI_SPI_ADC #
     end
   end
 
-// drive output from registered internals
-  assign s_axi_arready = arreadyreg;
-  assign s_axi_rdata = rdatareg;
-  assign s_axi_rvalid = rvalidreg;
+// drive output from registered internals (rdata, arready, rvalid assigned above)
   assign s_axi_rresp = 2'd0;
-// and outputs to make sure we don't respond to a write
-  assign s_axi_bresp = 2'd0;                         // no response to write access
-  assign s_axi_awready = 1'b0;                       // no response to write access
-  assign s_axi_wready = 1'b0;                        // no response to write access
-  assign s_axi_bvalid = 1'b0;                        // no response to write access
+// there are no writable registers: a write is acknowledged and ignored,
+// so that a stray write cannot stall the interconnect
+  assign s_axi_bresp = 2'd0;
+  assign s_axi_awready = awreadyreg;
+  assign s_axi_wready = wreadyreg;
+  assign s_axi_bvalid = bvalidreg;
+
+  always @(posedge aclk)
+  begin
+    if(~aresetn)
+    begin
+      awreadyreg <= 1'b1;
+      wreadyreg <= 1'b1;
+      bvalidreg <= 1'b0;
+    end
+    else
+    begin
+      if(s_axi_awvalid & awreadyreg)
+        awreadyreg <= 1'b0;
+      if(s_axi_wvalid & wreadyreg)
+        wreadyreg <= 1'b0;
+      if((!awreadyreg | (s_axi_awvalid & awreadyreg)) & (!wreadyreg | (s_axi_wvalid & wreadyreg)) & !bvalidreg)
+        bvalidreg <= 1'b1;
+      if(bvalidreg & s_axi_bready)
+      begin
+        bvalidreg <= 1'b0;
+        awreadyreg <= 1'b1;
+        wreadyreg <= 1'b1;
+      end
+    end
+  end
 
 
 endmodule

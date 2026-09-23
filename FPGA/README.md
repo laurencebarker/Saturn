@@ -10,6 +10,7 @@ saturnprinaryxx.bin: primary config file for FPGA version XX. This should be pro
 Version history:
 
 
+V28. 23/09/2026. Fixes from a review of the hand written Verilog: stray writes to codec SPI and read only registers no longer hang the AXI bus; TX I/Q no longer stuck on the envelope output after EER is turned off; Alex TX word upper bits no longer cause endless SPI shifting, and the reset shift uses the normal SPI clock; no lost FIFO/ADC overflow flags and correct ADC peak at -32768; iambic dash length at high weight, speed 0, and IO8 keying in straight mode fixed; 60s CW key down limit added; keys no longer read as pressed at power up; PWM drive 0 gives no output; saturating sidetone arithmetic; DMA write response fix; RX DDC mux can always shut down; wideband lost data flag. No software change needed.
 V27. 07/03/2026. added recording of max magnitude ADC0 and ADC1 samples in the same period that ADC overflows are reported
 V26. 04/01/2026. Added debug LO DDS selection to allow a Thetis debug mode to be used. No benefit for normal operation. 
 V25. 07/06/2025: Added drives to select HPF in TX path for future Saturn PCB. Does not affect behaviour with current PCB.

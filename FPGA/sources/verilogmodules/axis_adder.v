@@ -31,13 +31,18 @@ module axis_adder #
   wire int_tready_wire, int_tvalid_wire;
 
   generate
+    // the sum is calculated one bit wider and saturated, so overflow clips instead of wrapping
     if(AXIS_TDATA_SIGNED == "TRUE")
     begin : SIGNED
-      assign int_tdata_wire = $signed(s_axis_a_tdata) + $signed(s_axis_b_tdata);
+      wire signed [AXIS_TDATA_WIDTH:0] sum = $signed(s_axis_a_tdata) + $signed(s_axis_b_tdata);
+      assign int_tdata_wire = (sum[AXIS_TDATA_WIDTH] != sum[AXIS_TDATA_WIDTH-1])     // overflow
+                              ? {sum[AXIS_TDATA_WIDTH], {(AXIS_TDATA_WIDTH-1){~sum[AXIS_TDATA_WIDTH]}}}
+                              : sum[AXIS_TDATA_WIDTH-1:0];
     end
     else
     begin : UNSIGNED
-      assign int_tdata_wire = s_axis_a_tdata + s_axis_b_tdata;
+      wire [AXIS_TDATA_WIDTH:0] sum = s_axis_a_tdata + s_axis_b_tdata;
+      assign int_tdata_wire = sum[AXIS_TDATA_WIDTH] ? {(AXIS_TDATA_WIDTH){1'b1}} : sum[AXIS_TDATA_WIDTH-1:0];
     end
   endgenerate
 

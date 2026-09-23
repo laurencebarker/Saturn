@@ -162,18 +162,23 @@ module AXI_Stream_Reader_Writer #
        end
 
 // detect cycle complete by bready asserted too
+// wready is not re-asserted after the last beat of a burst until its response has
+// completed, so data of the next burst can't be merged into this burst's response
       if(bvalidreg & s_axi_bready)
       begin
         bvalidreg <= 1'b0;                                  // clear valid when done
         awreadyreg <= 1'b1;                                 // and reassert the readys
         wlastreg <= 0;                                      // clear latched last;
+        if(!m_axis_tvalidreg | m_axis_tready)               // stream register free (or freeing now)
+          wreadyreg <= 1'b1;
       end 
        
 // finally axi stream valid only asserted until ready handshake
       if(m_axis_tvalidreg & m_axis_tready)
       begin
         m_axis_tvalidreg <= 1'b0;                  // deassert valid for axi slave
-        wreadyreg <= 1'b1;
+        if(!wlastreg)                              // not waiting for a burst response
+          wreadyreg <= 1'b1;
       end
       
     end         // not reset

@@ -14,6 +14,7 @@
 // note this is true even if the axi-lite bus is wider!
 //  addr 0         read data [31:0]
 //  addr 4         read data [63:32]
+//  writes are acknowledged (OKAY) and ignored
 
 // Dependencies: 
 // 
@@ -63,6 +64,9 @@ module AXIL_ReadReg_64 #
   reg [AXI_DATA_WIDTH-1:0] rdatareg;        // AXI read data register
   reg arreadyreg;                           // false when write address has been latched
   reg rvalidreg;                            // true when read data out is valid
+  reg awreadyreg;                           // false when write address has been latched
+  reg wreadyreg;                            // false when write data has been latched
+  reg bvalidreg;                            // true when write response is valid
    
 //
 // read transaction strategy:
@@ -82,6 +86,9 @@ module AXIL_ReadReg_64 #
   assign s_axi_rvalid = rvalidreg;
   assign s_axi_rresp = 2'd0;
   assign s_axi_bresp = 2'd0;
+  assign s_axi_awready = awreadyreg;
+  assign s_axi_wready = wreadyreg;
+  assign s_axi_bvalid = bvalidreg;
 
   
   
@@ -93,6 +100,9 @@ module AXIL_ReadReg_64 #
       rdatareg <= {(AXI_DATA_WIDTH){1'b0}};
       arreadyreg <= 1'b1;                           // ready for address transfer
       rvalidreg <= 1'b0;                            // not ready to transfer read data
+      awreadyreg <= 1'b1;                           // ready for write address
+      wreadyreg <= 1'b1;                            // ready for write data
+      bvalidreg <= 1'b0;                            // no write response pending
     end
     else
     begin
@@ -105,7 +115,7 @@ module AXIL_ReadReg_64 #
         raddrreg <= s_axi_araddr;            // latch read address
       end
 // read step 3. assert rvalid & data when address is complete
-      if(!arreadyreg)         // address complete
+      if(!arreadyreg & !rvalidreg)  // address complete: load data once, held stable until rready
       begin
         rvalidreg <= 1'b1;                                  // signal ready to complete data
         if(raddrreg[2]==1)
@@ -119,6 +129,21 @@ module AXIL_ReadReg_64 #
         rvalidreg <= 1'b0;                                  // deassert rvalid
         arreadyreg <= 1'b1;                                 // ready for new address
         rdatareg <= {(AXI_DATA_WIDTH){1'b0}};
+      end
+
+// write transactions: registers are read only, so a write is accepted and ignored.
+// this completes the handshake so a stray write cannot stall the interconnect.
+      if(s_axi_awvalid & awreadyreg)
+        awreadyreg <= 1'b0;
+      if(s_axi_wvalid & wreadyreg)
+        wreadyreg <= 1'b0;
+      if((!awreadyreg | (s_axi_awvalid & awreadyreg)) & (!wreadyreg | (s_axi_wvalid & wreadyreg)) & !bvalidreg)
+        bvalidreg <= 1'b1;                                  // both address and data accepted
+      if(bvalidreg & s_axi_bready)
+      begin
+        bvalidreg <= 1'b0;
+        awreadyreg <= 1'b1;
+        wreadyreg <= 1'b1;
       end
     end         // if(!aresetn)
   end           // always @

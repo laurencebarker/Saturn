@@ -15,11 +15,13 @@
 //                 AXI4-Lite bus interface to processor 
 // Registers:
 //  addr 0         Control. R/W. Bit0=1: enable ADC0; bit1=1: enable ADC1 bit2: 1 to indicate data has been read
+//                 bit 31 (read only): 1 if words were lost in the last record because the output
+//                 stream was not ready (FIFO full). Cleared when the next record starts.
 //  addr 4         RecordPeriod. R/W.  Period in clock ticks between restart of recording 
 //  addr 8         Depth. R/W. Number of 64 bit words to be recorded into FIFO from one ADC, minus one
 //                 (to record 1024 words, write 1023)
 //  addr C         Status. R. 
-//	bit 13:90) FIFO depth in 64 bit words. 
+//	bit 13:0)  FIFO depth in 64 bit words. 
 //	bit 31	   ADC1 data ready. 1 if data available to read.
 //	Bit 30	   ADC0 data ready. 1 if data available to read.
 //
@@ -78,6 +80,8 @@ module Wideband_Collect #
   //
   output reg [63:0]               m_axis_tdata,   // AXI stream data to FIFO
   output reg                      m_axis_tvalid,  //AXI stream enable signal
+  input  wire                     m_axis_tready,  // AXI stream ready. The ADC can't be stalled,
+                                                  // so a word not accepted is lost and flagged
 
   output reg                      startrecord,    // debug strobe set when recording starts
 
@@ -106,6 +110,7 @@ module Wideband_Collect #
   reg [31:0] delaycountreg;		           // inter-record delay, in ticks
   reg [31:0] samplecountreg;               // sample count during record
   reg [3:0] wbstatereg;                    // state machine state
+  reg datalostreg;                         // set if an output word was not accepted
 
 //
 // AXI interface
@@ -181,11 +186,12 @@ module Wideband_Collect #
       end
 // read step 3. assert rvalid & data when address is complete
 // data is picked from one of 4 readable registers based on the address presented
-      if(!arreadyreg)         // address complete
+// and loaded once, so it is held stable until rready
+      if(!arreadyreg & !rvalidreg)         // address complete
       begin
         rvalidreg <= 1'b1;                                  // signal ready to complete data
         case (raddrreg[3:2])
-        0:  rdatareg <= controlreg;                        // concat data
+        0:  rdatareg <= {datalostreg, controlreg[30:0]};  // control, with lost data flag
         1:  rdatareg <= recordperiodreg;                        // concat data
         2:  rdatareg <= depthreg;                        // concat data
         3:  rdatareg <= {dataavailablereg[1:0], fifo_count[29:0]};                        // concat data
@@ -263,9 +269,14 @@ module Wideband_Collect #
       delaycountreg <= 0;
       samplecountreg <= 0;
       wbstatereg <= 0;
+      datalostreg <= 0;
     end
     else
     begin
+
+      // an output word not accepted downstream is lost: flag it
+      if(m_axis_tvalid & !m_axis_tready)
+        datalostreg <= 1'b1;
 
       // if control reg written to in last cycle, latch the enable bits
       if(controlregwritten)
@@ -286,7 +297,7 @@ module Wideband_Collect #
 		      delaycountreg <= recordperiodreg;
 	          startrecord <= 1;
 	        end
-	        else if(controlreg[1] == 1'b01)	// else if ADC1 enabled
+	        else if(controlreg[1] == 1'b1)	// else if ADC1 enabled
 	        begin
               wbstatereg <= 9;
 	          delaycountreg <= recordperiodreg;
@@ -296,6 +307,7 @@ module Wideband_Collect #
 
           1: begin				// begin ADC0
 	        dataavailablereg[1:0] <= 2'b00;
+	        datalostreg <= 1'b0;                // new record: clear lost data flag
 	        startrecord <= 0;
 	        wbstatereg <= 2;
 	        samplecountreg <= depthreg;
@@ -361,6 +373,7 @@ module Wideband_Collect #
 
           9: begin				// begin ADC1
 	        dataavailablereg[1:0] <= 2'b00;
+	        datalostreg <= 1'b0;                // new record: clear lost data flag
 	        startrecord <= 0;
 	        wbstatereg <= 10;
 	        samplecountreg <= depthreg;

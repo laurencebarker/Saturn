@@ -85,7 +85,12 @@ module AXIS_Deinterleaver #
   reg [AXIS_SIZE-1:0] m01_axis_tdata_reg;
   reg m00_axis_tvalid_reg;
   reg m01_axis_tvalid_reg;
-  reg int_axis_tready_reg;                // tready from stage 2 to stage 1
+
+  wire tostream1 = deinterleave & oddbeat;
+  wire m00_free = !m00_axis_tvalid_reg | m00_axis_tready;
+  wire m01_free = !m01_axis_tvalid_reg | m01_axis_tready;
+
+  wire int_axis_tready = tostream1 ? m01_free : m00_free;   // tready from stage 2 to stage 1
 
   assign s_axis_tready = s_axis_tready_reg;
   assign m00_axis_tdata = m00_axis_tdata_reg;
@@ -117,7 +122,7 @@ module AXIS_Deinterleaver #
         s_axis_tready_reg <= 0;                       // can't accept until consumed
         int_axis_tvalid_reg <= 1;                     // data available
       end
-      if(int_axis_tvalid_reg & int_axis_tready_reg)   // complete a master write
+      if(int_axis_tvalid_reg & int_axis_tready)   // complete a master write
       begin
         int_axis_tvalid_reg <= 0;
         s_axis_tready_reg <= 1;                       // can accept new data
@@ -128,55 +133,51 @@ module AXIS_Deinterleaver #
 
 //
 // logic for the axi stream output buffers
-// more complex. treat in two halves: operating when non multiplexed, and operating when multiplexed
+// each output register completes its own transfer independently.
+// oddbeat only selects which output the next sample is written to:
+// output 0 unless deinterleaving and on an odd beat.
+// oddbeat is cleared when disabled or when not deinterleaving, so after the documented
+// changeover (enabled=0; change deinterleave; enabled=1) the first sample always goes to m00.
+// a pending output transfer is always allowed to complete (tvalid is never withdrawn).
 //
+
   always @(posedge aclk)
   begin
     if(~aresetn)
     begin
-// reset to start states. Deassert axi master and slave strobes; clear data registers
+// reset to start states. Deassert axi master strobes; clear data registers
       m00_axis_tvalid_reg <= 0;
       m01_axis_tvalid_reg <= 0;
       m00_axis_tdata_reg <= 0;
       m01_axis_tdata_reg <= 0;
-      int_axis_tready_reg <= 1;                 // tready from stage 2 to stage 1
-      oddbeat <= 0;                             // point to stream 0 
+      oddbeat <= 0;                             // point to stream 0
     end
-    
-    else if(oddbeat==0)		                    // data goes to stream 0
+    else
     begin
-// stream 0
-      if(int_axis_tvalid_reg & int_axis_tready_reg)     // accept data if available & ready
-      begin
-        m00_axis_tdata_reg <= s_axis_tdata_reg;         // latch the data
-        int_axis_tready_reg <= 0;                       // can't accept until consumed
-        m00_axis_tvalid_reg <= 1;                       // data available
-      end
-      if(m00_axis_tvalid_reg & m00_axis_tready)         // complete a master write
-      begin
+      if(m00_axis_tvalid_reg & m00_axis_tready)       // complete master writes
         m00_axis_tvalid_reg <= 0;
-        int_axis_tready_reg <= 1;                       // can accept new data
-        if(deinterleave)
-          oddbeat <= ~oddbeat;                          // advance oddbeat if needed
+      if(m01_axis_tvalid_reg & m01_axis_tready)
+        m01_axis_tvalid_reg <= 0;
+
+      if(~enabled | ~deinterleave)
+        oddbeat <= 0;                                 // restart on stream 0
+
+      if(int_axis_tvalid_reg & int_axis_tready)   // accept data from stage 1
+      begin
+        if(tostream1)
+        begin
+          m01_axis_tdata_reg <= s_axis_tdata_reg;
+          m01_axis_tvalid_reg <= 1;
+        end
+        else
+        begin
+          m00_axis_tdata_reg <= s_axis_tdata_reg;
+          m00_axis_tvalid_reg <= 1;
+        end
+        if(enabled & deinterleave)
+          oddbeat <= ~oddbeat;                        // alternate streams
       end
     end
-    else                                                    // odd data beat
-    begin
-// stream 1
-      if(int_axis_tvalid_reg & int_axis_tready_reg)     // accept data if available & ready
-      begin
-        m01_axis_tdata_reg <= s_axis_tdata_reg;         // latch the data
-        int_axis_tready_reg <= 0;                       // can't accept until consumed
-        m01_axis_tvalid_reg <= 1;                       // data available
-      end
-      if(m01_axis_tvalid_reg & m01_axis_tready)         // complete a master write
-      begin
-        m01_axis_tvalid_reg <= 0;
-        int_axis_tready_reg <= 1;                       // can accept new data
-        if(deinterleave)
-          oddbeat <= ~oddbeat;                          // advance oddbeat if needed
-      end
-    end         // odd data beat
-  end           // always @
+  end
 
 endmodule

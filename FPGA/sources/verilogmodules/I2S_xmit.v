@@ -61,7 +61,7 @@ input  wire          CBfall;       // CBCLK rising edge trigger - when to change
 output reg           outbit;       // output bit 
 input  wire [DATA_BITS-1:0] sxmit_axis_tdata;       // left & right data to be clocked out 
 input  wire          sxmit_axis_tvalid;     // acknowledge handshake
-output reg           sxmit_axis_tready;     // ready for more data
+output reg           sxmit_axis_tready = 0;     // ready for more data
 
 reg   [NB-1:0] data;               // data to be clocked out 
 reg   [DATA_BITS-1:0] last_data; 

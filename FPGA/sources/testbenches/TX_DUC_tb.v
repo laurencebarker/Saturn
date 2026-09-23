@@ -68,7 +68,7 @@ always #(CLK_PERIOD/2) clk122 = ~clk122;
 initial begin
     //Assert the reset
     resetn1 = 0;
-    S_AXIS_tdata = 47'h0000007FFFFF;                // 1, 0
+    S_AXIS_tdata = 48'h0000007FFFFF;                // 1, 0
     S_AXIS_tvalid = 1;
     TXConfig = 32'h801FFFF8;                        // half of full scale amplitude
     TXLOTune = 32'h03F55555;                        // 1.9MHz

@@ -56,7 +56,10 @@
 
 module AXIS_DDC_Multiplexer #
 (
-  parameter AXIS_INPUT_SIZE = 48          // input bus width
+  parameter AXIS_INPUT_SIZE = 48,         // input bus width. Must be 48: the output word format is
+                                          // 16 bit header + 48 bit I/Q sample
+  parameter SHUTDOWN_TIMEOUT = 16384      // clocks to wait for a DDC sample while shutting down
+                                          // (48KHz sample period = 2560 clocks at 122.88MHz)
 )
 (
   // System signals
@@ -218,6 +221,10 @@ localparam muxillegal5 = 15;                     // illegal state
   reg muxactive = 0;                            // true if o/p mux provessing samples
   reg [3:0] DDCn;                               // DDC counter
   reg [31:0] DDCrates;                          // internal count of DDC rates          
+  reg [15:0] waitcount = 0;                     // clocks spent waiting for a DDC sample while shutting down
+  reg muxaborted = 0;                           // true if sequence abandoned during shutdown
+  wire slavewait = (muxstate == muxslvxfer) || (muxstate == muxevenslvxfer) || (muxstate == muxoddslvrdy);
+  wire abort = slavewait && !internalactive && (waitcount == SHUTDOWN_TIMEOUT-1);
 
 
 //
@@ -238,7 +245,7 @@ localparam muxillegal5 = 15;                     // illegal state
             fiforstn <= 0;
             enabledstate <= enidle;
             internalactive <= 0;
-            active=0;
+            active <= 0;
         end
         
         else                            // normal processing
@@ -348,7 +355,9 @@ localparam muxillegal5 = 15;                     // illegal state
                     begin
                         enablemux <= 0;                 // set mux to disabled, so its state clears to 0
                         DDCstate <= ddcenablemux;
-                        if(DDCn == 9)                   // if finished this set of DDC:
+                        if(muxaborted)                  // sequence abandoned while shutting down
+                            DDCstate <= ddcidle;
+                        else if(DDCn == 9)              // if finished this set of DDC:
                         begin
                             if(internalactive == 0)     // if sequencer halted externally, go back to idle
                                 DDCstate <= ddcidle;
@@ -428,12 +437,37 @@ localparam muxillegal5 = 15;                     // illegal state
             s_axis_tready[9] <= 0;      // not ready for input data
             muxactive <= 0;             // multiplexer not active
             muxstate <= muxidle;        // idle state
+            waitcount <= 0;
+            muxaborted <= 0;
         end
         
+        else if(abort)                  // shutting down and a DDC has stopped producing samples:
+        begin                           // abandon the sequence so "enabled" can complete
+            s_axis_tready[0] <= 0;
+            s_axis_tready[1] <= 0;
+            s_axis_tready[2] <= 0;
+            s_axis_tready[3] <= 0;
+            s_axis_tready[4] <= 0;
+            s_axis_tready[5] <= 0;
+            s_axis_tready[6] <= 0;
+            s_axis_tready[7] <= 0;
+            s_axis_tready[8] <= 0;
+            s_axis_tready[9] <= 0;
+            muxactive <= 0;
+            muxaborted <= 1;
+            waitcount <= 0;
+            muxstate <= muxend;
+        end
         else                            // normal processing
         begin
+            if(slavewait && !internalactive)
+                waitcount <= waitcount + 1;
+            else
+                waitcount <= 0;
+
             case (muxstate)
                 muxidle: begin          // initial state: see if released to start
+                    muxaborted <= 0;
                     if(enablemux)       // if multiplexer should become active
                     begin
                         muxactive <= 1;
